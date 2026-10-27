@@ -1,0 +1,24 @@
+{
+  "rp2350_ds": {
+    "title": "RP2350 datasheet",
+    "url": "https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf",
+    "sha256": "a638d6780da919162660691bfa02c6dcf7c2a0b6e9f18e2d7519c80b664a2e39"
+  },
+  "rp2350_hdg": {
+    "title": "Hardware design with RP2350",
+    "url": "https://datasheets.raspberrypi.com/rp2350/hardware-design-with-rp2350.pdf",
+    "revision": "release 3, build 20/08/2026",
+    "sha256": "cef88bc7d87e67b4262ee15f2b94b03566667143f4e8daf6931828bef6408059"
+  },
+  "rp2350a_minimal": {
+    "title": "RP2350A Minimal Board, KiCad files (RP2350_60QFN_minimal.kicad_pcb)",
+    "where": "Linked from the 'Hardware design with RP2350' documentation page; archive RP-006440-DD rev 2",
+    "revision": "RP-006440-DD rev 2",
+    "sha256": "745e4b3a7bbf0beaf65f7dbc56808ce764420eaf4c26e9cce1fa314cfb0c3b2b"
+  },
+  "easy2350_core_audit": {
+    "title": "easy2350 U1 core block audit (easy_pcb)",
+    "url": "https://github.com/sequoia-hope/easy_pcb/blob/2d56198/examples/easy2350/design/parts/rp2350-core.md",
+    "revision": "easy_pcb 2d56198"
+  }
+}

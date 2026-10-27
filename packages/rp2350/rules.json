@@ -1,0 +1,111 @@
+{
+  "package": "rp2350",
+  "version": "0.1.0",
+  "note": "Claims scoped to the RP2350 core regulator. Page numbers are the datasheet's (sha256 a638d678…) and the design guide's (release 3) printed pages, as quoted in easy2350's audit. `requirement` gives a value range a tool can check; `enforced_by` says which tool does.",
+  "claims": [
+    {
+      "id": "rp2350.vreg.inductor",
+      "statement": "The core regulator inductor is a fully shielded, polarity-marked 3.3 uH +/-20 % part with DCR <= 250 mOhm and Isat >= 1.5 A.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "role": "inductor" },
+      "attributes": ["inductance", "dcr", "isat"],
+      "requirement": { "inductance_uh": [2.64, 3.96], "dcr_mohm_max": 250, "isat_a_min": 1.5, "shielded": true, "polarity_marked": true },
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8.2 p.412; HDG §2.1 pp.6-7" },
+      "status": "asserted",
+      "enforced_by": ["validator (milestone 4: part parameters)"]
+    },
+    {
+      "id": "rp2350.vreg.inductor_orientation",
+      "statement": "The inductor is placed the right way round: its marked pad (1) on the 1V1 output, pad 2 on VREG_LX.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "role": "inductor" },
+      "attributes": ["orientation"],
+      "citation": { "source": "rp2350_ds", "locator": "p.413; HDG pp.6-7" },
+      "status": "asserted",
+      "enforced_by": ["generator (pads keep their nets; the footprint fixes the polarity)"]
+    },
+    {
+      "id": "rp2350.vreg.cout",
+      "statement": "COUT is 4.7 uF +/-20 % with ESR <= 250 mOhm and ESL <= 6 nH, and VREG_FB is taken from COUT.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "role": "cout" },
+      "attributes": ["capacitance", "esr", "esl", "feedback_point"],
+      "requirement": { "capacitance_uf": [3.76, 5.64], "esr_mohm_max": 250, "esl_nh_max": 6 },
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8.2 p.412" },
+      "status": "asserted",
+      "enforced_by": ["generator (the feedback run ends at COUT's output pad)"]
+    },
+    {
+      "id": "rp2350.vreg.cin",
+      "statement": "CIN is >= 4.7 uF with ESR <= 50 mOhm, at VREG_VIN, with its own ground path to the QFN.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "role": "cin" },
+      "attributes": ["capacitance", "esr", "hot_loop_area"],
+      "requirement": { "capacitance_uf_min": 4.7, "esr_mohm_max": 50 },
+      "citation": { "source": "rp2350_ds", "locator": "p.401, p.411, p.412" },
+      "status": "asserted",
+      "enforced_by": ["generator (hot-loop objective)", "verifier hot_loop_area_mm2"]
+    },
+    {
+      "id": "rp2350.vreg.small_loop",
+      "statement": "The switching loop area is kept as small as possible.",
+      "scope": { "chip": "RP2350", "block": "core_reg" },
+      "attributes": ["hot_loop_area", "output_loop_area"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8 p.411" },
+      "status": "promoted",
+      "enforced_by": ["generator objectives w_hot, w_out", "verifier hot_loop_area_mm2, output_loop_area_mm2"]
+    },
+    {
+      "id": "rp2350.vreg.fb_not_under_lx",
+      "statement": "VREG_FB is fed from the output of COUT, avoiding routing directly underneath LX.",
+      "scope": { "chip": "RP2350", "block": "core_reg" },
+      "attributes": ["feedback_clearance"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8 p.412" },
+      "status": "promoted",
+      "enforced_by": ["generator floor fb_clearance_min", "verifier feedback_clearance_mm"],
+      "links": [{ "refines": "rp2350.vreg.cout" }]
+    },
+    {
+      "id": "rp2350.vreg.lx_cutout",
+      "statement": "On a board with inner layers, the copper on the layer under the VREG_LX node is cut away.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "layers": ">= 4" },
+      "attributes": ["switch_node_underlap"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8 p.412, Figure 27" },
+      "status": "promoted",
+      "enforced_by": ["generator keepout on the layer below", "verifier switch_node_underlap_mm2 <= 0"]
+    },
+    {
+      "id": "rp2350.vreg.top_copper_cut",
+      "statement": "On the top layer, extra copper underneath the inductor is cut away and copper near the VREG_LX trace is cut back.",
+      "scope": { "chip": "RP2350", "block": "core_reg" },
+      "attributes": ["switch_node_area"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8 pp.411-412" },
+      "status": "promoted",
+      "enforced_by": ["generator objective w_sw", "verifier switch_node_area_mm2"]
+    },
+    {
+      "id": "rp2350.vreg.avdd_rc",
+      "statement": "VREG_AVDD must be RC filtered: 33 Ohm and 4.7 uF.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "role": ["rfilt", "cfilt"] },
+      "attributes": ["filter"],
+      "requirement": { "r_ohm": 33, "c_uf": 4.7 },
+      "citation": { "source": "rp2350_ds", "locator": "p.411; HDG p.7" },
+      "status": "asserted",
+      "enforced_by": []
+    },
+    {
+      "id": "rp2350.vreg.pgnd_single_point",
+      "statement": "VREG_PGND joins the main ground at one point.",
+      "scope": { "chip": "RP2350", "block": "core_reg" },
+      "attributes": ["ground_topology"],
+      "citation": { "source": "rp2350_ds", "locator": "p.411; HDG p.5" },
+      "status": "asserted",
+      "enforced_by": ["generator (ground vias beside CIN's ground pad only)"]
+    },
+    {
+      "id": "rp2350.vreg.follow_reference",
+      "statement": "The regulator layout should be placed first on any board design, and its guidelines must be strictly followed.",
+      "scope": { "chip": "RP2350", "block": "core_reg" },
+      "attributes": ["placement_order"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.3.8" },
+      "status": "asserted",
+      "enforced_by": ["composer (milestone 5: critical blocks are placed and locked before the rest)"]
+    }
+  ]
+}

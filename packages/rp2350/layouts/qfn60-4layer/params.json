@@ -1,0 +1,33 @@
+{
+  "along": 4.0,
+  "beam": 60,
+  "beam_inductor": 240,
+  "clearance": null,
+  "diversity": 0.3,
+  "escape": 0.2,
+  "fb_clearance_min": 0.3,
+  "fb_width": 0.2,
+  "gnd_vias": 2,
+  "grid": 0.1,
+  "keepout_layer": "In1.Cu",
+  "keepout_margin": 0.2,
+  "layer": "F.Cu",
+  "neck": 0.6,
+  "power_widths": [
+    0.4,
+    0.3,
+    0.2
+  ],
+  "reach": 5.0,
+  "rotations": [
+    0.0,
+    90.0,
+    180.0,
+    270.0
+  ],
+  "via_drill": 0.3,
+  "via_size": 0.6,
+  "w_hot": 1.0,
+  "w_out": 0.5,
+  "w_sw": 0.5
+}

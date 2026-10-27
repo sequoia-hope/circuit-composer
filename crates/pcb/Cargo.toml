@@ -1,0 +1,13 @@
+[package]
+name = "pcb"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# A KiCad board as the verifier and generators see it: parts, pads, tracks, vias and filled
+# zones per net, in millimetres, plus the geometry they are measured with. Reading is
+# ultraroute's `kicad-pcb` crate (MIT), pinned to a commit.
+
+[dependencies]
+kicad-pcb = { git = "https://github.com/sequoia-hope/ultraroute", rev = "fb7ae496cd41b2475c78805bf017d54e4cb301c3" }
+serde = { version = "1", features = ["derive"] }

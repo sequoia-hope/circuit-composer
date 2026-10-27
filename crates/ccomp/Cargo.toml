@@ -8,5 +8,9 @@ license.workspace = true
 
 [dependencies]
 intent = { path = "../intent" }
+pcb = { path = "../pcb" }
+verify = { path = "../verify" }
+blockgen = { path = "../blockgen" }
+serde = "1"
 serde_json = "1"
 clap = { version = "4", features = ["derive"] }

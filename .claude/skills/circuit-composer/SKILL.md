@@ -26,6 +26,19 @@ stage. Each command prints one JSON object; read it, never scrape text. Exit 0 =
    inductor"), protection paths from connector pad to TVS pad, and energy sources.
 4. Validate again and write the report: `ccomp validate ... -o boards/<name>/validate.json`.
 
+## Generate and verify a buck block
+
+1. Give the block its roles in the intent file: `vin`, `sw`, `pgnd` and `fb` are the
+   regulator IC's pads (`U1.49`); `cin`, `cout` and `inductor` are parts. The validator
+   requires all seven for a `buck`.
+2. Measure what is there: `ccomp check buck BOARD --intent INTENT --block ID --svg block.svg`.
+   Look at the SVG before trusting a number.
+3. Generate on a test bench, booking cores (it takes about 30 s on 8):
+   `~/.claude/bin/reserve -c 8 -l "buck bench" -- python3 tools/bench_buck.py BOARD ROLES.json OUT`.
+   `bench.json` must show `"ok": true` and no `drc_errors`.
+4. Compare against the vendor layout with `tools/compare_buck.py`. Every row goes through the
+   same checker; never compare a number measured one way against one measured another.
+
 ## Rules
 
 - Net keys are KiCad's exact names, `/GPIO0` not `GPIO0` (the validator suggests the right one).

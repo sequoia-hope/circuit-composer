@@ -123,25 +123,27 @@ pub struct BlockType {
     /// Whether a generator exists yet; without one the block is placed from a package layout or
     /// by hand.
     pub generator: bool,
+    /// Roles a block of this type must name in `Block::roles`.
+    pub roles: &'static [&'static str],
 }
 
 /// The block library's types. Generators come milestone by milestone; a type is listed once
 /// the schema needs to name it.
 pub const BLOCK_TYPES: &[BlockType] = &[
-    BlockType { name: "buck", summary: "synchronous or async step-down converter", generator: false },
-    BlockType { name: "boost", summary: "step-up converter", generator: false },
-    BlockType { name: "ldo", summary: "linear regulator with its capacitors", generator: false },
-    BlockType { name: "half_bridge", summary: "two switches, driver and bulk/decoupling", generator: false },
-    BlockType { name: "crystal", summary: "crystal, load capacitors and series resistor", generator: false },
-    BlockType { name: "connector_protection", summary: "connector with its TVS/ESD/fuse in path order", generator: false },
-    BlockType { name: "mcu", summary: "microcontroller with its decoupling", generator: false },
-    BlockType { name: "memory", summary: "external memory on a bus (QSPI flash, PSRAM)", generator: false },
-    BlockType { name: "level_shifter", summary: "logic-level translation", generator: false },
-    BlockType { name: "led_chain", summary: "addressable LEDs with decoupling", generator: false },
-    BlockType { name: "indicator", summary: "LED and its resistor", generator: false },
-    BlockType { name: "button", summary: "pushbutton and its resistor", generator: false },
-    BlockType { name: "connector", summary: "header or connector with no protection", generator: false },
-    BlockType { name: "test_point", summary: "test points", generator: false },
+    BlockType { name: "buck", summary: "synchronous or async step-down converter", generator: true, roles: &["vin", "sw", "pgnd", "fb", "cin", "cout", "inductor"] },
+    BlockType { name: "boost", summary: "step-up converter", generator: false, roles: &[] },
+    BlockType { name: "ldo", summary: "linear regulator with its capacitors", generator: false, roles: &[] },
+    BlockType { name: "half_bridge", summary: "two switches, driver and bulk/decoupling", generator: false, roles: &[] },
+    BlockType { name: "crystal", summary: "crystal, load capacitors and series resistor", generator: false, roles: &[] },
+    BlockType { name: "connector_protection", summary: "connector with its TVS/ESD/fuse in path order", generator: false, roles: &[] },
+    BlockType { name: "mcu", summary: "microcontroller with its decoupling", generator: false, roles: &[] },
+    BlockType { name: "memory", summary: "external memory on a bus (QSPI flash, PSRAM)", generator: false, roles: &[] },
+    BlockType { name: "level_shifter", summary: "logic-level translation", generator: false, roles: &[] },
+    BlockType { name: "led_chain", summary: "addressable LEDs with decoupling", generator: false, roles: &[] },
+    BlockType { name: "indicator", summary: "LED and its resistor", generator: false, roles: &[] },
+    BlockType { name: "button", summary: "pushbutton and its resistor", generator: false, roles: &[] },
+    BlockType { name: "connector", summary: "header or connector with no protection", generator: false, roles: &[] },
+    BlockType { name: "test_point", summary: "test points", generator: false, roles: &[] },
 ];
 
 pub fn block_type(name: &str) -> Option<&'static BlockType> {

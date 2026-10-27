@@ -1,0 +1,15 @@
+[package]
+name = "verify"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The verifier's fast tier: physics proxies measured on KiCad geometry in milliseconds, so they
+# can run inside placement loops as well as at sign-off.
+
+[dependencies]
+pcb = { path = "../pcb" }
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1"

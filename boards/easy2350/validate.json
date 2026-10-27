@@ -1,22 +1,5 @@
 {
-  "findings": [
-    {
-      "code": "class_differs_from_kicad",
-      "field": "class",
-      "id": "GND",
-      "message": "intent says `GROUND`, the schematic's net class is `POWER`",
-      "severity": "warning",
-      "subject": "net"
-    },
-    {
-      "code": "no_protected_zone",
-      "field": "protected_zone",
-      "id": "VBUS",
-      "message": "energy source has no protected zone",
-      "severity": "warning",
-      "subject": "energy_source"
-    }
-  ],
+  "findings": [],
   "ok": true,
   "summary": {
     "blocks": 14,
@@ -26,6 +9,6 @@
     "nets_passing": 65,
     "nets_with_intent": 65,
     "parts_unassigned": [],
-    "warnings": 2
+    "warnings": 0
   }
 }

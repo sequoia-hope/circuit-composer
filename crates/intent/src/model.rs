@@ -294,6 +294,10 @@ pub struct Block {
     pub package: Option<String>,
     /// Member parts by reference designator.
     pub parts: Vec<String>,
+    /// Who plays each role the block type names: pads as `REF.PIN`, parts by reference. A
+    /// buck names `vin`, `sw`, `pgnd`, `fb` (the IC's pads) and `cin`, `cout`, `inductor`.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub roles: BTreeMap<String, String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub placement_goal: Option<PlacementGoal>,
     /// External interface, keyed by port name.
@@ -366,6 +370,10 @@ pub enum BoundOp {
 pub enum Metric {
     /// Area enclosed by a switching block's high-di/dt loop, mm².
     HotLoopAreaMm2,
+    /// Area enclosed by a buck's output loop (switch, inductor, output capacitor), mm².
+    OutputLoopAreaMm2,
+    /// Other nets' copper on the layer under a switch node's outer copper, mm².
+    SwitchNodeUnderlapMm2,
     /// Copper area of a switch node, mm².
     SwitchNodeAreaMm2,
     /// Distance from a feedback net to switch-node copper, mm.

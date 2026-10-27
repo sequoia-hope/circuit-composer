@@ -1,0 +1,60 @@
+# Circuit Composer package: Raspberry Pi RP2350 family.
+#
+# 0.1.0 holds one verified sub-block, the core voltage regulator (an on-chip buck with an
+# external inductor and capacitors), generated and checked on a 4-layer test bench. Interface
+# blocks (USB, crystal, QSPI flash), the QFN-80 layout, ports and the reference schematic come
+# with milestone 4.
+
+[package]
+name = "rp2350"
+version = "0.1.0"
+family = "RP2350"
+license = "MIT"
+summary = "RP2350 core regulator: cited rules and a generated, verified 4-layer layout"
+
+[[variants]]
+name = "RP2350A"
+package = "QFN-60 7x7 mm, 0.4 mm pitch"
+footprint = "RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias"
+gpio = 30
+flash = "external"
+layouts = ["qfn60-4layer"]
+
+[[variants]]
+name = "RP2350B"
+package = "QFN-80 10x10 mm, 0.4 mm pitch"
+gpio = 48
+flash = "external"
+layouts = []    # not yet
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "RP2350 datasheet (sha256 a638d678…)"
+design_guide = "Hardware design with RP2350, release 3, build 20/08/2026"
+reference_board = "RP2350A Minimal Board, RP-006440-DD rev 2 (KiCad)"
+
+# LCSC parts the layout was generated with. Stock and price were not snapshotted for this
+# release; the date is when easy2350's audit checked availability.
+[[sourcing]]
+role = "ic"
+part = "RP2350A"
+lcsc = "C42411118"
+checked = "2026-10-23"
+
+[[sourcing]]
+role = "inductor"
+part = "Abracon AOTA-B201610S3R3-101-T, 3.3 uH, 2016"
+lcsc = "C42411119"
+checked = "2026-10-23"
+
+[[sourcing]]
+role = "cin"
+part = "Samsung CL05A475MP5NRNC, 4.7 uF 0402"
+lcsc = "C23733"
+checked = "2026-10-23"
+
+[[sourcing]]
+role = "cout"
+part = "Samsung CL05A475MP5NRNC, 4.7 uF 0402"
+lcsc = "C23733"
+checked = "2026-10-23"

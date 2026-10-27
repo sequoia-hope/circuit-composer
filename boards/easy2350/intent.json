@@ -1797,6 +1797,15 @@
         "C15",
         "R3"
       ],
+      "roles": {
+        "vin": "U1.49",
+        "sw": "U1.48",
+        "pgnd": "U1.47",
+        "fb": "U1.50",
+        "cin": "C14",
+        "cout": "C15",
+        "inductor": "L1"
+      },
       "placement_goal": {
         "objectives": [
           {

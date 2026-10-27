@@ -54,13 +54,21 @@ main { display: grid; gap: .9rem; }
 ul { margin: 0; padding-left: 1.15rem; }
 li { margin: .25rem 0; }
 ul.checks { list-style: none; padding-left: 0; }
-ul.checks li { display: flex; gap: .55rem; align-items: baseline; }
-ul.checks li::before { content: "○"; color: var(--muted); font-size: .9em; }
+ul.checks li { padding-left: 1.4em; text-indent: -1.4em; }
+ul.checks li::before { content: "○"; color: var(--muted); font-size: .9em; display: inline-block; width: 1.4em; text-indent: 0; }
 ul.checks li.done { color: var(--muted); }
 ul.checks li.done::before { content: "●"; color: var(--up); }
 .log { display: grid; gap: .7rem; }
 .entry { display: grid; grid-template-columns: 5.5rem 1fr; gap: .75rem; align-items: baseline; }
-li code { word-break: break-all; }
+li code { overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; margin-bottom: .8rem; }
+th, td { padding: .3rem .55rem; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+.figs { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+figure { margin: 0; }
+figure img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #101318; }
+figcaption { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
 .entry time { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
 .todo { color: var(--muted); font-style: italic; }
 code {
@@ -78,7 +86,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 <header>
   <div class="title">
     <h1>circuit-composer</h1>
-    <span class="state active"><span class="dot"></span>Milestone 1 done</span>
+    <span class="state active"><span class="dot"></span>Milestone 2 done</span>
   </div>
   <p class="lede">Board design as composition: chips ingested once into verified packages, boards
   built by combining them. Sits between <a href="../easy_pcb">easy_pcb</a> (schematic) and
@@ -89,10 +97,21 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 
   <section class="card">
     <h2>Where it stands</h2>
-    <p>Intent schema v0 exists as Rust types with a generated JSON Schema, a validator, and a
-    <code>ccomp</code> CLI that prints JSON. easy2350, easy_pcb's worked RP2350A board, is annotated
-    by hand: its nets, 14 blocks, a domain tree, two part-anchored regions, and three protection paths.
-    It passes the validator. Nothing places, generates or routes yet. That starts with milestone 2.</p>
+    <p>Two milestones are done. Intent schema v0 and its validator pass easy2350. A buck generator,
+    fast-tier checks and the first package, <code>packages/rp2350</code> 0.1.0, cover the RP2350's
+    core regulator. Starting from nothing but the part footprints, the generator places CIN and
+    COUT where Raspberry Pi did. Every row in the table below is measured by the same checker, and
+    the generated layout comes out ahead on all four checks. It is KiCad DRC clean on a 4-layer
+    test bench. Nothing is routed by ultraroute yet; that is milestone 3.</p>
+  </section>
+
+  <section class="card">
+    <h2>RP2350 core regulator: reference vs generated</h2>
+    <div id="compare"><p class="todo">Loading packages/rp2350/layouts/qfn60-4layer/compare/compare.json…</p></div>
+    <p class="todo" style="font-size:.85rem">Magenta: hot loop (VIN → CIN → PGND). Cyan dashes: output loop.
+    Yellow: feedback path. Orange: switch-node pads. Dark cut: In1.Cu keepout. Areas in mm², clearance in mm.
+    Score is hot + 0.5 × switch node + 0.5 × output loop. The reference uses copper zones and the generator
+    draws tracks, so part of the smaller switch-node area is narrower copper.</p>
   </section>
 
   <section class="card">
@@ -104,21 +123,22 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
     <section class="card">
       <h2>Working</h2>
       <ul class="checks">
-        <li class="done">Intent types: nets, blocks, ports, domains, regions, protection paths</li>
-        <li class="done">JSON Schema generated; a test fails if the committed copy is stale</li>
-        <li class="done">Validator: required fields per class, provenance on every hard constraint, pairs, pads</li>
-        <li class="done">KiCad netlist reader (runs kicad-cli on a schematic)</li>
+        <li class="done">Intent schema v0, JSON Schema, validator; easy2350 passes with 0 warnings</li>
         <li class="done">Import from easy_pcb <code>design/nets.csv</code></li>
-        <li class="done">easy2350 annotated and passing; 17 tests</li>
+        <li class="done">Board reader on ultraroute's <code>kicad-pcb</code> (pinned); copper-path search</li>
+        <li class="done">Buck checks: hot loop, output loop, switch node, FB clearance, under-switch copper</li>
+        <li class="done">Buck generator; layouts in the IC's frame; pcbnew apply; test bench with KiCad DRC</li>
+        <li class="done">Package <code>rp2350</code> 0.1.0: manifest, intent, 11 cited rules, 4-layer layout, verify report</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>Next up</h2>
       <ul class="checks">
-        <li>M2: buck generator and fast-tier verifier on the RP2350 core regulator</li>
-        <li>M2: score against Raspberry Pi's reference layout</li>
-        <li>M3: constraint compiler to KiCad rules and rule areas for ultraroute</li>
+        <li>M3: constraint compiler writes <code>routing.json</code> regions for ultraroute (format agreed)</li>
+        <li>M3: sample <code>routing.json</code> for easy2350 as ultraroute's first test</li>
+        <li>Apply the generated block in context on easy2350; 2-layer variant</li>
+        <li>Mine <code>~/pcb/rp2350-motor-controller</code> for more blocks</li>
       </ul>
     </section>
   </div>
@@ -127,9 +147,10 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
     <section class="card">
       <h2>Open questions</h2>
       <ul>
-        <li>Intent file format: chose JSON for v0 (schema is generated from the Rust types)</li>
+        <li>Intent file format: JSON for v0 (the schema is generated from the Rust types)</li>
         <li>EM solver for the slow tier (openEMS or other)</li>
-        <li>How ultraroute represents cost grids (it reads rule areas as via-avoid today)</li>
+        <li>Router cost grids: settled as regions in <code>routing.json</code>, read with <code>--regions</code></li>
+        <li>Publish <code>packages/rp2350</code> to GitHub: waiting on your go-ahead</li>
       </ul>
     </section>
 
@@ -144,6 +165,11 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 2: buck checks, generator and the <code>rp2350</code> package. Generated core regulator
+        scores 3.15 vs the reference's 3.44, DRC clean. Agreed the <code>routing.json</code> handoff with ultraroute.</div>
+      </div>
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
         <div>Milestone 1: intent schema v0, validator, <code>ccomp</code> CLI, easy_pcb importer;
@@ -164,6 +190,15 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 </footer>
 
 <script>
+const D = "packages/rp2350/layouts/qfn60-4layer/compare/";
+fetch(D + "compare.json").then(r => r.json()).then(c => {
+  const esc = t => String(t).replace(/[&<>]/g, x => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[x]));
+  const cols = [["hot_loop_area_mm2","Hot loop"],["switch_node_area_mm2","Switch node"],["output_loop_area_mm2","Output loop"],["feedback_clearance_mm","FB clearance"]];
+  const head = `<tr><th></th>${cols.map(c => `<th>${c[1]}</th>`).join("")}<th>Score</th></tr>`;
+  const rows = c.rows.map(r => `<tr><td>${esc(r.label)}</td>${cols.map(k => `<td>${r.measured[k[0]].toFixed(3)}</td>`).join("")}<td><strong>${r.score.toFixed(2)}</strong></td></tr>`).join("");
+  const figs = c.rows.map(r => `<figure><img src="${D}${esc(r.svg)}" alt="${esc(r.label)}"><figcaption>${esc(r.label)}</figcaption></figure>`).join("");
+  document.getElementById("compare").innerHTML = `<div class="scroll"><table>${head}${rows}</table></div><div class="figs">${figs}</div>`;
+}).catch(e => { document.getElementById("compare").innerHTML = `<p class="todo">Could not load the comparison: ${e}</p>`; });
 fetch("boards/easy2350/validate.json").then(r => r.json()).then(r => {
   const s = r.summary, esc = t => String(t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
   const rows = r.findings.map(f => `<li><code>${esc(f.severity)}</code> <code>${esc(f.code)}</code> ${esc(f.subject)} <code>${esc(f.id)}</code>: ${esc(f.message)}</li>`).join("");

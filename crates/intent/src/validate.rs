@@ -181,7 +181,8 @@ pub fn validate(intent: &IntentFile, netlist: Option<&Netlist>) -> Report {
                 }
                 Some(kn) => {
                     if let (Some(kc), Some(ic)) = (&kn.class, &net.class) {
-                        if kc != ic {
+                        // GROUND refines easy_pcb's and KiCad's POWER: not a disagreement.
+                        if kc != ic && !(ic == "GROUND" && kc == "POWER") {
                             cx.warn("class_differs_from_kicad", "net", name, Some("class"), format!("intent says `{ic}`, the schematic's net class is `{kc}`"));
                         }
                     }
@@ -315,6 +316,31 @@ fn check_blocks(cx: &mut Ctx, summary: &mut Summary) {
     const S: &str = "block";
     let mut owner: BTreeMap<&str, &str> = BTreeMap::new();
     for (id, b) in &cx.intent.blocks {
+        if let Some(t) = presets::block_type(&b.kind) {
+            for role in t.roles {
+                if !b.roles.contains_key(*role) {
+                    cx.error("block_missing_role", S, id, Some("roles"), format!("a {} block names its `{role}`", t.name));
+                }
+            }
+        }
+        for (role, who) in &b.roles {
+            let field = format!("roles.{role}");
+            match who.split_once('.') {
+                Some((r, pin)) => {
+                    if let Some(n) = cx.netlist {
+                        if !n.nets.values().any(|net| net.has_pad(r, pin)) {
+                            cx.error("unknown_pad", S, id, Some(&field), format!("pad {who} is on no net"));
+                        }
+                    }
+                }
+                None => {
+                    cx.check_part_ref(S, id, &field, who);
+                    if !b.parts.contains(who) {
+                        cx.error("role_outside_block", S, id, Some(&field), format!("part `{who}` is not one of the block's parts"));
+                    }
+                }
+            }
+        }
         if presets::block_type(&b.kind).is_none() {
             let known: Vec<_> = presets::BLOCK_TYPES.iter().map(|t| t.name).collect();
             cx.error("block_unresolved_type", S, id, Some("type"), format!("type `{}` is not in the block library ({})", b.kind, known.join(", ")));
@@ -520,7 +546,12 @@ fn check_protection(cx: &mut Ctx) {
         const S: &str = "energy_source";
         cx.check_net_ref(S, &e.net, "net", &e.net);
         match &e.protected_zone {
-            None => cx.warn("no_protected_zone", S, &e.net, Some("protected_zone"), "energy source has no protected zone".into()),
+            // A supply input with no fuse or disconnect has no "upstream of the first disconnect"
+            // to bound; a battery or capacitor bank can always dump its energy, so it needs one.
+            None if matches!(e.kind, EnergyKind::Battery | EnergyKind::CapacitorBank) => {
+                cx.warn("no_protected_zone", S, &e.net, Some("protected_zone"), "energy source has no protected zone".into())
+            }
+            None => {}
             Some(z) => match cx.intent.regions.iter().find(|r| &r.name == z) {
                 None => cx.error("unknown_region", S, &e.net, Some("protected_zone"), format!("region `{z}` is not defined")),
                 Some(r) if r.kind != RegionKind::ProtectedZone => {

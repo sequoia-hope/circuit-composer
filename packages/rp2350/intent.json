@@ -1,0 +1,272 @@
+{
+  "schema_version": "0.1",
+  "board": {
+    "name": "rp2350 package: core regulator"
+  },
+  "sources": {
+    "rp2350_ds": {
+      "title": "RP2350 datasheet",
+      "location": "https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf",
+      "sha256": "a638d6780da919162660691bfa02c6dcf7c2a0b6e9f18e2d7519c80b664a2e39"
+    },
+    "rp2350_hdg": {
+      "title": "Hardware design with RP2350",
+      "location": "https://datasheets.raspberrypi.com/rp2350/hardware-design-with-rp2350.pdf",
+      "revision": "release 3, build 20/08/2026",
+      "sha256": "cef88bc7d87e67b4262ee15f2b94b03566667143f4e8daf6931828bef6408059"
+    },
+    "rp2350a_minimal": {
+      "title": "RP2350A Minimal Board, KiCad files (RP2350_60QFN_minimal.kicad_pcb)",
+      "revision": "RP-006440-DD rev 2",
+      "sha256": "745e4b3a7bbf0beaf65f7dbc56808ce764420eaf4c26e9cce1fa314cfb0c3b2b"
+    },
+    "easy2350_core_audit": {
+      "title": "easy2350 U1 core block audit (easy_pcb)",
+      "location": "https://github.com/sequoia-hope/easy_pcb/blob/2d56198/examples/easy2350/design/parts/rp2350-core.md",
+      "revision": "easy_pcb 2d56198"
+    }
+  },
+  "nets": {
+    "VREG_VIN": {
+      "class": "POWER",
+      "voltage": {
+        "value": {
+          "peak_v": 3.63
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "p.401, p.407",
+          "kind": "datasheet",
+          "note": "VREG_VIN combined with VREG_AVDD: 3.135-3.63 V"
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.1
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "easy2350_core_audit",
+          "locator": "Calculations: regulator input at 200 mA out",
+          "kind": "expert"
+        }
+      }
+    },
+    "VREG_LX": {
+      "class": "SWITCH",
+      "voltage": {
+        "value": {
+          "peak_v": 3.63
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "p.401",
+          "kind": "datasheet"
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.2,
+          "peak_a": 0.4
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "easy2350_core_audit",
+          "locator": "regulator rated 200 mA",
+          "kind": "expert"
+        }
+      },
+      "aggressor": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a76.3.8 p.411",
+          "kind": "datasheet"
+        }
+      }
+    },
+    "DVDD": {
+      "class": "POWER",
+      "voltage": {
+        "value": {
+          "peak_v": 1.3
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "easy2350_core_audit",
+          "locator": "1V1 core, nets.csv row +1V1",
+          "kind": "expert"
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.2,
+          "peak_a": 0.4
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "easy2350_core_audit",
+          "locator": "regulator rated 200 mA",
+          "kind": "expert"
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a76.3.8 p.412",
+          "kind": "datasheet",
+          "note": "VREG_FB is on this net, taken at COUT"
+        }
+      }
+    },
+    "GND": {
+      "class": "GROUND",
+      "current": {
+        "value": {
+          "continuous_a": 0.2
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "easy2350_core_audit",
+          "locator": "regulator return",
+          "kind": "expert"
+        }
+      }
+    }
+  },
+  "blocks": {
+    "core_reg": {
+      "type": "buck",
+      "parts": [
+        "L1",
+        "CIN",
+        "COUT",
+        "RFILT",
+        "CFILT"
+      ],
+      "roles": {
+        "vin": "U1.49",
+        "sw": "U1.48",
+        "pgnd": "U1.47",
+        "fb": "U1.50",
+        "cin": "CIN",
+        "cout": "COUT",
+        "inductor": "L1"
+      },
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "hot_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 1.0
+          },
+          {
+            "metric": "switch_node_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          },
+          {
+            "metric": "output_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "feedback_clearance_mm",
+              "op": ">=",
+              "limit": 0.3,
+              "nets": [
+                "DVDD",
+                "VREG_LX"
+              ]
+            },
+            "strength": "hard",
+            "provenance": {
+              "source": "rp2350_ds",
+              "locator": "\u00a76.3.8 p.412",
+              "kind": "datasheet",
+              "note": "Datasheet: avoid routing VREG_FB directly underneath LX. 0.3 mm is this package's floor, under the reference board's 0.365 mm."
+            }
+          },
+          {
+            "value": {
+              "metric": "switch_node_underlap_mm2",
+              "op": "<=",
+              "limit": 0.0,
+              "nets": [
+                "VREG_LX"
+              ]
+            },
+            "strength": "hard",
+            "provenance": {
+              "source": "rp2350_ds",
+              "locator": "\u00a76.3.8 p.412, Figure 27",
+              "kind": "datasheet",
+              "note": "4-layer: no copper on the layer under LX"
+            }
+          }
+        ]
+      },
+      "ports": {
+        "vin": {
+          "kind": "supply",
+          "nets": [
+            "VREG_VIN"
+          ],
+          "direction": "in",
+          "voltage_v": 3.3,
+          "current_a": 0.1
+        },
+        "out": {
+          "kind": "supply",
+          "nets": [
+            "DVDD"
+          ],
+          "direction": "out",
+          "voltage_v": 1.1,
+          "current_a": 0.2
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      },
+      "note": "U1 is the RP2350 itself; pins are QFN-60 numbers. Part references are roles, renamed when composed onto a board."
+    }
+  },
+  "domains": {
+    "name": "rp2350",
+    "kind": "board",
+    "supplies": [
+      "VREG_VIN"
+    ],
+    "reference_ground": "GND",
+    "blocks": [],
+    "children": [
+      {
+        "name": "core",
+        "kind": "group",
+        "supplies": [
+          "DVDD"
+        ],
+        "reference_ground": "GND",
+        "blocks": [
+          "core_reg"
+        ]
+      }
+    ]
+  }
+}

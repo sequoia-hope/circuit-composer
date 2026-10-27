@@ -1,0 +1,18 @@
+[package]
+name = "blockgen"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# Block generators: critical blocks are a small search, not an open routing problem. Each
+# generator enumerates arrangements, scores them with the verifier's own metrics, and emits a
+# locked sub-layout in the anchor part's frame.
+
+[dependencies]
+pcb = { path = "../pcb" }
+verify = { path = "../verify" }
+serde = { version = "1", features = ["derive"] }
+rayon = "1"
+
+[dev-dependencies]
+serde_json = "1"

@@ -3,6 +3,7 @@
 //!
 //! Exit status: 0 success, 1 the input failed validation, 2 the command could not run.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
@@ -42,10 +43,70 @@ enum Cmd {
     },
     /// Print the nets with their class presets' soft defaults filled in.
     Resolve { intent: PathBuf },
+    /// Fast-tier verifier checks on a block of a KiCad board.
+    Check {
+        #[command(subcommand)]
+        kind: Check,
+    },
+    /// Generate a block's sub-layout.
+    Gen {
+        #[command(subcommand)]
+        kind: Gen,
+    },
     /// Draft an intent file from another tool's output.
     Import {
         #[command(subcommand)]
         from: Import,
+    },
+}
+
+#[derive(Subcommand)]
+enum Check {
+    /// A buck converter: hot-loop and output-loop area, switch-node area, feedback clearance,
+    /// copper under the switch node.
+    Buck {
+        board: PathBuf,
+        /// Take the block's roles and limits from this intent file ...
+        #[arg(long, requires = "block")]
+        intent: Option<PathBuf>,
+        /// ... and this block in it.
+        #[arg(long)]
+        block: Option<String>,
+        /// Or give the roles directly: `vin=U1.49,sw=U1.48,pgnd=U1.47,fb=U1.50,cin=C6,cout=C7,inductor=L1`.
+        #[arg(long, conflicts_with = "intent")]
+        roles: Option<String>,
+        /// Extra limits, `check<=value` or `check>=value`; repeatable.
+        #[arg(long)]
+        limit: Vec<String>,
+        /// Draw the block with its loops to this SVG.
+        #[arg(long)]
+        svg: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
+}
+
+#[derive(Subcommand)]
+enum Gen {
+    /// Place CIN, the inductor and COUT around a regulator IC, with their copper, in the IC's frame.
+    Buck {
+        /// A board with the IC and the three parts on it (their footprints are read from it).
+        board: PathBuf,
+        #[arg(long, requires = "block")]
+        intent: Option<PathBuf>,
+        #[arg(long)]
+        block: Option<String>,
+        #[arg(long, conflicts_with = "intent")]
+        roles: Option<String>,
+        /// Generator parameters as JSON (any subset of the defaults `ccomp gen buck --defaults` prints).
+        #[arg(long)]
+        params: Option<PathBuf>,
+        /// Print the default parameters and stop.
+        #[arg(long)]
+        defaults: bool,
+        /// Write the layout here.
+        #[arg(short, long)]
+        output: Option<PathBuf>,
     },
 }
 
@@ -137,6 +198,55 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 file.nets.iter().map(|(k, n)| (k.clone(), serde_json::to_value(presets::resolve(n)).unwrap())).collect();
             Ok((json!({ "nets": nets }), true))
         }
+        Cmd::Check { kind: Check::Buck { board, intent: intent_path, block, roles, limit, svg, output } } => {
+            let b = pcb::Board::load(&board)?;
+            let (name, role_map, mut limits) = block_roles(intent_path.as_deref(), block, roles)?;
+            for l in &limit {
+                let (check, op, v) = if let Some((c, v)) = l.split_once("<=") {
+                    (c, "<=", v)
+                } else if let Some((c, v)) = l.split_once(">=") {
+                    (c, ">=", v)
+                } else {
+                    return Err(format!("limit `{l}` is not check<=value or check>=value"));
+                };
+                let value = v.trim().parse::<f64>().map_err(|_| format!("limit `{l}`: not a number"))?;
+                limits.insert(check.trim().to_string(), verify::Limit { op, value });
+            }
+            let roles = verify::buck::BuckRoles::from_map(&role_map)?;
+            let report = verify::buck::check(&b, &name, &roles, &limits)?;
+            if let Some(p) = svg {
+                let title = format!("{} — {}", board.file_stem().unwrap_or_default().to_string_lossy(), name);
+                std::fs::write(&p, verify::svg::render(&b, &report, &title, 1.0)).map_err(|e| format!("{}: {e}", p.display()))?;
+            }
+            let ok = report.measurements.iter().all(|m| m.passed != Some(false));
+            let mut value = serde_json::to_value(&report).unwrap();
+            value["ok"] = json!(ok);
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, ok))
+        }
+        Cmd::Gen { kind: Gen::Buck { board, intent: intent_path, block, roles, params, defaults, output } } => {
+            if defaults {
+                return Ok((serde_json::to_value(blockgen::buck::Params::default()).unwrap(), true));
+            }
+            let b = pcb::Board::load(&board)?;
+            let (_, role_map, _) = block_roles(intent_path.as_deref(), block, roles)?;
+            let roles = verify::buck::BuckRoles::from_map(&role_map)?;
+            let params: blockgen::buck::Params = match params {
+                Some(p) => serde_json::from_str(&std::fs::read_to_string(&p).map_err(|e| format!("{}: {e}", p.display()))?).map_err(|e| format!("{}: {e}", p.display()))?,
+                None => Default::default(),
+            };
+            let started = std::time::Instant::now();
+            let g = blockgen::buck::generate(&b, &roles, &params)?;
+            let mut value = serde_json::to_value(&g).unwrap();
+            value["params"] = serde_json::to_value(&params).unwrap();
+            value["seconds"] = json!(started.elapsed().as_secs_f64());
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, true))
+        }
         Cmd::Import { from: Import::EasyPcb { nets_csv, board, netlist, output } } => {
             let text = std::fs::read_to_string(&nets_csv).map_err(|e| format!("{}: {e}", nets_csv.display()))?;
             let netlist = match &netlist {
@@ -149,6 +259,38 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             write_json(&output, &serde_json::to_value(&file).unwrap())?;
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
+    }
+}
+
+/// A block's name, its roles, and the limits on its checks.
+type BlockRoles = (String, BTreeMap<String, String>, BTreeMap<String, verify::Limit>);
+
+/// A block's name, roles and limits: from an intent file's block, or from `k=v,...`.
+fn block_roles(intent_path: Option<&Path>, block: Option<String>, roles: Option<String>) -> Result<BlockRoles, String> {
+    let mut limits = BTreeMap::new();
+    match (intent_path, roles) {
+        (Some(p), _) => {
+            let file = intent::load(p)?;
+            let id = block.ok_or("--intent needs --block")?;
+            let blk = file.blocks.get(&id).ok_or_else(|| format!("no block `{id}` in {}", p.display()))?;
+            for c in blk.placement_goal.iter().flat_map(|g| &g.constraints) {
+                let check = serde_json::to_value(c.value.metric).unwrap().as_str().unwrap_or_default().to_string();
+                let op = match c.value.op {
+                    intent::BoundOp::Le => "<=",
+                    intent::BoundOp::Ge => ">=",
+                };
+                limits.insert(check, verify::Limit { op, value: c.value.limit });
+            }
+            Ok((id, blk.roles.clone(), limits))
+        }
+        (None, Some(r)) => {
+            let map = r
+                .split(',')
+                .map(|kv| kv.split_once('=').map(|(k, v)| (k.trim().to_string(), v.trim().to_string())).ok_or(format!("role `{kv}` is not key=value")))
+                .collect::<Result<BTreeMap<_, _>, _>>()?;
+            Ok((block.unwrap_or_else(|| "buck".into()), map, limits))
+        }
+        (None, None) => Err("give --intent and --block, or --roles".into()),
     }
 }
 
