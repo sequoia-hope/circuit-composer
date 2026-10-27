@@ -31,3 +31,27 @@ It took 69 s and left 1 connection open, which the pours join (`route.log`).
 
 One false alarm was found and fixed on the way. A via the router placed with its ring exactly on
 the In1 cut-out's edge counted as inside; contact now counts as outside, to KiCad's 0.5 µm.
+
+## Rerun with `--regions` (ultraroute 971e723)
+
+`regions-971e723/`: the same recipe, plus `--regions ../compiled/routing.json`, on seeds 0, 1 and
+2. ultraroute now blocks `never` and `must` regions in its grid and prices `avoid`/`prefer`. Each
+run took 17–19 s and left 1 connection open, which the pours join. The seed-1 board is kept;
+the logs and checks are kept for all three seeds.
+
+| seed | DRC errors | unconnected | dangling warnings | lengths | region violations | locked kept | regulator block |
+|---|---|---|---|---|---|---|---|
+| 0 | 0 | 0 | 3 | 17/17 | 0 | 232 | unchanged |
+| 1 | 0 | 0 | 2 | 17/17 | 0 | 232 | unchanged |
+| 2 | 0 | 0 | 3 | 17/17 | 0 | 232 | unchanged |
+
+On every seed, ultraroute's own report says `region lx_inner_cutout: 1 pieces break its Never
+(vias) rule`. It is the GND via at (113.25, 122.2). Its 0.3 mm ring touches the cut-out's
+edge at x = 112.95 with a gap of 0.000 mm. Our check and KiCad count contact as outside, to
+0.5 µm. The router's grid allowed the via there, but its report counts contact as inside.
+This was reported to ultraroute; no board needs changing.
+
+**Fixed in ultraroute 724f835:** its report now uses the same rule as its grid, with 0.5 µm
+tolerance. The same three seeds rerun with 724f835 give no broken-region lines. Our check still
+finds 0 DRC errors, 0 unconnected, 17/17 lengths, 0 region violations and 232 locked items
+kept, with the block unchanged. 724f835 also routes length-limited nets first.

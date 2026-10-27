@@ -97,12 +97,13 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 
   <section class="card">
     <h2>Where it stands</h2>
-    <p>Two milestones are done. Intent schema v0 and its validator pass easy2350. A buck generator,
+    <p>Three milestones are done. Intent schema v0 and its validator pass easy2350. A buck generator,
     fast-tier checks and the first package, <code>packages/rp2350</code> 0.1.0, cover the RP2350's
     core regulator. Starting from nothing but the part footprints, the generator places CIN and
     COUT where Raspberry Pi did. Every row in the table below is measured by the same checker, and
     the generated layout comes out ahead on all four checks. It is KiCad DRC clean on a 4-layer
-    test bench. Nothing is routed by ultraroute yet; that is milestone 3.</p>
+    test bench. The compiled <code>routing.json</code> now drives ultraroute through <code>--regions</code>,
+    and easy2350 routed that way passes the seam check on three seeds.</p>
   </section>
 
   <section class="card">
@@ -132,6 +133,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
         <li class="done">Constraint compiler: <code>routing.json</code> regions and length limits, KiCad length rules merged into the board's own</li>
         <li class="done">Region check and routed-board seam check; easy_pcb's released easy2350 passes all of it</li>
         <li class="done">easy2350 routed by ultraroute with its blocks locked: 0 DRC errors, 0 unconnected, all lengths and regions met, block intact</li>
+        <li class="done">Rerun with ultraroute's <code>--regions</code> (971e723), seeds 0–2: all pass; router's report agrees since 724f835</li>
         <li class="done">Mined the motor controller's rev A: RP2350B regulator and the XL7005A 60 V buck measured; async bucks and plane shielding in the checks</li>
       </ul>
     </section>
@@ -139,7 +141,6 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
     <section class="card">
       <h2>Next up</h2>
       <ul class="checks">
-        <li>Rerun the routed check with <code>--regions</code> once ultraroute has it (sample file sent)</li>
         <li>Apply the generated block in context on easy2350; 2-layer variant</li>
         <li>M4: RP2350 QFN-80 variant, with the motor controller's regulator as reference</li>
         <li>Async buck in the generator; half-bridge checks (M7)</li>
@@ -169,6 +170,12 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>ultraroute 971e723 reads <code>routing.json</code> via <code>--regions</code>. easy2350, seeds 0–2: 0 DRC errors,
+        0 unconnected, lengths and regions met, block intact. Its report flags a via whose ring only touches the
+        LX cut-out's edge; fixed in 724f835, which reports all three clean.</div>
+      </div>
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
         <div>Mined rp2350-motor-controller rev A. Its RP2350B regulator matches Raspberry Pi's layout
