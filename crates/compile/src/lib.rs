@@ -231,6 +231,9 @@ pub struct RegionFinding {
     pub violation: bool,
 }
 
+/// Copper that only touches a region's edge is outside it: KiCad's own tolerance, 0.5 µm.
+pub const EDGE_EPSILON_MM: f64 = 0.0005;
+
 pub fn check_regions(board: &Board, routing: &Routing) -> Vec<RegionFinding> {
     let mut out = Vec::new();
     for r in &routing.regions {
@@ -249,8 +252,7 @@ pub fn check_regions(board: &Board, routing: &Routing) -> Vec<RegionFinding> {
                 for v in board.vias.iter().filter(|v| applies(&v.net)) {
                     // A via is reported once, on the first of its layers the region covers.
                     let Some(l) = v.layers.iter().find(|l| on_layer(l)) else { continue };
-                    let disc = geom::circle(v.at, v.size / 2.0, 16);
-                    let touches = geom::poly_poly_dist(&disc, &r.polygon) == 0.0;
+                    let touches = geom::point_poly_dist(v.at, &r.polygon) < v.size / 2.0 - EDGE_EPSILON_MM;
                     match rule.kind.as_str() {
                         "never" if touches => push(&v.net, "via", l, v.at, None, true),
                         "must" if !geom::inside(&r.polygon, v.at) => push(&v.net, "via", l, v.at, None, true),
@@ -264,7 +266,7 @@ pub fn check_regions(board: &Board, routing: &Routing) -> Vec<RegionFinding> {
                 let len = geom::dist(t.a, t.b);
                 let mid = geom::scale(geom::add(t.a, t.b), 0.5);
                 match rule.kind.as_str() {
-                    "never" if inside_len > 1e-6 || geom::polyline_poly_dist(&[t.a, t.b], &r.polygon) < t.width / 2.0 => {
+                    "never" if inside_len > 1e-6 || geom::polyline_poly_dist(&[t.a, t.b], &r.polygon) < t.width / 2.0 - EDGE_EPSILON_MM => {
                         push(&t.net, "track", &t.layer, mid, Some(inside_len), true)
                     }
                     "must" if len - inside_len > 1e-6 => push(&t.net, "track", &t.layer, mid, Some(len - inside_len), true),

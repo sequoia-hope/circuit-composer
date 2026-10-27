@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check a routed board against its intent: the seams between the locked blocks and the router.
 
-    verify_routed.py BOARD INTENT ROUTING_JSON [--dru FILE] [-o OUT_JSON]
+    verify_routed.py BOARD INTENT ROUTING_JSON [--pro FILE] [--dru FILE] [--refill] [-o OUT_JSON]
 
 Runs KiCad's DRC (with the compiled .kicad_dru beside the board, if --dru is given; the board
 is copied to a scratch dir first so its project is not touched), `ccomp check regions`, and
@@ -31,6 +31,7 @@ def main():
     ap.add_argument("board")
     ap.add_argument("intent")
     ap.add_argument("routing")
+    ap.add_argument("--pro", help="the board's .kicad_pro, if not beside it (its net classes and rules)")
     ap.add_argument("--dru")
     ap.add_argument("--refill", action="store_true", help="refill zones with pcbnew first (a router leaves pours for KiCad)")
     ap.add_argument("-o", "--output")
@@ -40,9 +41,13 @@ def main():
     stem = os.path.splitext(os.path.basename(a.board))[0]
     board = os.path.join(work, stem + ".kicad_pcb")
     shutil.copy(a.board, board)
-    pro = os.path.splitext(a.board)[0] + ".kicad_pro"
-    if os.path.exists(pro):
-        shutil.copy(pro, os.path.join(work, stem + ".kicad_pro"))
+    pro = a.pro or os.path.splitext(a.board)[0] + ".kicad_pro"
+    if not os.path.exists(pro):
+        # Without the project KiCad checks against its defaults, which reports hundreds of
+        # false clearance errors: refuse rather than mislead.
+        print(json.dumps({"ok": False, "error": f"no project file {pro}; pass --pro"}))
+        sys.exit(2)
+    shutil.copy(pro, os.path.join(work, stem + ".kicad_pro"))
     if a.dru:
         shutil.copy(a.dru, os.path.join(work, stem + ".kicad_dru"))
     if a.refill:
@@ -52,7 +57,8 @@ def main():
     drc_path = os.path.join(work, "drc.json")
     subprocess.run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-all", "-o", drc_path, board], capture_output=True)
     drc = json.load(open(drc_path))
-    types = collections.Counter(v["type"] for v in drc["violations"] if v["type"] not in EXPECTED)
+    types = collections.Counter(v["type"] for v in drc["violations"] if v["type"] not in EXPECTED and v["severity"] == "error")
+    warnings = collections.Counter(v["type"] for v in drc["violations"] if v["type"] not in EXPECTED and v["severity"] != "error")
     lengths = [v["description"] + " " + " / ".join(i["description"] for i in v["items"][:1]) for v in drc["violations"] if v["type"] == "length_out_of_range"]
     unconnected = collections.Counter()
     for u in drc["unconnected_items"]:
@@ -77,6 +83,7 @@ def main():
         "ok": not unconnected and not types and regions.get("violations", 1) == 0,
         "unconnected": dict(unconnected),
         "drc_errors": dict(types),
+        "drc_warnings": dict(warnings),
         "length_violations": lengths,
         "region_violations": regions.get("violations"),
         "region_findings": [f for f in regions.get("findings", []) if f["violation"]][:20],

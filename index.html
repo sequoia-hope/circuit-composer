@@ -86,7 +86,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 <header>
   <div class="title">
     <h1>circuit-composer</h1>
-    <span class="state active"><span class="dot"></span>Milestone 3 in progress</span>
+    <span class="state active"><span class="dot"></span>Milestone 3 done</span>
   </div>
   <p class="lede">Board design as composition: chips ingested once into verified packages, boards
   built by combining them. Sits between <a href="../easy_pcb">easy_pcb</a> (schematic) and
@@ -131,14 +131,14 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
         <li class="done">Package <code>rp2350</code> 0.1.0: manifest, intent, 11 cited rules, 4-layer layout, verify report</li>
         <li class="done">Constraint compiler: <code>routing.json</code> regions and length limits, KiCad length rules merged into the board's own</li>
         <li class="done">Region check and routed-board seam check; easy_pcb's released easy2350 passes all of it</li>
+        <li class="done">easy2350 routed by ultraroute with its blocks locked: 0 DRC errors, 0 unconnected, all lengths and regions met, block intact</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>Next up</h2>
       <ul class="checks">
-        <li>M3: route easy2350 with ultraroute (blocks locked) and check the seams</li>
-        <li>M3: rerun with <code>--regions</code> once ultraroute has it (sample file sent)</li>
+        <li>Rerun the routed check with <code>--regions</code> once ultraroute has it (sample file sent)</li>
         <li>Apply the generated block in context on easy2350; 2-layer variant</li>
         <li>Mine <code>~/pcb/rp2350-motor-controller</code> for more blocks</li>
       </ul>
@@ -167,6 +167,11 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 3: ultraroute routed easy2350 around its locked blocks; the seam check passes
+        (DRC, 17 lengths, 12 regions, block intact).</div>
+      </div>
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
         <div>Published on GitHub. Milestone 3: constraint compiler and region check; sample <code>routing.json</code>

@@ -21,9 +21,10 @@ It sits between two sibling projects:
   with an external inductor and capacitors. That covers a generator, fast-tier verifier checks,
   a comparison against Raspberry Pi's reference layout, and the first package,
   `packages/rp2350` 0.1.0, published in this repository.
-- **Milestone 3, router integration:** in progress. The constraint compiler and the region
-  check are done and verified on easy2350. Routing with ultraroute and checking the result is
-  next; ultraroute is adding `--regions`.
+- **Milestone 3, router integration:** done on our side. The constraint compiler, the region
+  check and a routed-board seam check are in place. easy2350, with its blocks locked, was routed
+  by ultraroute and passes every check (`boards/easy2350/routed/`). ultraroute is adding
+  `--regions` to read the compiled regions.
 
 ## Build and run
 
@@ -170,10 +171,13 @@ board's seams.
 On easy2350 (inputs pinned to easy_pcb 2d56198 in `boards/easy2350/input/`): 3 regions,
 12 rules and 17 length limits. easy_pcb's released route passes all of it.
 
+**Routed by ultraroute** (ad79cd7, without `--regions` for now; see `boards/easy2350/routed/`):
+0 DRC errors and 0 unconnected after a refill. All 17 lengths and 12 region rules hold, and all
+232 locked items, the regulator block among them, come back unchanged.
+
 ## Next
 
-- **Milestone 3, rest:** route easy2350 with ultraroute, its locked blocks kept, and check the
-  seams. Then the same with `--regions` once ultraroute has it.
+- Rerun the routed check with `--regions` once ultraroute has it.
 - **Package:** a 2-layer layout, and the transplant tool used in context on a real board, not
   only on a test bench.
 - Then mine `~/pcb/rp2350-motor-controller` for further blocks.

@@ -1,0 +1,27 @@
+{
+  "ok": true,
+  "unconnected": {},
+  "drc_errors": {},
+  "drc_warnings": {
+    "track_dangling": 3
+  },
+  "length_violations": [],
+  "region_violations": 0,
+  "region_findings": [],
+  "region_prices": {},
+  "bucks": {
+    "core_reg": {
+      "hot_loop_area_mm2": 1.0637,
+      "hot_loop_area_placed_mm2": 1.0637,
+      "output_loop_area_mm2": 2.4522,
+      "switch_node_area_mm2": 2.3006,
+      "feedback_clearance_mm": 0.3855,
+      "switch_node_underlap_mm2": 0.0
+    }
+  },
+  "copper": {
+    "tracks": 626,
+    "vias": 168,
+    "locked": 232
+  }
+}

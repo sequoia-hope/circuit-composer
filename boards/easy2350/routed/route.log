@@ -1,0 +1,45 @@
+reserve: waiting for 1 cores — 6 in line; running: rust-games 12 (rust-games failing test hunt), simple_earring 2 (earring render), waffle-iron 8 (agy-f4-n91 step2 gate+corpus); ahead: waffle-iron 8 (f6 cyl corpus census), rust-games 8 (snowboarding drop-in), waffle-iron 4 (f1-i3a recheck), render 2 (bevy dungeon pcss A/B), ssh_client 4 (vtmodel release build)
+reserve: waiting for 1 cores — 6 in line; running: rust-games 12 (rust-games failing test hunt), waffle-iron 8 (agy-f4-n91 step2 gate+corpus); ahead: waffle-iron 8 (f6 cyl corpus census), rust-games 8 (snowboarding drop-in), waffle-iron 4 (f1-i3a recheck), render 2 (bevy dungeon pcss A/B), ssh_client 4 (vtmodel release build)
+reserve: waiting for 1 cores — 4 in line; running: waffle-iron 8 (agy-f4-n91 step2 gate+corpus), waffle-iron 8 (f6 cyl corpus census), rust-games 8 (snowboarding drop-in); ahead: waffle-iron 4 (f1-i3a recheck), render 2 (bevy dungeon pcss A/B), ssh_client 4 (vtmodel release build)
+reserve: waiting for 1 cores — 2 in line; running: waffle-iron 8 (agy-f4-n91 step2 gate+corpus), waffle-iron 8 (f6 cyl corpus census), waffle-iron 4 (f1-i3a recheck), render 2 (bevy dungeon pcss A/B); ahead: ssh_client 4 (vtmodel release build)
+reserve: waiting for 1 cores — 1 in line; running: waffle-iron 8 (agy-f4-n91 step2 gate+corpus), waffle-iron 8 (f6 cyl corpus census), waffle-iron 4 (f1-i3a recheck), ssh_client 4 (vtmodel release build)
+reserve: granted 1 cores
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SCLK" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD0" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD1" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD2" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD3" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SS" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM_C" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM_MCU" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP_C" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP_MCU" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /VREG_AVDD" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /VREG_LX" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /XIN" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /XOUT" is not applied
+warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /XOUT_R" is not applied
+prefanout: 3 parts, 4 inward, 46 of 47 escaped (1 failed), 46 vias, skipped 0 no-net 16 pth 2 exposed 37 escaped, 4.0 s
+planes: 11 of 16 pads off their planes joined, 4.2 s
+pairs: 3 pairs, 1 of 3 runs coupled, 2.4 mm, 4.7 s
+negotiated 73 of 88 connections in 13 rounds, 48 vias, 25.4 s
+rip-up: 13 tries, 1 kept, 12 ripped; lost 4 with no way through, 0 to copper it may not rip, 8 no better; 33.4 s
+shove pass 1: 10 trapped tried, 8 routed out, 8 kept, 6 -> 1 open, 61.3 s
+shove pass 2: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 61.9 s
+shove pass 3: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 62.6 s
+shove pass 4: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 63.2 s
+shove pass 5: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 63.9 s
+shove pass 6: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 64.6 s
+shove pass 7: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 65.2 s
+shove pass 8: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 66.0 s
+shove pass 9: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 67.2 s
+shove pass 10: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 68.1 s
+shove pass 11: 2 trapped tried, 0 routed out, 0 kept, 1 -> 1 open, 68.7 s
+pulled tight: 1634 -> 495 segments, 810 -> 785 mm, 68.7 s
+dropped 0 doubled, pruned 42 dangling, open 1 -> 1, 68.7 s
+tune: /USB_DP//USB_DM skew 0.61 -> 0.61 mm
+tune: /USB_DP_C//USB_DM_C skew 0.91 -> 0.91 mm
+tune: /USB_DP_MCU//USB_DM_MCU skew 0.28 -> 0.28 mm
+routed 7 more, 7 failed, 1 open, 68.7 s

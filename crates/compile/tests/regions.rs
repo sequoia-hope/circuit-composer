@@ -73,3 +73,18 @@ fn check_catches_never_must_and_vias() {
     let (r, _) = compile(&quiet, &b).unwrap();
     assert!(check_regions(&b, &r).is_empty());
 }
+
+#[test]
+fn copper_touching_an_edge_is_outside() {
+    let b = bench();
+    // A region whose edge passes exactly one via radius from a bench ground via.
+    let v = b.vias.iter().find(|v| v.net == "GND").unwrap();
+    let x = v.at[0] + v.size / 2.0;
+    let edge = |x0: f64| serde_json::json!([[x0, v.at[1] - 1.0], [x0 + 2.0, v.at[1] - 1.0], [x0 + 2.0, v.at[1] + 1.0], [x0, v.at[1] + 1.0]]);
+    let touching = intent(serde_json::json!([{"name": "touch", "kind": "polygon", "polygon": edge(x), "rules": [{"applies_to": "all_nets", "vias": true, "mode": "never"}], "provenance": prov()}]));
+    let (r, _) = compile(&touching, &b).unwrap();
+    assert!(!check_regions(&b, &r).iter().any(|f| f.item == "via" && pcb::geom::dist(f.location, v.at) < 1e-9), "a via that only touches the edge");
+    let entering = intent(serde_json::json!([{"name": "enter", "kind": "polygon", "polygon": edge(x - 0.01), "rules": [{"applies_to": "all_nets", "vias": true, "mode": "never"}], "provenance": prov()}]));
+    let (r, _) = compile(&entering, &b).unwrap();
+    assert!(check_regions(&b, &r).iter().any(|f| f.item == "via" && pcb::geom::dist(f.location, v.at) < 1e-9), "a via 10 um inside");
+}
