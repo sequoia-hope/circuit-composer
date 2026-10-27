@@ -159,3 +159,9 @@ price trace resistance or inductance.
 
 - easy_pcb's `nets.csv` for easy2350 classified 61 of the 65 connected nets. KiCad's auto-named
   two-pin nets were missing. Fixed on the easy_pcb side: `nets_check.py` now fails such nets.
+
+## License
+
+MIT, see `LICENSE`. Packages are MIT too. They cite vendor documents by URL and hash and do not
+include them. `compare/reference.*` are this project's measurements and drawings of Raspberry Pi's
+published minimal-board layout, kept for comparison.
