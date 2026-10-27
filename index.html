@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>circuit-composer — status</title>
+<style>
+/* Same palette as the hub dashboard, so a project page and the project list
+   read as one system when you tab between them. */
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --line: #e2e5ea; --fg: #14171c;
+  --muted: #5f6875; --accent: #2f6feb; --up: #1a9c5b; --warn: #b7791f;
+  --down: #98a1ae; --chip: #eef1f5;
+  --shadow: 0 1px 2px rgba(16,20,28,.06), 0 4px 12px rgba(16,20,28,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --card: #171b22; --line: #262c36; --fg: #e6e9ee;
+    --muted: #8b94a3; --accent: #5b9bff; --up: #35c07d; --warn: #d9a441;
+    --down: #4d5563; --chip: #222833; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 0 0 3rem;
+}
+header, main, footer { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
+header { padding-top: 1.75rem; padding-bottom: 1rem; }
+.title { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+h1 { font-size: 1.5rem; margin: 0; letter-spacing: -.015em; }
+h2 {
+  font-size: .78rem; margin: 0 0 .6rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted); font-weight: 650;
+}
+.state {
+  display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px;
+  padding: .2rem .65rem; font-size: .76rem; font-weight: 600;
+  background: var(--chip); border: 1px solid var(--line); color: var(--muted);
+}
+.state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--down); }
+.state.active { color: var(--up); border-color: color-mix(in srgb, var(--up) 35%, var(--line)); }
+.state.active .dot { background: var(--up); box-shadow: 0 0 0 3px color-mix(in srgb, var(--up) 22%, transparent); }
+.state.blocked { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); }
+.state.blocked .dot { background: var(--warn); }
+.lede { color: var(--muted); font-size: .95rem; margin: .55rem 0 0; }
+main { display: grid; gap: .9rem; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1rem 1.1rem 1.1rem; box-shadow: var(--shadow);
+}
+.cols { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+ul { margin: 0; padding-left: 1.15rem; }
+li { margin: .25rem 0; }
+ul.checks { list-style: none; padding-left: 0; }
+ul.checks li { display: flex; gap: .55rem; align-items: baseline; }
+ul.checks li::before { content: "○"; color: var(--muted); font-size: .9em; }
+ul.checks li.done { color: var(--muted); }
+ul.checks li.done::before { content: "●"; color: var(--up); }
+.log { display: grid; gap: .7rem; }
+.entry { display: grid; grid-template-columns: 5.5rem 1fr; gap: .75rem; align-items: baseline; }
+.entry time { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.todo { color: var(--muted); font-style: italic; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em;
+  background: var(--chip); border: 1px solid var(--line);
+  border-radius: 5px; padding: .06em .35em;
+}
+a { color: var(--accent); }
+footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
+@media (max-width: 480px) { .entry { grid-template-columns: 1fr; gap: .1rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <h1>circuit-composer</h1>
+    <span class="state"><span class="dot"></span>Not started</span>
+  </div>
+  <p class="lede todo">One line on what this project is and who it is for — replace this.</p>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>Where it stands</h2>
+    <p class="todo">A paragraph of honest current state: what exists, what runs,
+    what is still a sketch. Update this whenever the answer changes.</p>
+  </section>
+
+  <div class="cols">
+    <section class="card">
+      <h2>Working</h2>
+      <ul class="checks">
+        <li class="done">Project registered on port 8066</li>
+        <li class="done"><span class="todo">…the next thing that actually works</span></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Next up</h2>
+      <ul class="checks">
+        <li class="todo">The next concrete step</li>
+        <li class="todo">The one after that</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="cols">
+    <section class="card">
+      <h2>Open questions</h2>
+      <ul>
+        <li class="todo">Decisions not yet made, and what they hinge on.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Blocked on</h2>
+      <ul>
+        <li class="todo">Nothing yet.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Log</h2>
+    <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Project created and registered with the hub. Status page scaffolded.</div>
+      </div>
+      <div class="entry todo">
+        <time>YYYY-MM-DD</time>
+        <div>Newest entries on top.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Served from <code>~/Software/circuit-composer</code> on port 8066 —
+  <code>proj up circuit-composer</code> to start, <code>proj down circuit-composer</code> to stop.
+</footer>
+
+</body>
+</html>
