@@ -20,7 +20,7 @@ It sits between two sibling projects:
 - **Milestone 2, one buck end to end:** done, for the RP2350's core regulator, an on-chip buck
   with an external inductor and capacitors. That covers a generator, fast-tier verifier checks,
   a comparison against Raspberry Pi's reference layout, and the first package,
-  `packages/rp2350` 0.1.0 (not yet pushed to GitHub).
+  `packages/rp2350` 0.1.0, published in this repository.
 
 ## Build and run
 
@@ -152,7 +152,7 @@ price trace resistance or inductance.
   with `--regions`. Locked copper and parts are already left alone. The first deliverable is a
   sample `routing.json` for easy2350.
 - **Package:** a 2-layer layout, and the transplant tool used in context on a real board, not
-  only on a test bench. Publish `packages/rp2350` on GitHub.
+  only on a test bench.
 - Then mine `~/pcb/rp2350-motor-controller` for further blocks.
 
 ## Findings for the sibling projects

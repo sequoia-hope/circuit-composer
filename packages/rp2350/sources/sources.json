@@ -18,7 +18,7 @@
   },
   "easy2350_core_audit": {
     "title": "easy2350 U1 core block audit (easy_pcb)",
-    "url": "https://github.com/sequoia-hope/easy_pcb/blob/2d56198/examples/easy2350/design/parts/rp2350-core.md",
+    "url": "easy_pcb commit 2d56198, examples/easy2350/design/parts/rp2350-core.md (not yet on GitHub; will be at github.com/sequoia-hope/easy_pcb once pushed)",
     "revision": "easy_pcb 2d56198"
   }
 }
