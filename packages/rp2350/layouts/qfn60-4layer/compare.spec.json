@@ -7,7 +7,7 @@
      "roles": {"vin": "U1.49", "sw": "U1.48", "pgnd": "U1.47", "fb": "U1.50", "cin": "C6", "cout": "C7", "inductor": "L1"},
      "not_applicable": {"switch_node_underlap_mm2": "2-layer board: the layer under LX is the bottom ground, which the datasheet keeps solid"}},
     {"id": "easy2350", "label": "easy2350 (reference transplanted, 4 layers)", "note": "The vendor layout copied onto easy_pcb's 4-layer worked example, with the In1 cut-out.",
-     "board": "../../../../../easy_pcb/examples/easy2350/hw/easy2350/a/easy2350.kicad_pcb",
+     "board": "../../../../boards/easy2350/input/easy2350.kicad_pcb",
      "roles": {"vin": "U1.49", "sw": "U1.48", "pgnd": "U1.47", "fb": "U1.50", "cin": "C14", "cout": "C15", "inductor": "L1"}},
     {"id": "generated", "label": "Generated (this package)", "note": "ccomp gen buck on a 4-layer test bench, params.json.",
      "board": "fixture.kicad_pcb",

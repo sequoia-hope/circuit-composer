@@ -39,6 +39,13 @@ stage. Each command prints one JSON object; read it, never scrape text. Exit 0 =
 4. Compare against the vendor layout with `tools/compare_buck.py`. Every row goes through the
    same checker; never compare a number measured one way against one measured another.
 
+## Compile for the router
+
+`ccomp compile INTENT --board BOARD -o routing.json --dru OUT.kicad_dru --dru-base BOARD.kicad_dru`
+writes ultraroute's regions file and KiCad length rules, keeping the board's own rules.
+`ccomp check regions BOARD --routing routing.json` lists copper that breaks a region rule. Run it
+on a router's output before accepting it.
+
 ## Rules
 
 - Net keys are KiCad's exact names, `/GPIO0` not `GPIO0` (the validator suggests the right one).

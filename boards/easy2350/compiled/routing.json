@@ -1,0 +1,465 @@
+{
+  "generator": "circuit-composer 0.1.0",
+  "max_lengths": [
+    {
+      "max_length_mm": 25.0,
+      "nets": [
+        "/QSPI_SCLK"
+      ],
+      "why": "nets_csv row 15, length_limit"
+    },
+    {
+      "max_length_mm": 25.0,
+      "nets": [
+        "/QSPI_SD0"
+      ],
+      "why": "nets_csv row 16, length_limit"
+    },
+    {
+      "max_length_mm": 25.0,
+      "nets": [
+        "/QSPI_SD1"
+      ],
+      "why": "nets_csv row 17, length_limit"
+    },
+    {
+      "max_length_mm": 25.0,
+      "nets": [
+        "/QSPI_SD2"
+      ],
+      "why": "nets_csv row 18, length_limit"
+    },
+    {
+      "max_length_mm": 25.0,
+      "nets": [
+        "/QSPI_SD3"
+      ],
+      "why": "nets_csv row 19, length_limit"
+    },
+    {
+      "max_length_mm": 25.0,
+      "nets": [
+        "/QSPI_SS"
+      ],
+      "why": "nets_csv row 20, length_limit"
+    },
+    {
+      "max_length_mm": 20.0,
+      "nets": [
+        "/USB_DM"
+      ],
+      "why": "nets_csv row 12, length_limit"
+    },
+    {
+      "max_length_mm": 20.0,
+      "nets": [
+        "/USB_DM_C"
+      ],
+      "why": "nets_csv row 10, length_limit"
+    },
+    {
+      "max_length_mm": 5.0,
+      "nets": [
+        "/USB_DM_MCU"
+      ],
+      "why": "nets_csv row 14, length_limit"
+    },
+    {
+      "max_length_mm": 20.0,
+      "nets": [
+        "/USB_DP"
+      ],
+      "why": "nets_csv row 11, length_limit"
+    },
+    {
+      "max_length_mm": 20.0,
+      "nets": [
+        "/USB_DP_C"
+      ],
+      "why": "nets_csv row 9, length_limit"
+    },
+    {
+      "max_length_mm": 5.0,
+      "nets": [
+        "/USB_DP_MCU"
+      ],
+      "why": "nets_csv row 13, length_limit"
+    },
+    {
+      "max_length_mm": 10.0,
+      "nets": [
+        "/VREG_AVDD"
+      ],
+      "why": "nets_csv row 8, length_limit"
+    },
+    {
+      "max_length_mm": 5.0,
+      "nets": [
+        "/VREG_LX"
+      ],
+      "why": "nets_csv row 7, length_limit"
+    },
+    {
+      "max_length_mm": 10.0,
+      "nets": [
+        "/XIN"
+      ],
+      "why": "nets_csv row 21, length_limit"
+    },
+    {
+      "max_length_mm": 5.0,
+      "nets": [
+        "/XOUT"
+      ],
+      "why": "nets_csv row 22, length_limit"
+    },
+    {
+      "max_length_mm": 5.0,
+      "nets": [
+        "/XOUT_R"
+      ],
+      "why": "nets_csv row 23, length_limit"
+    }
+  ],
+  "regions": [
+    {
+      "layers": [
+        "In1.Cu"
+      ],
+      "name": "lx_inner_cutout",
+      "polygon": [
+        [
+          113.7,
+          118.1902
+        ],
+        [
+          113.8098,
+          118.3
+        ],
+        [
+          113.85,
+          118.45
+        ],
+        [
+          113.85,
+          120.14999999999999
+        ],
+        [
+          113.8098,
+          120.3
+        ],
+        [
+          113.7621,
+          120.3621
+        ],
+        [
+          113.4621,
+          120.6621
+        ],
+        [
+          113.3276,
+          120.7398
+        ],
+        [
+          113.25,
+          120.75
+        ],
+        [
+          112.95,
+          120.75
+        ],
+        [
+          112.95,
+          122.5
+        ],
+        [
+          112.9098,
+          122.64999999999999
+        ],
+        [
+          112.9,
+          122.6628
+        ],
+        [
+          112.9,
+          123.35
+        ],
+        [
+          112.8598,
+          123.5
+        ],
+        [
+          112.75,
+          123.60979999999999
+        ],
+        [
+          112.6,
+          123.64999999999999
+        ],
+        [
+          112.4,
+          123.64999999999999
+        ],
+        [
+          112.25,
+          123.60979999999999
+        ],
+        [
+          112.1402,
+          123.5
+        ],
+        [
+          112.1,
+          123.35
+        ],
+        [
+          112.1,
+          122.6465
+        ],
+        [
+          112.0602,
+          122.5776
+        ],
+        [
+          112.05,
+          122.5
+        ],
+        [
+          112.05,
+          120.35
+        ],
+        [
+          112.0902,
+          120.2
+        ],
+        [
+          112.1379,
+          120.1379
+        ],
+        [
+          112.55,
+          119.7257
+        ],
+        [
+          112.55,
+          118.45
+        ],
+        [
+          112.5902,
+          118.3
+        ],
+        [
+          112.7,
+          118.1902
+        ],
+        [
+          112.85,
+          118.14999999999999
+        ],
+        [
+          113.55,
+          118.14999999999999
+        ]
+      ],
+      "rules": [
+        {
+          "classes": [
+            "*"
+          ],
+          "kind": "never"
+        },
+        {
+          "classes": [
+            "*"
+          ],
+          "kind": "never",
+          "vias": true
+        }
+      ]
+    },
+    {
+      "name": "crystal_quiet",
+      "polygon": [
+        [
+          107.5,
+          134.0
+        ],
+        [
+          113.5,
+          134.0
+        ],
+        [
+          113.5,
+          139.0
+        ],
+        [
+          107.5,
+          139.0
+        ]
+      ],
+      "rules": [
+        {
+          "kind": "never",
+          "nets": [
+            "/XIN",
+            "/XOUT",
+            "/XOUT_R"
+          ],
+          "vias": true
+        },
+        {
+          "kind": "never",
+          "nets": [
+            "/VREG_LX"
+          ]
+        },
+        {
+          "kind": "avoid",
+          "nets": [
+            "/QSPI_SCLK",
+            "/QSPI_SD0",
+            "/QSPI_SD1",
+            "/QSPI_SD2",
+            "/QSPI_SD3",
+            "/QSPI_SS"
+          ],
+          "weight": 8.0
+        },
+        {
+          "kind": "avoid",
+          "nets": [
+            "/USB_DM",
+            "/USB_DM_C",
+            "/USB_DM_MCU",
+            "/USB_DP",
+            "/USB_DP_C",
+            "/USB_DP_MCU"
+          ],
+          "weight": 8.0
+        }
+      ]
+    },
+    {
+      "layers": [
+        "In1.Cu"
+      ],
+      "name": "crystal_plane",
+      "polygon": [
+        [
+          107.5,
+          134.0
+        ],
+        [
+          113.5,
+          134.0
+        ],
+        [
+          113.5,
+          139.0
+        ],
+        [
+          107.5,
+          139.0
+        ]
+      ],
+      "rules": [
+        {
+          "kind": "never",
+          "nets": [
+            "/CC1",
+            "/CC2",
+            "/GPIO0",
+            "/GPIO1",
+            "/GPIO10",
+            "/GPIO11",
+            "/GPIO12",
+            "/GPIO13",
+            "/GPIO14",
+            "/GPIO15",
+            "/GPIO16",
+            "/GPIO17",
+            "/GPIO18",
+            "/GPIO19",
+            "/GPIO2",
+            "/GPIO20",
+            "/GPIO21",
+            "/GPIO22",
+            "/GPIO23",
+            "/GPIO24",
+            "/GPIO25",
+            "/GPIO26",
+            "/GPIO27",
+            "/GPIO28",
+            "/GPIO29",
+            "/GPIO3",
+            "/GPIO4",
+            "/GPIO5",
+            "/GPIO6",
+            "/GPIO7",
+            "/GPIO8",
+            "/GPIO9",
+            "/LED_DIN",
+            "/PIX12",
+            "/PIX23",
+            "/PIX34",
+            "/RUN",
+            "/SWCLK",
+            "/SWDIO",
+            "Net-(D1-A)",
+            "Net-(R7-Pad2)",
+            "Net-(R8-Pad2)",
+            "Net-(U4-Y)"
+          ]
+        },
+        {
+          "kind": "never",
+          "nets": [
+            "/QSPI_SCLK",
+            "/QSPI_SD0",
+            "/QSPI_SD1",
+            "/QSPI_SD2",
+            "/QSPI_SD3",
+            "/QSPI_SS"
+          ]
+        },
+        {
+          "kind": "never",
+          "nets": [
+            "/USB_DM",
+            "/USB_DM_C",
+            "/USB_DM_MCU",
+            "/USB_DP",
+            "/USB_DP_C",
+            "/USB_DP_MCU"
+          ]
+        },
+        {
+          "kind": "never",
+          "nets": [
+            "+1V1",
+            "+3V3",
+            "/VREG_AVDD",
+            "VBUS",
+            "VLED"
+          ]
+        },
+        {
+          "kind": "never",
+          "nets": [
+            "/VREG_LX"
+          ]
+        },
+        {
+          "kind": "never",
+          "nets": [
+            "/XIN",
+            "/XOUT",
+            "/XOUT_R"
+          ]
+        }
+      ]
+    }
+  ],
+  "version": 1,
+  "weight_mapping": "router weight = 10 x intent weight (intent weights are relative, in (0, 1])"
+}

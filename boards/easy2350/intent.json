@@ -2194,25 +2194,146 @@
       ],
       "polygon": [
         [
-          0.1,
+          1.2,
+          -1.1098
+        ],
+        [
+          1.3098,
           -1.0
         ],
         [
-          1.4,
-          -1.0
+          1.35,
+          -0.85
         ],
         [
-          1.4,
+          1.35,
+          0.85
+        ],
+        [
+          1.3098,
           1.0
+        ],
+        [
+          1.2621,
+          1.0621
+        ],
+        [
+          0.9621,
+          1.3621
+        ],
+        [
+          0.8276,
+          1.4398
+        ],
+        [
+          0.75,
+          1.45
+        ],
+        [
+          0.45,
+          1.45
+        ],
+        [
+          0.45,
+          3.2
+        ],
+        [
+          0.4098,
+          3.35
+        ],
+        [
+          0.4,
+          3.3628
+        ],
+        [
+          0.4,
+          4.05
+        ],
+        [
+          0.3598,
+          4.2
+        ],
+        [
+          0.25,
+          4.3098
         ],
         [
           0.1,
-          1.0
+          4.35
+        ],
+        [
+          -0.1,
+          4.35
+        ],
+        [
+          -0.25,
+          4.3098
+        ],
+        [
+          -0.3598,
+          4.2
+        ],
+        [
+          -0.4,
+          4.05
+        ],
+        [
+          -0.4,
+          3.3465
+        ],
+        [
+          -0.4398,
+          3.2776
+        ],
+        [
+          -0.45,
+          3.2
+        ],
+        [
+          -0.45,
+          1.05
+        ],
+        [
+          -0.4098,
+          0.9
+        ],
+        [
+          -0.3621,
+          0.8379
+        ],
+        [
+          0.05,
+          0.4257
+        ],
+        [
+          0.05,
+          -0.85
+        ],
+        [
+          0.0902,
+          -1.0
+        ],
+        [
+          0.2,
+          -1.1098
+        ],
+        [
+          0.35,
+          -1.15
+        ],
+        [
+          1.05,
+          -1.15
         ]
       ],
       "rules": [
         {
           "applies_to": "all_nets",
+          "mode": "never"
+        },
+        {
+          "applies_to": "all_nets",
+          "vias": true,
           "mode": "never"
         }
       ],
@@ -2220,11 +2341,11 @@
         "source": "rp2350_ds",
         "locator": "\u00a76.3.8 p.412, Figure 27",
         "kind": "datasheet",
-        "note": "Cut layer-2 copper under the VREG_LX node. Covers L1's LX pad only; extended along the LX zone to pin 48 once the vendor layout is mined (milestone 4)."
+        "note": "Cut layer-2 copper under the VREG_LX node. Polygon from easy2350's rule area 'no copper under VREG_LX' (easy_pcb 2d56198), which follows the vendor LX zone from pin 48 to L1's LX pad."
       }
     },
     {
-      "name": "crystal_ground",
+      "name": "crystal_quiet",
       "kind": "polygon",
       "anchor": "Y1",
       "layers": [],
@@ -2249,12 +2370,9 @@
       "rules": [
         {
           "applies_to": {
-            "net": "GND"
+            "class": "CLOCK"
           },
-          "mode": "must"
-        },
-        {
-          "applies_to": "vias",
+          "vias": true,
           "mode": "never"
         },
         {
@@ -2269,13 +2387,90 @@
           },
           "mode": "avoid",
           "weight": 0.8
+        },
+        {
+          "applies_to": {
+            "class": "DIFF_HS"
+          },
+          "mode": "avoid",
+          "weight": 0.8
         }
       ],
       "provenance": {
         "source": "rp2350_core_md",
         "locator": "Calc 5 and Layout: crystal",
         "kind": "expert",
-        "note": "Layer 2 solid GND under Y1, C20, C21, R6 and the crystal traces; no vias on XIN; keep away from VREG_LX and QSPI_SCLK."
+        "note": "No vias on the crystal nets; keep VREG_LX, QSPI and USB away (HDG p.13 via the audit's Layout: crystal)."
+      }
+    },
+    {
+      "name": "crystal_plane",
+      "kind": "polygon",
+      "anchor": "Y1",
+      "layers": [
+        "In1.Cu"
+      ],
+      "polygon": [
+        [
+          -3.0,
+          -2.5
+        ],
+        [
+          3.0,
+          -2.5
+        ],
+        [
+          3.0,
+          2.5
+        ],
+        [
+          -3.0,
+          2.5
+        ]
+      ],
+      "rules": [
+        {
+          "applies_to": {
+            "class": "SIGNAL"
+          },
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "SE_HS"
+          },
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "DIFF_HS"
+          },
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "POWER"
+          },
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "SWITCH"
+          },
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "CLOCK"
+          },
+          "mode": "never"
+        }
+      ],
+      "provenance": {
+        "source": "rp2350_core_md",
+        "locator": "Calc 5",
+        "kind": "expert",
+        "note": "Layer 2 stays solid GND under Y1, C20, C21, R6 and the crystal traces: no other net's copper there."
       }
     }
   ],

@@ -4,7 +4,7 @@
   "summary": {
     "blocks": 14,
     "errors": 0,
-    "hard_constraints": 108,
+    "hard_constraints": 109,
     "nets_in_netlist": 65,
     "nets_passing": 65,
     "nets_with_intent": 65,

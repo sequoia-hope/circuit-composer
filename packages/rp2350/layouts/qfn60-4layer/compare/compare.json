@@ -35,7 +35,7 @@
       "id": "easy2350",
       "label": "easy2350 (reference transplanted, 4 layers)",
       "note": "The vendor layout copied onto easy_pcb's 4-layer worked example, with the In1 cut-out.",
-      "board": "../../../../../easy_pcb/examples/easy2350/hw/easy2350/a/easy2350.kicad_pcb",
+      "board": "boards/easy2350/input/easy2350.kicad_pcb",
       "measured": {
         "hot_loop_area_mm2": 1.064,
         "hot_loop_area_placed_mm2": 1.064,

@@ -1,0 +1,17 @@
+[package]
+name = "compile"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The constraint compiler: intent to what the router and KiCad read. `routing.json` (regions and
+# length limits, the format agreed with ultraroute) and KiCad custom rules.
+
+[dependencies]
+intent = { path = "../intent" }
+pcb = { path = "../pcb" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[dev-dependencies]
+serde_json = "1"

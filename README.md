@@ -21,6 +21,9 @@ It sits between two sibling projects:
   with an external inductor and capacitors. That covers a generator, fast-tier verifier checks,
   a comparison against Raspberry Pi's reference layout, and the first package,
   `packages/rp2350` 0.1.0, published in this repository.
+- **Milestone 3, router integration:** in progress. The constraint compiler and the region
+  check are done and verified on easy2350. Routing with ultraroute and checking the result is
+  next; ultraroute is adding `--regions`.
 
 ## Build and run
 
@@ -144,13 +147,33 @@ uses copper zones; the generator draws tracks (LX 0.2 mm wide, against the refer
 strip). Some of the smaller switch-node area is narrower copper, and these proxies do not yet
 price trace resistance or inductance.
 
+## Milestone 3: the constraint compiler
+
+Agreed with ultraroute: cost grids are regions, not rasters. `ccomp compile` writes:
+
+- **`routing.json`**, which the router reads with `--regions`. It holds polygons in board
+  millimetres, each with per-layer rules on lists of nets (classes are expanded from the intent
+  file), and hard `max_lengths`. Part-anchored regions are placed on their part. Intent weights
+  in (0, 1] become the router's extra-length multipliers, × 10.
+- **A `.kicad_dru`**: the board's own rules kept, plus a marked block of `length` rules, so
+  KiCad's DRC checks the same limits. A rerun replaces the block only.
+
+Region rules use the router's meanings: `must` (these nets' copper may not leave the region on
+its layers), `never`, `avoid` and `prefer` (prices by `weight`). A rule may target the nets'
+vias instead of their tracks.
+
+`ccomp check regions BOARD --routing routing.json` lists copper that breaks a rule. Its tests
+plant every kind of violation on the package bench. `tools/verify_routed.py` adds KiCad's DRC
+(unconnected items, errors, length limits) and the buck metrics. Together they check a routed
+board's seams.
+
+On easy2350 (inputs pinned to easy_pcb 2d56198 in `boards/easy2350/input/`): 3 regions,
+12 rules and 17 length limits. easy_pcb's released route passes all of it.
+
 ## Next
 
-- **Milestone 3:** the constraint compiler. Agreed with ultraroute: cost grids are regions, not
-  rasters. The compiler writes a `routing.json` (polygons with per-layer `must`, `prefer`,
-  `avoid` and `never` rules by class or net, plus `max_length` entries) that the router reads
-  with `--regions`. Locked copper and parts are already left alone. The first deliverable is a
-  sample `routing.json` for easy2350.
+- **Milestone 3, rest:** route easy2350 with ultraroute, its locked blocks kept, and check the
+  seams. Then the same with `--regions` once ultraroute has it.
 - **Package:** a 2-layer layout, and the transplant tool used in context on a real board, not
   only on a test bench.
 - Then mine `~/pcb/rp2350-motor-controller` for further blocks.

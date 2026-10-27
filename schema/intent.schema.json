@@ -1374,10 +1374,14 @@
       "properties": {
         "applies_to": {
           "$ref": "#/$defs/Selector",
-          "description": "What the rule applies to: a class name, a net name, `*`, or `vias`."
+          "description": "The nets the rule applies to: a class, one net, or all nets."
         },
         "mode": {
           "$ref": "#/$defs/RuleMode"
+        },
+        "vias": {
+          "description": "The rule is about these nets' vias, not their tracks.",
+          "type": "boolean"
         },
         "weight": {
           "description": "For `prefer` and `avoid`: in (0, 1].",
@@ -1395,13 +1399,29 @@
       "type": "object"
     },
     "RuleMode": {
-      "enum": [
-        "must",
-        "prefer",
-        "avoid",
-        "never"
-      ],
-      "type": "string"
+      "description": "What a region rule does on the region's layers. The router's meanings, so the constraint\ncompiler passes them through unchanged.",
+      "oneOf": [
+        {
+          "const": "must",
+          "description": "The nets' copper may not leave the region (on these layers).",
+          "type": "string"
+        },
+        {
+          "const": "prefer",
+          "description": "Copper outside the region costs extra, by `weight`.",
+          "type": "string"
+        },
+        {
+          "const": "avoid",
+          "description": "Copper inside the region costs extra, by `weight`.",
+          "type": "string"
+        },
+        {
+          "const": "never",
+          "description": "No copper of these nets inside the region.",
+          "type": "string"
+        }
+      ]
     },
     "Safety": {
       "enum": [
@@ -1416,8 +1436,7 @@
       "oneOf": [
         {
           "enum": [
-            "all_nets",
-            "vias"
+            "all_nets"
           ],
           "type": "string"
         },

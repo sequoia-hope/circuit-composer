@@ -53,6 +53,22 @@ enum Cmd {
         #[command(subcommand)]
         kind: Gen,
     },
+    /// Compile intent to router regions (`routing.json`) and KiCad custom rules.
+    Compile {
+        intent: PathBuf,
+        /// The board the intent is for (anchored regions are placed on it).
+        #[arg(long)]
+        board: PathBuf,
+        /// Write routing.json here.
+        #[arg(short, long)]
+        output: PathBuf,
+        /// Also write KiCad custom rules here, merged into `--dru-base` if given.
+        #[arg(long)]
+        dru: Option<PathBuf>,
+        /// An existing `.kicad_dru` to keep: its rules stay, the circuit-composer block is replaced.
+        #[arg(long, requires = "dru")]
+        dru_base: Option<PathBuf>,
+    },
     /// Draft an intent file from another tool's output.
     Import {
         #[command(subcommand)]
@@ -62,6 +78,15 @@ enum Cmd {
 
 #[derive(Subcommand)]
 enum Check {
+    /// A board's copper against a routing.json's region rules (`never` copper inside, `must`
+    /// copper outside); `avoid`/`prefer` are reported with the length that pays them.
+    Regions {
+        board: PathBuf,
+        #[arg(long)]
+        routing: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
     /// A buck converter: hot-loop and output-loop area, switch-node area, feedback clearance,
     /// copper under the switch node.
     Buck {
@@ -198,6 +223,18 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 file.nets.iter().map(|(k, n)| (k.clone(), serde_json::to_value(presets::resolve(n)).unwrap())).collect();
             Ok((json!({ "nets": nets }), true))
         }
+        Cmd::Check { kind: Check::Regions { board, routing, output } } => {
+            let b = pcb::Board::load(&board)?;
+            let text = std::fs::read_to_string(&routing).map_err(|e| format!("{}: {e}", routing.display()))?;
+            let r: compile::Routing = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", routing.display()))?;
+            let findings = compile::check_regions(&b, &r);
+            let violations = findings.iter().filter(|f| f.violation).count();
+            let value = json!({ "ok": violations == 0, "violations": violations, "findings": findings });
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, violations == 0))
+        }
         Cmd::Check { kind: Check::Buck { board, intent: intent_path, block, roles, limit, svg, output } } => {
             let b = pcb::Board::load(&board)?;
             let (name, role_map, mut limits) = block_roles(intent_path.as_deref(), block, roles)?;
@@ -246,6 +283,31 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 write_json(&o, &value)?;
             }
             Ok((value, true))
+        }
+        Cmd::Compile { intent: path, board, output, dru, dru_base } => {
+            let file = intent::load(&path)?;
+            let b = pcb::Board::load(&board)?;
+            let (routing, notes) = compile::compile(&file, &b)?;
+            write_json(&output, &serde_json::to_value(&routing).unwrap())?;
+            if let Some(d) = &dru {
+                let base = match &dru_base {
+                    Some(p) => Some(std::fs::read_to_string(p).map_err(|e| format!("{}: {e}", p.display()))?),
+                    None => None,
+                };
+                std::fs::write(d, compile::merge_dru(base.as_deref(), &routing)).map_err(|e| format!("{}: {e}", d.display()))?;
+            }
+            Ok((
+                json!({
+                    "ok": true,
+                    "wrote": output,
+                    "dru": dru,
+                    "regions": routing.regions.len(),
+                    "rules": routing.regions.iter().map(|r| r.rules.len()).sum::<usize>(),
+                    "max_lengths": routing.max_lengths.len(),
+                    "notes": notes,
+                }),
+                true,
+            ))
         }
         Cmd::Import { from: Import::EasyPcb { nets_csv, board, netlist, output } } => {
             let text = std::fs::read_to_string(&nets_csv).map_err(|e| format!("{}: {e}", nets_csv.display()))?;

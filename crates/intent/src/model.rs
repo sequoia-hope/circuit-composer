@@ -519,8 +519,11 @@ pub enum RegionKind {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
 pub struct RegionRule {
-    /// What the rule applies to: a class name, a net name, `*`, or `vias`.
+    /// The nets the rule applies to: a class, one net, or all nets.
     pub applies_to: Selector,
+    /// The rule is about these nets' vias, not their tracks.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub vias: bool,
     pub mode: RuleMode,
     /// For `prefer` and `avoid`: in (0, 1].
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -533,15 +536,20 @@ pub enum Selector {
     Class(String),
     Net(String),
     AllNets,
-    Vias,
 }
 
+/// What a region rule does on the region's layers. The router's meanings, so the constraint
+/// compiler passes them through unchanged.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum RuleMode {
+    /// The nets' copper may not leave the region (on these layers).
     Must,
+    /// Copper outside the region costs extra, by `weight`.
     Prefer,
+    /// Copper inside the region costs extra, by `weight`.
     Avoid,
+    /// No copper of these nets inside the region.
     Never,
 }
 
