@@ -1,0 +1,55 @@
+{
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "switch_node_area_mm2": 0.5,
+    "output_loop_area_mm2": 0.5
+  },
+  "limits": {
+    "feedback_clearance_mm": ">=0.3",
+    "switch_node_underlap_mm2": "<=0"
+  },
+  "rows": [
+    {
+      "id": "rp2350b_core_reg",
+      "label": "RP2350B core regulator (U8, QFN-80), rev A",
+      "note": "6-layer board; In1.Cu is a solid GND plane under the switch node.",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 1.054,
+        "hot_loop_area_placed_mm2": 1.054,
+        "output_loop_area_mm2": 2.464,
+        "switch_node_area_mm2": 2.207,
+        "feedback_clearance_mm": 0.415,
+        "switch_node_underlap_mm2": 2.223
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 3.389,
+      "svg": "rp2350b_core_reg.svg"
+    },
+    {
+      "id": "xl7005a_vdrive",
+      "label": "XL7005A buck, VMOT to Vdrive (U28, back side), rev A",
+      "note": "Asynchronous: D4 SS210 freewheels. FB sits behind a divider (R5/R6, C3) about 10 mm away. The limits are the RP2350's and are not judged here.",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 26.33,
+        "hot_loop_area_placed_mm2": 23.772,
+        "output_loop_area_mm2": 53.734,
+        "switch_node_area_mm2": 31.576,
+        "feedback_clearance_mm": 0.507,
+        "switch_node_underlap_mm2": 31.393
+      },
+      "passed": {},
+      "not_applicable": {
+        "feedback_clearance_mm": "the 0.3 mm floor is the RP2350's",
+        "switch_node_underlap_mm2": "XL7005A's datasheet is not ingested; no cited rule"
+      },
+      "score": 68.985,
+      "svg": "xl7005a_vdrive.svg"
+    }
+  ]
+}

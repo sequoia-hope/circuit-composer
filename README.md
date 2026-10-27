@@ -175,9 +175,21 @@ On easy2350 (inputs pinned to easy_pcb 2d56198 in `boards/easy2350/input/`): 3 r
 0 DRC errors and 0 unconnected after a refill. All 17 lengths and 12 region rules hold, and all
 232 locked items, the regulator block among them, come back unchanged.
 
+## Mining: rp2350-motor-controller
+
+The fabricated rev A of the motor controller (`boards/rp2350-motor-controller/`), measured with
+the same checks. Its RP2350B (QFN-80) regulator matches Raspberry Pi's layout within 2 %, but
+sits over a solid In1.Cu ground plane, which the datasheet asks to be cut away. That is recorded
+as a datasheet-versus-practice dispute. Its XL7005A 60 V buck has a hot loop 25× the RP2350's.
+Mining it added asynchronous bucks (a `diode` role), divider feedback, and plane shielding to
+the checks.
+
 ## Next
 
 - Rerun the routed check with `--regions` once ultraroute has it.
+- Milestone 4: the RP2350 package's QFN-80 variant, using the motor controller's regulator as
+  its measured reference.
+- The asynchronous buck in the generator, then the half-bridge (milestone 7).
 - **Package:** a 2-layer layout, and the transplant tool used in context on a real board, not
   only on a test bench.
 - Then mine `~/pcb/rp2350-motor-controller` for further blocks.

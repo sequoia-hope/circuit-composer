@@ -132,6 +132,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
         <li class="done">Constraint compiler: <code>routing.json</code> regions and length limits, KiCad length rules merged into the board's own</li>
         <li class="done">Region check and routed-board seam check; easy_pcb's released easy2350 passes all of it</li>
         <li class="done">easy2350 routed by ultraroute with its blocks locked: 0 DRC errors, 0 unconnected, all lengths and regions met, block intact</li>
+        <li class="done">Mined the motor controller's rev A: RP2350B regulator and the XL7005A 60 V buck measured; async bucks and plane shielding in the checks</li>
       </ul>
     </section>
 
@@ -140,7 +141,8 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
       <ul class="checks">
         <li>Rerun the routed check with <code>--regions</code> once ultraroute has it (sample file sent)</li>
         <li>Apply the generated block in context on easy2350; 2-layer variant</li>
-        <li>Mine <code>~/pcb/rp2350-motor-controller</code> for more blocks</li>
+        <li>M4: RP2350 QFN-80 variant, with the motor controller's regulator as reference</li>
+        <li>Async buck in the generator; half-bridge checks (M7)</li>
       </ul>
     </section>
   </div>
@@ -167,6 +169,11 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Mined rp2350-motor-controller rev A. Its RP2350B regulator matches Raspberry Pi's layout
+        but has ground under LX, a datasheet-versus-practice dispute. The XL7005A buck's hot loop is 26 mm².</div>
+      </div>
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
         <div>Milestone 3: ultraroute routed easy2350 around its locked blocks; the seam check passes

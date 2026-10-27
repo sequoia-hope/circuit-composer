@@ -8,8 +8,12 @@
 //!   the capacitor and across the IC. Placed (`hot_loop_area_placed_mm2`): through pad centres.
 //! - `output_loop_area_mm2`: SW pin → inductor → COUT → PGND pin, the same way.
 //! - `switch_node_area_mm2`: all copper of the switch net, every layer, overlaps counted once.
-//! - `feedback_clearance_mm`: the feedback path's centreline (FB pin to COUT) to switch-node
-//!   copper on any layer, the IC's own pins excluded (the package fixes those).
+//! - `feedback_clearance_mm`: the feedback path's centreline (FB pin to COUT, or to the divider
+//!   when FB sits behind one) to switch-node copper on any layer, the IC's own pins excluded
+//!   (the package fixes those).
+//!
+//! An asynchronous buck names its freewheeling `diode`; its loops close through the diode
+//! instead of the IC's ground pin.
 //! - `switch_node_underlap_mm2`: other nets' copper on the layer under the switch node's outer
 //!   copper (datasheets ask for it cut away).
 
@@ -33,13 +37,26 @@ pub struct BuckRoles {
     pub cin: String,
     pub cout: String,
     pub inductor: String,
+    /// The freewheeling diode of an asynchronous buck (a part). Absent for a synchronous buck,
+    /// whose low-side switch is inside the IC and returns through `pgnd`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub diode: Option<String>,
 }
 
 impl BuckRoles {
     /// From `vin=U1.49,sw=U1.48,...` or a role map.
     pub fn from_map(m: &BTreeMap<String, String>) -> Result<BuckRoles, String> {
         let get = |k: &str| m.get(k).cloned().ok_or_else(|| format!("buck role `{k}` is not given"));
-        Ok(BuckRoles { vin: get("vin")?, sw: get("sw")?, pgnd: get("pgnd")?, fb: get("fb")?, cin: get("cin")?, cout: get("cout")?, inductor: get("inductor")? })
+        Ok(BuckRoles {
+            vin: get("vin")?,
+            sw: get("sw")?,
+            pgnd: get("pgnd")?,
+            fb: get("fb")?,
+            cin: get("cin")?,
+            cout: get("cout")?,
+            inductor: get("inductor")?,
+            diode: m.get("diode").cloned(),
+        })
     }
 
     pub fn ic(&self) -> &str {
@@ -107,10 +124,29 @@ fn loop_polygon(b: &Board, legs: &[(&str, &Pad, &Pad)]) -> (Vec<P>, bool) {
 
 pub fn check(board: &Board, block: &str, roles: &BuckRoles, limits: &BTreeMap<String, Limit>) -> Result<BuckReport, String> {
     let (vin, sw, pgnd, fb) = (pad(board, &roles.vin)?, pad(board, &roles.sw)?, pad(board, &roles.pgnd)?, pad(board, &roles.fb)?);
-    let nets = BuckNets { vin: vin.net.clone(), sw: sw.net.clone(), gnd: pgnd.net.clone(), out: fb.net.clone() };
+    // The output is the inductor's other side; the feedback pin is on it (an on-chip divider) or
+    // behind an external divider.
+    let l_sw = terminal(board, &roles.inductor, &sw.net)?;
+    let l_out = board.parts[&roles.inductor].pads.iter().map(|&i| &board.pads[i]).find(|p| p.net != sw.net).ok_or("inductor has no output pad")?;
+    let nets = BuckNets { vin: vin.net.clone(), sw: sw.net.clone(), gnd: pgnd.net.clone(), out: l_out.net.clone() };
     let (cin_v, cin_g) = (terminal(board, &roles.cin, &nets.vin)?, terminal(board, &roles.cin, &nets.gnd)?);
     let (cout_o, cout_g) = (terminal(board, &roles.cout, &nets.out)?, terminal(board, &roles.cout, &nets.gnd)?);
-    let (l_sw, l_out) = (terminal(board, &roles.inductor, &nets.sw)?, terminal(board, &roles.inductor, &nets.out)?);
+    let diode = match &roles.diode {
+        Some(d) => Some((terminal(board, d, &nets.gnd)?, terminal(board, d, &nets.sw)?)),
+        None => None,
+    };
+    // Where the feedback path ends: COUT when FB is on the output, else the nearest other pad on
+    // the feedback net (the divider).
+    let fb_target: &Pad = if fb.net == nets.out {
+        cout_o
+    } else {
+        board
+            .pads
+            .iter()
+            .filter(|p| p.net == fb.net && p.part != fb.part)
+            .min_by(|a, b| geom::dist(a.centre, fb.centre).total_cmp(&geom::dist(b.centre, fb.centre)))
+            .ok_or("the feedback net reaches no other pad")?
+    };
 
     let mut out = Vec::new();
     let mut geo = BuckGeometry::default();
@@ -127,17 +163,31 @@ pub fn check(board: &Board, block: &str, roles: &BuckRoles, limits: &BTreeMap<St
         method: method.map(str::to_string),
     };
 
-    // Hot loop.
-    let (hot, routed) = loop_polygon(board, &[(&nets.vin, vin, cin_v), (&nets.gnd, cin_g, pgnd)]);
-    let placed = vec![vin.centre, cin_v.centre, cin_g.centre, pgnd.centre];
-    let method = if routed { "copper paths on VIN and GND, closed through CIN and the IC" } else { "pad centres: a leg is unrouted" };
+    // Hot loop: through the IC's ground pin, or for an asynchronous buck through the diode.
+    let (hot_legs, placed): (Vec<(&str, &Pad, &Pad)>, Vec<P>) = match diode {
+        None => (vec![(&nets.vin, vin, cin_v), (&nets.gnd, cin_g, pgnd)], vec![vin.centre, cin_v.centre, cin_g.centre, pgnd.centre]),
+        Some((da, dk)) => (
+            vec![(&nets.vin, vin, cin_v), (&nets.gnd, cin_g, da), (&nets.sw, dk, sw)],
+            vec![vin.centre, cin_v.centre, cin_g.centre, da.centre, dk.centre, sw.centre],
+        ),
+    };
+    let (hot, routed) = loop_polygon(board, &hot_legs);
+    let method = match (routed, diode.is_some()) {
+        (true, false) => "copper paths on VIN and GND, closed through CIN and the IC",
+        (true, true) => "copper paths on VIN, GND and SW, closed through CIN, the diode and the IC",
+        (false, _) => "pad centres: a leg is unrouted",
+    };
     out.push(m("hot_loop_area_mm2", &[&nets.vin, &nets.gnd], geom::centroid(&hot), geom::loop_area(&hot, 400), "mm2", FixStage::Block, Some(method)));
     out.push(m("hot_loop_area_placed_mm2", &[&nets.vin, &nets.gnd], geom::centroid(&placed), geom::loop_area(&placed, 400), "mm2", FixStage::Block, Some("pad centres")));
     geo.hot_loop = hot;
     geo.routed = routed;
 
-    // Output loop.
-    let (outl, routed_o) = loop_polygon(board, &[(&nets.sw, sw, l_sw), (&nets.out, l_out, cout_o), (&nets.gnd, cout_g, pgnd)]);
+    // Output loop: switch → inductor → COUT → ground, back through the IC's ground pin or the diode.
+    let out_legs: Vec<(&str, &Pad, &Pad)> = match diode {
+        None => vec![(&nets.sw, sw, l_sw), (&nets.out, l_out, cout_o), (&nets.gnd, cout_g, pgnd)],
+        Some((da, dk)) => vec![(&nets.sw, dk, l_sw), (&nets.out, l_out, cout_o), (&nets.gnd, cout_g, da)],
+    };
+    let (outl, routed_o) = loop_polygon(board, &out_legs);
     let method = if routed_o { "copper paths on SW, output and GND" } else { "pad centres: a leg is unrouted" };
     out.push(m("output_loop_area_mm2", &[&nets.sw, &nets.out, &nets.gnd], geom::centroid(&outl), geom::loop_area(&outl, 400), "mm2", FixStage::Block, Some(method)));
     geo.output_loop = outl;
@@ -152,34 +202,55 @@ pub fn check(board: &Board, block: &str, roles: &BuckRoles, limits: &BTreeMap<St
     let sw_area: f64 = by_layer.values().map(|ps| geom::union_area(ps, 0.01)).sum();
     out.push(m("switch_node_area_mm2", &[&nets.sw], sw.centre, sw_area, "mm2", FixStage::Block, Some("union of the net's copper per layer, summed, 10 um raster")));
 
-    // Feedback clearance.
-    let fb_path = copper_path(board, &nets.out, &roles.fb, &name(cout_o)).map(|p| p.points).unwrap_or_else(|| vec![fb.centre, cout_o.centre]);
-    let mut sw_shapes: Vec<Vec<P>> = Vec::new();
+    // Feedback clearance: in plan view, layer by layer, except where a fill on a layer between
+    // the two (a plane of another net) covers the crossing and shields it.
+    let (fb_path, fb_layers) = match copper_path(board, &fb.net, &roles.fb, &name(fb_target)) {
+        Some(p) => (p.points, p.layers),
+        None => (vec![fb.centre, fb_target.centre], vec![fb.layers.first().cloned().unwrap_or_default(); 2]),
+    };
+    let mut sw_shapes: Vec<(String, Vec<P>)> = Vec::new();
     for p in board.pads.iter().filter(|p| p.net == nets.sw && p.part != ic) {
-        sw_shapes.extend(p.shape.iter().cloned());
-    }
-    for (l, poly) in board.net_copper(&nets.sw) {
-        let _ = l;
-        if !board.pads.iter().any(|p| p.part == ic && p.shape.contains(&poly)) && !sw_shapes.contains(&poly) {
-            sw_shapes.push(poly);
+        for l in &p.layers {
+            sw_shapes.extend(p.shape.iter().map(|sh| (l.clone(), sh.clone())));
         }
     }
+    sw_shapes.extend(board.tracks.iter().filter(|t| t.net == nets.sw).map(|t| (t.layer.clone(), geom::capsule(t.a, t.b, t.width))));
+    for v in board.vias.iter().filter(|v| v.net == nets.sw) {
+        sw_shapes.extend(v.layers.iter().map(|l| (l.clone(), geom::circle(v.at, v.size / 2.0, 16))));
+    }
+    sw_shapes.extend(board.fills.iter().filter(|f| f.net == nets.sw).map(|f| (f.layer.clone(), f.polygon.clone())));
+    let li = |l: &str| board.layers.iter().position(|x| x == l);
+    let shielded = |p: P, la: &str, lb: &str| -> bool {
+        let (Some(i), Some(j)) = (li(la), li(lb)) else { return false };
+        let (lo, hi) = (i.min(j), i.max(j));
+        board.fills.iter().any(|f| {
+            f.net != nets.sw && f.net != fb.net && li(&f.layer).is_some_and(|k| k > lo && k < hi) && geom::inside(&f.polygon, p)
+        })
+    };
     let mut best = (f64::INFINITY, None);
-    for s in &sw_shapes {
-        let d = geom::polyline_poly_dist(&fb_path, s);
-        if d < best.0 {
-            best = (d, Some(closest(&fb_path, s)));
+    let mut shielded_crossings = 0usize;
+    for w in 0..fb_path.len().saturating_sub(1) {
+        let (a, b, layer) = (fb_path[w], fb_path[w + 1], &fb_layers[w]);
+        if fb_layers[w + 1] != *layer {
+            continue; // a via: its barrel is measured as the segments either side
+        }
+        for (sl, sh) in &sw_shapes {
+            let d = geom::polyline_poly_dist(&[a, b], sh);
+            if d >= best.0 {
+                continue;
+            }
+            let c = closest(&[a, b], sh);
+            if sl != layer && shielded(geom::scale(geom::add(c.0, c.1), 0.5), layer, sl) {
+                shielded_crossings += 1;
+                continue;
+            }
+            best = (d, Some(c));
         }
     }
-    out.push(m(
-        "feedback_clearance_mm",
-        &[&nets.out, &nets.sw],
-        best.1.map_or(fb.centre, |c: (P, P)| c.0),
-        best.0,
-        "mm",
-        FixStage::Block,
-        Some("feedback path centreline to switch-node copper, any layer, IC pins excluded"),
-    ));
+    let method = format!(
+        "feedback path centreline to switch-node copper, plan view, IC pins excluded; {shielded_crossings} closer approach(es) on other layers shielded by a plane between"
+    );
+    out.push(m("feedback_clearance_mm", &[&fb.net, &nets.sw], best.1.map_or(fb.centre, |c: (P, P)| c.0), best.0, "mm", FixStage::Block, Some(&method)));
     geo.feedback_path = fb_path;
     geo.feedback_closest = best.1;
 
