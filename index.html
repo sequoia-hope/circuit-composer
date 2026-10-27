@@ -60,6 +60,7 @@ ul.checks li.done { color: var(--muted); }
 ul.checks li.done::before { content: "●"; color: var(--up); }
 .log { display: grid; gap: .7rem; }
 .entry { display: grid; grid-template-columns: 5.5rem 1fr; gap: .75rem; align-items: baseline; }
+li code { word-break: break-all; }
 .entry time { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
 .todo { color: var(--muted); font-style: italic; }
 code {
@@ -77,33 +78,47 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 <header>
   <div class="title">
     <h1>circuit-composer</h1>
-    <span class="state"><span class="dot"></span>Not started</span>
+    <span class="state active"><span class="dot"></span>Milestone 1 done</span>
   </div>
-  <p class="lede todo">One line on what this project is and who it is for — replace this.</p>
+  <p class="lede">Board design as composition: chips ingested once into verified packages, boards
+  built by combining them. Sits between <a href="../easy_pcb">easy_pcb</a> (schematic) and
+  <a href="../ultraroute">ultraroute</a> (routing).</p>
 </header>
 
 <main>
 
   <section class="card">
     <h2>Where it stands</h2>
-    <p class="todo">A paragraph of honest current state: what exists, what runs,
-    what is still a sketch. Update this whenever the answer changes.</p>
+    <p>Intent schema v0 exists as Rust types with a generated JSON Schema, a validator, and a
+    <code>ccomp</code> CLI that prints JSON. easy2350, easy_pcb's worked RP2350A board, is annotated
+    by hand: its nets, 14 blocks, a domain tree, two part-anchored regions, and three protection paths.
+    It passes the validator. Nothing places, generates or routes yet. That starts with milestone 2.</p>
+  </section>
+
+  <section class="card">
+    <h2>easy2350 validation</h2>
+    <div id="report"><p class="todo">Loading boards/easy2350/validate.json…</p></div>
   </section>
 
   <div class="cols">
     <section class="card">
       <h2>Working</h2>
       <ul class="checks">
-        <li class="done">Project registered on port 8066</li>
-        <li class="done"><span class="todo">…the next thing that actually works</span></li>
+        <li class="done">Intent types: nets, blocks, ports, domains, regions, protection paths</li>
+        <li class="done">JSON Schema generated; a test fails if the committed copy is stale</li>
+        <li class="done">Validator: required fields per class, provenance on every hard constraint, pairs, pads</li>
+        <li class="done">KiCad netlist reader (runs kicad-cli on a schematic)</li>
+        <li class="done">Import from easy_pcb <code>design/nets.csv</code></li>
+        <li class="done">easy2350 annotated and passing; 17 tests</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>Next up</h2>
       <ul class="checks">
-        <li class="todo">The next concrete step</li>
-        <li class="todo">The one after that</li>
+        <li>M2: buck generator and fast-tier verifier on the RP2350 core regulator</li>
+        <li>M2: score against Raspberry Pi's reference layout</li>
+        <li>M3: constraint compiler to KiCad rules and rule areas for ultraroute</li>
       </ul>
     </section>
   </div>
@@ -112,14 +127,16 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
     <section class="card">
       <h2>Open questions</h2>
       <ul>
-        <li class="todo">Decisions not yet made, and what they hinge on.</li>
+        <li>Intent file format: chose JSON for v0 (schema is generated from the Rust types)</li>
+        <li>EM solver for the slow tier (openEMS or other)</li>
+        <li>How ultraroute represents cost grids (it reads rule areas as via-avoid today)</li>
       </ul>
     </section>
 
     <section class="card">
       <h2>Blocked on</h2>
       <ul>
-        <li class="todo">Nothing yet.</li>
+        <li>Nothing.</li>
       </ul>
     </section>
   </div>
@@ -129,11 +146,12 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
     <div class="log">
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
-        <div>Project created and registered with the hub. Status page scaffolded.</div>
+        <div>Milestone 1: intent schema v0, validator, <code>ccomp</code> CLI, easy_pcb importer;
+        easy2350 annotated and passing. Found 4 auto-named nets easy_pcb's nets.csv misses.</div>
       </div>
-      <div class="entry todo">
-        <time>YYYY-MM-DD</time>
-        <div>Newest entries on top.</div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Project created and registered with the hub. Status page scaffolded.</div>
       </div>
     </div>
   </section>
@@ -141,9 +159,20 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 </main>
 
 <footer>
-  Served from <code>~/Software/circuit-composer</code> on port 8066 —
+  Served from <code>~/Software/circuit-composer</code> on its registered port (<code>proj url circuit-composer</code>) —
   <code>proj up circuit-composer</code> to start, <code>proj down circuit-composer</code> to stop.
 </footer>
+
+<script>
+fetch("boards/easy2350/validate.json").then(r => r.json()).then(r => {
+  const s = r.summary, esc = t => String(t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  const rows = r.findings.map(f => `<li><code>${esc(f.severity)}</code> <code>${esc(f.code)}</code> ${esc(f.subject)} <code>${esc(f.id)}</code>: ${esc(f.message)}</li>`).join("");
+  document.getElementById("report").innerHTML =
+    `<p><strong>${r.ok ? "Passes" : "Fails"}</strong>: ${s.nets_passing}/${s.nets_in_netlist} nets, ${s.blocks} blocks,
+     ${s.hard_constraints} hard constraints, ${s.errors} errors, ${s.warnings} warnings.</p>` +
+    (rows ? `<ul>${rows}</ul>` : "");
+}).catch(e => { document.getElementById("report").innerHTML = `<p class="todo">Could not load the report: ${e}</p>`; });
+</script>
 
 </body>
 </html>

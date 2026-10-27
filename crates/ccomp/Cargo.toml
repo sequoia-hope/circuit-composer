@@ -1,0 +1,12 @@
+[package]
+name = "ccomp"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The command-line harness: every stage reads files and writes files plus a JSON result.
+
+[dependencies]
+intent = { path = "../intent" }
+serde_json = "1"
+clap = { version = "4", features = ["derive"] }

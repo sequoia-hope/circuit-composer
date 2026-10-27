@@ -1,0 +1,2324 @@
+{
+  "board": {
+    "name": "easy2350",
+    "kicad_project": "input/easy2350.net",
+    "layers": 4
+  },
+  "nets": {
+    "+1V1": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 4, i_cont/i_peak",
+          "note": "RP2350 core from its own regulator; regulator rated 200 mA (rp2350-core.md); copper copied from the vendor layout",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.2,
+          "peak_a": 0.4
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 4, v_max",
+          "note": "RP2350 core from its own regulator; regulator rated 200 mA (rp2350-core.md); copper copied from the vendor layout",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 1.3
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a76.3.8 p.412",
+          "kind": "datasheet",
+          "note": "VREG_FB is on this net at COUT; it should avoid routing directly underneath LX"
+        }
+      }
+    },
+    "+3V3": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 3, i_cont/i_peak",
+          "note": "LDO output: 277 mA max load budget (intent.md, ldo-3v3.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.28,
+          "peak_a": 0.4
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 3, v_max",
+          "note": "LDO output: 277 mA max load budget (intent.md, ldo-3v3.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/CC1": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 24, v_max",
+          "note": "Type-C Rd; may see 5 V VCONN from a cable (usb-front-end.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "/CC2": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 25, v_max",
+          "note": "Type-C Rd",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "/GPIO0": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 33, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO1": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 34, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO10": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 43, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO11": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 44, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO12": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 45, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO13": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 46, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO14": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 47, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO15": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 48, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO16": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 49, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO17": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 50, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO18": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 51, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO19": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 52, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO2": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 35, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO20": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 53, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO21": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 54, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO22": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 55, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO23": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 56, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO24": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 57, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO25": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 58, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO26": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 59, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO27": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 60, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO28": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 61, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO29": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 62, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO3": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 36, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO4": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 37, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO5": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 38, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO6": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 39, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO7": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 40, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO8": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 41, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/GPIO9": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 42, v_max",
+          "note": "GPIO to header; 12 mA max per pin (intent.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/LED_DIN": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 29, v_max",
+          "note": "Pixel data at VLED logic, 800 kb/s",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.3
+        }
+      },
+      "topology": {
+        "value": "daisy_chain",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "RGB LED chain",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/PIX12": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 30, v_max",
+          "note": "Pixel 1 to 2 data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.3
+        }
+      },
+      "topology": {
+        "value": "daisy_chain",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "RGB LED chain",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/PIX23": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 31, v_max",
+          "note": "Pixel 2 to 3 data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.3
+        }
+      },
+      "topology": {
+        "value": "daisy_chain",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "RGB LED chain",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/PIX34": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 32, v_max",
+          "note": "Pixel 3 to 4 data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.3
+        }
+      },
+      "topology": {
+        "value": "daisy_chain",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "RGB LED chain",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/QSPI_SCLK": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 15, length_limit",
+          "note": "Flash clock, up to 133 MHz (flash.md); short, over solid ground",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 25.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 15, v_max",
+          "note": "Flash clock, up to 133 MHz (flash.md); short, over solid ground",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "aggressor": {
+        "value": {
+          "level": "moderate"
+        },
+        "strength": "soft",
+        "weight": 0.7,
+        "provenance": {
+          "source": "rp2350_core_md",
+          "locator": "Calc 5: coupling to the crystal",
+          "kind": "expert"
+        }
+      },
+      "topology": {
+        "value": "point_to_point",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "class SE_HS",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/QSPI_SD0": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 16, length_limit",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 25.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 16, v_max",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "topology": {
+        "value": "point_to_point",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "class SE_HS",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/QSPI_SD1": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 17, length_limit",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 25.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 17, v_max",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "topology": {
+        "value": "point_to_point",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "class SE_HS",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/QSPI_SD2": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 18, length_limit",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 25.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 18, v_max",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "topology": {
+        "value": "point_to_point",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "class SE_HS",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/QSPI_SD3": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 19, length_limit",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 25.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 19, v_max",
+          "note": "Flash data",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "topology": {
+        "value": "point_to_point",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "class SE_HS",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/QSPI_SS": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 20, length_limit",
+          "note": "Flash chip select; also BOOTSEL through 1 k",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 25.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 20, v_max",
+          "note": "Flash chip select; also BOOTSEL through 1 k",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "topology": {
+        "value": "point_to_point",
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "class SE_HS",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/RUN": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 26, v_max",
+          "note": "Reset, slow; header pin 30 and SW2",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/SWCLK": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 27, v_max",
+          "note": "SWD clock to J4, direct (series resistors removed, decisions.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/SWDIO": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 28, v_max",
+          "note": "SWD data to J4",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/USB_DM": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 12, impedance",
+          "note": "USB FS D-, ESD array to 27 R. USB 2.0: 90 ohm +/-15 % differential.",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DP",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 12, length_limit",
+          "note": "USB FS D-, ESD array to 27 R",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 20.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 12, v_max",
+          "note": "USB FS D-, ESD array to 27 R",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "safety": {
+        "value": "functional",
+        "strength": "soft",
+        "weight": 0.3,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: +/-8 kV ESD on every J1 pin",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/USB_DM_C": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 10, impedance",
+          "note": "USB FS D-, connector to ESD array. USB 2.0: 90 ohm +/-15 % differential.",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DP_C",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 10, length_limit",
+          "note": "USB FS D-, connector to ESD array",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 20.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 10, v_max",
+          "note": "USB FS D-, connector to ESD array",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "safety": {
+        "value": "functional",
+        "strength": "soft",
+        "weight": 0.3,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: +/-8 kV ESD on every J1 pin",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/USB_DM_MCU": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 14, impedance",
+          "note": "27 R to RP2350 pin 51; 5 mm as D+. USB 2.0: 90 ohm +/-15 % differential.",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DP_MCU",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 14, length_limit",
+          "note": "27 R to RP2350 pin 51; 5 mm as D+",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 5.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 14, v_max",
+          "note": "27 R to RP2350 pin 51; 5 mm as D+",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "safety": {
+        "value": "functional",
+        "strength": "soft",
+        "weight": 0.3,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: +/-8 kV ESD on every J1 pin",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/USB_DP": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 11, impedance",
+          "note": "USB FS D+, ESD array to 27 R. USB 2.0: 90 ohm +/-15 % differential.",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DM",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 11, length_limit",
+          "note": "USB FS D+, ESD array to 27 R",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 20.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 11, v_max",
+          "note": "USB FS D+, ESD array to 27 R",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "safety": {
+        "value": "functional",
+        "strength": "soft",
+        "weight": 0.3,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: +/-8 kV ESD on every J1 pin",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/USB_DP_C": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 9, impedance",
+          "note": "USB FS D+, connector to ESD array; pair with USB_DM_C. USB 2.0: 90 ohm +/-15 % differential.",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DM_C",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 9, length_limit",
+          "note": "USB FS D+, connector to ESD array; pair with USB_DM_C",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 20.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 9, v_max",
+          "note": "USB FS D+, connector to ESD array; pair with USB_DM_C",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "safety": {
+        "value": "functional",
+        "strength": "soft",
+        "weight": 0.3,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: +/-8 kV ESD on every J1 pin",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/USB_DP_MCU": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 13, impedance",
+          "note": "27 R to RP2350 pin 52; resistor at the chip (hardware design guide); 5 mm: the vendor copy measures 4.10 mm (si-review.md \u00a73). USB 2.0: 90 ohm +/-15 % differential.",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DM_MCU",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 13, length_limit",
+          "note": "27 R to RP2350 pin 52; resistor at the chip (hardware design guide); 5 mm: the vendor copy measures 4.10 mm (si-review.md \u00a73)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 5.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 13, v_max",
+          "note": "27 R to RP2350 pin 52; resistor at the chip (hardware design guide); 5 mm: the vendor copy measures 4.10 mm (si-review.md \u00a73)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "safety": {
+        "value": "functional",
+        "strength": "soft",
+        "weight": 0.3,
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: +/-8 kV ESD on every J1 pin",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/VREG_AVDD": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 8, i_cont/i_peak",
+          "note": "Regulator analog supply behind the 33 R / 4.7 uF RC (rp2350-core.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.01,
+          "peak_a": 0.02
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 8, length_limit",
+          "note": "Regulator analog supply behind the 33 R / 4.7 uF RC (rp2350-core.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 10.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 8, v_max",
+          "note": "Regulator analog supply behind the 33 R / 4.7 uF RC (rp2350-core.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_core_md",
+          "locator": "Layout: VREG_AVDD behind the 33 R / 4.7 uF RC",
+          "kind": "expert"
+        }
+      }
+    },
+    "/VREG_LX": {
+      "class": "SWITCH",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 7, i_cont/i_peak",
+          "note": "RP2350 regulator switch node: smallest area, vendor zone geometry, layer-2 cut-out (chips/rp2350.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.2,
+          "peak_a": 0.4
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 7, length_limit",
+          "note": "RP2350 regulator switch node: smallest area, vendor zone geometry, layer-2 cut-out (chips/rp2350.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 5.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 7, v_max",
+          "note": "RP2350 regulator switch node: smallest area, vendor zone geometry, layer-2 cut-out (chips/rp2350.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "aggressor": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a76.3.8 p.411",
+          "kind": "datasheet",
+          "note": "keep the switching loop area as small as possible"
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "none"
+        },
+        "strength": "soft",
+        "weight": 1.0,
+        "provenance": {
+          "source": "preset:SWITCH",
+          "locator": null,
+          "kind": "preset"
+        }
+      }
+    },
+    "/XIN": {
+      "class": "CLOCK",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 21, length_limit",
+          "note": "12 MHz crystal: L1 only over solid L2, no vias; 10 mm because Y1 pad 1 sits 7.4 mm from pin 21 (decisions.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 10.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 21, v_max",
+          "note": "12 MHz crystal: L1 only over solid L2, no vias; 10 mm because Y1 pad 1 sits 7.4 mm from pin 21 (decisions.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a74 p.13",
+          "kind": "datasheet",
+          "note": "keep the crystal layout as short as possible, away from VREG_LX, QSPI_SCLK and USB"
+        }
+      },
+      "bandwidth": {
+        "value": {
+          "kind": "digital",
+          "max_hz": 12000000.0
+        },
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "rp2350_core_md",
+          "locator": "Crystal: 12 MHz fundamental",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/XOUT": {
+      "class": "CLOCK",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 22, length_limit",
+          "note": "XOUT to the 1 k at the chip",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 5.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 22, v_max",
+          "note": "XOUT to the 1 k at the chip",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a74 p.13",
+          "kind": "datasheet",
+          "note": "keep the crystal layout as short as possible, away from VREG_LX, QSPI_SCLK and USB"
+        }
+      },
+      "bandwidth": {
+        "value": {
+          "kind": "digital",
+          "max_hz": 12000000.0
+        },
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "rp2350_core_md",
+          "locator": "Crystal: 12 MHz fundamental",
+          "kind": "requirement"
+        }
+      }
+    },
+    "/XOUT_R": {
+      "class": "CLOCK",
+      "max_length": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 23, length_limit",
+          "note": "Crystal side of the 1 k",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "mm": 5.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 23, v_max",
+          "note": "Crystal side of the 1 k",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a74 p.13",
+          "kind": "datasheet",
+          "note": "keep the crystal layout as short as possible, away from VREG_LX, QSPI_SCLK and USB"
+        }
+      },
+      "bandwidth": {
+        "value": {
+          "kind": "digital",
+          "max_hz": 12000000.0
+        },
+        "strength": "soft",
+        "weight": 0.5,
+        "provenance": {
+          "source": "rp2350_core_md",
+          "locator": "Crystal: 12 MHz fundamental",
+          "kind": "requirement"
+        }
+      }
+    },
+    "GND": {
+      "class": "GROUND",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 6, i_cont/i_peak",
+          "note": "Return for everything; plane",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.5,
+          "peak_a": 1.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 6, v_max",
+          "note": "Return for everything; plane",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 0.0
+        }
+      }
+    },
+    "VBUS": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 2, i_cont/i_peak",
+          "note": "USB input: 500 mA budget (intent.md); peak covers hot-plug charging of the 7.5 uF on VBUS (ldo-3v3.md; C2 raised to 2.2 uF, decisions.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.5,
+          "peak_a": 0.75
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 2, v_max",
+          "note": "USB input: 500 mA budget (intent.md); peak covers hot-plug charging of the 7.5 uF on VBUS (ldo-3v3.md; C2 raised to 2.2 uF, decisions.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "VLED": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 5, i_cont/i_peak",
+          "note": "Pixel rail, 4 x 36 mA at full white +10 % (rgb-leds.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.16,
+          "peak_a": 0.2
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "row 5, v_max",
+          "note": "Pixel rail, 4 x 36 mA at full white +10 % (rgb-leds.md)",
+          "source": "nets_csv"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.3
+        }
+      }
+    },
+    "Net-(D1-A)": {
+      "class": "SIGNAL",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: D1 status LED, 3.3 V",
+          "kind": "requirement"
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.002
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: D1 status LED, 2 mA",
+          "kind": "requirement"
+        }
+      },
+      "note": "R9 to D1 anode, status LED on GPIO25"
+    },
+    "Net-(R7-Pad2)": {
+      "class": "SIGNAL",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: SW1 BOOTSEL, 3.3 V",
+          "kind": "requirement"
+        }
+      },
+      "note": "SW1 BOOTSEL through 1 k to QSPI_SS"
+    },
+    "Net-(R8-Pad2)": {
+      "class": "SIGNAL",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "intent_md",
+          "locator": "External interfaces: SW2 RESET, 3.3 V",
+          "kind": "requirement"
+        }
+      },
+      "note": "SW2 RESET through 1 k to RUN"
+    },
+    "Net-(U4-Y)": {
+      "class": "SIGNAL",
+      "voltage": {
+        "value": {
+          "peak_v": 5.3
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "nets_csv",
+          "locator": "row LED_DIN, v_max",
+          "kind": "requirement"
+        }
+      },
+      "note": "Level shifter output to the 33 R series resistor, VLED logic"
+    }
+  },
+  "schema_version": "0.1",
+  "sources": {
+    "nets_csv": {
+      "location": "../../../easy_pcb/examples/easy2350/design/nets.csv",
+      "title": "easy_pcb phase-3 net classification",
+      "revision": "easy_pcb 2d56198"
+    },
+    "rp2350_ds": {
+      "title": "RP2350 datasheet",
+      "location": "https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf",
+      "sha256": "a638d6780da919162660691bfa02c6dcf7c2a0b6e9f18e2d7519c80b664a2e39"
+    },
+    "rp2350_hdg": {
+      "title": "Hardware design with RP2350",
+      "location": "https://datasheets.raspberrypi.com/rp2350/hardware-design-with-rp2350.pdf",
+      "revision": "release 3, build 20/08/2026",
+      "sha256": "cef88bc7d87e67b4262ee15f2b94b03566667143f4e8daf6931828bef6408059"
+    },
+    "usblc6_ds": {
+      "title": "ST USBLC6-2 datasheet",
+      "location": "../../../easy_pcb/examples/easy2350/design/datasheets/usblc6-2.pdf",
+      "revision": "Doc ID 11265 Rev 5",
+      "sha256": "8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e"
+    },
+    "intent_md": {
+      "title": "easy2350 design intent (phase 0)",
+      "location": "../../../easy_pcb/examples/easy2350/design/intent.md",
+      "revision": "easy_pcb 2d56198"
+    },
+    "rp2350_core_md": {
+      "title": "easy2350 U1 core block audit",
+      "location": "../../../easy_pcb/examples/easy2350/design/parts/rp2350-core.md",
+      "revision": "easy_pcb 2d56198"
+    },
+    "usb_front_end_md": {
+      "title": "easy2350 USB-C front end audit",
+      "location": "../../../easy_pcb/examples/easy2350/design/parts/usb-front-end.md",
+      "revision": "easy_pcb 2d56198"
+    }
+  },
+  "blocks": {
+    "usb_in": {
+      "type": "connector_protection",
+      "parts": [
+        "J1",
+        "U2",
+        "C1",
+        "R1",
+        "R2",
+        "R4",
+        "R5"
+      ],
+      "ports": {
+        "vbus": {
+          "kind": "supply",
+          "nets": [
+            "VBUS"
+          ],
+          "direction": "out",
+          "voltage_v": 5.0,
+          "current_a": 0.5
+        },
+        "usb": {
+          "kind": "diff_pair",
+          "nets": [
+            "/USB_DP_MCU",
+            "/USB_DM_MCU"
+          ],
+          "direction": "bidirectional",
+          "protocol": "usb2-fs",
+          "impedance_ohm": 90.0,
+          "class": "DIFF_HS"
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      },
+      "note": "USB-C receptacle, ESD array first, 27 R series pair at the chip side"
+    },
+    "ldo_3v3": {
+      "type": "ldo",
+      "parts": [
+        "U3",
+        "C2",
+        "C3"
+      ],
+      "ports": {
+        "in": {
+          "kind": "supply",
+          "nets": [
+            "VBUS"
+          ],
+          "direction": "in",
+          "voltage_v": 5.0,
+          "current_a": 0.28
+        },
+        "out": {
+          "kind": "supply",
+          "nets": [
+            "+3V3"
+          ],
+          "direction": "out",
+          "voltage_v": 3.3,
+          "current_a": 0.277,
+          "noise_mvpp": 50.0
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      }
+    },
+    "core_reg": {
+      "type": "buck",
+      "parts": [
+        "L1",
+        "C13",
+        "C14",
+        "C15",
+        "R3"
+      ],
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "hot_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 1.0,
+            "nets": [
+              "/VREG_LX",
+              "+1V1",
+              "GND"
+            ]
+          },
+          {
+            "metric": "switch_node_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5,
+            "nets": [
+              "/VREG_LX"
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "trace_length_mm",
+              "op": "<=",
+              "limit": 5.0,
+              "nets": [
+                "/VREG_LX"
+              ]
+            },
+            "strength": "hard",
+            "provenance": {
+              "source": "nets_csv",
+              "locator": "row VREG_LX, length_limit",
+              "kind": "requirement"
+            }
+          }
+        ]
+      },
+      "ports": {
+        "in": {
+          "kind": "supply",
+          "nets": [
+            "+3V3"
+          ],
+          "direction": "in",
+          "voltage_v": 3.3,
+          "current_a": 0.1
+        },
+        "out": {
+          "kind": "supply",
+          "nets": [
+            "+1V1"
+          ],
+          "direction": "out",
+          "voltage_v": 1.1,
+          "current_a": 0.2
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      },
+      "note": "RP2350's on-chip switching regulator (U1 pins 46-50) with its inductor and capacitors. Layout is the vendor's, transplanted (chips/rp2350.md)."
+    },
+    "mcu": {
+      "type": "mcu",
+      "parts": [
+        "U1",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "C11",
+        "C16",
+        "C17",
+        "C18"
+      ],
+      "ports": {
+        "iovdd": {
+          "kind": "supply",
+          "nets": [
+            "+3V3"
+          ],
+          "direction": "in",
+          "voltage_v": 3.3,
+          "current_a": 0.1
+        },
+        "dvdd": {
+          "kind": "supply",
+          "nets": [
+            "+1V1"
+          ],
+          "direction": "in",
+          "voltage_v": 1.1,
+          "current_a": 0.2
+        },
+        "qspi": {
+          "kind": "bus",
+          "nets": [
+            "/QSPI_SCLK",
+            "/QSPI_SD0",
+            "/QSPI_SD1",
+            "/QSPI_SD2",
+            "/QSPI_SD3",
+            "/QSPI_SS"
+          ],
+          "protocol": "qspi",
+          "class": "SE_HS"
+        },
+        "usb": {
+          "kind": "diff_pair",
+          "nets": [
+            "/USB_DP_MCU",
+            "/USB_DM_MCU"
+          ],
+          "protocol": "usb2-fs",
+          "impedance_ohm": 90.0,
+          "class": "DIFF_HS"
+        },
+        "xtal": {
+          "kind": "bus",
+          "nets": [
+            "/XIN",
+            "/XOUT"
+          ],
+          "protocol": "xosc",
+          "class": "CLOCK"
+        },
+        "swd": {
+          "kind": "bus",
+          "nets": [
+            "/SWCLK",
+            "/SWDIO"
+          ],
+          "protocol": "swd"
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      }
+    },
+    "crystal": {
+      "type": "crystal",
+      "parts": [
+        "Y1",
+        "C20",
+        "C21",
+        "R6"
+      ],
+      "ports": {
+        "xtal": {
+          "kind": "bus",
+          "nets": [
+            "/XIN",
+            "/XOUT"
+          ],
+          "protocol": "xosc",
+          "class": "CLOCK"
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      }
+    },
+    "flash": {
+      "type": "memory",
+      "parts": [
+        "U5",
+        "C22"
+      ],
+      "ports": {
+        "qspi": {
+          "kind": "bus",
+          "nets": [
+            "/QSPI_SCLK",
+            "/QSPI_SD0",
+            "/QSPI_SD1",
+            "/QSPI_SD2",
+            "/QSPI_SD3",
+            "/QSPI_SS"
+          ],
+          "protocol": "qspi",
+          "class": "SE_HS"
+        },
+        "vcc": {
+          "kind": "supply",
+          "nets": [
+            "+3V3"
+          ],
+          "direction": "in",
+          "voltage_v": 3.3,
+          "current_a": 0.025
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      }
+    },
+    "bootsel": {
+      "type": "button",
+      "parts": [
+        "SW1",
+        "R7"
+      ]
+    },
+    "reset": {
+      "type": "button",
+      "parts": [
+        "SW2",
+        "R8"
+      ]
+    },
+    "status_led": {
+      "type": "indicator",
+      "parts": [
+        "D1",
+        "R9"
+      ]
+    },
+    "level_shifter": {
+      "type": "level_shifter",
+      "parts": [
+        "U4",
+        "C24",
+        "R10",
+        "R12"
+      ],
+      "ports": {
+        "in": {
+          "kind": "signal",
+          "nets": [
+            "/GPIO23"
+          ],
+          "direction": "in",
+          "class": "SIGNAL"
+        },
+        "out": {
+          "kind": "signal",
+          "nets": [
+            "/LED_DIN"
+          ],
+          "direction": "out",
+          "protocol": "ws2812",
+          "class": "SIGNAL"
+        },
+        "vcc": {
+          "kind": "supply",
+          "nets": [
+            "VLED"
+          ],
+          "direction": "in",
+          "voltage_v": 5.3,
+          "current_a": 0.01
+        }
+      }
+    },
+    "led_chain": {
+      "type": "led_chain",
+      "parts": [
+        "D3",
+        "D4",
+        "D5",
+        "D6",
+        "C23",
+        "C25",
+        "C26",
+        "C27",
+        "C28",
+        "D2",
+        "D7",
+        "R11"
+      ],
+      "ports": {
+        "din": {
+          "kind": "signal",
+          "nets": [
+            "/LED_DIN"
+          ],
+          "direction": "in",
+          "protocol": "ws2812",
+          "class": "SIGNAL"
+        },
+        "vbus": {
+          "kind": "supply",
+          "nets": [
+            "VBUS"
+          ],
+          "direction": "in",
+          "voltage_v": 5.0,
+          "current_a": 0.16
+        }
+      },
+      "note": "VLED is VBUS through D2, clamped by D7 (rgb-leds.md)"
+    },
+    "headers": {
+      "type": "connector",
+      "parts": [
+        "J2",
+        "J3"
+      ]
+    },
+    "swd": {
+      "type": "connector",
+      "parts": [
+        "J4"
+      ]
+    },
+    "test_points": {
+      "type": "test_point",
+      "parts": [
+        "TP3"
+      ]
+    }
+  },
+  "domains": {
+    "name": "board",
+    "kind": "board",
+    "supplies": [
+      "VBUS",
+      "VLED"
+    ],
+    "reference_ground": "GND",
+    "blocks": [
+      "usb_in",
+      "ldo_3v3",
+      "led_chain",
+      "level_shifter",
+      "headers"
+    ],
+    "children": [
+      {
+        "name": "io_3v3",
+        "kind": "group",
+        "supplies": [
+          "+3V3"
+        ],
+        "reference_ground": "GND",
+        "blocks": [
+          "mcu",
+          "crystal",
+          "flash",
+          "bootsel",
+          "reset",
+          "status_led",
+          "swd"
+        ],
+        "children": [
+          {
+            "name": "core_1v1",
+            "kind": "group",
+            "supplies": [
+              "+1V1"
+            ],
+            "reference_ground": "GND",
+            "blocks": [
+              "core_reg",
+              "test_points"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "regions": [
+    {
+      "name": "lx_inner_cutout",
+      "kind": "polygon",
+      "anchor": "L1",
+      "layers": [
+        "In1.Cu"
+      ],
+      "polygon": [
+        [
+          0.1,
+          -1.0
+        ],
+        [
+          1.4,
+          -1.0
+        ],
+        [
+          1.4,
+          1.0
+        ],
+        [
+          0.1,
+          1.0
+        ]
+      ],
+      "rules": [
+        {
+          "applies_to": "all_nets",
+          "mode": "never"
+        }
+      ],
+      "provenance": {
+        "source": "rp2350_ds",
+        "locator": "\u00a76.3.8 p.412, Figure 27",
+        "kind": "datasheet",
+        "note": "Cut layer-2 copper under the VREG_LX node. Covers L1's LX pad only; extended along the LX zone to pin 48 once the vendor layout is mined (milestone 4)."
+      }
+    },
+    {
+      "name": "crystal_ground",
+      "kind": "polygon",
+      "anchor": "Y1",
+      "layers": [],
+      "polygon": [
+        [
+          -3.0,
+          -2.5
+        ],
+        [
+          3.0,
+          -2.5
+        ],
+        [
+          3.0,
+          2.5
+        ],
+        [
+          -3.0,
+          2.5
+        ]
+      ],
+      "rules": [
+        {
+          "applies_to": {
+            "net": "GND"
+          },
+          "mode": "must"
+        },
+        {
+          "applies_to": "vias",
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "SWITCH"
+          },
+          "mode": "never"
+        },
+        {
+          "applies_to": {
+            "class": "SE_HS"
+          },
+          "mode": "avoid",
+          "weight": 0.8
+        }
+      ],
+      "provenance": {
+        "source": "rp2350_core_md",
+        "locator": "Calc 5 and Layout: crystal",
+        "kind": "expert",
+        "note": "Layer 2 solid GND under Y1, C20, C21, R6 and the crystal traces; no vias on XIN; keep away from VREG_LX and QSPI_SCLK."
+      }
+    }
+  ],
+  "protection_paths": [
+    {
+      "net": "VBUS",
+      "sequence": [
+        "J1.A4",
+        "U2.5",
+        "C1.1"
+      ],
+      "no_stub": true,
+      "provenance": {
+        "source": "usb_front_end_md",
+        "locator": "Block 1: J1 -> U2 USBLC6-2SC6 -> 27 R",
+        "kind": "expert",
+        "note": "ESD array is the first pad after the connector"
+      }
+    },
+    {
+      "net": "/USB_DP_C",
+      "sequence": [
+        "J1.A6",
+        "U2.3"
+      ],
+      "no_stub": true,
+      "provenance": {
+        "source": "usb_front_end_md",
+        "locator": "Block 1: J1 -> U2 USBLC6-2SC6 -> 27 R",
+        "kind": "expert",
+        "note": "ESD array is the first pad after the connector"
+      }
+    },
+    {
+      "net": "/USB_DM_C",
+      "sequence": [
+        "J1.A7",
+        "U2.1"
+      ],
+      "no_stub": true,
+      "provenance": {
+        "source": "usb_front_end_md",
+        "locator": "Block 1: J1 -> U2 USBLC6-2SC6 -> 27 R",
+        "kind": "expert",
+        "note": "ESD array is the first pad after the connector"
+      }
+    }
+  ],
+  "energy_sources": [
+    {
+      "net": "VBUS",
+      "kind": "supply_input"
+    }
+  ]
+}

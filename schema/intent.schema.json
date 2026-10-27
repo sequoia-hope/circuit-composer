@@ -1,0 +1,1573 @@
+{
+  "$defs": {
+    "Attr": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Noise"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr10": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Length"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr11": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/MetricBound"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr12": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "format": "double",
+          "type": "number"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr2": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Bandwidth"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr3": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Voltage"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr4": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Current"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr5": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/FaultCurrent"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr6": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Impedance"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr7": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Topology"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr8": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/MatchGroup"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Attr9": {
+      "additionalProperties": false,
+      "description": "A constrained value: what it is, how binding, and where it came from.",
+      "properties": {
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Required for `hard`; the validator refuses a hard constraint without one."
+        },
+        "strength": {
+          "$ref": "#/$defs/Strength"
+        },
+        "value": {
+          "$ref": "#/$defs/Safety"
+        },
+        "weight": {
+          "description": "For `soft` only: how much this weighs against other soft goals, in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "value",
+        "strength"
+      ],
+      "type": "object"
+    },
+    "Bandwidth": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/BandwidthKind"
+        },
+        "max_hz": {
+          "description": "Highest frequency of interest.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    },
+    "BandwidthKind": {
+      "enum": [
+        "dc",
+        "slow_precise",
+        "digital",
+        "wideband"
+      ],
+      "type": "string"
+    },
+    "Barrier": {
+      "additionalProperties": false,
+      "description": "An isolation barrier to a sibling domain.",
+      "properties": {
+        "clearance_mm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr12"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "creepage_mm": {
+          "$ref": "#/$defs/Attr12"
+        },
+        "to": {
+          "description": "The sibling domain's name.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "to",
+        "creepage_mm"
+      ],
+      "type": "object"
+    },
+    "Block": {
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "package": {
+          "description": "The package this block comes from, `name@version`, when composed from one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parts": {
+          "description": "Member parts by reference designator.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "placement_goal": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/PlacementGoal"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "ports": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Port"
+          },
+          "description": "External interface, keyed by port name.",
+          "type": "object"
+        },
+        "type": {
+          "description": "A block type from the block library (`buck`, `ldo`, `crystal`, ...).",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "parts"
+      ],
+      "type": "object"
+    },
+    "BoardInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "kicad_project": {
+          "description": "The KiCad project this file is the sidecar of, relative to this file.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "layers": {
+          "description": "Copper layer count, when decided.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "packages": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Exact package versions this board was composed from, like a lockfile: `rp2350 = \"0.1.0\"`.",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "BoundOp": {
+      "enum": [
+        "<=",
+        ">="
+      ],
+      "type": "string"
+    },
+    "ClaimKind": {
+      "oneOf": [
+        {
+          "const": "datasheet",
+          "description": "Stated by a manufacturer: datasheet, design guide, reference board.",
+          "type": "string"
+        },
+        {
+          "const": "expert",
+          "description": "Stated by a person with expertise: a book, a talk, a reviewer.",
+          "type": "string"
+        },
+        {
+          "const": "simulated",
+          "description": "Shown by simulation in this system's verifier.",
+          "type": "string"
+        },
+        {
+          "const": "requirement",
+          "description": "The board's own requirement, decided by its designer (a budget, a connector rating).",
+          "type": "string"
+        },
+        {
+          "const": "preset",
+          "description": "Filled in from a class preset; never satisfies a hard constraint.",
+          "type": "string"
+        }
+      ]
+    },
+    "Current": {
+      "additionalProperties": false,
+      "properties": {
+        "continuous_a": {
+          "format": "double",
+          "type": "number"
+        },
+        "peak_a": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "continuous_a"
+      ],
+      "type": "object"
+    },
+    "Direction": {
+      "enum": [
+        "in",
+        "out",
+        "bidirectional"
+      ],
+      "type": "string"
+    },
+    "Domain": {
+      "additionalProperties": false,
+      "description": "A node of the domain tree: board, then isolation islands, then ground zones, then blocks.",
+      "properties": {
+        "barriers": {
+          "items": {
+            "$ref": "#/$defs/Barrier"
+          },
+          "type": "array"
+        },
+        "blocks": {
+          "description": "Block ids that live directly in this domain.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "children": {
+          "items": {
+            "$ref": "#/$defs/Domain"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/DomainKind"
+        },
+        "name": {
+          "description": "Unique across the tree.",
+          "type": "string"
+        },
+        "reference_ground": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supplies": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "switchable": {
+          "default": false,
+          "description": "Whether the domain can be powered off while its siblings run.",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "DomainKind": {
+      "enum": [
+        "board",
+        "isolation_island",
+        "ground_zone",
+        "group"
+      ],
+      "type": "string"
+    },
+    "EnergyKind": {
+      "enum": [
+        "battery",
+        "supply_input",
+        "capacitor_bank"
+      ],
+      "type": "string"
+    },
+    "EnergySource": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/EnergyKind"
+        },
+        "net": {
+          "type": "string"
+        },
+        "protected_zone": {
+          "description": "The `protected_zone` region bounding copper upstream of the first disconnect.",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "net",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "FaultCurrent": {
+      "additionalProperties": false,
+      "properties": {
+        "amps": {
+          "format": "double",
+          "type": "number"
+        },
+        "duration_ms": {
+          "description": "How long until protection opens.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "amps",
+        "duration_ms"
+      ],
+      "type": "object"
+    },
+    "Impedance": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "$ref": "#/$defs/ImpedanceMode"
+        },
+        "ohms": {
+          "format": "double",
+          "type": "number"
+        },
+        "pair": {
+          "description": "For `differential`: the other net of the pair.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tolerance_pct": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "ohms",
+        "tolerance_pct",
+        "mode"
+      ],
+      "type": "object"
+    },
+    "ImpedanceMode": {
+      "enum": [
+        "single_ended",
+        "differential"
+      ],
+      "type": "string"
+    },
+    "Length": {
+      "additionalProperties": false,
+      "properties": {
+        "mm": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mm"
+      ],
+      "type": "object"
+    },
+    "Level": {
+      "enum": [
+        "none",
+        "weak",
+        "moderate",
+        "strong"
+      ],
+      "type": "string"
+    },
+    "MatchGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "tolerance_mm": {
+          "description": "Allowed spread within the group, as length or as delay (one of the two).",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "tolerance_ps": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "group"
+      ],
+      "type": "object"
+    },
+    "Metric": {
+      "description": "The metric vocabulary. A metric is here only once a generator or verifier check computes it.",
+      "oneOf": [
+        {
+          "const": "hot_loop_area_mm2",
+          "description": "Area enclosed by a switching block's high-di/dt loop, mm².",
+          "type": "string"
+        },
+        {
+          "const": "switch_node_area_mm2",
+          "description": "Copper area of a switch node, mm².",
+          "type": "string"
+        },
+        {
+          "const": "feedback_clearance_mm",
+          "description": "Distance from a feedback net to switch-node copper, mm.",
+          "type": "string"
+        },
+        {
+          "const": "clearance_mm",
+          "description": "Distance between two nets' copper, mm.",
+          "type": "string"
+        },
+        {
+          "const": "part_distance_mm",
+          "description": "Distance between two parts' nearest pads, mm.",
+          "type": "string"
+        },
+        {
+          "const": "trace_length_mm",
+          "description": "Routed length of a net, mm.",
+          "type": "string"
+        },
+        {
+          "const": "via_count",
+          "description": "Vias on a net.",
+          "type": "string"
+        }
+      ]
+    },
+    "MetricBound": {
+      "additionalProperties": false,
+      "description": "`metric op limit`, e.g. `feedback_clearance_mm >= 1.0` between `nets`.",
+      "properties": {
+        "limit": {
+          "format": "double",
+          "type": "number"
+        },
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "nets": {
+          "description": "The nets the metric is measured on; for a clearance, the two sides.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "op": {
+          "$ref": "#/$defs/BoundOp"
+        },
+        "parts": {
+          "description": "Parts the metric is measured on, when it is about placement.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "metric",
+        "op",
+        "limit"
+      ],
+      "type": "object"
+    },
+    "NetIntent": {
+      "additionalProperties": false,
+      "description": "Intent for one net. Categories (`class`) are presets over these attributes.",
+      "properties": {
+        "aggressor": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How much noise the net emits."
+        },
+        "bandwidth": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr2"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "class": {
+          "description": "A net class preset name (`POWER`, `SWITCH`, `DIFF_HS`, ...). It decides which attributes\nare required and supplies soft defaults for the rest.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "current": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr4"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "fault_current": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr5"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Current the copper must survive until protection opens."
+        },
+        "impedance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr6"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "match_group": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr8"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_length": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr10"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Longest allowed routed length, pad to pad."
+        },
+        "note": {
+          "description": "Free text for people; no tool reads it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "safety": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr9"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "topology": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr7"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "victim": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "How sensitive the net is to coupled noise."
+        },
+        "voltage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Attr3"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Peak working voltage, for creepage and clearance."
+        }
+      },
+      "type": "object"
+    },
+    "Noise": {
+      "additionalProperties": false,
+      "properties": {
+        "edge_ns": {
+          "description": "10–90 % edge time, when known.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "level": {
+          "$ref": "#/$defs/Level"
+        }
+      },
+      "required": [
+        "level"
+      ],
+      "type": "object"
+    },
+    "Objective": {
+      "additionalProperties": false,
+      "properties": {
+        "metric": {
+          "$ref": "#/$defs/Metric"
+        },
+        "nets": {
+          "description": "The nets the metric is measured on, when it is per net.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sense": {
+          "$ref": "#/$defs/Sense"
+        },
+        "weight": {
+          "default": 1.0,
+          "description": "Relative weight among this goal's objectives.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric",
+        "sense"
+      ],
+      "type": "object"
+    },
+    "PlacementGoal": {
+      "additionalProperties": false,
+      "description": "An objective plus constraints, in the metric vocabulary the generator and verifier score.",
+      "properties": {
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/Attr11"
+          },
+          "type": "array"
+        },
+        "objectives": {
+          "items": {
+            "$ref": "#/$defs/Objective"
+          },
+          "type": "array"
+        }
+      },
+      "type": "object"
+    },
+    "Port": {
+      "additionalProperties": false,
+      "description": "A block's external interface.",
+      "properties": {
+        "class": {
+          "description": "Signal ports: the net class preset of the nets it carries.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "current_a": {
+          "description": "Supply ports: current drawn (input) or available (output).",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "direction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Direction"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "impedance_ohm": {
+          "description": "Differential ports: target impedance.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/PortKind"
+        },
+        "nets": {
+          "description": "The board nets the port binds to.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "noise_mvpp": {
+          "description": "Supply ports: ripple and noise the port tolerates (input) or produces (output), mV p-p.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "protocol": {
+          "description": "Bus ports: protocol (`usb2-fs`, `qspi`, `swd`, `ws2812`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "voltage_v": {
+          "description": "Supply ports: rail voltage.",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "nets"
+      ],
+      "type": "object"
+    },
+    "PortKind": {
+      "enum": [
+        "supply",
+        "ground",
+        "signal",
+        "bus",
+        "diff_pair"
+      ],
+      "type": "string"
+    },
+    "ProtectionPath": {
+      "additionalProperties": false,
+      "description": "An ordered pad sequence for a connector net: energy reaches each pad in turn, protection\nfirst, with no branch before it.",
+      "properties": {
+        "net": {
+          "type": "string"
+        },
+        "no_stub": {
+          "default": true,
+          "description": "No stub may leave the path before the last pad of `sequence`.",
+          "type": "boolean"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "sequence": {
+          "description": "Pads as `REF.PIN`, connector first. The protection device's pad comes before any branch.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "net",
+        "sequence",
+        "provenance"
+      ],
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "description": "When the claim was made or checked, ISO 8601.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/ClaimKind"
+        },
+        "locator": {
+          "description": "Page, section, table, or video timestamp.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "note": {
+          "description": "The reasoning in a sentence, when the citation alone does not carry it.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source": {
+          "description": "A key of `sources`.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "Region": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor": {
+          "description": "Places the region relative to a part instead of the board: polygon coordinates are then\nin that part's frame (its centre and rotation), so the region moves with the part.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "block": {
+          "description": "For a soft region: the block it holds.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/RegionKind"
+        },
+        "layers": {
+          "description": "Copper layers by KiCad name (`F.Cu`, `In1.Cu`); empty means all.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "name": {
+          "type": "string"
+        },
+        "polygon": {
+          "description": "Board coordinates in mm, KiCad's frame; absent for a floorplanner-assigned soft region.",
+          "items": {
+            "items": {
+              "format": "double",
+              "type": "number"
+            },
+            "maxItems": 2,
+            "minItems": 2,
+            "type": "array"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "rules": {
+          "items": {
+            "$ref": "#/$defs/RegionRule"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "rules"
+      ],
+      "type": "object"
+    },
+    "RegionKind": {
+      "enum": [
+        "polygon",
+        "soft",
+        "isolation_barrier",
+        "protected_zone"
+      ],
+      "type": "string"
+    },
+    "RegionRule": {
+      "additionalProperties": false,
+      "properties": {
+        "applies_to": {
+          "$ref": "#/$defs/Selector",
+          "description": "What the rule applies to: a class name, a net name, `*`, or `vias`."
+        },
+        "mode": {
+          "$ref": "#/$defs/RuleMode"
+        },
+        "weight": {
+          "description": "For `prefer` and `avoid`: in (0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "applies_to",
+        "mode"
+      ],
+      "type": "object"
+    },
+    "RuleMode": {
+      "enum": [
+        "must",
+        "prefer",
+        "avoid",
+        "never"
+      ],
+      "type": "string"
+    },
+    "Safety": {
+      "enum": [
+        "none",
+        "functional",
+        "patient_connected",
+        "high_voltage"
+      ],
+      "type": "string"
+    },
+    "Selector": {
+      "oneOf": [
+        {
+          "enum": [
+            "all_nets",
+            "vias"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "class": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "class"
+          ],
+          "type": "object"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "net": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "net"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Sense": {
+      "enum": [
+        "minimize",
+        "maximize"
+      ],
+      "type": "string"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "description": "A cited document.",
+      "properties": {
+        "location": {
+          "description": "A URL, or a path relative to this file.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "revision": {
+          "description": "Document revision, when it has one.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sha256": {
+          "description": "SHA-256 of the file as read, so a changed document is noticed.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "type": "object"
+    },
+    "Strength": {
+      "enum": [
+        "hard",
+        "soft"
+      ],
+      "type": "string"
+    },
+    "Topology": {
+      "enum": [
+        "point_to_point",
+        "daisy_chain",
+        "star",
+        "fly_by"
+      ],
+      "type": "string"
+    },
+    "Voltage": {
+      "additionalProperties": false,
+      "properties": {
+        "peak_v": {
+          "description": "Peak working voltage against the domain's reference ground.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "peak_v"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "blocks": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Block"
+      },
+      "description": "Blocks keyed by a board-unique id.",
+      "type": "object"
+    },
+    "board": {
+      "$ref": "#/$defs/BoardInfo"
+    },
+    "domains": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Domain"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "The root of the domain tree: the board itself."
+    },
+    "energy_sources": {
+      "items": {
+        "$ref": "#/$defs/EnergySource"
+      },
+      "type": "array"
+    },
+    "nets": {
+      "additionalProperties": {
+        "$ref": "#/$defs/NetIntent"
+      },
+      "default": {},
+      "description": "Per-net intent, keyed by the KiCad net name exactly as the netlist spells it\n(`/GPIO0`, `+3V3`, `GND`).",
+      "type": "object"
+    },
+    "protection_paths": {
+      "items": {
+        "$ref": "#/$defs/ProtectionPath"
+      },
+      "type": "array"
+    },
+    "regions": {
+      "items": {
+        "$ref": "#/$defs/Region"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "description": "Schema version, `\"0.1\"`.",
+      "type": "string"
+    },
+    "sources": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Source"
+      },
+      "description": "Documents that provenances cite by id.",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "board"
+  ],
+  "title": "IntentFile",
+  "type": "object"
+}
