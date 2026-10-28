@@ -1,0 +1,47 @@
+{
+  "block": "core_reg",
+  "board": "fixture.kicad_pcb",
+  "copper_layers": 2,
+  "measurements": {
+    "hot_loop_area_mm2": 1.0307,
+    "hot_loop_area_placed_mm2": 1.098,
+    "output_loop_area_mm2": 2.4162,
+    "switch_node_area_mm2": 1.927,
+    "feedback_clearance_mm": 0.415,
+    "switch_node_underlap_mm2": 1.922
+  },
+  "limits": {
+    "feedback_clearance_mm": ">= 0.3"
+  },
+  "not_applicable": {
+    "switch_node_underlap_mm2": "2-layer board: the layer under LX is the bottom ground, kept solid as on Raspberry Pi's 2-layer minimal boards; the cut-out rule (rp2350.vreg.lx_cutout) is for boards with inner layers"
+  },
+  "kicad_drc": {
+    "errors": [],
+    "open_between_block_parts": [],
+    "footprint_notes": [
+      "Footprint U203: Footprint component type doesn't match footprint pads (expected 'Through hole'; actual 'SMD')"
+    ],
+    "note": "KiCad 9.0.8 DRC on the fixture; library-footprint warnings and the anchor's other unconnected pins are expected on a test bench and left out. Footprint notes are the vendor footprint's own attributes, flagged on Raspberry Pi's board too"
+  },
+  "generator": {
+    "estimate": {
+      "feedback_clearance_mm": 0.4150000000000005,
+      "hot_loop_area_mm2": 1.0304000000000004,
+      "output_loop_area_mm2": 2.4209250000000004,
+      "score": 3.328711451149506,
+      "switch_node_area_mm2": 2.1756979022990106
+    },
+    "tried": [
+      16200,
+      210600,
+      3888000
+    ],
+    "legal": [
+      39,
+      72622,
+      119553
+    ],
+    "seconds_on_8_cores": 54.7
+  }
+}

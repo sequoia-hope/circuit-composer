@@ -137,6 +137,7 @@ pub const BLOCK_TYPES: &[BlockType] = &[
     BlockType { name: "crystal", summary: "crystal, load capacitors and series resistor", generator: false, roles: &[] },
     BlockType { name: "connector_protection", summary: "connector with its TVS/ESD/fuse in path order", generator: false, roles: &[] },
     BlockType { name: "mcu", summary: "microcontroller with its decoupling", generator: false, roles: &[] },
+    BlockType { name: "usb", summary: "USB data pair with its series termination", generator: false, roles: &[] },
     BlockType { name: "memory", summary: "external memory on a bus (QSPI flash, PSRAM)", generator: false, roles: &[] },
     BlockType { name: "level_shifter", summary: "logic-level translation", generator: false, roles: &[] },
     BlockType { name: "led_chain", summary: "addressable LEDs with decoupling", generator: false, roles: &[] },

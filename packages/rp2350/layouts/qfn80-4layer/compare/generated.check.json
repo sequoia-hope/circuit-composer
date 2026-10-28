@@ -1,0 +1,225 @@
+{
+  "block": "generated",
+  "geometry": {
+    "feedback_closest": [
+      [
+        102.48500000000001,
+        92.8035
+      ],
+      [
+        102.90000000000002,
+        92.8035
+      ]
+    ],
+    "feedback_path": [
+      [
+        102.2,
+        95.10350000000001
+      ],
+      [
+        102.2,
+        94.51329
+      ],
+      [
+        101.6,
+        93.91329
+      ],
+      [
+        102.48500000000001,
+        92.8035
+      ]
+    ],
+    "hot_loop": [
+      [
+        102.60000000000001,
+        95.10350000000001
+      ],
+      [
+        102.6,
+        94.51329
+      ],
+      [
+        102.48500000000001,
+        93.9035
+      ],
+      [
+        103.51500000000001,
+        93.9035
+      ],
+      [
+        103.4,
+        94.51329
+      ],
+      [
+        103.4,
+        95.1035
+      ]
+    ],
+    "output_loop": [
+      [
+        103.00000000000001,
+        95.10350000000001
+      ],
+      [
+        103.00000000000001,
+        94.51329
+      ],
+      [
+        103.00000000000001,
+        91.51329
+      ],
+      [
+        103.3,
+        91.2035
+      ],
+      [
+        101.89999999999999,
+        91.2035
+      ],
+      [
+        102.48500000000001,
+        92.8035
+      ],
+      [
+        103.51500000000001,
+        92.8035
+      ],
+      [
+        103.511194,
+        93.923683
+      ],
+      [
+        103.4,
+        94.51329
+      ],
+      [
+        103.4,
+        95.1035
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "generated",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.0,
+        94.50676333333332
+      ],
+      "measured": 1.0307160000000293,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "generated",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.0,
+        94.5035
+      ],
+      "measured": 1.0980000000000312,
+      "method": "pad centres",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "generated",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.05111940000002,
+        93.26845530000001
+      ],
+      "measured": 2.416203562500007,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "/VREG_LX",
+        "+1V1",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "generated",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.00000000000001,
+        95.10350000000001
+      ],
+      "measured": 1.9270000000000003,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "/VREG_LX"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "generated",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        102.48500000000001,
+        92.8035
+      ],
+      "measured": 0.41500000000000625,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1V1",
+        "/VREG_LX"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "generated",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        103.00000000000001,
+        95.10350000000001
+      ],
+      "measured": 0.0,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "/VREG_LX"
+      ],
+      "passed": true,
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1V1",
+    "sw": "/VREG_LX",
+    "vin": "+3V3"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C216",
+    "cout": "C217",
+    "fb": "U203.65",
+    "inductor": "L201",
+    "pgnd": "U203.62",
+    "sw": "U203.63",
+    "vin": "U203.64"
+  }
+}

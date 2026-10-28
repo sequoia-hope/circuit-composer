@@ -1,7 +1,7 @@
 {
   "package": "rp2350",
-  "version": "0.1.0",
-  "note": "Claims scoped to the RP2350 core regulator. Page numbers are the datasheet's (sha256 a638d678…) and the design guide's (release 3) printed pages, as quoted in easy2350's audit. `requirement` gives a value range a tool can check; `enforced_by` says which tool does.",
+  "version": "0.2.0",
+  "note": "Claims scoped to the RP2350: the core regulator (0.1.0) and the interface blocks, decoupling and supplies (0.2.0). Page numbers are the datasheet's (sha256 a638d678…) and the design guide's (release 3) printed pages. `requirement` gives a value range a tool can check, and `checks` the part of it a board's part values can show (SI units, package part names; `ccomp check package` reads them); `*_reference` values are measured on Raspberry Pi's minimal boards with `ccomp measure` (reference/*/measured.json) and are what the vendor achieved, not limits. `enforced_by` says which tool does.",
   "claims": [
     {
       "id": "rp2350.vreg.inductor",
@@ -9,9 +9,10 @@
       "scope": { "chip": "RP2350", "block": "core_reg", "role": "inductor" },
       "attributes": ["inductance", "dcr", "isat"],
       "requirement": { "inductance_uh": [2.64, 3.96], "dcr_mohm_max": 250, "isat_a_min": 1.5, "shielded": true, "polarity_marked": true },
+      "checks": [{ "part": "L1", "quantity": "inductance", "min": 2.64e-06, "max": 3.96e-06 }],
       "citation": { "source": "rp2350_ds", "locator": "§6.3.8.2 p.412; HDG §2.1 pp.6-7" },
       "status": "asserted",
-      "enforced_by": ["validator (milestone 4: part parameters)"]
+      "enforced_by": ["ccomp check package (inductance; DCR, Isat and shielding are not in a value string)"]
     },
     {
       "id": "rp2350.vreg.inductor_orientation",
@@ -28,9 +29,10 @@
       "scope": { "chip": "RP2350", "block": "core_reg", "role": "cout" },
       "attributes": ["capacitance", "esr", "esl", "feedback_point"],
       "requirement": { "capacitance_uf": [3.76, 5.64], "esr_mohm_max": 250, "esl_nh_max": 6 },
+      "checks": [{ "part": "COUT", "quantity": "capacitance", "min": 3.76e-06, "max": 5.64e-06 }],
       "citation": { "source": "rp2350_ds", "locator": "§6.3.8.2 p.412" },
       "status": "asserted",
-      "enforced_by": ["generator (the feedback run ends at COUT's output pad)"]
+      "enforced_by": ["generator (the feedback run ends at COUT's output pad)", "ccomp check package (part values)"]
     },
     {
       "id": "rp2350.vreg.cin",
@@ -38,9 +40,10 @@
       "scope": { "chip": "RP2350", "block": "core_reg", "role": "cin" },
       "attributes": ["capacitance", "esr", "hot_loop_area"],
       "requirement": { "capacitance_uf_min": 4.7, "esr_mohm_max": 50 },
+      "checks": [{ "part": "CIN", "quantity": "capacitance", "min": 4.7e-06 }],
       "citation": { "source": "rp2350_ds", "locator": "p.401, p.411, p.412" },
       "status": "asserted",
-      "enforced_by": ["generator (hot-loop objective)", "verifier hot_loop_area_mm2"]
+      "enforced_by": ["generator (hot-loop objective)", "verifier hot_loop_area_mm2", "ccomp check package (part values)"]
     },
     {
       "id": "rp2350.vreg.small_loop",
@@ -85,9 +88,10 @@
       "scope": { "chip": "RP2350", "block": "core_reg", "role": ["rfilt", "cfilt"] },
       "attributes": ["filter"],
       "requirement": { "r_ohm": 33, "c_uf": 4.7 },
+      "checks": [{ "part": "RFILT", "quantity": "resistance", "equals": 33 }, { "part": "CFILT", "quantity": "capacitance", "equals": 4.7e-06 }],
       "citation": { "source": "rp2350_ds", "locator": "p.411; HDG p.7" },
       "status": "asserted",
-      "enforced_by": []
+      "enforced_by": ["ccomp check package (part values)"]
     },
     {
       "id": "rp2350.vreg.pgnd_single_point",
@@ -106,6 +110,211 @@
       "citation": { "source": "rp2350_ds", "locator": "§6.3.8" },
       "status": "asserted",
       "enforced_by": ["composer (milestone 5: critical blocks are placed and locked before the rest)"]
+    },
+    {
+      "id": "rp2350.decoupling.per_pin",
+      "statement": "Each IOVDD, QSPI_IOVDD, USB_OTP_VDD and ADC_AVDD pin has its own 100 nF capacitor close to the pin.",
+      "scope": { "chip": "RP2350", "block": "decoupling" },
+      "attributes": ["decoupling_path"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.1.4 p.400-401, §6.1.5 p.401; HDG §2.2.1 p.8" },
+      "status": "contested",
+      "evidence": {
+        "measured_on": "reference/*/measured.json, decoupling",
+        "note": "Both minimal boards share one capacitor between USB_OTP_VDD and QSPI_IOVDD (QFN-60 pins 53/54, QFN-80 68/69), which the design guide states and defends as a space trade-off, and one between ADC_AVDD and the IOVDD beside it (44/45, 59/60), which neither document mentions."
+      },
+      "links": [{ "contradicts": "rp2350.decoupling.shared_by_reference" }],
+      "enforced_by": ["verifier decoupling_path_mm (ccomp measure, decoupling)"]
+    },
+    {
+      "id": "rp2350.decoupling.shared_by_reference",
+      "statement": "USB_OTP_VDD and QSPI_IOVDD may share one 100 nF capacitor when space beside the regulator is short, at some cost in supply noise and top speed.",
+      "scope": { "chip": "RP2350", "block": "decoupling" },
+      "attributes": ["decoupling_path"],
+      "citation": { "source": "rp2350_hdg", "locator": "§2.2.1 pp.8-9" },
+      "status": "asserted",
+      "links": [{ "contradicts": "rp2350.decoupling.per_pin" }],
+      "enforced_by": []
+    },
+    {
+      "id": "rp2350.decoupling.dvdd",
+      "statement": "With the on-chip regulator, the two DVDD pins nearest the regulator get 100 nF each and the furthest gets 4.7 uF, each close to its pin.",
+      "scope": { "chip": "RP2350", "block": "decoupling" },
+      "attributes": ["decoupling_path", "capacitance"],
+      "requirement": { "near_uf": 0.1, "far_uf": 4.7 },
+      "checks": [
+        { "part": "C_DVDD_23", "quantity": "capacitance", "equals": 4.7e-06 },
+        { "part": "C_DVDD_6", "quantity": "capacitance", "equals": 1e-07 },
+        { "part": "C_DVDD_39", "quantity": "capacitance", "equals": 1e-07 }
+      ],
+      "citation": { "source": "rp2350_ds", "locator": "§6.1.3 p.400" },
+      "status": "asserted",
+      "evidence": { "note": "Reference boards: QFN-60 pins 6, 39 get 100 nF (C8, C11) and pin 23 4.7 uF (C10); QFN-80 pins 10, 51 get 100 nF and pin 32 4.7 uF." },
+      "enforced_by": ["ccomp check package (part values)"]
+    },
+    {
+      "id": "rp2350.decoupling.close",
+      "statement": "Decoupling capacitors sit close to their power pins; the reference boards reach each within 2.2-4.9 mm of copper.",
+      "scope": { "chip": "RP2350", "block": "decoupling" },
+      "attributes": ["decoupling_path"],
+      "requirement": { "decoupling_path_mm_reference_max": { "rp2350a_minimal": 4.35, "rp2350b_minimal": 4.86 } },
+      "citation": { "source": "rp2350_hdg", "locator": "§2.2.1 p.8" },
+      "status": "asserted",
+      "enforced_by": ["verifier decoupling_path_mm"]
+    },
+    {
+      "id": "rp2350.vreg.vin_cap",
+      "statement": "A 4.7 uF capacitor connects VREG_VIN to ground close to the VREG_VIN pin.",
+      "scope": { "chip": "RP2350", "block": "core_reg", "role": "cin" },
+      "attributes": ["capacitance", "decoupling_path"],
+      "requirement": { "capacitance_uf": 4.7 },
+      "checks": [{ "part": "CIN", "quantity": "capacitance", "equals": 4.7e-06 }],
+      "citation": { "source": "rp2350_ds", "locator": "§6.1.6 p.401" },
+      "status": "promoted",
+      "links": [{ "refines": "rp2350.vreg.cin" }],
+      "enforced_by": ["generator hot-loop objective", "ccomp check package (part values)"]
+    },
+    {
+      "id": "rp2350.crystal.part",
+      "statement": "The crystal is an Abracon ABM8-272-T3 (12 MHz, +/-30 ppm, ESR <= 50 ohm, CL 10 pF) with 15 pF load capacitors and a 1 kohm series resistor on XOUT, tuned for IOVDD = 3.3 V; any other crystal or IOVDD needs re-tuning and testing over temperature.",
+      "scope": { "chip": "RP2350", "block": "crystal" },
+      "attributes": ["part", "capacitance", "resistance"],
+      "requirement": { "crystal": "ABM8-272-T3", "f_mhz": 12, "cload_pf": 15, "rdamp_ohm": 1000, "iovdd_v": 3.3 },
+      "checks": [
+        { "part": "XTAL", "quantity": "part_number", "any_of": ["ABM8-272-T3"] },
+        { "part": "CL_XIN", "quantity": "capacitance", "equals": 1.5e-11 },
+        { "part": "CL_XOUT", "quantity": "capacitance", "equals": 1.5e-11 },
+        { "part": "R_XOUT", "quantity": "resistance", "equals": 1000 }
+      ],
+      "citation": { "source": "rp2350_hdg", "locator": "§4 p.13, §4.1 p.14" },
+      "status": "asserted",
+      "enforced_by": ["ccomp check package (part values)"]
+    },
+    {
+      "id": "rp2350.crystal.short",
+      "statement": "The crystal circuit's traces are as short as possible: their parasitic capacitance (budgeted at 3 pF with the pins) adds to the load.",
+      "scope": { "chip": "RP2350", "block": "crystal" },
+      "attributes": ["trace_length"],
+      "requirement": {
+        "parasitic_pf_budget": 3,
+        "trace_length_mm_reference": {
+          "xin_to_crystal": { "rp2350a_minimal": 10.71, "rp2350b_minimal": 11.17 },
+          "xout_to_damping_r": { "rp2350a_minimal": 2.97, "rp2350b_minimal": 2.96 },
+          "damping_r_to_crystal": { "rp2350a_minimal": 5.54, "rp2350b_minimal": 5.47 },
+          "xin_load_cap": { "rp2350a_minimal": 5.26, "rp2350b_minimal": 5.36 },
+          "xout_load_cap": { "rp2350a_minimal": 3.31, "rp2350b_minimal": 3.43 }
+        }
+      },
+      "citation": { "source": "rp2350_hdg", "locator": "§4 p.13" },
+      "status": "promoted",
+      "enforced_by": ["intent max_length on XIN, XOUT (compiled to routing.json)", "generator objective (milestone 5)"]
+    },
+    {
+      "id": "rp2350.usb.series_r",
+      "statement": "USB_DP and USB_DM each have a 27 ohm series resistor placed close to the chip.",
+      "scope": { "chip": "RP2350", "block": "usb" },
+      "attributes": ["resistance", "trace_length"],
+      "requirement": {
+        "r_ohm": 27,
+        "trace_length_mm_reference": { "usb_dp_to_r": { "rp2350a_minimal": 4.13, "rp2350b_minimal": 3.97 }, "usb_dm_to_r": { "rp2350a_minimal": 3.88, "rp2350b_minimal": 3.72 } }
+      },
+      "checks": [{ "part": "R_USB_DP", "quantity": "resistance", "equals": 27 }, { "part": "R_USB_DM", "quantity": "resistance", "equals": 27 }],
+      "citation": { "source": "rp2350_ds", "locator": "§1.2.2 Table 2 p.16" },
+      "status": "promoted",
+      "links": [{ "supports": "rp2350.usb.series_r_hdg" }],
+      "enforced_by": ["intent max_length on the chip-side USB nets", "ccomp check package (part values)"]
+    },
+    {
+      "id": "rp2350.usb.series_r_hdg",
+      "statement": "R7 and R8 (27 ohm) are placed close to the chip, to meet the USB impedance specification.",
+      "scope": { "chip": "RP2350", "block": "usb" },
+      "attributes": ["trace_length"],
+      "citation": { "source": "rp2350_hdg", "locator": "§5.1 p.15; schematic note 'Make sure R7 and R8 are close to RP2350'" },
+      "status": "asserted",
+      "enforced_by": []
+    },
+    {
+      "id": "rp2350.usb.impedance",
+      "statement": "USB_DP/USB_DM run as a 90 ohm differential pair (on the 1 mm 2-layer reference: 0.8 mm tracks, 0.15 mm gap) over solid, uninterrupted ground for their whole length.",
+      "scope": { "chip": "RP2350", "block": "usb" },
+      "attributes": ["impedance", "unreferenced_length"],
+      "requirement": { "z_diff_ohm": 90, "unreferenced_length_mm": 0 },
+      "citation": { "source": "rp2350_hdg", "locator": "§5.1 p.15" },
+      "status": "contested",
+      "evidence": {
+        "note": "Connector side (R to J1) has ground under every millimetre on both boards. Chip side (pin to R) does not: unreferenced {\"rp2350a_minimal\": [1.11, 1.76], \"rp2350b_minimal\": [0.85, 1.41]} mm (DP, DM) where they escape the QFN over the bottom-side fan-out. The reference does not meet its own rule there; at USB full speed and these lengths it is unlikely to matter."
+      },
+      "enforced_by": ["verifier unreferenced_length_mm (ccomp measure, return_paths)", "intent impedance (compiled to the DIFF_HS class)"]
+    },
+    {
+      "id": "rp2350.qspi.short_direct",
+      "statement": "The QSPI pins wire directly to the flash with short connections, for signal integrity and to limit crosstalk.",
+      "scope": { "chip": "RP2350", "block": "flash" },
+      "attributes": ["trace_length", "unreferenced_length"],
+      "requirement": {
+        "trace_length_mm_reference": {
+          "qspi_sclk": { "rp2350a_minimal": 11.03, "rp2350b_minimal": 8.91 },
+          "qspi_sd0": { "rp2350a_minimal": 8.65, "rp2350b_minimal": 7.16 },
+          "qspi_sd1": { "rp2350a_minimal": 16.67, "rp2350b_minimal": 17.33 },
+          "qspi_sd2": { "rp2350a_minimal": 13.05, "rp2350b_minimal": 13.2 },
+          "qspi_sd3": { "rp2350a_minimal": 12.48, "rp2350b_minimal": 10.42 },
+          "qspi_ss_to_r": { "rp2350a_minimal": 20.1, "rp2350b_minimal": 20.87 }
+        }
+      },
+      "citation": { "source": "rp2350_hdg", "locator": "§3.1 p.10" },
+      "status": "promoted",
+      "evidence": {
+        "note": "QFN-80 board: the optional second memory U204 sits on the bottom directly under U202 and its stubs run on B.Cu, so every QSPI net has about 6 mm of track with no ground beside it and 1.3-3.1 mm of top track over cut ground; QFN-60 has none of that (reference/*/measured.json, return_paths)."
+      },
+      "enforced_by": ["intent max_length on QSPI nets", "verifier unreferenced_length_mm"]
+    },
+    {
+      "id": "rp2350.qspi.ss_resistors",
+      "statement": "QSPI_SS has a footprint for a 10 kohm pull-up to 3.3 V (DNF with W25Q128JV) and a 1 kohm series resistor to the BOOTSEL button; both sit close to the flash.",
+      "scope": { "chip": "RP2350", "block": "flash" },
+      "attributes": ["resistance", "placement"],
+      "requirement": { "pullup_ohm": 10000, "pullup_fitted": false, "bootsel_r_ohm": 1000 },
+      "checks": [{ "part": "R_SS_PULLUP", "quantity": "fitted", "equals": false }, { "part": "R_BOOTSEL", "quantity": "resistance", "equals": 1000 }],
+      "citation": { "source": "rp2350_hdg", "locator": "§3.1 pp.10-11" },
+      "status": "asserted",
+      "enforced_by": ["ccomp check package (part values)"]
+    },
+    {
+      "id": "rp2350.qspi.flash_part",
+      "statement": "The primary flash is a 25-series QSPI device answering 03h serial read with 24-bit addressing, plus 02h, 05h, 06h and 20h; up to 16 MB (W25Q128JVS on the reference).",
+      "scope": { "chip": "RP2350", "block": "flash" },
+      "attributes": ["part"],
+      "citation": { "source": "rp2350_hdg", "locator": "§3.1 p.10, §3.3 pp.11-12" },
+      "status": "asserted",
+      "enforced_by": ["validator (milestone 5: part parameters)"]
+    },
+    {
+      "id": "rp2350.qspi.cs1_pullup",
+      "statement": "A second memory on GPIO0 (XIP_CS1n) needs a 10 kohm pull-up on its chip select, since GPIO0 is pulled low at power-up.",
+      "scope": { "chip": "RP2350", "block": "flash" },
+      "attributes": ["resistance"],
+      "requirement": { "pullup_ohm": 10000 },
+      "checks": [{ "part": "R_CS2_PULLUP", "quantity": "resistance", "equals": 10000, "when_fitted": "FLASH2" }],
+      "citation": { "source": "rp2350_hdg", "locator": "§3.2 p.11" },
+      "status": "asserted",
+      "enforced_by": ["ccomp check package (part values)"]
+    },
+    {
+      "id": "rp2350.usb_otp_vdd.always",
+      "statement": "USB_OTP_VDD is always powered at 3.3 V, even when USB is unused; VREG_AVDD is always powered too (it feeds power-on reset and brownout).",
+      "scope": { "chip": "RP2350", "block": "mcu" },
+      "attributes": ["supply"],
+      "citation": { "source": "rp2350_ds", "locator": "§6.1.4 p.401, §6.1.7 p.401" },
+      "status": "asserted",
+      "enforced_by": ["validator (milestone 5: required supplies)"]
+    },
+    {
+      "id": "rp2350.connector.grounds",
+      "statement": "I/O connectors carry many ground pins, giving signal return currents short paths.",
+      "scope": { "chip": "RP2350", "block": "headers" },
+      "attributes": ["return_path"],
+      "citation": { "source": "rp2350_hdg", "locator": "§5.2 p.16" },
+      "status": "asserted",
+      "enforced_by": []
     }
   ]
 }

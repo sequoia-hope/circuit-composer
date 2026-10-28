@@ -1,0 +1,204 @@
+{
+  "block": "reference",
+  "geometry": {
+    "feedback_closest": [
+      [
+        102.48500000000001,
+        93.0
+      ],
+      [
+        102.8705,
+        93.0
+      ]
+    ],
+    "feedback_path": [
+      [
+        102.2,
+        95.10350000000001
+      ],
+      [
+        102.175,
+        94.5
+      ],
+      [
+        102.075,
+        94.4
+      ],
+      [
+        101.9,
+        94.200736
+      ],
+      [
+        101.9,
+        93.0
+      ],
+      [
+        102.48500000000001,
+        93.0
+      ]
+    ],
+    "hot_loop": [
+      [
+        102.60000000000001,
+        95.10350000000001
+      ],
+      [
+        102.48500000000001,
+        93.95
+      ],
+      [
+        103.51500000000001,
+        93.95
+      ],
+      [
+        103.4,
+        95.10350000000001
+      ]
+    ],
+    "output_loop": [
+      [
+        103.00000000000001,
+        95.10350000000001
+      ],
+      [
+        103.70000000000002,
+        91.35
+      ],
+      [
+        102.3,
+        91.35
+      ],
+      [
+        102.48500000000001,
+        93.0
+      ],
+      [
+        103.51500000000001,
+        93.0
+      ],
+      [
+        103.4,
+        95.10350000000001
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "reference",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.0,
+        94.52675
+      ],
+      "measured": 1.0554601887984523,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "reference",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.0,
+        94.52675
+      ],
+      "measured": 1.0554601887984523,
+      "method": "pad centres",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "reference",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.06666666666668,
+        93.15116666666667
+      ],
+      "measured": 2.4542623839500215,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "/VREG_LX",
+        "+1V1",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "reference",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.00000000000001,
+        95.10350000000001
+      ],
+      "measured": 2.3022,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "/VREG_LX"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "reference",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        102.48500000000001,
+        93.0
+      ],
+      "measured": 0.3854999999999933,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1V1",
+        "/VREG_LX"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "reference",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        103.00000000000001,
+        95.10350000000001
+      ],
+      "measured": 2.3036000000000003,
+      "method": "F.Cu switch copper over other nets' copper on B.Cu, 20 um raster",
+      "nets": [
+        "/VREG_LX"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1V1",
+    "sw": "/VREG_LX",
+    "vin": "+3V3"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C216",
+    "cout": "C217",
+    "fb": "U203.65",
+    "inductor": "L201",
+    "pgnd": "U203.62",
+    "sw": "U203.63",
+    "vin": "U203.64"
+  }
+}

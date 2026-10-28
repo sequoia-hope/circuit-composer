@@ -1,0 +1,123 @@
+{
+  "board": "~/pcb/RP2350/RP2350_80QFN_minimal.kicad_pcb",
+  "part": "U203",
+  "paths": [
+    {
+      "name": "xin_to_crystal",
+      "from": "U203.30",
+      "to": "Y201.1"
+    },
+    {
+      "name": "xin_load_cap",
+      "from": "Y201.1",
+      "to": "C221.1"
+    },
+    {
+      "name": "xout_to_damping_r",
+      "from": "U203.31",
+      "to": "R211.1"
+    },
+    {
+      "name": "damping_r_to_crystal",
+      "from": "R211.2",
+      "to": "Y201.3"
+    },
+    {
+      "name": "xout_load_cap",
+      "from": "Y201.3",
+      "to": "C222.1"
+    },
+    {
+      "name": "usb_dp_to_r",
+      "from": "U203.67",
+      "to": "R202.2"
+    },
+    {
+      "name": "usb_dm_to_r",
+      "from": "U203.66",
+      "to": "R203.2"
+    },
+    {
+      "name": "usb_dp_r_to_conn",
+      "from": "R202.1",
+      "to": "J201.3"
+    },
+    {
+      "name": "usb_dm_r_to_conn",
+      "from": "R203.1",
+      "to": "J201.2"
+    },
+    {
+      "name": "qspi_sclk",
+      "from": "U203.71",
+      "to": "U202.6"
+    },
+    {
+      "name": "qspi_sd0",
+      "from": "U203.72",
+      "to": "U202.5"
+    },
+    {
+      "name": "qspi_sd1",
+      "from": "U203.74",
+      "to": "U202.2"
+    },
+    {
+      "name": "qspi_sd2",
+      "from": "U203.73",
+      "to": "U202.3"
+    },
+    {
+      "name": "qspi_sd3",
+      "from": "U203.70",
+      "to": "U202.7"
+    },
+    {
+      "name": "qspi_ss_to_r",
+      "from": "U203.75",
+      "to": "R207.1"
+    },
+    {
+      "name": "flash_ss_r_to_flash",
+      "from": "R207.2",
+      "to": "U202.1"
+    },
+    {
+      "name": "vreg_avdd_filter_r",
+      "from": "R201.2",
+      "to": "U203.61"
+    },
+    {
+      "name": "vreg_avdd_filter_c",
+      "from": "C215.1",
+      "to": "U203.61"
+    }
+  ],
+  "return_paths": {
+    "ground": "GND",
+    "step": 0.05,
+    "nets": [
+      "/XIN",
+      "/XOUT",
+      "/USB_D+",
+      "/USB_D-",
+      "Net-(U203-USB_DP)",
+      "Net-(U203-USB_DM)",
+      "/QSPI_SCLK",
+      "/QSPI_SD0",
+      "/QSPI_SD1",
+      "/QSPI_SD2",
+      "/QSPI_SD3",
+      "/QSPI_SS",
+      "/FLASH_SS"
+    ]
+  },
+  "decoupling": {
+    "part": "U203",
+    "nets": [
+      "+3V3",
+      "+1V1"
+    ],
+    "ground": "GND"
+  }
+}

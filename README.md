@@ -23,8 +23,15 @@ It sits between two sibling projects:
   `packages/rp2350` 0.1.0, published in this repository.
 - **Milestone 3, router integration:** done on our side. The constraint compiler, the region
   check and a routed-board seam check are in place. easy2350, with its blocks locked, was routed
-  by ultraroute and passes every check (`boards/easy2350/routed/`). ultraroute is adding
-  `--regions` to read the compiled regions.
+  by ultraroute and passes every check (`boards/easy2350/routed/`), with and without
+  ultraroute's `--regions` reading the compiled regions.
+- **Milestone 4, RP2350 package:** `packages/rp2350` 0.2.0. Core-regulator layouts for QFN-60
+  and QFN-80 on 2 and 4 layers, all beating Raspberry Pi's on the same checker. Crystal, USB,
+  QSPI flash, buttons and decoupling as intent blocks, mined from the design guide and both
+  minimal boards. Pin tables for both variants, 27 cited rules (disputes kept), and the support
+  parts by role. `ccomp check package` judges any board against the package by role. Both
+  reference boards pass every hard check. easy2350 fails one: its USB pair runs over the
+  +3V3 plane, not ground.
 
 ## Build and run
 
@@ -58,6 +65,17 @@ python3 tools/apply_layout.py BOARD gen.json ROLES.json -o OUT.kicad_pcb [--fixt
 python3 tools/compare_buck.py packages/rp2350/layouts/qfn60-4layer/compare.spec.json OUT_DIR
 ```
 
+Milestone 4 adds net-level measurements, for interface blocks:
+
+```sh
+# Pad-to-pad copper paths, track with no ground beside it, nearest decoupling per power pin
+$ccomp measure board.kicad_pcb --spec packages/rp2350/reference/rp2350a_minimal/measure.spec.json
+python3 tools/kicad_pins.py board.net U1 --rename SWD=SWDIO   # a part's pin table from a netlist
+
+# A board against a package, by role: wiring, block constraints, length limits, part values
+$ccomp check package board.kicad_pcb --package packages/rp2350 --binding boards/easy2350/rp2350.binding.json
+```
+
 Every command prints one JSON result. Exit status: 0 success, 1 the input failed validation,
 2 the command could not run.
 
@@ -68,7 +86,7 @@ Every command prints one JSON result. Exit status: 0 success, 1 the input failed
 | `crates/intent/` | The schema types (`model.rs`), class presets and block types (`presets.rs`), the KiCad netlist reader, the validator, the easy_pcb importer |
 | `crates/ccomp/` | The command-line harness |
 | `crates/pcb/` | A KiCad board as copper per net (read with ultraroute's `kicad-pcb`, pinned), geometry, and copper-path search |
-| `crates/verify/` | Fast-tier verifier checks (`buck.rs`) and SVG drawings of what they measured |
+| `crates/verify/` | Fast-tier verifier checks (`buck.rs`, `nets.rs`) and SVG drawings of what they measured |
 | `crates/blockgen/` | Block generators (`buck.rs`) and the layout format, in the anchor part's frame |
 | `tools/` | pcbnew-side steps: apply a layout, the test bench, comparisons |
 | `packages/<chip>/` | Published packages: manifest, intent, cited rules, layouts with verify reports |

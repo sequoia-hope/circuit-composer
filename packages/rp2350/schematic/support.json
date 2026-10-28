@@ -1,0 +1,591 @@
+{
+ "note": "Support parts by block and role, as fitted on Raspberry Pi's minimal boards (RP-006440-DD rev 2, RP-006442-DD rev 2), read from their schematic netlists. Values and footprints are theirs; roles are this package's. Decoupling per pin: reference/*/measured.json.",
+ "blocks": {
+  "core_reg": {
+   "CIN": {
+    "qfn60": {
+     "ref": "C6",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric_small_pads"
+    },
+    "qfn80": {
+     "ref": "C216",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric_small_pads"
+    }
+   },
+   "COUT": {
+    "qfn60": {
+     "ref": "C7",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric_small_pads"
+    },
+    "qfn80": {
+     "ref": "C217",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric_small_pads"
+    }
+   },
+   "L1": {
+    "qfn60": {
+     "ref": "L1",
+     "value": "3.3u",
+     "footprint": "L_pol_2016"
+    },
+    "qfn80": {
+     "ref": "L201",
+     "value": "3.3u",
+     "footprint": "L_pol_2016"
+    }
+   },
+   "RFILT": {
+    "qfn60": {
+     "ref": "R5",
+     "value": "33",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R201",
+     "value": "33",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "CFILT": {
+    "qfn60": {
+     "ref": "C9",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "C215",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric"
+    }
+   }
+  },
+  "crystal": {
+   "XTAL": {
+    "qfn60": {
+     "ref": "Y1",
+     "value": "ABM8-272-T3",
+     "footprint": "Crystal_SMD_3225-4Pin_3.2x2.5mm"
+    },
+    "qfn80": {
+     "ref": "Y201",
+     "value": "ABM8-272-T3",
+     "footprint": "Crystal_SMD_3225-4Pin_3.2x2.5mm"
+    }
+   },
+   "CL_XIN": {
+    "qfn60": {
+     "ref": "C3",
+     "value": "15p",
+     "footprint": "C_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "C221",
+     "value": "15p",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "CL_XOUT": {
+    "qfn60": {
+     "ref": "C4",
+     "value": "15p",
+     "footprint": "C_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "C222",
+     "value": "15p",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "R_XOUT": {
+    "qfn60": {
+     "ref": "R2",
+     "value": "1k",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R211",
+     "value": "1k",
+     "footprint": "R_0402_1005Metric"
+    }
+   }
+  },
+  "usb": {
+   "R_USB_DP": {
+    "qfn60": {
+     "ref": "R7",
+     "value": "27",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R202",
+     "value": "27",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "R_USB_DM": {
+    "qfn60": {
+     "ref": "R8",
+     "value": "27",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R203",
+     "value": "27",
+     "footprint": "R_0402_1005Metric"
+    }
+   }
+  },
+  "flash": {
+   "FLASH": {
+    "qfn60": {
+     "ref": "U3",
+     "value": "W25Q128JVS",
+     "footprint": "SOIC-8_5.23x5.23mm_P1.27mm"
+    },
+    "qfn80": {
+     "ref": "U202",
+     "value": "W25Q128JVS",
+     "footprint": "SOIC-8_5.23x5.23mm_P1.27mm"
+    }
+   },
+   "R_SS_LINK": {
+    "qfn60": {
+     "ref": "R10",
+     "value": "0",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R207",
+     "value": "0",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "R_SS_PULLUP": {
+    "qfn60": {
+     "ref": "R1",
+     "value": "DNF",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R204",
+     "value": "DNF",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "R_CS1_LINK": {
+    "qfn60": {
+     "ref": "R9",
+     "value": "DNF",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R205",
+     "value": "DNF",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "C_FLASH": {
+    "qfn60": {
+     "ref": "C2",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "C218",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   }
+  },
+  "flash2 (QFN-80 board only)": {
+   "FLASH2": {
+    "qfn80": {
+     "ref": "U204",
+     "value": "DNF",
+     "footprint": "SOIC-8_5.23x5.23mm_P1.27mm"
+    }
+   },
+   "R_CS2_PULLUP": {
+    "qfn80": {
+     "ref": "R209",
+     "value": "DNF",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "R_CS2_LINK": {
+    "qfn80": {
+     "ref": "R210",
+     "value": "DNF",
+     "footprint": "R_0402_1005Metric"
+    }
+   },
+   "C_FLASH2": {
+    "qfn80": {
+     "ref": "C220",
+     "value": "DNF",
+     "footprint": "C_0402_1005Metric"
+    }
+   }
+  },
+  "bootsel": {
+   "SW_BOOTSEL": {
+    "qfn60": {
+     "ref": "SW1",
+     "value": "SW_Push",
+     "footprint": "SW_Push_1P1T_NO_Vertical_Wuerth_434133025816"
+    },
+    "qfn80": {
+     "ref": "SW201",
+     "value": "SW_Push",
+     "footprint": "SW_Push_1P1T_NO_Vertical_Wuerth_434133025816"
+    }
+   },
+   "R_BOOTSEL": {
+    "qfn60": {
+     "ref": "R6",
+     "value": "1k",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R206",
+     "value": "1k",
+     "footprint": "R_0402_1005Metric"
+    }
+   }
+  },
+  "reset": {
+   "SW_RUN": {
+    "qfn60": {
+     "ref": "SW2",
+     "value": "SW_Push",
+     "footprint": "SW_Push_1P1T_NO_Vertical_Wuerth_434133025816"
+    },
+    "qfn80": {
+     "ref": "SW202",
+     "value": "SW_Push",
+     "footprint": "SW_Push_1P1T_NO_Vertical_Wuerth_434133025816"
+    }
+   },
+   "R_RUN": {
+    "qfn60": {
+     "ref": "R4",
+     "value": "1k",
+     "footprint": "R_0402_1005Metric"
+    },
+    "qfn80": {
+     "ref": "R208",
+     "value": "1k",
+     "footprint": "R_0402_1005Metric"
+    }
+   }
+  },
+  "mcu": {
+   "C_IOVDD_1": {
+    "qfn60": {
+     "ref": "C13",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_DVDD_6": {
+    "qfn60": {
+     "ref": "C8",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_IOVDD_11": {
+    "qfn60": {
+     "ref": "C15",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_IOVDD_20": {
+    "qfn60": {
+     "ref": "C18",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_DVDD_23": {
+    "qfn60": {
+     "ref": "C10",
+     "value": "4.7u",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_IOVDD_30": {
+    "qfn60": {
+     "ref": "C16",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_IOVDD_38": {
+    "qfn60": {
+     "ref": "C14",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_DVDD_39": {
+    "qfn60": {
+     "ref": "C11",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_IOVDD_45_ADC": {
+    "qfn60": {
+     "ref": "C17",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   },
+   "C_OTP_QSPI": {
+    "qfn60": {
+     "ref": "C12",
+     "value": "100n",
+     "footprint": "C_0402_1005Metric"
+    }
+   }
+  }
+ },
+ "decoupling_by_pin": {
+  "qfn60": {
+   "1": {
+    "name": "IOVDD",
+    "cap": "C13",
+    "value": "100n",
+    "path_mm": 2.64,
+    "shares_with": []
+   },
+   "6": {
+    "name": "DVDD",
+    "cap": "C8",
+    "value": "100n",
+    "path_mm": 2.65,
+    "shares_with": []
+   },
+   "11": {
+    "name": "IOVDD",
+    "cap": "C15",
+    "value": "100n",
+    "path_mm": 2.65,
+    "shares_with": []
+   },
+   "20": {
+    "name": "IOVDD",
+    "cap": "C18",
+    "value": "100n",
+    "path_mm": 2.41,
+    "shares_with": []
+   },
+   "23": {
+    "name": "DVDD",
+    "cap": "C10",
+    "value": "4.7u",
+    "path_mm": 3.29,
+    "shares_with": []
+   },
+   "30": {
+    "name": "IOVDD",
+    "cap": "C16",
+    "value": "100n",
+    "path_mm": 2.64,
+    "shares_with": []
+   },
+   "38": {
+    "name": "IOVDD",
+    "cap": "C14",
+    "value": "100n",
+    "path_mm": 3.33,
+    "shares_with": []
+   },
+   "39": {
+    "name": "DVDD",
+    "cap": "C11",
+    "value": "100n",
+    "path_mm": 3.25,
+    "shares_with": []
+   },
+   "44": {
+    "name": "ADC_AVDD",
+    "cap": "C17",
+    "value": "100n",
+    "path_mm": 2.82,
+    "shares_with": [
+     "45"
+    ]
+   },
+   "45": {
+    "name": "IOVDD",
+    "cap": "C17",
+    "value": "100n",
+    "path_mm": 2.58,
+    "shares_with": [
+     "44"
+    ]
+   },
+   "49": {
+    "name": "VREG_VIN",
+    "cap": "C6",
+    "value": "4.7u",
+    "path_mm": 1.17,
+    "shares_with": []
+   },
+   "50": {
+    "name": "VREG_FB",
+    "cap": "C7",
+    "value": "4.7u",
+    "path_mm": 2.49,
+    "shares_with": []
+   },
+   "53": {
+    "name": "USB_OTP_VDD",
+    "cap": "C12",
+    "value": "100n",
+    "path_mm": 4.35,
+    "shares_with": [
+     "54"
+    ]
+   },
+   "54": {
+    "name": "QSPI_IOVDD",
+    "cap": "C12",
+    "value": "100n",
+    "path_mm": 4.19,
+    "shares_with": [
+     "53"
+    ]
+   }
+  },
+  "qfn80": {
+   "5": {
+    "name": "IOVDD",
+    "cap": "C209",
+    "value": "100n",
+    "path_mm": 2.91,
+    "shares_with": []
+   },
+   "10": {
+    "name": "DVDD",
+    "cap": "C203",
+    "value": "100n",
+    "path_mm": 2.62,
+    "shares_with": []
+   },
+   "15": {
+    "name": "IOVDD",
+    "cap": "C211",
+    "value": "100n",
+    "path_mm": 2.79,
+    "shares_with": []
+   },
+   "24": {
+    "name": "IOVDD",
+    "cap": "C214",
+    "value": "100n",
+    "path_mm": 2.9,
+    "shares_with": []
+   },
+   "29": {
+    "name": "IOVDD",
+    "cap": "C207",
+    "value": "100n",
+    "path_mm": 3.21,
+    "shares_with": []
+   },
+   "32": {
+    "name": "DVDD",
+    "cap": "C204",
+    "value": "4.7u",
+    "path_mm": 3.25,
+    "shares_with": []
+   },
+   "41": {
+    "name": "IOVDD",
+    "cap": "C212",
+    "value": "100n",
+    "path_mm": 2.24,
+    "shares_with": []
+   },
+   "50": {
+    "name": "IOVDD",
+    "cap": "C210",
+    "value": "100n",
+    "path_mm": 2.65,
+    "shares_with": []
+   },
+   "51": {
+    "name": "DVDD",
+    "cap": "C205",
+    "value": "100n",
+    "path_mm": 2.75,
+    "shares_with": []
+   },
+   "59": {
+    "name": "ADC_AVDD",
+    "cap": "C213",
+    "value": "100n",
+    "path_mm": 2.5,
+    "shares_with": [
+     "60"
+    ]
+   },
+   "60": {
+    "name": "IOVDD",
+    "cap": "C213",
+    "value": "100n",
+    "path_mm": 2.18,
+    "shares_with": [
+     "59"
+    ]
+   },
+   "64": {
+    "name": "VREG_VIN",
+    "cap": "C216",
+    "value": "4.7u",
+    "path_mm": 1.16,
+    "shares_with": []
+   },
+   "65": {
+    "name": "VREG_FB",
+    "cap": "C217",
+    "value": "4.7u",
+    "path_mm": 2.8,
+    "shares_with": []
+   },
+   "68": {
+    "name": "USB_OTP_VDD",
+    "cap": "C206",
+    "value": "100n",
+    "path_mm": 4.25,
+    "shares_with": [
+     "69"
+    ]
+   },
+   "69": {
+    "name": "QSPI_IOVDD",
+    "cap": "C206",
+    "value": "100n",
+    "path_mm": 4.09,
+    "shares_with": [
+     "68"
+    ]
+   },
+   "76": {
+    "name": "IOVDD",
+    "cap": "C208",
+    "value": "100n",
+    "path_mm": 4.86,
+    "shares_with": []
+   }
+  }
+ }
+}

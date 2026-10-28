@@ -20,5 +20,17 @@
     "title": "easy2350 U1 core block audit (easy_pcb)",
     "url": "easy_pcb commit 2d56198, examples/easy2350/design/parts/rp2350-core.md (not yet on GitHub; will be at github.com/sequoia-hope/easy_pcb once pushed)",
     "revision": "easy_pcb 2d56198"
+  },
+  "rp2350b_minimal": {
+    "title": "RP2350B Minimal Board, KiCad files (RP2350_80QFN_minimal.kicad_pcb)",
+    "where": "Linked from the 'Hardware design with RP2350' documentation page; archive RP-006442-DD rev 2",
+    "revision": "RP-006442-DD rev 2",
+    "archive_sha256": "826dafb4430d503926f2711d11bd53da5f418ad12a46d6f068ae8c51ef38a568",
+    "sha256": "1eef941cd8b64716f15f0b79c60e8d34d0d1e7792e8017c8dd54124654b87c09"
+  },
+  "motor_controller_rev_a": {
+    "title": "rp2350-motor-controller rev A (rp2350_driver.kicad_pcb, U8 core regulator)",
+    "where": "~/pcb/rp2350-motor-controller, tag rev-A-fab (49338a4); measured in boards/rp2350-motor-controller",
+    "revision": "rev-A-fab 49338a4"
   }
 }

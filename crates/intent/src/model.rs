@@ -386,6 +386,10 @@ pub enum Metric {
     TraceLengthMm,
     /// Vias on a net.
     ViaCount,
+    /// Track of a net with no ground fill on a neighbouring copper layer (a broken return path), mm.
+    UnreferencedLengthMm,
+    /// Copper path from a power pin to its nearest decoupling capacitor, mm.
+    DecouplingPathMm,
 }
 
 /// A block's external interface.

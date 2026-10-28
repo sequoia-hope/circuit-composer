@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate a buck block, put it on a test bench, verify it, and run KiCad's DRC on it.
 
-    bench_buck.py BOARD ROLES_JSON OUT_DIR [--params PARAMS_JSON] [--layout GEN_JSON]
+    bench_buck.py BOARD ROLES_JSON OUT_DIR [--params PARAMS_JSON] [--layout GEN_JSON] [--copper-layers N]
 
 OUT_DIR gets: gen.json (the generator's output, unless --layout reuses one), fixture.kicad_pcb
 (+ .kicad_pro copied from BOARD's project, so net-class rules hold), check.json, block.svg,
@@ -19,6 +19,8 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CCOMP = os.environ.get("CCOMP", os.path.join(ROOT, "target", "release", "ccomp"))
+# A footprint's own attributes, inherited from the library it came from: noted, not the block's fault.
+FOOTPRINT_NOTES = {"footprint_type_mismatch"}
 IGNORED = {"lib_footprint_issues", "lib_footprint_mismatch", "silk_overlap", "silk_over_copper", "silk_edge_clearance", "unconnected_items"}
 
 
@@ -34,6 +36,7 @@ def main():
     ap.add_argument("out")
     ap.add_argument("--params")
     ap.add_argument("--layout", help="reuse a generator output instead of generating")
+    ap.add_argument("--copper-layers", type=int, help="the bench's copper layer count (default: BOARD's)")
     a = ap.parse_args()
     os.makedirs(a.out, exist_ok=True)
     roles = json.load(open(a.roles))
@@ -41,7 +44,8 @@ def main():
 
     gen_path = os.path.join(a.out, "gen.json")
     if a.layout:
-        shutil.copy(a.layout, gen_path)
+        if os.path.abspath(a.layout) != os.path.abspath(gen_path):
+            shutil.copy(a.layout, gen_path)
     else:
         cmd = [CCOMP, "gen", "buck", a.board, "--roles", role_arg, "-o", gen_path]
         if a.params:
@@ -56,7 +60,7 @@ def main():
     pro = os.path.splitext(a.board)[0] + ".kicad_pro"
     if os.path.exists(pro):
         shutil.copy(pro, os.path.join(a.out, "fixture.kicad_pro"))
-    r = run([sys.executable, "-I", os.path.join(ROOT, "tools", "apply_layout.py"), a.board, gen_path, a.roles, "-o", fixture, "--fixture"])
+    r = run([sys.executable, "-I", os.path.join(ROOT, "tools", "apply_layout.py"), a.board, gen_path, a.roles, "-o", fixture, "--fixture", *(["--copper-layers", str(a.copper_layers)] if a.copper_layers else [])])
     applied = json.loads(r.stdout.strip().splitlines()[-1]) if r.stdout.strip() else {"ok": False, "error": r.stderr[-2000:]}
     if not applied.get("ok"):
         print(json.dumps(applied))
@@ -69,9 +73,12 @@ def main():
     run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-all", "-o", drc_path, fixture])
     drc = json.load(open(drc_path))
     block_refs = {roles["vin"].split(".")[0]} | {roles[k] for k in ("cin", "cout", "inductor")}
-    findings = []
+    findings, notes = [], []
     for v in drc["violations"]:
         if v["type"] in IGNORED:
+            continue
+        if v["type"] in FOOTPRINT_NOTES:
+            notes.append({"type": v["type"], "description": v["description"], "items": [i["description"] for i in v["items"]]})
             continue
         findings.append({"type": v["type"], "severity": v["severity"], "description": v["description"], "items": [i["description"] for i in v["items"]]})
     block_nets = {check["nets"][k] for k in ("vin", "sw", "gnd", "out")}
@@ -87,6 +94,7 @@ def main():
         "estimate": gen.get("estimate"),
         "placed": applied["placed"],
         "drc_errors": findings,
+        "footprint_notes": notes,
         "open_between_block_parts": open_in_block,
         "seconds": gen.get("seconds"),
         "params": gen.get("params"),

@@ -892,6 +892,16 @@
           "const": "via_count",
           "description": "Vias on a net.",
           "type": "string"
+        },
+        {
+          "const": "unreferenced_length_mm",
+          "description": "Track of a net with no ground fill on a neighbouring copper layer (a broken return path), mm.",
+          "type": "string"
+        },
+        {
+          "const": "decoupling_path_mm",
+          "description": "Copper path from a power pin to its nearest decoupling capacitor, mm.",
+          "type": "string"
         }
       ]
     },

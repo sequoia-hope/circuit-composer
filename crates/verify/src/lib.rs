@@ -2,6 +2,7 @@
 //! given a limit, reports pass or fail with the stage that has to fix it.
 
 pub mod buck;
+pub mod nets;
 pub mod svg;
 
 use serde::Serialize;

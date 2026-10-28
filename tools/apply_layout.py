@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Apply a generated block layout (`ccomp gen ...` output) to a KiCad board with pcbnew.
 
-    apply_layout.py BOARD GEN_JSON ROLES_JSON -o OUT [--fixture]
+    apply_layout.py BOARD GEN_JSON ROLES_JSON -o OUT [--fixture [--copper-layers N]]
 
 ROLES_JSON maps roles to parts and pads, e.g. {"vin": "U1.49", ..., "cin": "C14"}. Parts are
 placed in the anchor's frame and locked; tracks, vias and keepouts are added and locked; zones
 are refilled. With --fixture the board is first reduced to a test bench: only the anchor and
-the block's parts, no copper, and a solid GND plane on the first inner layer, so the block is
-measured alone.
+the block's parts, no copper, and a solid GND plane on the first inner layer (on B.Cu for a
+2-layer board), so the block is measured alone. --copper-layers sets the bench's layer count,
+so a 4-layer bench can be made from a 2-layer reference board.
 
 Prints one JSON object. pcbnew rotates and writes footprints correctly, which is why this step
 is Python and not Rust.
@@ -60,6 +61,7 @@ def main():
     ap.add_argument("roles")
     ap.add_argument("-o", "--output", required=True)
     ap.add_argument("--fixture", action="store_true")
+    ap.add_argument("--copper-layers", type=int, help="with --fixture: the bench's copper layer count")
     a = ap.parse_args()
 
     gen = json.load(open(a.gen))
@@ -86,19 +88,20 @@ def main():
         for z in doomed_zones:
             board.Delete(z)
         removed = {"footprints": len(doomed_fps), "tracks": len(doomed_tracks), "zones": len(doomed_zones)}
-        if board.GetCopperLayerCount() >= 4:
-            box = board.GetBoardEdgesBoundingBox()
-            z = pcbnew.ZONE(board)
-            on_layer(z, pcbnew.In1_Cu)
-            z.SetNet(nets["gnd"])
-            z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
-            z.SetMinThickness(int(0.2 * NM))
-            outline = z.Outline()
-            outline.NewOutline()
-            for x, y in [(box.GetLeft(), box.GetTop()), (box.GetRight(), box.GetTop()), (box.GetRight(), box.GetBottom()), (box.GetLeft(), box.GetBottom())]:
-                outline.Append(x, y)
-            z.SetZoneName("fixture GND plane")
-            board.Add(z)
+        if a.copper_layers:
+            board.SetCopperLayerCount(a.copper_layers)
+        box = board.GetBoardEdgesBoundingBox()
+        z = pcbnew.ZONE(board)
+        on_layer(z, pcbnew.In1_Cu if board.GetCopperLayerCount() >= 4 else pcbnew.B_Cu)
+        z.SetNet(nets["gnd"])
+        z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
+        z.SetMinThickness(int(0.2 * NM))
+        outline = z.Outline()
+        outline.NewOutline()
+        for x, y in [(box.GetLeft(), box.GetTop()), (box.GetRight(), box.GetTop()), (box.GetRight(), box.GetBottom()), (box.GetLeft(), box.GetBottom())]:
+            outline.Append(x, y)
+        z.SetZoneName("fixture GND plane")
+        board.Add(z)
 
     for role, pose in layout["parts"].items():
         fp = board.FindFootprintByReference(roles[role])

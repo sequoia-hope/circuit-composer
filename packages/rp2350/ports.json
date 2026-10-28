@@ -1,0 +1,794 @@
+{
+ "note": "Pins by number per variant; what each function means, its supply domain and default net class. The intent's blocks use RP2350A (QFN-60) numbers; translate by pin name for RP2350B.",
+ "functions": {
+  "GPIO": {
+   "kind": "gpio",
+   "supply": "IOVDD",
+   "class": "SIGNAL",
+   "note": "General-purpose digital I/O; peripherals by GPIO function select",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "GPIO_ADC": {
+   "kind": "gpio_adc",
+   "supply": "IOVDD",
+   "class": "SIGNAL",
+   "note": "GPIO with ADC input; class ANALOG when used as one. ADC reference is ADC_AVDD",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "QSPI": {
+   "kind": "qspi",
+   "supply": "QSPI_IOVDD",
+   "class": "SE_HS",
+   "protocol": "qspi",
+   "note": "Flash/PSRAM interface with XIP; usable as GPIO if no flash",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "USB": {
+   "kind": "usb",
+   "supply": "USB_OTP_VDD",
+   "class": "DIFF_HS",
+   "protocol": "usb2-fs",
+   "impedance_ohm": 90,
+   "note": "27 ohm series termination required on each pin; pull-ups internal",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "XTAL": {
+   "kind": "crystal",
+   "supply": "IOVDD",
+   "class": "CLOCK",
+   "note": "12 MHz crystal, or XIN as a CMOS clock input with XOUT open",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "RUN": {
+   "kind": "reset",
+   "supply": "IOVDD",
+   "class": "SIGNAL",
+   "note": "Global asynchronous reset, active low; tie to IOVDD if unused",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "SWD": {
+   "kind": "debug",
+   "supply": "IOVDD",
+   "class": "SIGNAL",
+   "protocol": "swd",
+   "note": "Serial Wire Debug",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "IOVDD": {
+   "kind": "power_in",
+   "nominal_v": [
+    1.8,
+    3.3
+   ],
+   "class": "POWER",
+   "note": "GPIO supply",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "QSPI_IOVDD": {
+   "kind": "power_in",
+   "nominal_v": [
+    1.8,
+    3.3
+   ],
+   "class": "POWER",
+   "note": "QSPI I/O supply",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "USB_OTP_VDD": {
+   "kind": "power_in",
+   "nominal_v": [
+    3.3,
+    3.3
+   ],
+   "class": "POWER",
+   "note": "USB PHY and OTP supply; 100 nF close to the pin (\u00a76.1.4)",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "ADC_AVDD": {
+   "kind": "power_in",
+   "nominal_v": [
+    3.3,
+    3.3
+   ],
+   "class": "POWER",
+   "note": "ADC supply",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "DVDD": {
+   "kind": "power_in",
+   "nominal_v": [
+    1.1,
+    1.1
+   ],
+   "class": "POWER",
+   "note": "Digital core, from the core regulator or an external rail",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "VREG_VIN": {
+   "kind": "power_in",
+   "nominal_v": [
+    2.7,
+    5.5
+   ],
+   "class": "POWER",
+   "note": "Core regulator input; block core_reg",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "VREG_AVDD": {
+   "kind": "power_in",
+   "nominal_v": [
+    3.3,
+    3.3
+   ],
+   "class": "POWER",
+   "note": "Core regulator analogue supply, RC filtered 33 ohm / 4.7 uF",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "VREG_LX": {
+   "kind": "power_out",
+   "class": "SWITCH",
+   "note": "Core regulator switch node, max 200 mA; block core_reg",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "VREG_FB": {
+   "kind": "input",
+   "class": "POWER",
+   "note": "Core regulator feedback, taken at COUT; block core_reg",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "VREG_PGND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Core regulator power ground",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Exposed pad; the single external ground connection",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  }
+ },
+ "variants": {
+  "RP2350A": {
+   "package": "QFN-60",
+   "pins": {
+    "1": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "2": {
+     "name": "GPIO0",
+     "function": "GPIO"
+    },
+    "3": {
+     "name": "GPIO1",
+     "function": "GPIO"
+    },
+    "4": {
+     "name": "GPIO2",
+     "function": "GPIO"
+    },
+    "5": {
+     "name": "GPIO3",
+     "function": "GPIO"
+    },
+    "6": {
+     "name": "DVDD",
+     "function": "DVDD"
+    },
+    "7": {
+     "name": "GPIO4",
+     "function": "GPIO"
+    },
+    "8": {
+     "name": "GPIO5",
+     "function": "GPIO"
+    },
+    "9": {
+     "name": "GPIO6",
+     "function": "GPIO"
+    },
+    "10": {
+     "name": "GPIO7",
+     "function": "GPIO"
+    },
+    "11": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "12": {
+     "name": "GPIO8",
+     "function": "GPIO"
+    },
+    "13": {
+     "name": "GPIO9",
+     "function": "GPIO"
+    },
+    "14": {
+     "name": "GPIO10",
+     "function": "GPIO"
+    },
+    "15": {
+     "name": "GPIO11",
+     "function": "GPIO"
+    },
+    "16": {
+     "name": "GPIO12",
+     "function": "GPIO"
+    },
+    "17": {
+     "name": "GPIO13",
+     "function": "GPIO"
+    },
+    "18": {
+     "name": "GPIO14",
+     "function": "GPIO"
+    },
+    "19": {
+     "name": "GPIO15",
+     "function": "GPIO"
+    },
+    "20": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "21": {
+     "name": "XIN",
+     "function": "XTAL"
+    },
+    "22": {
+     "name": "XOUT",
+     "function": "XTAL"
+    },
+    "23": {
+     "name": "DVDD",
+     "function": "DVDD"
+    },
+    "24": {
+     "name": "SWCLK",
+     "function": "SWD"
+    },
+    "25": {
+     "name": "SWDIO",
+     "function": "SWD"
+    },
+    "26": {
+     "name": "RUN",
+     "function": "RUN"
+    },
+    "27": {
+     "name": "GPIO16",
+     "function": "GPIO"
+    },
+    "28": {
+     "name": "GPIO17",
+     "function": "GPIO"
+    },
+    "29": {
+     "name": "GPIO18",
+     "function": "GPIO"
+    },
+    "30": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "31": {
+     "name": "GPIO19",
+     "function": "GPIO"
+    },
+    "32": {
+     "name": "GPIO20",
+     "function": "GPIO"
+    },
+    "33": {
+     "name": "GPIO21",
+     "function": "GPIO"
+    },
+    "34": {
+     "name": "GPIO22",
+     "function": "GPIO"
+    },
+    "35": {
+     "name": "GPIO23",
+     "function": "GPIO"
+    },
+    "36": {
+     "name": "GPIO24",
+     "function": "GPIO"
+    },
+    "37": {
+     "name": "GPIO25",
+     "function": "GPIO"
+    },
+    "38": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "39": {
+     "name": "DVDD",
+     "function": "DVDD"
+    },
+    "40": {
+     "name": "GPIO26_ADC0",
+     "function": "GPIO_ADC"
+    },
+    "41": {
+     "name": "GPIO27_ADC1",
+     "function": "GPIO_ADC"
+    },
+    "42": {
+     "name": "GPIO28_ADC2",
+     "function": "GPIO_ADC"
+    },
+    "43": {
+     "name": "GPIO29_ADC3",
+     "function": "GPIO_ADC"
+    },
+    "44": {
+     "name": "ADC_AVDD",
+     "function": "ADC_AVDD"
+    },
+    "45": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "46": {
+     "name": "VREG_AVDD",
+     "function": "VREG_AVDD"
+    },
+    "47": {
+     "name": "VREG_PGND",
+     "function": "VREG_PGND"
+    },
+    "48": {
+     "name": "VREG_LX",
+     "function": "VREG_LX"
+    },
+    "49": {
+     "name": "VREG_VIN",
+     "function": "VREG_VIN"
+    },
+    "50": {
+     "name": "VREG_FB",
+     "function": "VREG_FB"
+    },
+    "51": {
+     "name": "USB_DM",
+     "function": "USB"
+    },
+    "52": {
+     "name": "USB_DP",
+     "function": "USB"
+    },
+    "53": {
+     "name": "USB_OTP_VDD",
+     "function": "USB_OTP_VDD"
+    },
+    "54": {
+     "name": "QSPI_IOVDD",
+     "function": "QSPI_IOVDD"
+    },
+    "55": {
+     "name": "QSPI_SD3",
+     "function": "QSPI"
+    },
+    "56": {
+     "name": "QSPI_SCLK",
+     "function": "QSPI"
+    },
+    "57": {
+     "name": "QSPI_SD0",
+     "function": "QSPI"
+    },
+    "58": {
+     "name": "QSPI_SD2",
+     "function": "QSPI"
+    },
+    "59": {
+     "name": "QSPI_SD1",
+     "function": "QSPI"
+    },
+    "60": {
+     "name": "QSPI_SS",
+     "function": "QSPI"
+    },
+    "61": {
+     "name": "GND",
+     "function": "GND"
+    }
+   },
+   "source": {
+    "source": "rp2350a_minimal",
+    "locator": "schematic netlist (kicad-cli), U1/U203; checked against the datasheet's \u00a71.2.1 pinout figures"
+   }
+  },
+  "RP2350B": {
+   "package": "QFN-80",
+   "pins": {
+    "1": {
+     "name": "GPIO4",
+     "function": "GPIO"
+    },
+    "2": {
+     "name": "GPIO5",
+     "function": "GPIO"
+    },
+    "3": {
+     "name": "GPIO6",
+     "function": "GPIO"
+    },
+    "4": {
+     "name": "GPIO7",
+     "function": "GPIO"
+    },
+    "5": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "6": {
+     "name": "GPIO8",
+     "function": "GPIO"
+    },
+    "7": {
+     "name": "GPIO9",
+     "function": "GPIO"
+    },
+    "8": {
+     "name": "GPIO10",
+     "function": "GPIO"
+    },
+    "9": {
+     "name": "GPIO11",
+     "function": "GPIO"
+    },
+    "10": {
+     "name": "DVDD",
+     "function": "DVDD"
+    },
+    "11": {
+     "name": "GPIO12",
+     "function": "GPIO"
+    },
+    "12": {
+     "name": "GPIO13",
+     "function": "GPIO"
+    },
+    "13": {
+     "name": "GPIO14",
+     "function": "GPIO"
+    },
+    "14": {
+     "name": "GPIO15",
+     "function": "GPIO"
+    },
+    "15": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "16": {
+     "name": "GPIO16",
+     "function": "GPIO"
+    },
+    "17": {
+     "name": "GPIO17",
+     "function": "GPIO"
+    },
+    "18": {
+     "name": "GPIO18",
+     "function": "GPIO"
+    },
+    "19": {
+     "name": "GPIO19",
+     "function": "GPIO"
+    },
+    "20": {
+     "name": "GPIO20",
+     "function": "GPIO"
+    },
+    "21": {
+     "name": "GPIO21",
+     "function": "GPIO"
+    },
+    "22": {
+     "name": "GPIO22",
+     "function": "GPIO"
+    },
+    "23": {
+     "name": "GPIO23",
+     "function": "GPIO"
+    },
+    "24": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "25": {
+     "name": "GPIO24",
+     "function": "GPIO"
+    },
+    "26": {
+     "name": "GPIO25",
+     "function": "GPIO"
+    },
+    "27": {
+     "name": "GPIO26",
+     "function": "GPIO"
+    },
+    "28": {
+     "name": "GPIO27",
+     "function": "GPIO"
+    },
+    "29": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "30": {
+     "name": "XIN",
+     "function": "XTAL"
+    },
+    "31": {
+     "name": "XOUT",
+     "function": "XTAL"
+    },
+    "32": {
+     "name": "DVDD",
+     "function": "DVDD"
+    },
+    "33": {
+     "name": "SWCLK",
+     "function": "SWD"
+    },
+    "34": {
+     "name": "SWDIO",
+     "function": "SWD"
+    },
+    "35": {
+     "name": "RUN",
+     "function": "RUN"
+    },
+    "36": {
+     "name": "GPIO28",
+     "function": "GPIO"
+    },
+    "37": {
+     "name": "GPIO29",
+     "function": "GPIO"
+    },
+    "38": {
+     "name": "GPIO30",
+     "function": "GPIO"
+    },
+    "39": {
+     "name": "GPIO31",
+     "function": "GPIO"
+    },
+    "40": {
+     "name": "GPIO32",
+     "function": "GPIO"
+    },
+    "41": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "42": {
+     "name": "GPIO33",
+     "function": "GPIO"
+    },
+    "43": {
+     "name": "GPIO34",
+     "function": "GPIO"
+    },
+    "44": {
+     "name": "GPIO35",
+     "function": "GPIO"
+    },
+    "45": {
+     "name": "GPIO36",
+     "function": "GPIO"
+    },
+    "46": {
+     "name": "GPIO37",
+     "function": "GPIO"
+    },
+    "47": {
+     "name": "GPIO38",
+     "function": "GPIO"
+    },
+    "48": {
+     "name": "GPIO39",
+     "function": "GPIO"
+    },
+    "49": {
+     "name": "GPIO40_ADC0",
+     "function": "GPIO_ADC"
+    },
+    "50": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "51": {
+     "name": "DVDD",
+     "function": "DVDD"
+    },
+    "52": {
+     "name": "GPIO41_ADC1",
+     "function": "GPIO_ADC"
+    },
+    "53": {
+     "name": "GPIO42_ADC2",
+     "function": "GPIO_ADC"
+    },
+    "54": {
+     "name": "GPIO43_ADC3",
+     "function": "GPIO_ADC"
+    },
+    "55": {
+     "name": "GPIO44_ADC4",
+     "function": "GPIO_ADC"
+    },
+    "56": {
+     "name": "GPIO45_ADC5",
+     "function": "GPIO_ADC"
+    },
+    "57": {
+     "name": "GPIO46_ADC6",
+     "function": "GPIO_ADC"
+    },
+    "58": {
+     "name": "GPIO47_ADC7",
+     "function": "GPIO_ADC"
+    },
+    "59": {
+     "name": "ADC_AVDD",
+     "function": "ADC_AVDD"
+    },
+    "60": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "61": {
+     "name": "VREG_AVDD",
+     "function": "VREG_AVDD"
+    },
+    "62": {
+     "name": "VREG_PGND",
+     "function": "VREG_PGND"
+    },
+    "63": {
+     "name": "VREG_LX",
+     "function": "VREG_LX"
+    },
+    "64": {
+     "name": "VREG_VIN",
+     "function": "VREG_VIN"
+    },
+    "65": {
+     "name": "VREG_FB",
+     "function": "VREG_FB"
+    },
+    "66": {
+     "name": "USB_DM",
+     "function": "USB"
+    },
+    "67": {
+     "name": "USB_DP",
+     "function": "USB"
+    },
+    "68": {
+     "name": "USB_OTP_VDD",
+     "function": "USB_OTP_VDD"
+    },
+    "69": {
+     "name": "QSPI_IOVDD",
+     "function": "QSPI_IOVDD"
+    },
+    "70": {
+     "name": "QSPI_SD3",
+     "function": "QSPI"
+    },
+    "71": {
+     "name": "QSPI_SCLK",
+     "function": "QSPI"
+    },
+    "72": {
+     "name": "QSPI_SD0",
+     "function": "QSPI"
+    },
+    "73": {
+     "name": "QSPI_SD2",
+     "function": "QSPI"
+    },
+    "74": {
+     "name": "QSPI_SD1",
+     "function": "QSPI"
+    },
+    "75": {
+     "name": "QSPI_SS",
+     "function": "QSPI"
+    },
+    "76": {
+     "name": "IOVDD",
+     "function": "IOVDD"
+    },
+    "77": {
+     "name": "GPIO0",
+     "function": "GPIO"
+    },
+    "78": {
+     "name": "GPIO1",
+     "function": "GPIO"
+    },
+    "79": {
+     "name": "GPIO2",
+     "function": "GPIO"
+    },
+    "80": {
+     "name": "GPIO3",
+     "function": "GPIO"
+    },
+    "81": {
+     "name": "GND",
+     "function": "GND"
+    }
+   },
+   "source": {
+    "source": "rp2350b_minimal",
+    "locator": "schematic netlist (kicad-cli), U1/U203; checked against the datasheet's \u00a71.2.1 pinout figures"
+   }
+  }
+ }
+}

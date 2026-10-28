@@ -13,6 +13,8 @@ use serde_json::{json, Value};
 use intent::netlist::Netlist;
 use intent::{presets, validate};
 
+mod package_check;
+
 #[derive(Parser)]
 #[command(name = "ccomp", version, about = "Circuit Composer: intent, packages and composition for KiCad boards")]
 struct Cli {
@@ -47,6 +49,17 @@ enum Cmd {
     Check {
         #[command(subcommand)]
         kind: Check,
+    },
+    /// Net-level measurements on a board, as a spec file lists them: pad-to-pad copper paths,
+    /// track with no ground under it, each power pin's nearest decoupling capacitor.
+    Measure {
+        board: PathBuf,
+        /// `{"paths": [{"name", "from": "U1.21", "to": "Y1.1"}], "return_paths": {"ground", "nets",
+        /// "step"}, "decoupling": {"part", "nets", "ground"}}`; every key optional.
+        #[arg(long)]
+        spec: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
     },
     /// Generate a block's sub-layout.
     Gen {
@@ -106,6 +119,19 @@ enum Check {
         /// Draw the block with its loops to this SVG.
         #[arg(long)]
         svg: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
+    /// A board against a package's blocks, by role: net wiring, block constraints, net length
+    /// limits and part values, each judged with its source.
+    Package {
+        board: PathBuf,
+        /// The package directory (`packages/rp2350`).
+        #[arg(long)]
+        package: PathBuf,
+        /// `{"package": "rp2350@0.2.0", "variant": "RP2350A", "chip": "U1", "parts": {"CIN": "C14", ...}}`.
+        #[arg(long)]
+        binding: PathBuf,
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
@@ -223,6 +249,34 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 file.nets.iter().map(|(k, n)| (k.clone(), serde_json::to_value(presets::resolve(n)).unwrap())).collect();
             Ok((json!({ "nets": nets }), true))
         }
+        Cmd::Measure { board, spec, output } => {
+            let b = pcb::Board::load(&board)?;
+            let text = std::fs::read_to_string(&spec).map_err(|e| format!("{}: {e}", spec.display()))?;
+            let spec: MeasureSpec = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", spec.display()))?;
+            let mut errors = Vec::new();
+            let mut paths = serde_json::Map::new();
+            for p in &spec.paths {
+                match verify::nets::path(&b, &p.from, &p.to) {
+                    Ok(r) => {
+                        paths.insert(p.name.clone(), serde_json::to_value(r).unwrap());
+                    }
+                    Err(e) => errors.push(json!({ "path": p.name, "error": e })),
+                }
+            }
+            let returns: Vec<_> = match &spec.return_paths {
+                Some(r) => r.nets.iter().map(|n| verify::nets::return_path(&b, n, &r.ground, r.step.unwrap_or(0.05))).collect(),
+                None => Vec::new(),
+            };
+            let decoupling = match &spec.decoupling {
+                Some(d) => serde_json::to_value(verify::nets::decoupling(&b, &d.part, &d.nets, &d.ground)?).unwrap(),
+                None => Value::Null,
+            };
+            let value = json!({ "ok": errors.is_empty(), "paths": paths, "return_paths": returns, "decoupling": decoupling, "errors": errors });
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, errors.is_empty()))
+        }
         Cmd::Check { kind: Check::Regions { board, routing, output } } => {
             let b = pcb::Board::load(&board)?;
             let text = std::fs::read_to_string(&routing).map_err(|e| format!("{}: {e}", routing.display()))?;
@@ -262,6 +316,14 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 write_json(&o, &value)?;
             }
             Ok((value, ok))
+        }
+        Cmd::Check { kind: Check::Package { board, package, binding, output } } => {
+            let report = package_check::check(&board, &package, &binding)?;
+            let value = serde_json::to_value(&report).unwrap();
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, report.ok))
         }
         Cmd::Gen { kind: Gen::Buck { board, intent: intent_path, block, roles, params, defaults, output } } => {
             if defaults {
@@ -326,6 +388,35 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
 
 /// A block's name, its roles, and the limits on its checks.
 type BlockRoles = (String, BTreeMap<String, String>, BTreeMap<String, verify::Limit>);
+
+#[derive(serde::Deserialize)]
+struct MeasureSpec {
+    #[serde(default)]
+    paths: Vec<PathSpec>,
+    return_paths: Option<ReturnSpec>,
+    decoupling: Option<DecouplingSpec>,
+}
+
+#[derive(serde::Deserialize)]
+struct PathSpec {
+    name: String,
+    from: String,
+    to: String,
+}
+
+#[derive(serde::Deserialize)]
+struct ReturnSpec {
+    ground: String,
+    nets: Vec<String>,
+    step: Option<f64>,
+}
+
+#[derive(serde::Deserialize)]
+struct DecouplingSpec {
+    part: String,
+    nets: Vec<String>,
+    ground: String,
+}
 
 /// A block's name, roles and limits: from an intent file's block, or from `k=v,...`.
 fn block_roles(intent_path: Option<&Path>, block: Option<String>, roles: Option<String>) -> Result<BlockRoles, String> {

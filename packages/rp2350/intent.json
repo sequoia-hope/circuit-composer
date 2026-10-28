@@ -1,7 +1,7 @@
 {
   "schema_version": "0.1",
   "board": {
-    "name": "rp2350 package: core regulator"
+    "name": "rp2350 package: core regulator, crystal, USB, flash, decoupling"
   },
   "sources": {
     "rp2350_ds": {
@@ -24,6 +24,11 @@
       "title": "easy2350 U1 core block audit (easy_pcb)",
       "location": "easy_pcb commit 2d56198, examples/easy2350/design/parts/rp2350-core.md (not yet on GitHub; will be at github.com/sequoia-hope/easy_pcb once pushed)",
       "revision": "easy_pcb 2d56198"
+    },
+    "rp2350b_minimal": {
+      "title": "RP2350B Minimal Board, KiCad files (RP2350_80QFN_minimal.kicad_pcb)",
+      "revision": "RP-006442-DD rev 2",
+      "sha256": "1eef941cd8b64716f15f0b79c60e8d34d0d1e7792e8017c8dd54124654b87c09"
     }
   },
   "nets": {
@@ -141,6 +146,528 @@
           "kind": "expert"
         }
       }
+    },
+    "XIN": {
+      "class": "CLOCK",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 11.2
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths xin_to_crystal",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: keep the layout as short as possible (\u00a74 p.13)."
+        },
+        "weight": 0.7
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a74 p.13",
+          "kind": "datasheet",
+          "note": "Trace capacitance adds to the crystal's load"
+        }
+      }
+    },
+    "XOUT": {
+      "class": "CLOCK",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 3.0
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths xout_to_damping_r",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. XOUT to the 1 k damping resistor."
+        },
+        "weight": 0.7
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a74 p.13",
+          "kind": "datasheet"
+        }
+      }
+    },
+    "XOUT_XTAL": {
+      "class": "CLOCK",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 5.6
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths damping_r_to_crystal",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Damping resistor to the crystal."
+        },
+        "weight": 0.7
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a74 p.13",
+          "kind": "datasheet"
+        }
+      }
+    },
+    "USB_DP_PIN": {
+      "class": "DIFF_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 4.2
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths usb_dp_to_r",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. 27 ohm close to the chip (Table 2; HDG \u00a75.1)."
+        },
+        "weight": 0.7
+      },
+      "impedance": {
+        "value": {
+          "ohms": 90.0,
+          "mode": "differential",
+          "pair": "USB_DM_PIN",
+          "tolerance_pct": 15.0
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a75.1 p.15",
+          "kind": "datasheet",
+          "note": "The series resistor is part of the line; the pair runs at 90 ohm to the connector"
+        }
+      }
+    },
+    "USB_DM_PIN": {
+      "class": "DIFF_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 3.9
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths usb_dm_to_r",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. 27 ohm close to the chip (Table 2; HDG \u00a75.1)."
+        },
+        "weight": 0.7
+      },
+      "impedance": {
+        "value": {
+          "ohms": 90.0,
+          "mode": "differential",
+          "pair": "USB_DP_PIN",
+          "tolerance_pct": 15.0
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a75.1 p.15",
+          "kind": "datasheet",
+          "note": "The series resistor is part of the line; the pair runs at 90 ohm to the connector"
+        }
+      }
+    },
+    "USB_DP": {
+      "class": "DIFF_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "impedance": {
+        "value": {
+          "ohms": 90.0,
+          "mode": "differential",
+          "pair": "USB_DM",
+          "tolerance_pct": 15.0
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a75.1 p.15",
+          "kind": "datasheet",
+          "note": "90 ohm differential, over solid ground"
+        }
+      }
+    },
+    "USB_DM": {
+      "class": "DIFF_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "impedance": {
+        "value": {
+          "ohms": 90.0,
+          "mode": "differential",
+          "pair": "USB_DP",
+          "tolerance_pct": 15.0
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a75.1 p.15",
+          "kind": "datasheet",
+          "note": "90 ohm differential, over solid ground"
+        }
+      }
+    },
+    "QSPI_SCLK": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 11.1
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sclk",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (\u00a73.1 p.10)."
+        },
+        "weight": 0.7
+      }
+    },
+    "QSPI_SD0": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 8.7
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd0",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (\u00a73.1 p.10)."
+        },
+        "weight": 0.7
+      }
+    },
+    "QSPI_SD1": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 17.4
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd1",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (\u00a73.1 p.10)."
+        },
+        "weight": 0.7
+      }
+    },
+    "QSPI_SD2": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 13.2
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd2",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (\u00a73.1 p.10)."
+        },
+        "weight": 0.7
+      }
+    },
+    "QSPI_SD3": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 12.5
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd3",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (\u00a73.1 p.10)."
+        },
+        "weight": 0.7
+      }
+    },
+    "QSPI_SS": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 20.9
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_ss_to_r",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (\u00a73.1 p.10)."
+        },
+        "weight": 0.7
+      }
+    },
+    "FLASH_SS": {
+      "class": "SE_HS",
+      "voltage": {
+        "value": {
+          "peak_v": 3.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9 (IOVDD 3.3 V nominal)",
+          "kind": "datasheet"
+        }
+      },
+      "max_length": {
+        "value": {
+          "mm": 2.7
+        },
+        "strength": "soft",
+        "provenance": {
+          "source": "rp2350a_minimal",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths flash_ss_r_to_flash",
+          "kind": "datasheet",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. 0 ohm link to the flash's CS."
+        },
+        "weight": 0.7
+      }
+    },
+    "IOVDD": {
+      "class": "POWER",
+      "voltage": {
+        "value": {
+          "peak_v": 3.63
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a76.1.1 p.400",
+          "kind": "datasheet",
+          "note": "nominal 1.8-3.3 V; 3.3 V here, which the crystal circuit is tuned for (HDG \u00a74.1)"
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.1
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a714.9.4 p.1337, IIOVDD_MAX",
+          "kind": "datasheet",
+          "note": "Most the GPIOs may source in total (QSPI adds up to 20 mA on QSPI_IOVDD); the board's own load decides the rest"
+        }
+      }
+    },
+    "VREG_AVDD": {
+      "class": "ANALOG",
+      "voltage": {
+        "value": {
+          "peak_v": 3.63
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_ds",
+          "locator": "\u00a76.1.7 p.401",
+          "kind": "datasheet"
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a72.1 p.5",
+          "kind": "datasheet",
+          "note": "very sensitive to noise; RC filtered"
+        }
+      },
+      "bandwidth": {
+        "value": {
+          "kind": "dc"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a72.1 p.7",
+          "kind": "datasheet",
+          "note": "Draws about 200 uA; an RC filter of 33 ohm and 4.7 uF"
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.0002
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "rp2350_hdg",
+          "locator": "\u00a72.1 p.7",
+          "kind": "datasheet"
+        }
+      }
     }
   },
   "blocks": {
@@ -245,16 +772,374 @@
         }
       },
       "note": "U1 is the RP2350 itself; pins are QFN-60 numbers. Part references are roles, renamed when composed onto a board."
+    },
+    "crystal": {
+      "type": "crystal",
+      "parts": [
+        "XTAL",
+        "CL_XIN",
+        "CL_XOUT",
+        "R_XOUT"
+      ],
+      "roles": {
+        "xin": "U1.21",
+        "xout": "U1.22",
+        "crystal": "XTAL",
+        "cload_xin": "CL_XIN",
+        "cload_xout": "CL_XOUT",
+        "rdamp": "R_XOUT"
+      },
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "trace_length_mm",
+            "sense": "minimize",
+            "weight": 1.0,
+            "nets": [
+              "XIN",
+              "XOUT",
+              "XOUT_XTAL"
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "via_count",
+              "op": "<=",
+              "limit": 0,
+              "nets": [
+                "XIN",
+                "XOUT",
+                "XOUT_XTAL"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "rp2350a_minimal",
+              "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths xin_to_crystal, xout_to_damping_r, damping_r_to_crystal",
+              "kind": "datasheet",
+              "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Both reference boards route the crystal on top with no vias."
+            },
+            "weight": 0.7
+          },
+          {
+            "value": {
+              "metric": "unreferenced_length_mm",
+              "op": "<=",
+              "limit": 0,
+              "nets": [
+                "XIN",
+                "XOUT",
+                "XOUT_XTAL"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "rp2350a_minimal",
+              "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths ",
+              "kind": "datasheet",
+              "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Reference: 0 mm on both boards (return_paths)."
+            },
+            "weight": 0.7
+          }
+        ]
+      },
+      "note": "ABM8-272-T3, 2 x 15 pF, 1 k on XOUT; rules rp2350.crystal.*. Tuned for IOVDD 3.3 V."
+    },
+    "usb": {
+      "type": "usb",
+      "parts": [
+        "R_USB_DP",
+        "R_USB_DM"
+      ],
+      "roles": {
+        "dp": "U1.52",
+        "dm": "U1.51",
+        "r_dp": "R_USB_DP",
+        "r_dm": "R_USB_DM"
+      },
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "trace_length_mm",
+            "sense": "minimize",
+            "weight": 1.0,
+            "nets": [
+              "USB_DP_PIN",
+              "USB_DM_PIN"
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "unreferenced_length_mm",
+              "op": "<=",
+              "limit": 0,
+              "nets": [
+                "USB_DP",
+                "USB_DM"
+              ]
+            },
+            "strength": "hard",
+            "provenance": {
+              "source": "rp2350_hdg",
+              "locator": "\u00a75.1 p.15",
+              "kind": "datasheet",
+              "note": "Solid, uninterrupted ground under the whole length. Met on the connector side of both reference boards."
+            }
+          },
+          {
+            "value": {
+              "metric": "unreferenced_length_mm",
+              "op": "<=",
+              "limit": 0,
+              "nets": [
+                "USB_DP_PIN",
+                "USB_DM_PIN"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "rp2350_hdg",
+              "locator": "\u00a75.1 p.15",
+              "kind": "datasheet",
+              "note": "Contested: the reference boards leave 0.9-1.8 mm of the chip side over cut ground (rules rp2350.usb.impedance)."
+            },
+            "weight": 0.5
+          }
+        ]
+      },
+      "ports": {
+        "usb": {
+          "kind": "bus",
+          "nets": [
+            "USB_DP",
+            "USB_DM"
+          ],
+          "protocol": "usb2-fs",
+          "class": "DIFF_HS",
+          "impedance_ohm": 90.0
+        }
+      },
+      "note": "27 ohm series resistors at the chip; rules rp2350.usb.*."
+    },
+    "flash": {
+      "type": "memory",
+      "parts": [
+        "FLASH",
+        "R_SS_LINK",
+        "R_SS_PULLUP",
+        "R_CS1_LINK",
+        "C_FLASH"
+      ],
+      "roles": {
+        "sclk": "U1.56",
+        "sd0": "U1.57",
+        "sd1": "U1.59",
+        "sd2": "U1.58",
+        "sd3": "U1.55",
+        "ss": "U1.60",
+        "memory": "FLASH",
+        "ss_link": "R_SS_LINK",
+        "ss_pullup": "R_SS_PULLUP",
+        "cs1_link": "R_CS1_LINK",
+        "decoupling": "C_FLASH"
+      },
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "trace_length_mm",
+            "sense": "minimize",
+            "weight": 1.0,
+            "nets": [
+              "QSPI_SCLK",
+              "QSPI_SD0",
+              "QSPI_SD1",
+              "QSPI_SD2",
+              "QSPI_SD3"
+            ]
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "unreferenced_length_mm",
+              "op": "<=",
+              "limit": 0,
+              "nets": [
+                "QSPI_SCLK",
+                "QSPI_SD0",
+                "QSPI_SD1",
+                "QSPI_SD2",
+                "QSPI_SD3",
+                "QSPI_SS",
+                "FLASH_SS"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "rp2350_hdg",
+              "locator": "\u00a73.1 p.10",
+              "kind": "datasheet",
+              "note": "Crosstalk; the QFN-60 reference meets it except 0.8 mm of QSPI_SS, the QFN-80 one does not (rules rp2350.qspi.short_direct)."
+            },
+            "weight": 0.7
+          }
+        ]
+      },
+      "ports": {
+        "qspi": {
+          "kind": "bus",
+          "nets": [
+            "QSPI_SCLK",
+            "QSPI_SD0",
+            "QSPI_SD1",
+            "QSPI_SD2",
+            "QSPI_SD3",
+            "QSPI_SS"
+          ],
+          "protocol": "qspi",
+          "class": "SE_HS"
+        }
+      },
+      "note": "W25Q128JVS; R_SS_LINK 0 ohm (remove for RP2354 with internal flash), R_SS_PULLUP 10 k DNF, R_CS1_LINK DNF (fit to use FLASH as second memory on GPIO0). Rules rp2350.qspi.*."
+    },
+    "bootsel": {
+      "type": "button",
+      "parts": [
+        "SW_BOOTSEL",
+        "R_BOOTSEL"
+      ],
+      "roles": {
+        "ss": "U1.60",
+        "button": "SW_BOOTSEL",
+        "r": "R_BOOTSEL"
+      },
+      "placement_goal": {
+        "constraints": [
+          {
+            "value": {
+              "metric": "part_distance_mm",
+              "op": "<=",
+              "limit": 4.1,
+              "parts": [
+                "R_BOOTSEL",
+                "FLASH"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "rp2350_hdg",
+              "locator": "\u00a73.1 p.11",
+              "kind": "datasheet",
+              "note": "R1 and R6 close to the flash. Set at what the reference boards achieve, nearest pad centres: 4.07 mm (RP2350A Minimal), 3.91 mm (RP2350B Minimal), measured by ccomp check package"
+            },
+            "weight": 0.5
+          }
+        ]
+      },
+      "note": "1 k from QSPI_SS to the button, so QSPI_SS can over-drive it at boot (HDG \u00a73.1)."
+    },
+    "reset": {
+      "type": "button",
+      "parts": [
+        "SW_RUN",
+        "R_RUN"
+      ],
+      "roles": {
+        "run": "U1.26",
+        "button": "SW_RUN",
+        "r": "R_RUN"
+      },
+      "note": "RUN to ground through 1 k; optional (HDG \u00a75.4)."
+    },
+    "mcu": {
+      "type": "mcu",
+      "parts": [
+        "C_DVDD_23",
+        "C_DVDD_39",
+        "C_DVDD_6",
+        "C_IOVDD_1",
+        "C_IOVDD_11",
+        "C_IOVDD_20",
+        "C_IOVDD_30",
+        "C_IOVDD_38",
+        "C_IOVDD_45_ADC",
+        "C_OTP_QSPI"
+      ],
+      "roles": {
+        "cap_pin1": "C_IOVDD_1",
+        "cap_pin6": "C_DVDD_6",
+        "cap_pin11": "C_IOVDD_11",
+        "cap_pin20": "C_IOVDD_20",
+        "cap_pin23": "C_DVDD_23",
+        "cap_pin30": "C_IOVDD_30",
+        "cap_pin38": "C_IOVDD_38",
+        "cap_pin39": "C_DVDD_39",
+        "cap_pin44": "C_IOVDD_45_ADC",
+        "cap_pin45": "C_IOVDD_45_ADC",
+        "cap_pin53": "C_OTP_QSPI",
+        "cap_pin54": "C_OTP_QSPI"
+      },
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "decoupling_path_mm",
+            "sense": "minimize",
+            "weight": 1.0
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "decoupling_path_mm",
+              "op": "<=",
+              "limit": 4.9,
+              "parts": [
+                "C_DVDD_23",
+                "C_DVDD_39",
+                "C_DVDD_6",
+                "C_IOVDD_1",
+                "C_IOVDD_11",
+                "C_IOVDD_20",
+                "C_IOVDD_30",
+                "C_IOVDD_38",
+                "C_IOVDD_45_ADC",
+                "C_OTP_QSPI"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "rp2350a_minimal",
+              "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths ",
+              "kind": "datasheet",
+              "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Worst pin on the two minimal boards (decoupling). HDG \u00a72.2.1: close to the power pins."
+            },
+            "weight": 0.7
+          }
+        ]
+      },
+      "note": "Decoupling as on Raspberry Pi's minimal boards: 100 nF per pin, except C_OTP_QSPI shared by USB_OTP_VDD and QSPI_IOVDD (HDG \u00a72.2.1) and C_IOVDD_45_ADC shared by ADC_AVDD and IOVDD pin 45 (not documented). The datasheet asks for one per pin (\u00a76.1.4-6.1.5): a board with room should split both (rules rp2350.decoupling.*). C_DVDD_23 is 4.7 uF, the other DVDD caps 100 nF (\u00a76.1.3)."
     }
   },
   "domains": {
     "name": "rp2350",
     "kind": "board",
     "supplies": [
-      "VREG_VIN"
+      "VREG_VIN",
+      "IOVDD"
     ],
     "reference_ground": "GND",
-    "blocks": [],
+    "blocks": [
+      "mcu",
+      "crystal",
+      "usb",
+      "flash",
+      "bootsel",
+      "reset"
+    ],
     "children": [
       {
         "name": "core",

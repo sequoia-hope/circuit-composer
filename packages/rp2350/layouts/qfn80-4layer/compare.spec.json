@@ -1,0 +1,61 @@
+{
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "switch_node_area_mm2": 0.5,
+    "output_loop_area_mm2": 0.5
+  },
+  "limits": {
+    "feedback_clearance_mm": ">=0.3",
+    "switch_node_underlap_mm2": "<=0"
+  },
+  "entries": [
+    {
+      "id": "reference",
+      "label": "Raspberry Pi RP2350B Minimal Board",
+      "note": "The vendor layout, as published: 2 layers, so the inner-layer cut-out rule does not apply.",
+      "board": "~/pcb/RP2350/RP2350_80QFN_minimal.kicad_pcb",
+      "roles": {
+        "vin": "U203.64",
+        "sw": "U203.63",
+        "pgnd": "U203.62",
+        "fb": "U203.65",
+        "cin": "C216",
+        "cout": "C217",
+        "inductor": "L201"
+      },
+      "not_applicable": {
+        "switch_node_underlap_mm2": "2-layer board: the layer under LX is the bottom ground, which the datasheet keeps solid"
+      }
+    },
+    {
+      "id": "motor_controller",
+      "label": "rp2350-motor-controller rev A (U8)",
+      "note": "6 layers. In1.Cu is a solid GND plane under the switch node, against the datasheet; recorded as a dispute.",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "vin": "U8.64",
+        "sw": "U8.63",
+        "pgnd": "U8.62",
+        "fb": "U8.65",
+        "cin": "C17",
+        "cout": "C18",
+        "inductor": "L2"
+      }
+    },
+    {
+      "id": "generated",
+      "label": "Generated (this package)",
+      "note": "ccomp gen buck on a 4-layer test bench made from the RP2350B Minimal Board's parts, params.json.",
+      "board": "fixture.kicad_pcb",
+      "roles": {
+        "vin": "U203.64",
+        "sw": "U203.63",
+        "pgnd": "U203.62",
+        "fb": "U203.65",
+        "cin": "C216",
+        "cout": "C217",
+        "inductor": "L201"
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+ "package": "rp2350@0.2.0",
+ "variant": "RP2350B",
+ "chip": "U203",
+ "parts": {
+  "CFILT": "C215",
+  "CIN": "C216",
+  "CL_XIN": "C221",
+  "CL_XOUT": "C222",
+  "COUT": "C217",
+  "C_FLASH": "C218",
+  "C_FLASH2": "C220",
+  "FLASH": "U202",
+  "FLASH2": "U204",
+  "L1": "L201",
+  "RFILT": "R201",
+  "R_BOOTSEL": "R206",
+  "R_CS1_LINK": "R205",
+  "R_CS2_LINK": "R210",
+  "R_CS2_PULLUP": "R209",
+  "R_RUN": "R208",
+  "R_SS_LINK": "R207",
+  "R_SS_PULLUP": "R204",
+  "R_USB_DM": "R203",
+  "R_USB_DP": "R202",
+  "R_XOUT": "R211",
+  "SW_BOOTSEL": "SW201",
+  "SW_RUN": "SW202",
+  "XTAL": "Y201"
+ },
+ "note": "From schematic/support.json, board qfn80."
+}

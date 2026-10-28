@@ -157,7 +157,7 @@
         120.95
       ],
       "measured": 0.3855000000000075,
-      "method": "feedback path centreline to switch-node copper, any layer, IC pins excluded",
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
       "nets": [
         "+1V1",
         "/VREG_LX"

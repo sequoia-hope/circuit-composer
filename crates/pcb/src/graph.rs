@@ -113,6 +113,36 @@ pub fn copper_path(board: &Board, net: &str, from: &str, to: &str) -> Option<Pat
         }
     }
 
+    // A track that runs through a pad joins it in the middle: the pad reaches both ends along
+    // the track.
+    for &(a, b, w) in &track_nodes {
+        let (pa, pb, l) = (nodes[a].p, nodes[b].p, nodes[a].layer);
+        for (pi, ids) in &pad_nodes {
+            let pad = &board.pads[*pi];
+            let Some(&id) = ids.iter().find(|&&id| nodes[id].layer == l) else { continue };
+            let ends_inside = pad.shape.iter().any(|s| geom::inside(s, pa) || geom::inside(s, pb));
+            if !ends_inside && geom::point_seg_dist(pad.centre, pa, pb) <= w / 2.0 {
+                link(&mut adj, id, a, geom::dist(pad.centre, pa));
+                link(&mut adj, id, b, geom::dist(pad.centre, pb));
+            }
+        }
+    }
+
+    // A via inside a pad (or touching it) joins the pad on that layer: via-in-pad, with the
+    // track leaving on another layer.
+    for (vids, size) in &via_nodes {
+        for &v in vids {
+            let (p, l) = (nodes[v].p, nodes[v].layer);
+            for (pi, ids) in &pad_nodes {
+                let pad = &board.pads[*pi];
+                let Some(&id) = ids.iter().find(|&&id| nodes[id].layer == l) else { continue };
+                if pad.shape.iter().any(|s| geom::inside(s, p) || geom::polyline_poly_dist(&[p], s) <= size / 2.0) {
+                    link(&mut adj, v, id, geom::dist(p, pad.centre));
+                }
+            }
+        }
+    }
+
     // Fills: every node inside joins every other inside, in a straight line. A pad that
     // overlaps the fill joins at its centre.
     for f in board.fills.iter().filter(|f| f.net == net) {
@@ -182,4 +212,68 @@ pub fn copper_path(board: &Board, net: &str, from: &str, to: &str) -> Option<Pat
         layers.push(board.layers[nodes[i].layer].clone());
     }
     Some(Path { points, layers, length: best[end] })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{Pad, Part, Track};
+    use std::collections::BTreeMap;
+
+    fn pad(part: &str, at: P) -> Pad {
+        let sq = vec![[at[0] - 0.3, at[1] - 0.3], [at[0] + 0.3, at[1] - 0.3], [at[0] + 0.3, at[1] + 0.3], [at[0] - 0.3, at[1] + 0.3]];
+        Pad { part: part.into(), pin: "1".into(), net: "N".into(), layers: vec!["F.Cu".into()], centre: at, shape: vec![sq] }
+    }
+
+    #[test]
+    fn track_through_a_pad_joins_it() {
+        // One track from A to B runs straight over P's pad; P has no track end of its own.
+        let pads = vec![pad("A", [0.0, 0.0]), pad("P", [4.0, 0.0]), pad("B", [10.0, 0.0])];
+        let mut parts = BTreeMap::new();
+        for (i, r) in ["A", "P", "B"].iter().enumerate() {
+            parts.insert(
+                r.to_string(),
+                Part { reference: r.to_string(), value: String::new(), footprint: String::new(), at: pads[i].centre, rotation: 0.0, back: false, locked: false, courtyard: None, pads: vec![i] },
+            );
+        }
+        let board = Board {
+            layers: vec!["F.Cu".into(), "B.Cu".into()],
+            parts,
+            pads,
+            tracks: vec![Track { a: [0.0, 0.0], b: [10.0, 0.0], width: 0.2, layer: "F.Cu".into(), net: "N".into(), locked: false }],
+            vias: vec![],
+            fills: vec![],
+            rules: None,
+        };
+        let p = copper_path(&board, "N", "P.1", "B.1").expect("P joins the track");
+        assert!((p.length - 6.0).abs() < 1e-9, "{}", p.length);
+        let p = copper_path(&board, "N", "A.1", "P.1").unwrap();
+        assert!((p.length - 4.0).abs() < 1e-9, "{}", p.length);
+    }
+
+    #[test]
+    fn via_in_pad_joins_it() {
+        // A's pad holds a via; the track leaves it on B.Cu and comes up through a second via
+        // inside B's pad. No track end touches either pad on F.Cu.
+        let pads = vec![pad("A", [0.0, 0.0]), pad("B", [5.0, 0.0])];
+        let mut parts = BTreeMap::new();
+        for (i, r) in ["A", "B"].iter().enumerate() {
+            parts.insert(
+                r.to_string(),
+                Part { reference: r.to_string(), value: String::new(), footprint: String::new(), at: pads[i].centre, rotation: 0.0, back: false, locked: false, courtyard: None, pads: vec![i] },
+            );
+        }
+        let via = |x: f64| crate::Via { at: [x, 0.1], size: 0.4, drill: 0.2, layers: vec!["F.Cu".into(), "B.Cu".into()], net: "N".into() };
+        let board = Board {
+            layers: vec!["F.Cu".into(), "B.Cu".into()],
+            parts,
+            pads,
+            tracks: vec![Track { a: [0.0, 0.1], b: [5.0, 0.1], width: 0.2, layer: "B.Cu".into(), net: "N".into(), locked: false }],
+            vias: vec![via(0.0), via(5.0)],
+            fills: vec![],
+            rules: None,
+        };
+        let p = copper_path(&board, "N", "A.1", "B.1").expect("the vias join the pads");
+        assert!((p.length - 5.2).abs() < 1e-9, "{}", p.length);
+    }
 }

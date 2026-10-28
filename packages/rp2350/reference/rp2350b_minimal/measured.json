@@ -1,0 +1,544 @@
+{
+  "decoupling": [
+    {
+      "cap": "C209",
+      "length_mm": 2.913449493661195,
+      "net": "+3V3",
+      "pin": "5",
+      "shares_with": []
+    },
+    {
+      "cap": "C203",
+      "length_mm": 2.6235000000000213,
+      "net": "+1V1",
+      "pin": "10",
+      "shares_with": []
+    },
+    {
+      "cap": "C211",
+      "length_mm": 2.789185424949266,
+      "net": "+3V3",
+      "pin": "15",
+      "shares_with": []
+    },
+    {
+      "cap": "C214",
+      "length_mm": 2.896292206135829,
+      "net": "+3V3",
+      "pin": "24",
+      "shares_with": []
+    },
+    {
+      "cap": "C207",
+      "length_mm": 3.2134494936611517,
+      "net": "+3V3",
+      "pin": "29",
+      "shares_with": []
+    },
+    {
+      "cap": "C204",
+      "length_mm": 3.2548708498984933,
+      "net": "+1V1",
+      "pin": "32",
+      "shares_with": []
+    },
+    {
+      "cap": "C212",
+      "length_mm": 2.235900769265048,
+      "net": "+3V3",
+      "pin": "41",
+      "shares_with": []
+    },
+    {
+      "cap": "C210",
+      "length_mm": 2.645564637275,
+      "net": "+3V3",
+      "pin": "50",
+      "shares_with": []
+    },
+    {
+      "cap": "C205",
+      "length_mm": 2.7477640687119305,
+      "net": "+1V1",
+      "pin": "51",
+      "shares_with": []
+    },
+    {
+      "cap": "C213",
+      "length_mm": 2.496292206135803,
+      "net": "+3V3",
+      "pin": "59",
+      "shares_with": [
+        "60"
+      ]
+    },
+    {
+      "cap": "C213",
+      "length_mm": 2.1815710508713737,
+      "net": "+3V3",
+      "pin": "60",
+      "shares_with": [
+        "59"
+      ]
+    },
+    {
+      "cap": "C216",
+      "length_mm": 1.1592183789088308,
+      "net": "+3V3",
+      "pin": "64",
+      "shares_with": []
+    },
+    {
+      "cap": "C217",
+      "length_mm": 2.7963751387752422,
+      "net": "+1V1",
+      "pin": "65",
+      "shares_with": []
+    },
+    {
+      "cap": "C206",
+      "length_mm": 4.251927124746208,
+      "net": "+3V3",
+      "pin": "68",
+      "shares_with": [
+        "69"
+      ]
+    },
+    {
+      "cap": "C206",
+      "length_mm": 4.08624169979697,
+      "net": "+3V3",
+      "pin": "69",
+      "shares_with": [
+        "68"
+      ]
+    },
+    {
+      "cap": "C208",
+      "length_mm": 4.85903390593274,
+      "net": "+3V3",
+      "pin": "76",
+      "shares_with": []
+    }
+  ],
+  "errors": [],
+  "ok": true,
+  "paths": {
+    "damping_r_to_crystal": {
+      "from": "R211.2",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 5.470208663230894,
+      "net": "Net-(C222-Pad1)",
+      "to": "Y201.3",
+      "vias": 0
+    },
+    "flash_ss_r_to_flash": {
+      "from": "R207.2",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 2.6068564576338247,
+      "net": "/FLASH_SS",
+      "to": "U202.1",
+      "vias": 0
+    },
+    "qspi_sclk": {
+      "from": "U203.71",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 8.90737914372431,
+      "net": "/QSPI_SCLK",
+      "to": "U202.6",
+      "vias": 0
+    },
+    "qspi_sd0": {
+      "from": "U203.72",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 7.158297974644697,
+      "net": "/QSPI_SD0",
+      "to": "U202.5",
+      "vias": 0
+    },
+    "qspi_sd1": {
+      "from": "U203.74",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 17.325461389616432,
+      "net": "/QSPI_SD1",
+      "to": "U202.2",
+      "vias": 0
+    },
+    "qspi_sd2": {
+      "from": "U203.73",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 13.198547968267459,
+      "net": "/QSPI_SD2",
+      "to": "U202.3",
+      "vias": 0
+    },
+    "qspi_sd3": {
+      "from": "U203.70",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 10.41921680556505,
+      "net": "/QSPI_SD3",
+      "to": "U202.7",
+      "vias": 0
+    },
+    "qspi_ss_to_r": {
+      "from": "U203.75",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 20.870425676241755,
+      "net": "/QSPI_SS",
+      "to": "R207.1",
+      "vias": 0
+    },
+    "usb_dm_r_to_conn": {
+      "from": "R203.1",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 16.37464420933414,
+      "net": "/USB_D-",
+      "to": "J201.2",
+      "vias": 0
+    },
+    "usb_dm_to_r": {
+      "from": "U203.66",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 3.715033101642619,
+      "net": "Net-(U203-USB_DM)",
+      "to": "R203.2",
+      "vias": 0
+    },
+    "usb_dp_r_to_conn": {
+      "from": "R202.1",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 16.302861680431292,
+      "net": "/USB_D+",
+      "to": "J201.3",
+      "vias": 0
+    },
+    "usb_dp_to_r": {
+      "from": "U203.67",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 3.9733989873223523,
+      "net": "Net-(U203-USB_DP)",
+      "to": "R202.2",
+      "vias": 0
+    },
+    "vreg_avdd_filter_c": {
+      "from": "C215.1",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 2.6492651350373606,
+      "net": "/VREG_AVDD",
+      "to": "U203.61",
+      "vias": 0
+    },
+    "vreg_avdd_filter_r": {
+      "from": "R201.2",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 3.50926513503736,
+      "net": "/VREG_AVDD",
+      "to": "U203.61",
+      "vias": 0
+    },
+    "xin_load_cap": {
+      "from": "Y201.1",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 5.360338101331541,
+      "net": "/XIN",
+      "to": "C221.1",
+      "vias": 0
+    },
+    "xin_to_crystal": {
+      "from": "U203.30",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 11.17171652718081,
+      "net": "/XIN",
+      "to": "Y201.1",
+      "vias": 0
+    },
+    "xout_load_cap": {
+      "from": "Y201.3",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 3.4347339443774048,
+      "net": "Net-(C222-Pad1)",
+      "to": "C222.1",
+      "vias": 0
+    },
+    "xout_to_damping_r": {
+      "from": "U203.31",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 2.9584999999999866,
+      "net": "/XOUT",
+      "to": "R211.1",
+      "vias": 0
+    }
+  },
+  "return_paths": [
+    {
+      "by_layer": {
+        "F.Cu": [
+          11.323739533417482,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/XIN",
+      "over_other": {},
+      "track_mm": 11.323739533417482,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          2.9284999999999997,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/XOUT",
+      "over_other": {},
+      "track_mm": 2.9284999999999997,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          16.392817459305203,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/USB_D+",
+      "over_other": {},
+      "track_mm": 16.392817459305203,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          16.309974746830566,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/USB_D-",
+      "over_other": {},
+      "track_mm": 16.309974746830566,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          3.973398987322338,
+          0.8529805190907735
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(U203-USB_DP)",
+      "over_other": {},
+      "track_mm": 3.973398987322338,
+      "unreferenced_mm": 0.8529805190907735,
+      "worst_at": [
+        101.4,
+        95.0804375
+      ],
+      "worst_mm": 0.5534999999999997
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          3.724870849898482,
+          1.4124700566347181
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(U203-USB_DM)",
+      "over_other": {},
+      "track_mm": 3.724870849898482,
+      "unreferenced_mm": 1.4124700566347181,
+      "worst_at": [
+        101.22794117647058,
+        93.95294117647059
+      ],
+      "worst_mm": 0.7986147175753969
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          6.038761543394962,
+          6.038761543394958
+        ],
+        "F.Cu": [
+          10.346140687119277,
+          2.5182337649086266
+        ]
+      },
+      "ground": "GND",
+      "net": "/QSPI_SCLK",
+      "over_other": {},
+      "track_mm": 16.38490223051424,
+      "unreferenced_mm": 8.556995308303586,
+      "worst_at": [
+        95.27499999999999,
+        87.50000000000001
+      ],
+      "worst_mm": 4.999999999999983
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          6.026335136523793,
+          6.026335136523796
+        ],
+        "F.Cu": [
+          8.584633111168461,
+          1.2770851365237956
+        ]
+      },
+      "ground": "GND",
+      "net": "/QSPI_SD0",
+      "over_other": {},
+      "track_mm": 14.610968247692254,
+      "unreferenced_mm": 7.303420273047595,
+      "worst_at": [
+        94.97002232142857,
+        89.105
+      ],
+      "worst_mm": 5.595000000000006
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          6.038761543394986,
+          6.038761543394974
+        ],
+        "F.Cu": [
+          18.764222933011414,
+          2.4380363261193265
+        ]
+      },
+      "ground": "GND",
+      "net": "/QSPI_SD1",
+      "over_other": {},
+      "track_mm": 24.8029844764064,
+      "unreferenced_mm": 8.476797869514293,
+      "worst_at": [
+        90.72500000000001,
+        86.9
+      ],
+      "worst_mm": 4.99999999999999
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          6.071898628384822,
+          6.071898628384821
+        ],
+        "F.Cu": [
+          13.19854796826743,
+          3.1430063971051014
+        ]
+      },
+      "ground": "GND",
+      "net": "/QSPI_SD2",
+      "over_other": {},
+      "track_mm": 19.270446596652253,
+      "unreferenced_mm": 9.214905025489902,
+      "worst_at": [
+        90.7498375,
+        88.225
+      ],
+      "worst_mm": 4.9674999999999985
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          6.051187950266165,
+          6.051187950266162
+        ],
+        "F.Cu": [
+          11.870404755831217,
+          2.553951330255299
+        ]
+      },
+      "ground": "GND",
+      "net": "/QSPI_SD3",
+      "over_other": {},
+      "track_mm": 17.921592706097382,
+      "unreferenced_mm": 8.605139280521472,
+      "worst_at": [
+        95.27499999999999,
+        86.2
+      ],
+      "worst_mm": 4.999999999999983
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          22.270425676241718,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/QSPI_SS",
+      "over_other": {},
+      "track_mm": 22.270425676241718,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          5.955832611206851,
+          5.955832611206862
+        ]
+      },
+      "ground": "GND",
+      "net": "/FLASH_SS",
+      "over_other": {},
+      "track_mm": 5.955832611206851,
+      "unreferenced_mm": 5.955832611206862,
+      "worst_at": [
+        89.4,
+        83.14471590909092
+      ],
+      "worst_mm": 2.1750000000000127
+    }
+  ]
+}

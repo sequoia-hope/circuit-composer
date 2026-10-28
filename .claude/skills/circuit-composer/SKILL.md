@@ -39,6 +39,27 @@ stage. Each command prints one JSON object; read it, never scrape text. Exit 0 =
 4. Compare against the vendor layout with `tools/compare_buck.py`. Every row goes through the
    same checker; never compare a number measured one way against one measured another.
 
+## Measure interface blocks (crystal, USB, QSPI, decoupling)
+
+Write a spec naming pad-to-pad paths (`{"name", "from": "U1.21", "to": "Y1.1"}`), nets to check
+for ground beside them (`return_paths`), and the part whose power pins need decoupling, then run
+`ccomp measure BOARD --spec SPEC.json -o measured.json`. Return-path results use the fills as
+KiCad last saved them: refill a routed board first. Pin numbers differ between packages of one
+family; look them up by name in the package's `ports.json`.
+
+## Judge a board against a package
+
+Write a binding: `{"package": "rp2350@0.2.0", "variant": "RP2350A", "chip": "U1", "parts":
+{"CIN": "C14", ...}}`, mapping each package part name (the names in the package's
+`intent.json` blocks) to the board's reference. Bind only parts the board really has; leave the
+rest out and they are reported `unbound`. Then run `ccomp check package BOARD --package DIR
+--binding BINDING.json -o check.json`.
+- A `wiring` failure means the board joins a pin to a different net than the package.
+- `unverifiable` means the board cannot show the value (a crystal valued "12MHz").
+- `ok` is false only on a hard failure.
+
+Refill zones before judging a routed board.
+
 ## Compile for the router
 
 `ccomp compile INTENT --board BOARD -o routing.json --dru OUT.kicad_dru --dru-base BOARD.kicad_dru`

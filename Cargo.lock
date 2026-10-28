@@ -201,7 +201,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 [[package]]
 name = "kicad-pcb"
 version = "0.1.0"
-source = "git+https://github.com/sequoia-hope/ultraroute?rev=fb7ae496cd41b2475c78805bf017d54e4cb301c3#fb7ae496cd41b2475c78805bf017d54e4cb301c3"
+source = "git+https://github.com/sequoia-hope/ultraroute?rev=8c691ec359d36b83de95323e321a17ee2bf3dafe#8c691ec359d36b83de95323e321a17ee2bf3dafe"
 dependencies = [
  "serde",
  "serde_json",
