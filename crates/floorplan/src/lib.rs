@@ -636,6 +636,7 @@ pub fn solve(pr: &Problem) -> Placement {
     // A part on its edge stays there; what overlaps it moves.
     let pushable: Vec<usize> = free.iter().copied().filter(|m| !slides.contains_key(m)).collect();
     legalise(&mut st, &pushable);
+    repair(&mut st, &pushable, &mut rng);
 
     let (cost, metrics) = st.cost(o.w_overlap * 201.0);
     let poses: Vec<Pose> = (0..n).map(|i| st.part_pose(i)).collect();
@@ -688,6 +689,76 @@ pub fn evaluate(pr: &Problem, poses: &BTreeMap<String, Pose>) -> Result<Metrics,
 fn round_pose(p: Pose) -> Pose {
     let r = |v: f64| (v * 1000.0).round() / 1000.0;
     Pose { x: r(p.x), y: r(p.y), rotation: r(p.rotation) }
+}
+
+/// What is wrong with one movable's parts where they are: overlap with any other part (and,
+/// with a shaped outline, how far they poke outside it).
+fn trouble(st: &State, m: usize) -> f64 {
+    let pr = st.pr;
+    let n = pr.parts.len();
+    let poses: Vec<Pose> = (0..n).map(|i| st.part_pose(i)).collect();
+    let boxes: Vec<[f64; 4]> = (0..n).map(|i| bbox_at(&pr.parts[i].bbox, &poses[i], pr.parts[i].back)).collect();
+    let mine: Vec<usize> = (0..n).filter(|&i| st.of_part[i].0 == m).collect();
+    let mut t = 0.0;
+    for &i in &mine {
+        for j in 0..n {
+            if st.of_part[j].0 == m {
+                continue;
+            }
+            t += if pr.parts[i].back != pr.parts[j].back {
+                let thru = |k: usize, other: usize| -> f64 { pr.parts[k].through.iter().map(|tb| overlap(&bbox_at(tb, &poses[k], pr.parts[k].back), &boxes[other], 0.0)).sum() };
+                thru(i, j) + thru(j, i)
+            } else {
+                overlap(&boxes[i], &boxes[j], pr.options.clearance)
+            };
+        }
+        if let Some(sdf) = &st.sdf {
+            let b = boxes[i];
+            let (mx, my) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
+            for p in [(b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3]), (mx, b[1]), (mx, b[3]), (b[0], my), (b[2], my)] {
+                t += (pr.options.margin - sdf.at(p.0, p.1)).max(0.0);
+            }
+        }
+        if let Some(ol) = pr.outline {
+            let b = boxes[i];
+            let m_ = pr.options.margin;
+            t += (ol[0] + m_ - b[0]).max(0.0) + (ol[1] + m_ - b[1]).max(0.0) + (b[2] - ol[2] + m_).max(0.0) + (b[3] - ol[3] + m_).max(0.0);
+        }
+    }
+    t
+}
+
+/// A movable still in trouble after legalising (pushed off a shaped board, or wedged) is moved to
+/// the nearest spot, in any quarter turn, where it is in none: random spots, nearest kept.
+fn repair(st: &mut State, free: &[usize], rng: &mut Rng) {
+    let span = match (&st.pr.outline_polygon, st.pr.outline) {
+        (Some(p), _) => {
+            let xs = p.iter().map(|q| q.0);
+            let ys = p.iter().map(|q| q.1);
+            [xs.clone().fold(f64::INFINITY, f64::min), ys.clone().fold(f64::INFINITY, f64::min), xs.fold(f64::NEG_INFINITY, f64::max), ys.fold(f64::NEG_INFINITY, f64::max)]
+        }
+        (None, Some(o)) => o,
+        _ => return,
+    };
+    for &m in free {
+        if trouble(st, m) <= 1e-9 {
+            continue;
+        }
+        let home = st.mv[m];
+        let mut best: Option<(f64, Pose)> = None;
+        for _ in 0..6000 {
+            let cand = Pose { x: span[0] + rng.f() * (span[2] - span[0]), y: span[1] + rng.f() * (span[3] - span[1]), rotation: 90.0 * (rng.next() % 4) as f64 };
+            let d = ((cand.x - home.x).powi(2) + (cand.y - home.y).powi(2)).sqrt();
+            if best.is_some_and(|(bd, _)| d >= bd) {
+                continue;
+            }
+            st.mv[m] = cand;
+            if trouble(st, m) <= 1e-9 {
+                best = Some((d, cand));
+            }
+        }
+        st.mv[m] = best.map(|b| b.1).unwrap_or(home);
+    }
 }
 
 /// Push overlapping movables apart along their shallower axis until none overlap.

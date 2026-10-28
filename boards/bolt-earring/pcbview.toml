@@ -1,0 +1,16 @@
+# pcbview.toml -- the lightning-bolt earring's viewer. From this folder:
+#
+#     ~/Software/easy_pcb/scripts/view.sh build pcbview.toml
+
+title = "Bolt earring"
+subtitle = "circuit-composer"
+out = "viewer"
+back = { href = "../../../index.html", label = "Circuit Composer" }
+
+[[boards]]
+id = "bolt"
+name = "Lightning-bolt earring, routed"
+pcb = "routed/best.kicad_pcb"
+front = "LEDs"
+back = "Electronics"
+note = "A fat, gently zigzagged lightning bolt, 72 x 33.7 mm, 6 layers, hanging from a USB-C plug in its top tab. 134 WS2816C on nested bolts, the field symmetric under a half turn, 45 degrees to the ring, rails on F.Cu; simple_earring's circuit on the back under a 10 x 30 mm cell. Routed by ultraroute 184f640 (seed 2): 0 DRC errors, 0 unconnected; netlist, cell heights and LED chains checked."

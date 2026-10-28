@@ -1,0 +1,181 @@
+{
+ "note": "Poses relative to U1 of the parts on U1's side within 9 mm, from simple_earring out/earring.kicad_pcb at 7a83b33 (front side there; U1 at rotation 180). Used by the flame earring as a rigid cluster, flipped to the back.",
+ "u1_rotation": 180.0,
+ "parts": {
+  "C1": {
+   "dx": -4.8,
+   "dy": -4.05,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C11": {
+   "dx": -2.0,
+   "dy": 4.65,
+   "rotation": 180.0,
+   "value": "4.7u",
+   "footprint": "C_0402_1005Metric_small_pads"
+  },
+  "C12": {
+   "dx": -2.0,
+   "dy": 5.7,
+   "rotation": 180.0,
+   "value": "4.7u",
+   "footprint": "C_0402_1005Metric_small_pads"
+  },
+  "C13": {
+   "dx": 3.9,
+   "dy": -4.95,
+   "rotation": 0.0,
+   "value": "4.7u",
+   "footprint": "C_0402_1005Metric_small_pads"
+  },
+  "C14": {
+   "dx": 1.2881,
+   "dy": -5.4329,
+   "rotation": 0.0,
+   "value": "15p",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C15": {
+   "dx": -2.74,
+   "dy": -5.4,
+   "rotation": 180.0,
+   "value": "15p",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C2": {
+   "dx": 4.8,
+   "dy": -3.1,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C22": {
+   "dx": -4.65,
+   "dy": 4.87,
+   "rotation": 90.0,
+   "value": "4.7u",
+   "footprint": "C_0402_1005Metric_small_pads"
+  },
+  "C26": {
+   "dx": 1.9259,
+   "dy": 8.2049,
+   "rotation": 0.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C3": {
+   "dx": -4.8,
+   "dy": -1.6,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C4": {
+   "dx": 4.8,
+   "dy": -0.7,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C5": {
+   "dx": -4.8,
+   "dy": 0.65,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C6": {
+   "dx": 4.8,
+   "dy": 1.7,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C68": {
+   "dx": -8.35,
+   "dy": -2.15,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C7": {
+   "dx": 3.2,
+   "dy": -8.3,
+   "rotation": 0.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C72": {
+   "dx": 7.6,
+   "dy": -0.1,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C74": {
+   "dx": 4.06,
+   "dy": -6.4,
+   "rotation": 0.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C8": {
+   "dx": -3.2,
+   "dy": -8.3,
+   "rotation": 0.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "C9": {
+   "dx": -6.3,
+   "dy": 6.2,
+   "rotation": 90.0,
+   "value": "100n",
+   "footprint": "C_0402_1005Metric"
+  },
+  "L1": {
+   "dx": -2.0,
+   "dy": 7.32,
+   "rotation": 180.0,
+   "value": "3.3uH",
+   "footprint": "L_pol_2016"
+  },
+  "Q1": {
+   "dx": 3.25,
+   "dy": 7.25,
+   "rotation": 90.0,
+   "value": "ALS-PT19",
+   "footprint": "SENSOR_ALS-PT19"
+  },
+  "R1": {
+   "dx": -0.88,
+   "dy": -5.4,
+   "rotation": 0.0,
+   "value": "1k",
+   "footprint": "R_0402_1005Metric"
+  },
+  "R13": {
+   "dx": -4.08,
+   "dy": 6.8,
+   "rotation": 90.0,
+   "value": "33",
+   "footprint": "R_0402_1005Metric"
+  },
+  "U1": {
+   "dx": 0.0,
+   "dy": 0.0,
+   "rotation": 180.0,
+   "value": "RP2350A",
+   "footprint": "RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias"
+  },
+  "Y1": {
+   "dx": 0.0,
+   "dy": -7.52,
+   "rotation": 180.0,
+   "value": "12MHz",
+   "footprint": "Crystal_SMD_3225-4Pin_3.2x2.5mm_ABM8"
+  }
+ }
+}

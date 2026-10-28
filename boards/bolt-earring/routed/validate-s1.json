@@ -1,0 +1,353 @@
+{
+ "board": "routed/bolt-s1.kicad_pcb",
+ "drc": {
+  "ok": false,
+  "errors": {},
+  "unconnected": 2,
+  "warnings": {
+   "silk_overlap": 199,
+   "silk_over_copper": 199,
+   "text_height": 2,
+   "lib_footprint_issues": 199,
+   "silk_edge_clearance": 170,
+   "via_dangling": 1,
+   "isolated_copper": 2
+  },
+  "error_items": []
+ },
+ "netlist": {
+  "ok": true,
+  "differences": [],
+  "pins": 884
+ },
+ "under_cell": {
+  "ok": true,
+  "parts": 50,
+  "too_tall": [],
+  "unknown_height": []
+ },
+ "led_chains": {
+  "ok": true,
+  "zones": {
+   "L": 56,
+   "R": 44,
+   "C": 34
+  },
+  "problems": []
+ },
+ "core_regulator": {
+  "roles": {
+   "vin": "U1.49",
+   "sw": "U1.48",
+   "pgnd": "U1.47",
+   "fb": "U1.50",
+   "cin": "C11",
+   "cout": "C12",
+   "inductor": "L1"
+  },
+  "report": {
+   "block": "buck",
+   "geometry": {
+    "feedback_closest": [
+     [
+      -0.8714299088717419,
+      45.513484644840595
+     ],
+     [
+      -0.8372909649383465,
+      45.52379874257262
+     ]
+    ],
+    "feedback_path": [
+     [
+      -0.301904895229501,
+      43.62839658240957
+     ],
+     [
+      -0.9614759106859395,
+      45.81153062881596
+     ]
+    ],
+    "hot_loop": [
+     [
+      0.0635150148462836,
+      43.79108981928562
+     ],
+     [
+      -0.17300000000000001,
+      44.2225
+     ],
+     [
+      -0.534476,
+      44.851530000000004
+     ],
+     [
+      -0.5344759106859395,
+      44.851530628815965
+     ],
+     [
+      0.4064759106859395,
+      45.27046937118404
+     ],
+     [
+      0.406476,
+      45.270469
+     ],
+     [
+      0.794351,
+      44.11648000000001
+     ],
+     [
+      0.7943518877691786,
+      44.11648045402836
+     ]
+    ],
+    "output_loop": [
+     [
+      0.42893370471213854,
+      43.95378579679804
+     ],
+     [
+      -0.5105181796501793,
+      47.785715650153065
+     ],
+     [
+      -1.7894818203498206,
+      47.21628434984694
+     ],
+     [
+      -1.433,
+      46.4275
+     ],
+     [
+      -1.3280000000000003,
+      46.3575
+     ],
+     [
+      -1.083,
+      46.0775
+     ],
+     [
+      -0.9614759106859395,
+      45.81153062881596
+     ],
+     [
+      -0.020524089314060495,
+      46.230469371184036
+     ],
+     [
+      -0.020524,
+      46.23046900000001
+     ],
+     [
+      0.389364,
+      46.718954
+     ],
+     [
+      0.23240000000000002,
+      46.7153
+     ],
+     [
+      0.2736,
+      46.5502
+     ],
+     [
+      0.3148,
+      46.385
+     ],
+     [
+      0.356,
+      46.2198
+     ],
+     [
+      0.3973,
+      46.0545
+     ],
+     [
+      0.4386,
+      45.8891
+     ],
+     [
+      0.48000000000000004,
+      45.7235
+     ],
+     [
+      0.5215,
+      45.5576
+     ],
+     [
+      0.5631,
+      45.3914
+     ],
+     [
+      0.605,
+      45.2248
+     ],
+     [
+      0.647,
+      45.0576
+     ],
+     [
+      0.6906,
+      44.885
+     ],
+     [
+      0.7339,
+      44.714200000000005
+     ],
+     [
+      0.7758,
+      44.549600000000005
+     ],
+     [
+      0.8202,
+      44.3768
+     ],
+     [
+      0.8658,
+      44.2012
+     ],
+     [
+      0.8698,
+      44.18580000000001
+     ],
+     [
+      0.9186,
+      44.0008
+     ],
+     [
+      0.9702,
+      43.808800000000005
+     ],
+     [
+      1.0152,
+      43.6455
+     ],
+     [
+      1.034997,
+      43.543622
+     ],
+     [
+      0.7943518877691786,
+      44.11648045402836
+     ]
+    ],
+    "routed": true
+   },
+   "measurements": [
+    {
+     "block": "buck",
+     "check": "hot_loop_area_mm2",
+     "fix_stage": "block",
+     "location": [
+      0.1529022378269328,
+      44.56131865916425
+     ],
+     "measured": 1.105402569393978,
+     "method": "copper paths on VIN and GND, closed through CIN and the IC",
+     "nets": [
+      "3V3",
+      "GND"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "hot_loop_area_placed_mm2",
+     "fix_stage": "block",
+     "location": [
+      0.18246672565386557,
+      44.5073925683285
+     ],
+     "measured": 1.1089726641882787,
+     "method": "pad centres",
+     "nets": [
+      "3V3",
+      "GND"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "output_loop_area_mm2",
+     "fix_stage": "block",
+     "location": [
+      0.24970383101504118,
+      45.425197226588324
+     ],
+     "measured": 3.095201668307062,
+     "method": "pad centres: a leg is unrouted",
+     "nets": [
+      "VREG_LX",
+      "VDD_CORE",
+      "GND"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "switch_node_area_mm2",
+     "fix_stage": "block",
+     "location": [
+      0.42893370471213854,
+      43.95378579679804
+     ],
+     "measured": 3.189000000000001,
+     "method": "union of the net's copper per layer, summed, 10 um raster",
+     "nets": [
+      "VREG_LX"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "feedback_clearance_mm",
+     "fix_stage": "block",
+     "location": [
+      -0.8714299088717419,
+      45.513484644840595
+     ],
+     "measured": 0.03566297947330445,
+     "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+     "nets": [
+      "VDD_CORE",
+      "VREG_LX"
+     ],
+     "unit": "mm"
+    },
+    {
+     "block": "buck",
+     "check": "switch_node_underlap_mm2",
+     "fix_stage": "block",
+     "location": [
+      0.42893370471213854,
+      43.95378579679804
+     ],
+     "measured": 0.1592,
+     "method": "B.Cu switch copper over other nets' copper on In4.Cu, 20 um raster",
+     "nets": [
+      "VREG_LX"
+     ],
+     "unit": "mm2"
+    }
+   ],
+   "nets": {
+    "gnd": "GND",
+    "out": "VDD_CORE",
+    "sw": "VREG_LX",
+    "vin": "3V3"
+   },
+   "ok": true,
+   "roles": {
+    "cin": "C11",
+    "cout": "C12",
+    "fb": "U1.50",
+    "inductor": "L1",
+    "pgnd": "U1.47",
+    "sw": "U1.48",
+    "vin": "U1.49"
+   }
+  }
+ },
+ "ok": false
+}

@@ -1,0 +1,26 @@
+reserve: granted 4 cores
+prefanout: 9 parts, 15 inward, 70 of 79 escaped (9 failed), 59 vias, skipped 21 no-net 4 pth 16 exposed 174 escaped, 17.6 s
+planes: 57 of 58 pads off their planes joined, 18.3 s
+pairs: 2 pairs, 2 of 2 runs coupled, 2.3 mm, 23.0 s
+negotiated 145 of 162 connections in 30 rounds, 96 vias, 92.9 s
+rip-up: 29 tries, 4 kept, 52 ripped; lost 18 with no way through, 0 to copper it may not rip, 5 no better; 102.2 s
+shove pass 1: 15 trapped tried, 13 routed out, 10 kept, 12 -> 2 open, 214.7 s
+shove pass 2: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 233.0 s
+shove pass 3: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 252.3 s
+shove pass 4: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 269.4 s
+shove pass 5: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 287.1 s
+shove pass 6: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 303.7 s
+shove pass 7: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 322.4 s
+shove pass 8: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 340.1 s
+shove pass 9: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 359.0 s
+shove pass 10: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 377.7 s
+shove pass 11: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 398.3 s
+shove pass 12: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 417.2 s
+shove pass 13: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 435.0 s
+vias: 43 of 165 dropped, 38 of 383 tries kept, 443.0 s
+pulled tight: 1514 -> 1033 segments, 1008 -> 1022 mm, 443.1 s
+dropped 0 doubled, pruned 24 dangling, open 2 -> 2, 443.1 s
+tune: USB_C_DP/USB_C_DN skew 0.84 -> 0.18 mm
+routed 0 more, 18 failed, 2 open, 443.2 s
+split 3 tracks where others end on them
+dropped 6 pour fills new copper cuts; KiCad refills them
