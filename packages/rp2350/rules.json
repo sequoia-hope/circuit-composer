@@ -71,6 +71,8 @@
       "attributes": ["switch_node_underlap"],
       "citation": { "source": "rp2350_ds", "locator": "§6.3.8 p.412, Figure 27" },
       "status": "promoted",
+      "links": [{ "contradicts": "buck.sw.keep_ground_under" }],
+      "note": "Kept as the chip vendor's rule. TI's AN-2155 measured 6 dBuV/m less far-field margin with the plane under a buck's switch node cut; ROHM says to cut it under the inductor. Settling it needs the slow tier (library/claims/buck.json).",
       "enforced_by": ["generator keepout on the layer below", "verifier switch_node_underlap_mm2 <= 0"]
     },
     {

@@ -139,6 +139,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
         <li class="done"><code>ccomp measure</code>: pad-to-pad paths, ground under fast nets, decoupling per power pin</li>
         <li class="done"><code>ccomp check package</code>: a board against a package by role (wiring, block constraints, lengths, part values). References pass; easy2350's USB runs over +3V3</li>
         <li class="done">Rerun with ultraroute's <code>--regions</code> (971e723), seeds 0–2: all pass; router's report agrees since 724f835</li>
+        <li class="done">Research library: 143 cited claims from 41 vendor documents (buck, half-bridge, crystal, USB/return path/decoupling, CAN/protection), 17 disputes kept; every quote checked against its PDF; <code>ccomp library check|query</code></li>
         <li class="done">Mined the motor controller's rev A: RP2350B regulator and the XL7005A 60 V buck measured; async bucks and plane shielding in the checks</li>
       </ul>
     </section>
@@ -175,6 +176,13 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Research library. Five agents found and read 41 vendor app notes, datasheets and articles (TI, ROHM, Allegro,
+        EPC, Infineon, ST, Microchip, Abracon, Murata, Bogatin; analog.com was unreachable). They proposed 143 claims; 392 quotes were
+        then checked against the documents' own text. TI's AN-2155 measured more EMI with the ground under a switch node cut, against
+        the RP2350 datasheet's cut-out: kept as a dispute for the slow tier. Gap: IPC-2221 clearance by voltage.</div>
+      </div>
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
         <div>Package check by role. Both minimal boards pass every hard check. easy2350 fails one: its USB pair runs

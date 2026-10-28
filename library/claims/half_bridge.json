@@ -1,0 +1,732 @@
+{
+  "topic": "half_bridge",
+  "note": "MOSFET half-bridges, gate drivers and motor-driver power stages: commutation loop, gate loop, bootstrap, current sense, grounding, thermal and creepage. Extracted 2026-10-27; quotes checked by tools/library_quotes.py. EPC loop-inductance figures are from low-voltage GaN bucks. Creepage values are TI's excerpt of IEC 60664-1.",
+  "claims": [
+    {
+      "id": "half_bridge.power.hot_loop_min",
+      "statement": "The commutation (hot) loop from the high-frequency bus capacitor through the high-side and low-side MOSFETs and back is kept as small as possible: parts adjacent, short wide copper, few layer changes.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["hot_loop_area", "inductance", "via_count"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§6.3.2 pp.27-28",
+          "quote": "Use correct placement to minimize the distance between components. Decreasing the trace length decreases parasitic inductance."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§6.3.2 p.28",
+          "quote": "Minimize the number of layer jumps in the high current path and use correct via sizing and numbers"
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§7.1 p.10",
+          "quote": "Use thick, direct tracks between switches with no loops or deviation."
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§7.1 p.10",
+          "quote": "Consider co-locating both power switches to reduce track lengths."
+        },
+        {
+          "source": "epc_wp010",
+          "locator": "p.2, Figure 3",
+          "quote": "An increase in the high frequency loop inductance from around 0.4 nH to 2.9 nH results in additional loss, decreasing efficiency by over 4%."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.small_loop" }, { "refines": "half_bridge.power.loop_return_inner_layer" }],
+      "enforced_by": ["verifier hot_loop_area_mm2", "generator objective hot_loop_area_mm2"],
+      "note": "EPC measured (12 V, 1 MHz GaN buck) switch-node overshoot of 100 % of VIN at ~1.6 nH vs 30 % at ~0.4 nH (WP010 p.2). Silicon MOSFET packages add ~1-2 nH of their own (WP010 p.5)."
+    },
+    {
+      "id": "half_bridge.power.hf_cap_at_bridge",
+      "statement": "Small ceramic bus capacitors (< 10 uF) sit directly across each half-bridge, between the high-side drain and the low-side source, as close as possible to the MOSFETs.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["decoupling_path", "hot_loop_area", "part_distance"],
+      "requirement": { "capacitance_uf_max_each": 10 },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.3.2-5.3.3 p.21",
+          "quote": "use small ceramic capacitors to attenuate high frequency currents caused by switching from the MOSFETs"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.3.3 p.21",
+          "quote": "place the capacitors as close as possible to the source of the switching currents, in this case, the motor and MOSFETs."
+        },
+        {
+          "source": "epc_how2an007",
+          "locator": "p.1",
+          "quote": "The decoupling capacitors are placed close to the drain of the high-side transistor."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "half_bridge.power.hot_loop_min" }],
+      "enforced_by": ["verifier hot_loop_area_mm2 (the loop closes through this capacitor)"],
+      "could_enforce": "part_distance_mm from each bridge's HF capacitor pads to HS drain and LS source pads"
+    },
+    {
+      "id": "half_bridge.power.bulk_at_entry",
+      "statement": "Bulk electrolytic capacitors (usually > 10 uF) are placed near the power entry point of the board, each pad with multiple vias to its plane, and with low ESR.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["placement", "capacitance", "esr", "via_count"],
+      "requirement": { "capacitance_uf_min_typical": 10 },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.1 p.19",
+          "quote": "Place all bulk capacitors near the power supply module or power entry point of the board."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.1 p.19",
+          "quote": "TI recommends that each bulk capacitor have multiple vias connecting the pad to the respective power plane."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "half_bridge.power.dc_link_at_bridge" }],
+      "could_enforce": "placement: distance from bulk capacitor to power connector vs to bridge",
+      "note": "TI also asks for ceramics at the bridge (half_bridge.power.hf_cap_at_bridge), so the two notes may agree that HF current is local; they disagree on where the low-ESR bulk/DC-link capacitor goes."
+    },
+    {
+      "id": "half_bridge.power.dc_link_at_bridge",
+      "statement": "The low-ESR DC-link capacitor is placed as close as practicable between the high-side MOSFET drain and the low-side MOSFET source.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["placement", "hot_loop_area", "esr"],
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "DC-Link Capacitor p.5",
+          "quote": "placed as close as practicable between the drain terminal of the high-side MOSFET (M1)... and the source terminal of the low-side MOSFET (M2)."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "half_bridge.power.bulk_at_entry" }, { "supports": "half_bridge.power.hot_loop_min" }],
+      "could_enforce": "part_distance_mm from DC-link capacitor to the bridge it serves"
+    },
+    {
+      "id": "half_bridge.power.loop_return_inner_layer",
+      "statement": "On a multilayer board the hot loop returns on the first inner layer directly beneath the top-layer loop, over a thin dielectric; a lateral loop needs a solid shield plane close under it, and a vertical loop (capacitors on the opposite side) gets worse with board thickness.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["hot_loop_area", "return_path", "inductance"],
+      "requirement": { "inner_layer_distance_mm_studied": 0.1 },
+      "citations": [
+        {
+          "source": "epc_how2an007",
+          "locator": "p.1",
+          "quote": "PCB vias are used to connect the ground terminal of the capacitors to the low-side source by way of the first inner layer"
+        },
+        {
+          "source": "epc_wp010",
+          "locator": "p.3",
+          "quote": "To minimize loop inductance in the lateral power loop, the distance from the power loop and shield layer must be minimized."
+        },
+        {
+          "source": "epc_wp010",
+          "locator": "p.4",
+          "quote": "the board thickness significantly impacts the inductance by as much as 80% when the board thickness is doubled from 31 to 62 mils."
+        },
+        {
+          "source": "epc_wp010",
+          "locator": "p.4",
+          "quote": "the proposed design can provide a reduction in inductance on the order of 65% compared to the best conventional lateral or vertical power loop."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "half_bridge.power.hot_loop_min" }],
+      "could_enforce": "stackup check: dielectric thickness top-to-L2 under the hot loop; L2 continuity under the loop (unreferenced_length_mm of hot-loop copper)",
+      "note": "Measured on 12-28 V, 1 MHz GaN bucks; the topology argument applies to Si half-bridges, but the magnitude matters less with larger package inductance. 'inner_layer_distance_mm_studied' is the 4 mil build in WP010 Fig. 8, not a limit."
+    },
+    {
+      "id": "half_bridge.switch_node.short_wide",
+      "statement": "The switch node copper from the high-side source to the low-side drain is short and wide, minimizing its inductance, which drives switch-node ringing and VS undershoot below ground.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["switch_node_area", "inductance", "trace_width"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§6.3.1 p.27",
+          "quote": "Best practice is to minimize the length and maximize the width of the copper plane connection"
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§3 p.5",
+          "quote": "stray inductance LS1+LD1 contribute to undershoot of the Vs node beyond-ground"
+        },
+        {
+          "source": "ti_slua618a",
+          "locator": "§5.2.2 p.32",
+          "quote": "the amplitude of the negative voltage is proportional to the parasitic inductance connecting the source of the main MOSFET to ground"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "half_bridge.power.hot_loop_min" }, { "refines": "buck.sw.min_area" }],
+      "enforced_by": [
+        "verifier switch_node_area_mm2 (note: here the node is also the motor output, so area is wanted along the current path, not spread around it)"
+      ],
+      "could_enforce": "inductance proxy: length/width of HS-source to LS-drain connection",
+      "note": "Infineon HVIC drivers are guaranteed immune to at least 5 V of VS undershoot (ifx_transients §4 p.6); beyond that the high-side output latches its state. Allegro (p.7, about its buck regulator's LX node) warns against widening a switch node to make up for length, since length makes it an antenna."
+    },
+    {
+      "id": "half_bridge.gate.driver_near_fets",
+      "statement": "The gate driver sits as close as possible to the power MOSFETs it drives, so gate and return traces are short.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["part_distance", "trace_length", "inductance"],
+      "citations": [
+        {
+          "source": "ifx_transients",
+          "locator": "§7.2 p.10",
+          "quote": "Locate the control IC as close as possible to the power switches."
+        },
+        {
+          "source": "epc_how2an007",
+          "locator": "p.1",
+          "quote": "The gate driver must be located very close to the gate and source terminals of each transistor or transistors it drives"
+        },
+        {
+          "source": "ti_slua618a",
+          "locator": "§3.1 p.16",
+          "quote": "This distance introduces a parasitic inductance due to the loop formed by the gate drive and ground return traces"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "part_distance_mm from driver gate pin to MOSFET gate pad; max_length on gate nets"
+    },
+    {
+      "id": "half_bridge.gate.loop_paired",
+      "statement": "Each gate drive trace (GHx/GLx) runs side by side with its return (SHx / LSSx source) trace, short and at least 0.5 mm wide on 1 oz copper, so the gate loop area and inductance are minimal.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["trace_width", "trace_length", "return_path", "inductance"],
+      "requirement": { "gate_trace_width_mm_min": 0.5, "copper_oz": 1 },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§4 p.16",
+          "quote": "Start with a trace width of 20 mils for at least a 1 oz copper, more if required by high currents."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§4 p.16",
+          "quote": "Route the signal trace of the high-side gate and the switch node trace as close as possible to minimize inductance, loop area"
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Power MOSFET Traces p.3",
+          "quote": "the GHx/GLx and Sx/LSSx traces should be placed close to one another, which increases the partial mutual inductance"
+        },
+        {
+          "source": "ti_slua618a",
+          "locator": "§5.2.2.5 p.35",
+          "quote": "All three loops carrying the gate drive currents have to be minimized on the printed circuit board."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "pair gate net with its source-return net: coupled-pair spacing and length (like a differential pair); trace_width check on gate nets"
+    },
+    {
+      "id": "half_bridge.gate.kelvin_source",
+      "statement": "The driver's gate-return pins (SHx/VS for the high side, LSSx/COM for the low side) connect by their own trace directly to the MOSFET source pad, not through the power path or the ground plane, so the power current does not flow in the gate loop (common-source inductance).",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["return_path", "inductance", "ground_topology"],
+      "citations": [
+        {
+          "source": "epc_how2an007",
+          "locator": "p.1",
+          "quote": "It is critical to separate the gate return current path from the power loop at the source terminal to minimize the common-source inductance."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "p.4",
+          "quote": "Provide an independent connection from each low-side source terminal to the source of the corresponding low-side MOSFET"
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§7.2 p.10, Figure 6",
+          "quote": "Connect VS and COM as shown in figure 6."
+        },
+        {
+          "source": "ti_slua618a",
+          "locator": "§2.8 p.14",
+          "quote": "The most profound effect on switching performance is exhibited by the source inductance."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "topology check: gate-return net meets the source net only at the MOSFET source pad (net tie), no shared copper with the power path",
+      "note": "Infineon Figure 6 shows VS tapped at the high-side source and COM at the low-side source, before the load-path parasitics. Allegro: inductance on Sx/LSSx causes negative transients on those pins."
+    },
+    {
+      "id": "half_bridge.gate.loop_orthogonal",
+      "statement": "Gate driver bypass/bootstrap capacitors and gate resistors are placed so the gate current flows orthogonal (or opposite) to the power loop current.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["orientation", "placement"],
+      "citations": [
+        {
+          "source": "epc_how2an007",
+          "locator": "p.1",
+          "quote": "bypass/bootstrap capacitors and gate resistors should be positioned so that the gate current direction is orthogonal to the power loop."
+        },
+        {
+          "source": "epc_wp010",
+          "locator": "p.1",
+          "quote": "The layout of the gate and power loops are then separated by having the currents flow in opposite or orthogonal directions"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "angle between gate-loop and power-loop current vectors at the source pad",
+      "note": "GaN-derived guidance; applies to fast Si switching too but not stated by the Si motor-driver notes."
+    },
+    {
+      "id": "half_bridge.bootstrap.close_to_driver",
+      "statement": "Each bootstrap capacitor connects as close as practicable to the driver, between its bootstrap pin (CA/VB) and that phase's high-side reference pin (SA/VS), with no other path in between.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["part_distance", "decoupling_path"],
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "Bootstrap Capacitor p.6",
+          "quote": "the bootstrap capacitors should be connected as close as practicable to the gate driver between the CA, CB, and CC terminals"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.2 p.19",
+          "quote": "Most of TI's motor drive devices (DRVxx) use charge pump or bootstrap capacitors... Place these capacitors as close to the motor drive device as possible."
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§7.3 p.10, Figure 7",
+          "quote": "Connect decoupling capacitors directly across appro-priate pins as shown in figure 7."
+        }
+      ],
+      "status": "asserted",
+      "enforced_by": ["verifier decoupling_path_mm (if the bootstrap cap is tagged as the VB-VS decoupler)"],
+      "could_enforce": "decoupling_path_mm from bootstrap cap pads to VB and VS pins"
+    },
+    {
+      "id": "half_bridge.bootstrap.recharge_loop",
+      "statement": "The bootstrap recharge loop (VCC capacitor, bootstrap diode, bootstrap capacitor, low-side switch) is minimized, and the driver VCC capacitor is at least ten times the bootstrap capacitor.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["hot_loop_area", "capacitance"],
+      "requirement": { "cvcc_to_cboot_ratio_min": 10 },
+      "citations": [
+        {
+          "source": "ti_slua618a",
+          "locator": "§5.2.2.5 p.35",
+          "quote": "CDRV should be an order of magnitude larger than CBST. Minimizing this loop area on the printed circuit board is equally important"
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§7.3 p.10",
+          "quote": "Use a second low-ESR capacitor from Vcc to COM... we recommend a value at least ten times higher than Cb."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "ccomp check package: C(VCC)/C(BOOT) >= 10; loop area of VCC cap-diode-Cboot-LS FET"
+    },
+    {
+      "id": "half_bridge.driver.supply_decoupling",
+      "statement": "Driver supply bypass capacitors sit on the same layer as the IC within 5 mm, with no via between the capacitor and the IC pin, the smallest value closest, and capacitor-to-pin traces no longer than 3x their width; the VREG/VCC capacitor returns to the driver ground pin directly.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["decoupling_path", "part_distance", "via_count"],
+      "requirement": { "part_distance_mm_max": 5, "length_to_width_max": 3, "vias_between_cap_and_pin": 0 },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.3.1 p.20",
+          "quote": "The closer the bypass capacitor, the better (less than 0.5 cm, 0.2 in)"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.3.1 p.20",
+          "quote": "Do not place a via between the bypass capacitor pin and the IC supply or ground pin."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.3.1 p.20",
+          "quote": "Do not use a length-to-width ratio that is greater than 3:1."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "VREG Capacitor p.6",
+          "quote": "the VREG capacitor should be connected independently close to the ground terminal, as close as practicable to the VREG terminal"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.decoupling.close" }],
+      "enforced_by": ["verifier decoupling_path_mm"],
+      "could_enforce": "via_count = 0 on the cap-to-pin path; length/width ratio of that path"
+    },
+    {
+      "id": "half_bridge.ground.single_plane",
+      "statement": "Use one continuous ground plane, partitioned by placement into power, analog and digital areas rather than split, and keep vias from cutting it.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["ground_topology", "return_path"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§1.2 p.5",
+          "quote": "Having one layer of the PCB as a continuous ground plane lets each signal have the shortest return path and decreases coupling and interference."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§1.1 p.3",
+          "quote": "This separation is not a physical partition of digital and analog ground."
+        },
+        {
+          "source": "ti_slyt512",
+          "locator": "p.2 (AAJ 2Q 2013)",
+          "quote": "the important points are to use a single ground plane, partition it into analog and digital sections, and apply discipline in routing."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "half_bridge.ground.split_power_quiet" }],
+      "could_enforce": "ground_topology: count of separate ground copper islands; return_path continuity under signal nets",
+      "note": "SLYT512 is about mixed-signal data converters, not motor drivers; it is cited for the general single-plane position. SLVA959 itself shows both a common and a split plane as good examples (Figure 1-4 p.5)."
+    },
+    {
+      "id": "half_bridge.ground.split_power_quiet",
+      "statement": "Power ground (MOSFET sources, shunts, driver PGND/COM) and the driver's quiet/analog ground are kept separate and joined at one point: the driver AGND/PGND common point and the bridge return each run separately to the bus capacitor's negative terminal, and sensitive references go to AGND, never to the common plane.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["ground_topology", "return_path"],
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "Ground Terminals p.2",
+          "quote": "This common point and the high current return of the external MOSFETs should return separately to the negative side of the motor supply filtering capacitor"
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Quiet Ground p.3",
+          "quote": "These sensitive components should never be connected directly to the supply common or to a common ground plane."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§1.3.1 p.6",
+          "quote": "the high-current carrying ground plane of the predriver is physically isolated from the ground plane of the remaining parts of the IC."
+        },
+        {
+          "source": "ti_slua618a",
+          "locator": "§5.2.2.5 p.36",
+          "quote": "the COM pin is connected to power ground. The GND pin can be utilized to provide connection to the signal ground of the controller"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "half_bridge.ground.single_plane" }, { "supports": "rp2350.vreg.pgnd_single_point" }],
+      "could_enforce": "ground_topology: power-ground and quiet-ground nets meet at exactly one net tie, located at the bus capacitor negative / driver ground pin",
+      "note": "TI SLVA959 holds both positions (continuous plane §1.2; isolated predriver ground §1.3.1; 'Separate grounding for analog and digital... most effective' §4 p.17). Settle by simulation/measurement: same board, plane vs split."
+    },
+    {
+      "id": "half_bridge.ground.layer_order",
+      "statement": "In a multilayer stackup a ground plane lies between the power-component layer and the small-signal layer; small-signal layers are never adjacent to the high-current switching layer.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["return_path", "ground_topology"],
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "Placement of Layers p.1",
+          "quote": "it can be highly desirable to place the DC ground layer between the high-current power-component layer and the sensitive small signal trace layer."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Figure 1 p.2",
+          "figure": "Desired four-layer stack: Top: power components / Internal 1: GND plane / Internal 2: high-frequency small signal / Bottom: low-frequency small signal"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "stackup check: layer adjacent to the power layer is a ground plane"
+    },
+    {
+      "id": "half_bridge.ground.via_no_plane_cut",
+      "statement": "Vias (including stitching and shielding rows) are spaced so they do not merge into a slot that cuts the ground or power plane.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["return_path", "via_count"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§3.2.2 p.15",
+          "quote": "Having many vias routing together can create a gap on the plane and affect current and ground return."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Via Stitching p.9",
+          "quote": "Closely placed via stitches or shields can cause large cuts in the power or ground plane and can create a current loop around the vias"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "plane check: merged antipad clearances form no slot longer than X mm across a return path"
+    },
+    {
+      "id": "half_bridge.noisy.isolated_on_2layer",
+      "statement": "On a two-layer board without a ground plane, the power-stage FETs, bootstrap and charge-pump circuits are kept away from sensitive signals, and ground copper is gridded (traces joined at both ends) to approach a plane.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["placement", "feedback_clearance", "ground_topology"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§1.2.1 p.5",
+          "quote": "power stage FETs, bootstrap circuits, and charge pumps usually contain high noise and ripple, and should be isolated"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§1.1 p.3-5",
+          "quote": "Gridding makes the ground paths continuous throughout the board to make sure each signal has a return path to the source"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "clearance_mm between sensitive nets and switch-node/bootstrap copper"
+    },
+    {
+      "id": "half_bridge.sense.shunt_placement",
+      "statement": "A low-side shunt sits between the low-side MOSFET source and the power-stage star ground (one per phase for 2/3-shunt sensing), in line with the power stage and close to the current sense amplifier.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["placement", "part_distance"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§7.5 p.32",
+          "quote": "For low-side current sense, the shunt resistor should be between the source of the low-side MOSFET and the star point ground connection"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§7.5 p.32",
+          "quote": "Placement of the sense resistor should be in line with the components of the power stage to minimize trace impedance."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§7.5 p.32",
+          "quote": "The shunt resistor should also be placed close to the connection to the CSA"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "part_distance_mm shunt-to-CSA; shunt is series element in LS-source to ground path"
+    },
+    {
+      "id": "half_bridge.sense.kelvin_pair",
+      "statement": "The shunt sense lines are separate Kelvin traces from the shunt pads to the amplifier, routed as a tightly coupled, length- and route-matched differential pair, not parallel to switching traces; a net tie at the shunt enforces the split.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["length_match", "return_path", "feedback_clearance"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§7.6 p.32",
+          "quote": "Routing of the sense signals must be done using a differential pair."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Sense Amplifier Connections p.4",
+          "quote": "they should be matched both in length and route."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "p.4",
+          "quote": "net-ties can be placed between the high-impedance input terminals of the sense amplifier... and the shunt resistor"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§7.7 p.33",
+          "quote": "do not route noise-sensitive traces parallel to noisy (switching) signals."
+        }
+      ],
+      "status": "asserted",
+      "enforced_by": ["intent max_length (per net) partly"],
+      "could_enforce": "length_match on SP/SN pair; net tie present at shunt pads; parallel-run length to switch-node nets"
+    },
+    {
+      "id": "half_bridge.sense.four_pad_below_1mohm",
+      "statement": "Below about 1 mOhm the shunt uses a four-terminal (four-pad) footprint so the load current does not flow through the sense contacts; above that a two-pad shunt with sense traces taken from the inner pad edges is acceptable.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["resistance", "placement"],
+      "requirement": { "four_pad_below_ohm": 0.001 },
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "p.4, Figure 7",
+          "quote": "If the value of the current shunt resistor is lower than approximately 1 mΩ, the best method shown at bottom should be preferred"
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "p.4",
+          "quote": "shunt resistors have resistance that is, on an order of magnitude, similar to PCB traces."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "ccomp check package: shunt value < 1 mOhm requires a 4-terminal footprint"
+    },
+    {
+      "id": "half_bridge.sense.filter_at_amp",
+      "statement": "Current-sense input/output RC filters are placed as close to the sense amplifier as possible, with about 1 nF decoupling at the sense pins.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["filter", "part_distance"],
+      "requirement": { "sense_pin_cap_f_typical": 1e-09 },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§7.8 p.34",
+          "quote": "The input and output filters for the sense amplifier are placed as close to the sense amplifier as possible."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§5.3.4 p.22",
+          "quote": "placing additional decoupling capacitors as close to the sensing pins as possible and using values of approximately 1 nF."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "part_distance_mm from filter parts to CSA pins"
+    },
+    {
+      "id": "half_bridge.sense.vdrain_kelvin",
+      "statement": "The driver's VDRAIN (VDS-monitor) pin is routed as its own single trace to the high-side MOSFET drain, joined by a net tie close to the drain, not tapped from the VM plane.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["return_path", "feedback_point"],
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§6.3.3 p.28",
+          "quote": "route the VDRAIN pin in a single trace directly to the drain of the external power MOSFETs."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§6.3.3 p.28",
+          "quote": "TI recommends using a Net Tie close to the drain to minimize additional inductance that can lead to false OCP faults"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "feedback_point: VDRAIN net joins VM only at the HS drain pad"
+    },
+    {
+      "id": "half_bridge.snubber.rc_across_fet",
+      "statement": "An RC snubber (small ceramic capacitor plus series resistor rated for the dissipated power) may be fitted across each MOSFET's drain and source, but only after layout has minimized the loop; it trades efficiency for lower ringing.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["filter", "placement"],
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "Snubber Network p.6",
+          "quote": "use of a small ceramic decoupling capacitor across the sources and drains of the power MOSFETs should be considered."
+        },
+        {
+          "source": "ifx_transients",
+          "locator": "§7.3 p.11",
+          "quote": "External snubbing and/or increasing gate drive resistance may be used to trade efficiency for lower switching rate."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§6.3.1 p.27",
+          "quote": "a fundamentally sound layout can address many of these primary issues."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "placement: snubber R/C within N mm of the drain and source pads of its FET"
+    },
+    {
+      "id": "half_bridge.thermal.direct_vias",
+      "statement": "Thermal vias under the driver pad and under/around MOSFET drain and source pads connect solidly to the planes (no thermal relief, not tented), in arrays at about 1.0-1.3 mm pitch with about 0.2-0.3 mm drill.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["via_count", "placement"],
+      "requirement": {
+        "via_drill_mm": [0.2, 0.3],
+        "via_pad_mm_ti": 0.5,
+        "via_pitch_mm": [1.0, 1.3],
+        "thermal_relief": false
+      },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§2.4 p.9",
+          "quote": "Thermal relief connections should not be used for thermal vias"
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§2.4 p.9",
+          "quote": "Do not cover the vias with solder mask which causes excessive voiding."
+        },
+        {
+          "source": "ti_slva959b",
+          "locator": "§2.5 p.10",
+          "quote": "thermal vias directly beneath the thermal pad that are 20 mil in diameter with a hole size of 8 mil."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Thermal Vias p.8, Table 1",
+          "quote": "use of thermal vias is also recommended under and around the MOSFET drain and source pads."
+        },
+        {
+          "source": "allegro_an296278",
+          "locator": "Table 1 p.8",
+          "quote": "Via Diameter [mm] 0.25 0.25 0.3 ± 0.08 / Pitch [mm] 1.2 1.2 1 to 1.3"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "via_count under each exposed pad / drain tab; zone connection style = solid for thermal vias",
+      "note": "Allegro p.8 adds that a field of clearance holes raises plane current density and loop inductance, so thermal vias should be avoided where heat can be sunk otherwise."
+    },
+    {
+      "id": "half_bridge.thermal.continuous_copper",
+      "statement": "Copper from the driver thermal pad and MOSFET tabs runs continuously and wide into large pours on top and bottom; 1.5-2 oz copper is preferred.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["placement", "trace_width"],
+      "requirement": { "copper_oz_preferred": [1.5, 2] },
+      "citations": [
+        {
+          "source": "ti_slva959b",
+          "locator": "§2.2 p.8",
+          "quote": "copper planes must be continuous from the thermal pad to other areas on the board."
+        },
+        { "source": "ti_slva959b", "locator": "§2.6 p.11", "quote": "Use 1.5- or 2-oz copper when possible." }
+      ],
+      "status": "asserted",
+      "could_enforce": "copper area connected to each thermal pad within N mm; neck width of the exit path"
+    },
+    {
+      "id": "half_bridge.clearance.motor_bus",
+      "statement": "Spacing between conductors at different potentials follows a standard chosen by end equipment (motor drives: IEC 61800-5-1; PCB functional spacing: IPC-2221B Table 6-1 / IEC 60664-1 Table F.4): for working voltages up to 63 Vrms at pollution degree 2 the creepage is 0.63 mm (material group I) to 1.25 mm (group III), and inner layers need less than uncoated outer layers.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["creepage", "clearance"],
+      "requirement": {
+        "creepage_mm_min_63vrms_pd2_mg1": 0.63,
+        "creepage_mm_min_63vrms_pd2_mg3": 1.25,
+        "clearance_mm_min_0p5kv_pd2": 0.2
+      },
+      "citations": [
+        {
+          "source": "ti_slup419",
+          "locator": "p.7",
+          "quote": "For motor drives, use Table 10 in IEC 61800-5-1."
+        },
+        { "source": "ti_slup419", "locator": "p.7, Table 3", "quote": "63 0.2 0.63 0.9 1.25" },
+        {
+          "source": "ti_slup419",
+          "locator": "p.9",
+          "quote": "inner PCB layers require much less spacing than external layers, and external layers with conformal coating require less spacing"
+        },
+        {
+          "source": "ti_slup419",
+          "locator": "p.8",
+          "quote": "you can calculate the required impulse voltage rating by adding 1,200 V to the nominal line-to-neutral voltage"
+        }
+      ],
+      "status": "asserted",
+      "enforced_by": ["verifier clearance_mm", "verifier creepage_mm"],
+      "could_enforce": "per-net-class creepage/clearance from bus voltage, pollution degree and CTI group",
+      "note": "Values are TI's subset of IEC 60664-1 Tables F.4/F.2, not the motor-drive standard itself (IEC 61800-5-1 was not read). Standard FR-4 is commonly material group IIIa (CTI 175-250): that is outside knowledge, not from SLUP419. A 48 V bus is a functional (SELV) spacing case, not safety isolation (SLUP419 Table 2 p.6)."
+    },
+    {
+      "id": "half_bridge.board.edge_keepout",
+      "statement": "High-frequency, fast-switching copper (traces and planes) is kept at least 5 mm from the board edge to limit fringing-field noise.",
+      "scope": { "circuit": "half_bridge" },
+      "attributes": ["clearance", "placement"],
+      "requirement": { "edge_clearance_mm_min": 5 },
+      "citations": [
+        {
+          "source": "allegro_an296278",
+          "locator": "p.2",
+          "quote": "ensure PCB traces and planes are kept well away from the edge of the board. A reasonable distance is at least 5 mm."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "board-edge clearance per net class",
+      "note": "A single source; 5 mm is far more than usual practice on compact motor controllers and was not stated by TI. Treat as a soft objective."
+    }
+  ]
+}

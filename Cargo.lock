@@ -71,6 +71,7 @@ dependencies = [
  "clap",
  "compile",
  "intent",
+ "library",
  "pcb",
  "serde",
  "serde_json",
@@ -206,6 +207,14 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "library"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

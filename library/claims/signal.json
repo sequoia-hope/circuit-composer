@@ -1,0 +1,811 @@
+{
+  "topic": "signal",
+  "note": "USB 2.0 board layout, return paths and reference planes, decoupling and PDN. Extracted 2026-10-27; quotes checked by tools/library_quotes.py. Ott's and Archambeault's positions are cited as reported by the CompuPhase paper, not from their own texts.",
+  "claims": [
+    {
+      "id": "signal.usb2.diff_impedance",
+      "statement": "USB 2.0 DP/DM run as a 90 ohm differential pair (about 45 ohm single-ended); the tolerance quoted differs by vendor (+/-10 %, +/-15 %, or +5/-10 ohm).",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["impedance"],
+      "requirement": {
+        "z_diff_ohm": 90,
+        "z_diff_ohm_min_ti_spraar7": 81,
+        "z_diff_ohm_max_ti_spraar7": 99,
+        "z_diff_tolerance_pct_ti_slla414": 15,
+        "z_diff_ohm_min_mchp": 80,
+        "z_diff_ohm_max_mchp": 95,
+        "z_single_ohm_min_mchp": 40,
+        "z_single_ohm_max_mchp": 55
+      },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "Appendix A, Table A-1 p.16 (same row in Tables A-2..A-8)",
+          "quote": "USB2.0 DP/DM pair differential impedance 81 90 99 Ω"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§2.1 p.3",
+          "quote": "Trace Impedance 90Ω ±15% differential, 45Ω ±15% single ended"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.2.3 p.8",
+          "quote": "Control the differential impedance (Zdiff) of the DP/DM signals to 90 ... +5/-10",
+          "note": "The ohm signs (90 ohm, +5/-10 ohm) are missing from the PDF text layer."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.2.3 p.8",
+          "quote": "Control the single-ended characteristic impedance (Z0) of USB signals to between 40 ... and 55",
+          "note": "The ohm signs (40 ohm, 55 ohm) are missing from the PDF text layer."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.usb.impedance" }],
+      "enforced_by": ["intent impedance (compiled to the DIFF_HS class)"],
+      "note": "Tolerance band is the only disagreement; 90 ohm nominal is unanimous. A checker should use the tightest (Microchip 80-95 ohm) as a warning band and +/-15 % as the failure band."
+    },
+    {
+      "id": "signal.usb2.intra_pair_skew",
+      "statement": "The two members of a USB 2.0 high-speed pair differ in routed length by no more than about 1.25 mm (50 mil), with any matching meander placed near the end where the mismatch arises.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["length_match", "trace_length"],
+      "requirement": { "max_length_mismatch_mm": 1.27 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "Appendix A, Table A-1 p.16",
+          "quote": "Skew within any USB2.0 differential pair 50 Mils"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.17",
+          "quote": "Each member of a High-Speed differential pair should be no more than 1.25 mm (50 mil) longer than the other member."
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.3 p.6, Figure 2-5",
+          "quote": "add serpentine routing to match the lengths as close to the mismatched ends as possible"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.3 p.5",
+          "quote": "add serpentine routing to match the lengths as close to the mismatched ends as possible"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.17",
+          "quote": "Add any need serpentines very near where the length error is introduced into the line."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "per-pair |len(DP) - len(DM)| from the routed board, compared with max_length_mismatch_mm",
+      "note": "50 mil = 1.27 mm; Microchip rounds to 1.25 mm. At full speed (12 Mbit/s) this is very loose; it matters for 480 Mbit/s."
+    },
+    {
+      "id": "signal.usb2.max_length_ti",
+      "statement": "Total USB 2.0 trace length from device to connector stays below 12000 mil (304.8 mm).",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["trace_length"],
+      "requirement": { "max_length_mm": 304.8 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "Appendix A, Table A-1 p.16",
+          "quote": "USB2.0 Tracelength (total) 4000 12000 Mils"
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.2 p.5",
+          "quote": "keep total trace length for signal pairs to a minimum"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.usb2.max_length_mchp" }],
+      "enforced_by": ["intent max_length"],
+      "note": "The table has MIN/TYP/MAX columns but only two numbers; 4000 mil probably sits in TYP and 12000 in MAX. Reading 4000 as a minimum would make no physical sense."
+    },
+    {
+      "id": "signal.usb2.max_length_mchp",
+      "statement": "USB 2.0 high-speed traces longer than about 150 mm may significantly degrade signal quality.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["trace_length"],
+      "requirement": { "max_length_mm": 150 },
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.17",
+          "quote": "High Speed signal traces longer than ~15 cm (~6 in), and SS traces longer than ~10 cm (4”) may significantly degrade signal quality."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.usb2.max_length_ti" }],
+      "enforced_by": ["intent max_length"],
+      "note": "Factor-of-two disagreement with TI (305 mm). Irrelevant to small boards like easy2350 where the pair is a few cm; matters for hubs and board-to-board runs."
+    },
+    {
+      "id": "signal.usb2.via_limit",
+      "statement": "Each USB 2.0 data trace has at most 4 vias, preferably none, and both members of the pair have the same number of vias at matching positions.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["via_count", "length_match"],
+      "requirement": { "max_via_count_per_trace": 4, "via_count_difference_max": 0 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "Appendix A, Table A-1 p.16",
+          "quote": "Number of vias allowed on each USB2.0 differential trace (total) 4 Vias"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.17",
+          "quote": "Minimize the number of vias used and balance the number and placement of them between the signals within the pair if used."
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.9 p.12",
+          "quote": "ensure that the via count on each member of the differential pair is equal and that the vias are as equally spaced as possible"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.9 pp.18-19",
+          "quote": "designers must take into account the length of the vias when verifying parameters such as inter pair skew"
+        }
+      ],
+      "status": "asserted",
+      "enforced_by": ["verifier via_count"],
+      "could_enforce": "via_count(DP) == via_count(DM) per pair"
+    },
+    {
+      "id": "signal.usb2.no_stubs_testpoints",
+      "statement": "USB data pairs carry no stubs and no test points or probe pads; components on the line sit in-line, not on a branch.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["trace_length"],
+      "requirement": { "max_stub_count": 0, "max_test_points": 0 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "Appendix A, Table A-1 p.16",
+          "quote": "Number of stubs allowed on any USB differential pair trace (total) 0 Stubs"
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.2 p.9",
+          "quote": "Do not place probe or test points on any high-speed differential signal."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.7 p.18",
+          "quote": "minimize stubs on high speed traces to reduce increased insertion loss"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.16",
+          "quote": "All of the USB traces must be routed as differential pairs. Avoid using any stubs on these lines."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "interface.esd.no_stub_to_tvs" }],
+      "could_enforce": "net topology check: USB nets are a single chain pad-to-pad (no T-junctions, no test-point footprints)"
+    },
+    {
+      "id": "signal.usb2.spacing_fixed",
+      "statement": "USB 2.0 pairs keep at least 0.762 mm (30 mil) from any other signal and at least 1.27 mm (50 mil) from clocks and periodic signals.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["clearance"],
+      "requirement": { "min_clearance_other_mm": 0.762, "min_clearance_clock_mm": 1.27 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.1 p.9, Figure 3-2",
+          "quote": "maintain a minimum keep-out area of 30 mils to any other signal throughout the length of the trace"
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "Appendix A, Table A-1 p.16",
+          "quote": "USB differential pair to clock or high-speed periodic signal trace spacing 50 Mils"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.1 p.12",
+          "quote": "increase this keep-out to a minimum of 50 mils to maintain proper isolation"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.usb2.spacing_scaled" }],
+      "could_enforce": "KiCad netclass clearance for the USB pair (constraint compiler)"
+    },
+    {
+      "id": "signal.usb2.spacing_scaled",
+      "statement": "USB 2.0 pairs keep a gap of at least 3x the larger of trace width and dielectric height to every signal outside the pair.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["clearance"],
+      "requirement": { "min_clearance_factor": 3, "of": "max(trace_width, dielectric_height)" },
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.16",
+          "quote": "Maintain a routing spacing (gap) of at least 3X between High-Speed USB signals (DP and DM) to the signals outside of the USB pair."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.16",
+          "quote": "define this gap in terms of either the USB trace width or the dielectric height between the signal and its reference plane, whichever is greater"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.usb2.spacing_fixed" }],
+      "could_enforce": "clearance_mm against 3*max(w, h) using the stackup",
+      "note": "On a 1 mm 2-layer board (h ~ 1 mm, w = 0.8 mm per rp2350.usb.impedance) this demands ~3 mm, versus TI's fixed 0.76 mm. The scaled rule is physically better grounded (crosstalk scales with h) but the two disagree by 4x on exactly the boards this project makes."
+    },
+    {
+      "id": "signal.usb2.keepout_noisy",
+      "statement": "USB pairs are not routed under or near crystals, oscillators, switching regulators, magnetics, mounting holes or clock-generating ICs.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["clearance", "placement"],
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.2 p.9",
+          "quote": "Do not route high-speed traces under or near crystals, oscillators, clock signal generators, switching power regulators, mounting holes, magnetic devices"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.2 p.12",
+          "quote": "Do not route high-speed traces under or near crystals, oscillators, clock signal generators, switching power regulators"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.1 p.6",
+          "quote": "Avoid placing or routing noisy circuits near the sensitive RBIAS resistor ... the crystal circuit, and the USB differential pair signals."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "router keep-out regions around crystal/regulator/magnetics footprints for USB nets; no numeric distance given (use signal.usb2.spacing_* as minimum)"
+    },
+    {
+      "id": "signal.usb2.esd_at_connector",
+      "statement": "USB ESD/EMI protection sits as close as possible to the connector, with flow-through pinout preferred, and unprotected traces kept away from protected ones.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["placement", "part_distance"],
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.14 p.15",
+          "quote": "Place ESD and EMI protection devices as close as possible to the connector."
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.13 p.14",
+          "quote": "TI recommends selecting devices that permit flow-through routing of the USB differential signal pair"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.14 p.22",
+          "quote": "Keep any unprotected traces away from protected traces to minimize EMI coupling."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.1 p.6",
+          "quote": "Place any ESD devices for the USB lines near the USB connectors."
+        }
+      ],
+      "status": "asserted",
+      "links": [
+        { "supports": "interface.esd.tvs_near_connector" },
+        { "supports": "interface.esd.keepout_unprotected" }
+      ],
+      "enforced_by": ["verifier part_distance_mm (connector to ESD part)"],
+      "note": "TI also asks for 60 % reference-plane voids under ESD signal pads (§3.14 p.15); that targets SuperSpeed losses and is not carried as a USB 2.0 rule here."
+    },
+    {
+      "id": "signal.usb2.connector_side",
+      "statement": "A through-hole USB receptacle is fed from the layer opposite its body so the pin is not a stub; an SMT receptacle is fed on its own layer without vias.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["placement", "via_count"],
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.5 p.10, Figure 3-4",
+          "quote": "Making these connections on the bottom layer of the PCB prevents the through-hole pin from acting as a stub"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.4 p.14",
+          "quote": "make high-speed differential signal connections on the top layer. Making these connections on the top layer eliminates the need for vias"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.6 p.21",
+          "quote": "Transmission line characteristics of surface mount (SMT) USB connectors are easiest to control."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "layer of the last segment entering each USB connector pad vs the connector's mounting side"
+    },
+    {
+      "id": "signal.usb2.escape_symmetry",
+      "statement": "A differential pair runs together and symmetrically; asymmetric segments at package escape and connector entry are as short as possible, with breakout within 6.35 mm (0.25 in) of the package.",
+      "scope": { "circuit": "usb2", "block": "usb" },
+      "attributes": ["trace_length", "length_match"],
+      "requirement": { "max_breakout_mm": 6.35 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.3 p.10",
+          "quote": "These deviations must be as short as possible and package break-out must occur within 0.25 inches of the package."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.3 p.13",
+          "quote": "package break-out must occur within 0.25 inches of the package"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "length of uncoupled (pair gap > target) segments per pair; first coupled point within max_breakout_mm of the pad",
+      "note": "The RP2350 reference boards' chip-side escape (pin to 27 ohm resistor, ~4 mm) falls inside this allowance."
+    },
+    {
+      "id": "signal.return.ground_reference_only",
+      "statement": "High-speed signals reference a solid ground plane; a power plane is not used as their reference unless unavoidable, and then only with AC caps and ground vias for the return.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["return_path", "unreferenced_length"],
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.4 p.6",
+          "quote": "TI does not recommend high-speed signal references to power planes."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.5 p.6; p.10",
+          "quote": "If unavoidable, use AC coupling capacitors and ground vias to allow the return signal to have a path back"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.return.any_plane_reference" }]
+    },
+    {
+      "id": "signal.return.any_plane_reference",
+      "statement": "USB and other critical signals may reference either an unbroken power plane or an unbroken ground plane.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["return_path"],
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.1 p.13",
+          "quote": "Route critical signals over unbroken reference (power or ground) planes."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.17",
+          "quote": "Route USB differential signals over unbroken reference (power or ground) planes."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.4 p.6",
+          "quote": "always have a ground plane or power plane on the layer above or below a signal layer"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.return.ground_reference_only" }],
+      "note": "TI SLLA414 §3.4 says ground-or-power, then §3.5 says power only if unavoidable; TI is inconsistent with itself as well as with Microchip. Settle by simulation: same pair over GND vs over VDD with the decoupling as placed."
+    },
+    {
+      "id": "signal.return.no_split_crossing",
+      "statement": "A high-speed track never crosses a split or void in its reference plane; every millimetre has the reference directly beneath it.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["unreferenced_length", "return_path"],
+      "requirement": { "unreferenced_length_mm": 0 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.4 p.6, Figures 2-6..2-8",
+          "quote": "High-speed signals should be routed over a solid GND reference plane and not across a plane split or a void in the reference plane"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.5 p.7",
+          "quote": "the return path must take a longer route than the signal path"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.1 p.13",
+          "quote": "Always consider the ground return path for each critical signal."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.usb.impedance" }],
+      "enforced_by": ["verifier unreferenced_length_mm (ccomp measure, return_paths)"]
+    },
+    {
+      "id": "signal.return.split_stitch_cap",
+      "statement": "If a high-speed track must cross a plane split, a stitching capacitor of at most 1 uF bridges the split as close as possible to the crossing.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["return_path", "part_distance", "capacitance"],
+      "requirement": { "max_capacitance_f": 1e-06 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.4 p.7, Figure 2-9",
+          "quote": "These capacitors should be 1 µF or lower and placed as close as possible to the plane crossing."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.5 p.7; §3.5 p.8 Figure 3-7",
+          "quote": "These capacitors should be 1µF or lower and placed as close as possible to the plane crossing."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "signal.return.no_split_crossing" }],
+      "could_enforce": "for each split crossing, distance from crossing point to nearest capacitor bridging the two planes"
+    },
+    {
+      "id": "signal.return.edge_and_void_clearance",
+      "statement": "High-speed differential tracks stay at least 2.29 mm (90 mil) from the edge of their reference plane and at least 1.5 trace widths from any void in it.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["unreferenced_length", "clearance"],
+      "requirement": { "min_plane_edge_mm": 2.286, "min_void_clearance_trace_widths": 1.5 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.2 p.9",
+          "quote": "Ensure that high-speed differential signals are routed ≥ 90 mils from the edge of the reference plane."
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§3.2 p.9, Figure 2-7",
+          "quote": "routed at least 1.5 W (calculated trace-width × 1.5) away from voids in the reference plane"
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§4.2 p.12",
+          "quote": "Verify that high-speed differential signals are routed ≥ 90 mils from the edge of the reference plane."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.1 p.13",
+          "quote": "SuperSpeed signal traces should not be within 5X trace width of the reference plane edge or of the splits"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "signal.return.no_split_crossing" }],
+      "could_enforce": "extend unreferenced_length_mm: count length whose reference copper does not extend max(1.5 W, edge rule) beyond the track on both sides",
+      "note": "TI exempts voids under SMD pads it deliberately clears. Microchip's 5W rule is stated for SuperSpeed only."
+    },
+    {
+      "id": "signal.return.stitch_at_layer_change",
+      "statement": "A high-speed track keeps one ground reference from source to sink where possible; where it must change layer and therefore reference plane, ground stitching vias tie the two ground planes within 5.08 mm (200 mil) of the signal via, placed symmetrically; closer is better.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["return_path", "part_distance", "via_count"],
+      "requirement": { "max_stitch_via_distance_mm": 5.08 },
+      "citations": [
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.4 p.8, Figure 2-11",
+          "quote": "Place these stitching vias symmetrically within 200 mils (center-to-center, closer is better) of the signal transition vias."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.5 p.8, Figures 3-8, 3-9",
+          "quote": "via-stitch both GND planes together to maintain continuous grounding and uniform impedance"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.5.2 p.17",
+          "quote": "If vias are necessary for any SuperSpeed signals, add complementary ground vias."
+        },
+        {
+          "source": "ti_spraar7",
+          "locator": "§2.4 p.8",
+          "quote": "The entirety of any high-speed signal trace should maintain the same GND reference from origination to termination."
+        },
+        {
+          "source": "ti_slla414",
+          "locator": "§3.5 p.8",
+          "quote": "Do not change the reference plane of the high speed signal trace unless completely unavoidable."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "for each signal via on a high-speed net, distance to nearest GND via (center to center)",
+      "note": "200 mil is generous for 480 Mbit/s rise times on a thin board; it is TI's ceiling, not a target."
+    },
+    {
+      "id": "signal.return.flood_stitching",
+      "statement": "Ground floods on different layers are joined with multiple vias, and every narrow ground flood ends in a via at each corner and end so it carries return current instead of resonating.",
+      "scope": { "circuit": "high_speed_digital", "block": "routing" },
+      "attributes": ["ground_topology", "via_count"],
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.3 p.9",
+          "quote": "Connect ground floods on different layers with multiple vias and ensure narrow ground floods are terminated with a via at all flood corners and ends."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.2.2 p.8",
+          "quote": "For two-layer structures, flood the bottom layer with ground."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "for each GND copper island: via count >= 2 and every pour 'finger' narrower than N mm has a via within M mm of its tip (dangling-copper check)",
+      "note": "Directly relevant to 2-layer boards like the RP2350 minimal reference, where the bottom flood is the only reference."
+    },
+    {
+      "id": "signal.decoupling.via_at_pad",
+      "statement": "Decoupling capacitor vias sit in or immediately beside the capacitor pads with short, wide connections, because trace length adds roughly 6-12 nH/cm in series with the capacitor.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["decoupling_path", "inductance", "esl"],
+      "requirement": { "trace_inductance_nh_per_cm": [6, 12] },
+      "citations": [
+        {
+          "source": "ti_sloa069",
+          "locator": "p.10",
+          "quote": "place vias from the planes as close as possible to the pad of the capacitor. Preferably, they should be incorporated into the copper structure"
+        },
+        {
+          "source": "ti_sloa069",
+          "locator": "p.10",
+          "quote": "Common PCB traces have self-inductances that measure between 6 nH and 12 nH per centimeter."
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.3.3 p.10",
+          "quote": "Place bypass vias within or as close as possible to the bypass capacitor pad."
+        },
+        { "source": "ti_swpa222", "locator": "§3 p.10", "quote": "Use via-in-pads for capacitors." }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.decoupling.close" }, { "refines": "half_bridge.driver.supply_decoupling" }],
+      "enforced_by": ["verifier decoupling_path_mm"],
+      "note": "SLOA069 p.10: 'Even a couple of millimeters ... adds 1.2 nH'. decoupling_path_mm measures pin-to-cap distance; the via-to-pad distance on the ground side is not yet measured."
+    },
+    {
+      "id": "signal.decoupling.multiple_vias",
+      "statement": "Each bypass capacitor's ground (and ideally supply) connection uses more than one via; bulk capacitors use at least two vias to each of power and ground.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["via_count", "inductance"],
+      "requirement": { "min_vias_per_terminal_bulk": 2 },
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.3.3 p.10",
+          "quote": "Use multiple ground vias per capacitor to divide the effect of the fanout trace’s and via’s impedances"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.3.3 p.10",
+          "quote": "For system bulk large value capacitors, use at least two vias to connect to power & ground."
+        },
+        {
+          "source": "ti_sloa069",
+          "locator": "p.11",
+          "quote": "Placing multiple inductors in parallel can reduce inductance."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "interface.protection.two_vias" }],
+      "enforced_by": ["verifier via_count"],
+      "note": "SLOA069 p.11: a 0.4 mm via through 1.5 mm board is ~1.1 nH; via height dominates, so on a 2-layer 1.6 mm board each via is ~1 nH."
+    },
+    {
+      "id": "signal.decoupling.same_side",
+      "statement": "Bypass capacitors go on the same side as the IC they serve; on the far side the intervening vias add inductance and make them less effective.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["placement", "inductance"],
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.1 p.6",
+          "quote": "These capacitors are usually less effective if they are placed on the bottom of the PCB because of the intervening via inductances."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "side(cap) == side(served IC) for decoupling parts in the intent",
+      "note": "Single source. SLOA069 p.9 mentions bottom-side placement only as one of several bad options for DIP packages. Check against how the RP2350 reference boards place theirs before promoting.",
+      "links": [{ "refines": "half_bridge.driver.supply_decoupling" }]
+    },
+    {
+      "id": "signal.decoupling.supply_through_cap",
+      "statement": "Supply current is routed from the rail to the capacitor pad first and then to the IC pin, so any feed trace/via inductance sits before the capacitor rather than in its loop.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["decoupling_path", "placement_order"],
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.3 p.14",
+          "quote": "the power signal originates at the voltage rail source, then to the capacitor, then to the Hub Controller pin"
+        },
+        {
+          "source": "ti_sloa069",
+          "locator": "p.12, Figure 12",
+          "quote": "the via and trace inductances appear before the capacitor, which is on the same pad as the power pin of the IC"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "topology check on the supply net: rail via/trace joins at the capacitor pad, and the cap-to-pin segment carries no other branch"
+    },
+    {
+      "id": "signal.decoupling.small_package",
+      "statement": "Bypass capacitors use small packages (0402 or smaller) and X7R-class or better dielectric, not Y5V/Z5U.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["esl", "capacitance"],
+      "citations": [
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.3 p.14",
+          "quote": "MLCC capacitors of 0402 size or less have lower parasitic inductance and fit closer to the hub device pins"
+        },
+        {
+          "source": "mchp_an26_2",
+          "locator": "§3.6.3 p.14",
+          "quote": "Use capacitors with appropriate temperature coefficients (Ex., X7R -- not Y5V)."
+        },
+        {
+          "source": "ti_swpa222",
+          "locator": "§3 p.10",
+          "quote": "Select capacitors with small footprint to minimize ESL."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "package and dielectric fields on decoupling parts (ccomp check package)",
+      "note": "SLOA069 p.7 goes further ('High-frequency decoupling requires NPO/COG capacitors') for RF op-amp work; impractical for digital rails and not taken as a rule. Bogatin (MLCC section) notes ESL is set by body size and mounting, not by value."
+    },
+    {
+      "id": "signal.decoupling.mixed_values",
+      "statement": "Several capacitor values in parallel (for example 100 nF with 10 nF or 100 pF) cover different frequency bands, each value aimed at its own self-resonance.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["capacitance", "esl", "filter"],
+      "citations": [
+        {
+          "source": "ti_sloa069",
+          "locator": "p.3",
+          "quote": "No single capacitor can be expected to properly decouple a system where multiple RF frequencies are present."
+        },
+        {
+          "source": "ti_sloa069",
+          "locator": "p.4",
+          "quote": "two or more capacitors may be required to properly bypass. Each capacitor is then targeted at a different frequency range."
+        },
+        {
+          "source": "compuphase_antires",
+          "locator": "p.1 (reporting Archambeault 2002)",
+          "quote": "[Archambeault 2002] recommends to always place two capacitors in parallel: one of 100nF and one of 100pF, in order to break the resonance."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.decoupling.same_values" }],
+      "note": "SLOA069 is written for RF/high-speed op-amps (e.g. a 1.9 GHz example), not digital PDNs."
+    },
+    {
+      "id": "signal.decoupling.same_values",
+      "statement": "With MLCCs, parallel decoupling capacitors of one value avoid the anti-resonance peaks that mixed values create between their self-resonances; mixing values is legacy practice from leaded capacitors.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["capacitance", "esl", "filter"],
+      "requirement": {
+        "measured_example": "two 100 nF 0402 in parallel beat 100 nF + 10 nF 0402 near 50 MHz (CompuPhase VNA, 1 MHz-1 GHz)"
+      },
+      "citations": [
+        {
+          "source": "bogatin_myth3",
+          "locator": "section 'MLCC Capacitors and the Myth of the High-Frequency Capacitor'",
+          "quote": "A 10 and 0.1 uF MLCC capacitor will have exactly the same high frequency impedance."
+        },
+        {
+          "source": "bogatin_myth3",
+          "locator": "section 'MLCC Capacitors...' Figure 8",
+          "quote": "When three different value capacitors with the same ESL are combined in parallel, two parallel resonance peaks are generated between their self-resonant frequencies."
+        },
+        {
+          "source": "compuphase_antires",
+          "locator": "p.3 Analysis, tests [4] vs [5]",
+          "quote": "mixing capacitor types for decoupling may well be counter-productive"
+        },
+        {
+          "source": "compuphase_antires",
+          "locator": "p.3",
+          "quote": "test [5] improves on test [4] only in the area around 100MHz, while it performs significantly worse around 50MHz"
+        },
+        {
+          "source": "compuphase_antires",
+          "locator": "p.1 (reporting Ott 2009)",
+          "quote": "[Ott 2009] recommends putting two capacitors in parallel, but in contrast to Archambeault he asserts that both should be identical"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.decoupling.mixed_values" }],
+      "could_enforce": "slow-tier PDN impedance sweep of the rail with the placed caps: report peak |Z| between lowest and highest SRF",
+      "note": "Bogatin et al. also say neither strategy is proven robust without system-level analysis ('they both may be equally acceptable, equally marginal'). CompuPhase notes anti-resonance does not create noise, it only fails to suppress it at that frequency. Good candidate for the simulation tier."
+    },
+    {
+      "id": "signal.decoupling.single_cap_max_value",
+      "statement": "When only one capacitor serves a pin, use the highest capacitance available in the smallest practical body at the needed voltage rating, rather than a small 'high-frequency' value.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["capacitance", "esl"],
+      "citations": [
+        {
+          "source": "bogatin_myth3",
+          "locator": "section 'MLCC Capacitors...' (before 'Design-In Quality')",
+          "quote": "If only one capacitor is specified on a pin ... always use the highest capacitance allowed for the smallest body size practical"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.decoupling.lower_value_for_hf" }],
+      "note": "Compare rp2350.decoupling.per_pin and rp2350.decoupling.dvdd, which fix 100 nF per IOVDD/DVDD pin as datasheet requirements. Those are chip-specific and not contradicted here, but this claim would argue that e.g. 1 uF 0402 is no worse at high frequency. Chip-vendor values win for package checks."
+    },
+    {
+      "id": "signal.decoupling.lower_value_for_hf",
+      "statement": "When high-frequency decoupling is poor, reduce the capacitance so the capacitor's series self-resonance lands on the offending frequency; a larger value does not help.",
+      "scope": { "circuit": "decoupling", "block": "decoupling" },
+      "attributes": ["capacitance", "esl"],
+      "citations": [
+        {
+          "source": "ti_sloa069",
+          "locator": "p.4",
+          "quote": "When poor decoupling of high frequencies is suspected, decrease the value of capacitance (or preferably, do the homework and look up the series self-resonance)."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "signal.decoupling.single_cap_max_value" }],
+      "note": "Valid for narrow-band RF rejection with high-Q C0G parts; disputed for broadband digital PDNs with MLCCs whose ESL is independent of value (bogatin_myth3)."
+    },
+    {
+      "id": "signal.pdn.loop_inductance_budget",
+      "statement": "Each decoupling capacitor's mounting loop inductance (excluding its own ESL) is held under a budget, 0.7-1 nH in TI's OMAP4430 example, read at 50 MHz; power/ground plane pairs near the capacitor's surface reduce it.",
+      "scope": { "circuit": "decoupling", "block": "decoupling", "role": "application processor PDN" },
+      "attributes": ["inductance", "decoupling_path"],
+      "requirement": {
+        "max_loop_inductance_h": 1e-09,
+        "max_loop_inductance_h_mpu": 7e-10,
+        "evaluation_frequency_hz": 50000000.0
+      },
+      "citations": [
+        {
+          "source": "ti_swpa222",
+          "locator": "§3 p.9, Table 5, last column 'Maximum loop inductance per capacitor (without ESL) (nH)'",
+          "quote": "VCORE1_OMAP_MPU 1GHz 93 40 14 0.7"
+        },
+        {
+          "source": "ti_swpa222",
+          "locator": "§3 p.8",
+          "quote": "Typically, capacitors loop inductance is determined at a frequency of 50 MHz."
+        },
+        {
+          "source": "ti_swpa222",
+          "locator": "§3 p.9",
+          "quote": "Placing power and ground plane pairs closer to the surface where the capacitor is mounted."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "loop inductance estimate from cap pads + via geometry + plane spacing (fast-tier formula from SLOA069 p.10-11, or slow-tier field solve)",
+      "note": "Numbers are OMAP4430-specific; no RP2350 budget is published. On a 2-layer 1.6 mm board one via alone is ~1 nH (SLOA069 p.11), so the budget is unreachable without short paths to an adjacent plane."
+    },
+    {
+      "id": "signal.pdn.target_impedance",
+      "statement": "Rail impedance stays below Ztarget = V_rail x ripple_fraction / (0.5 x I_max_transient) from DC to the specified frequency; a resonant peak below that frequency means changing or adding capacitor values.",
+      "scope": { "circuit": "decoupling", "block": "pdn" },
+      "attributes": ["impedance", "capacitance"],
+      "requirement": { "formula": "Z_target_ohm = V_rail * ripple_fraction / (0.5 * I_transient_max)" },
+      "citations": [
+        {
+          "source": "ti_swpa222",
+          "locator": "§4 p.10",
+          "quote": "the objective is to maintain the target spectrum below the Z target value (Ztarget) from DC to Fmax"
+        },
+        {
+          "source": "ti_swpa222",
+          "locator": "§4 p.12",
+          "quote": "If resonant peak appears before the required decoupling frequency then the decoupling strategy should be modified"
+        },
+        {
+          "source": "bogatin_myth3",
+          "locator": "section 'Design-In Quality'",
+          "quote": "keep the impedance profile, as seen by the pads of the IC, a flat impedance and at a value that is acceptably low"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "slow-tier: AC sweep of the extracted PDN against Z_target (needs I_transient from the chip package)",
+      "note": "SWPA222 also sets an IR-drop allowance of 0.5-2.5 % of nominal voltage (§2 p.4)."
+    }
+  ]
+}

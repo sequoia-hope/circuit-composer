@@ -60,6 +60,27 @@ rest out and they are reported `unbound`. Then run `ccomp check package BOARD --
 
 Refill zones before judging a routed board.
 
+## Consult and extend the research library
+
+Before choosing a layout rule or a limit, look it up:
+
+    ccomp library query --scope circuit=buck
+    ccomp library query --attribute hot_loop_area
+    ccomp library query --text "guard ring"
+
+Each claim carries its citations (page and quote), status and links. A `contested` claim has a
+contradicting claim; read both and say which you follow and why.
+
+To add a topic:
+1. Write an extraction in `library/README.md`'s shape: claims, not documents, each with a quote
+   of at most 25 words that is really in the source.
+2. Run `python3 tools/library_import.py X.json`.
+3. Run `python3 tools/library_fetch.py`, then `python3 tools/library_quotes.py`, then
+   `ccomp library check`.
+
+A missing quote means the claim is wrong until shown otherwise. A contradiction must be
+recorded on both claims, including a package's `rules.json`.
+
 ## Compile for the router
 
 `ccomp compile INTENT --board BOARD -o routing.json --dru OUT.kicad_dru --dru-base BOARD.kicad_dru`

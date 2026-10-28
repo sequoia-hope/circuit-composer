@@ -32,6 +32,17 @@ It sits between two sibling projects:
   parts by role. `ccomp check package` judges any board against the package by role. Both
   reference boards pass every hard check. easy2350 fails one: its USB pair runs over the
   +3V3 plane, not ground.
+- **Research library:** `library/` holds 143 cited claims from 41 vendor app notes, datasheets
+  and articles, on five topics:
+  - buck layout,
+  - half-bridges and motor drivers,
+  - crystal oscillators,
+  - USB, return paths and decoupling,
+  - CAN, connector protection and trace current.
+
+  It is one database with the packages' rules. 17 disputes are kept as linked pairs, one of
+  them against an rp2350 rule. Every quote is checked against its document
+  (`library/README.md`).
 
 ## Build and run
 
@@ -76,6 +87,14 @@ python3 tools/kicad_pins.py board.net U1 --rename SWD=SWDIO   # a part's pin tab
 $ccomp check package board.kicad_pcb --package packages/rp2350 --binding boards/easy2350/rp2350.binding.json
 ```
 
+The research library:
+
+```sh
+$ccomp library check                                   # ids, sources, links, both sides of each dispute
+$ccomp library query --scope circuit=buck --status contested
+python3 tools/library_fetch.py && python3 tools/library_quotes.py   # documents, hashes, quotes
+```
+
 Every command prints one JSON result. Exit status: 0 success, 1 the input failed validation,
 2 the command could not run.
 
@@ -87,8 +106,10 @@ Every command prints one JSON result. Exit status: 0 success, 1 the input failed
 | `crates/ccomp/` | The command-line harness |
 | `crates/pcb/` | A KiCad board as copper per net (read with ultraroute's `kicad-pcb`, pinned), geometry, and copper-path search |
 | `crates/verify/` | Fast-tier verifier checks (`buck.rs`, `nets.rs`) and SVG drawings of what they measured |
+| `crates/library/` | The research library: cited claims from `library/` and every package's `rules.json`, checked and queried as one database |
 | `crates/blockgen/` | Block generators (`buck.rs`) and the layout format, in the anchor part's frame |
 | `tools/` | pcbnew-side steps: apply a layout, the test bench, comparisons |
+| `library/` | Claims by circuit class, their sources (URLs and hashes; documents cached, not committed) |
 | `packages/<chip>/` | Published packages: manifest, intent, cited rules, layouts with verify reports |
 | `schema/intent.schema.json` | Generated; a test fails if it is stale |
 | `boards/<board>/` | One annotated board each: `intent.json`, `input/` (netlist snapshot), `validate.json` |

@@ -1,0 +1,771 @@
+{
+  "topic": "interface",
+  "note": "CAN physical layer, connector protection (ESD, surge, eFuse) and trace current. Extracted 2026-10-27; quotes checked by tools/library_quotes.py. Gap: IPC-2221 clearance by voltage (paywalled; no primary free source).",
+  "claims": [
+    {
+      "id": "interface.can.termination_both_ends",
+      "statement": "A high-speed CAN bus is terminated at exactly its two ends with a resistance equal to the 120 ohm cable impedance; nodes in between carry no termination.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "termination" },
+      "attributes": ["termination", "resistance"],
+      "requirement": { "termination_ohm": 120, "terminations_per_bus": 2 },
+      "citations": [
+        {
+          "source": "ti_slla270",
+          "locator": "§4 p.5",
+          "quote": "It is terminated at both ends with 120-Ω resistors, which match the characteristic impedance of the line to prevent signal reflections."
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§10.2.2.1 p.27",
+          "quote": "Resistors equal to the characteristic impedance of the line should be used to terminate both ends of the cable to prevent signal reflections."
+        },
+        {
+          "source": "mchp_an228",
+          "locator": "Bus Termination, DS00228A-page 9",
+          "quote": "the typical terminating resistor value for each end of the bus is 120Ω."
+        }
+      ],
+      "could_enforce": "ccomp check package: the termination part (or the series pair of split resistors) totals 120 ohm +/-1-5 %; a board-level check that a node marked 'end of bus' has one and an inline node has none or a switch.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.termination_not_on_node",
+      "statement": "Following ISO 11898, the 120 ohm terminator should not be fitted on a node board, because unplugging that node removes the bus termination.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "termination" },
+      "attributes": ["termination", "placement"],
+      "citations": [
+        {
+          "source": "ti_slla270",
+          "locator": "§4 p.5",
+          "quote": "placing RL on a node should be avoided since the bus lines lose termination if the node is disconnected from the bus."
+        },
+        {
+          "source": "ti_sloa101",
+          "locator": "§4 p.7",
+          "quote": "node must be avoided because the bus lines lose termination if the node is disconnected from the bus."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "interface.can.termination_on_node_allowed" }],
+      "note": "Common practice on small boards (and TI's own TCAN1042 layout example) puts the terminator on the PCB, often behind a jumper or switch."
+    },
+    {
+      "id": "interface.can.termination_on_node_allowed",
+      "statement": "The termination may sit on a node board, provided the network is arranged so that two terminations always remain when nodes are removed.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "termination" },
+      "attributes": ["termination", "placement"],
+      "citations": [
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§10.2.2.1 p.27",
+          "quote": "The termination may be on the cable or in a node, but if nodes may be removed from the bus"
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "additional care must be taken to ensure the terminating node is not removed from the bus thus also removing the termination."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "interface.can.termination_not_on_node" }],
+      "could_enforce": "Intent field on the CAN block: termination = none | fixed | switchable; flag 'fixed' on a block not declared end-of-bus."
+    },
+    {
+      "id": "interface.can.split_termination",
+      "statement": "Split termination replaces each 120 ohm terminator with two matched ~60 ohm (+/-1 %) resistors whose midpoint goes to ground through a capacitor CL, typically 4.7 nF for high-speed CAN (fc ~1.1 Mbps), to filter common-mode noise.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "termination" },
+      "attributes": ["termination", "resistance", "capacitance", "filter"],
+      "requirement": {
+        "r_each_ohm": 60,
+        "r_tolerance_pct_max": 1,
+        "c_split_f_typical": 4.7e-09,
+        "note": "CL scales with signalling rate (fc = 1/(2*pi*R*CL))"
+      },
+      "citations": [
+        {
+          "source": "ti_slla270",
+          "locator": "§4.5.2 p.8",
+          "quote": "coupling capacitor between two ~60 Ω ±1% termination resistors to couple high frequency noise to a solid ground potential."
+        },
+        {
+          "source": "ti_slla270",
+          "locator": "§4.5.2 p.8",
+          "quote": "A typical value of CL for a high-speed CAN is 4.7 nF, which generates a 3 dB point at 1.1 Mbps."
+        },
+        {
+          "source": "ti_sloa101",
+          "locator": "§5.1.13 p.13",
+          "quote": "Care must be taken to match the two resistors carefully so as not to reduce the effective immunity."
+        },
+        {
+          "source": "mchp_an228",
+          "locator": "Split Termination, DS00228A-page 9",
+          "quote": "split into two 60Ω resistors, with a bypass capacitor tied between the resistors and to ground. The two resistors should match as close as possible."
+        },
+        {
+          "source": "mchp_mcp2542",
+          "locator": "§1.8 Figure 1-3, DS20005514C-page 9",
+          "figure": "Figure 1-3, MCP2544WFDT WITH NC AND SPLIT TERMINATION, shows two 60 ohm resistors and 4700 pF"
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "the center or split tap of the termination connected to ground via capacitor C3. Split termination provides common mode filtering for the bus."
+        }
+      ],
+      "could_enforce": "ccomp check package: R pair equal within 1 % and summing to 120 ohm; split cap 1-10 nF; the cap's ground pad has a short decoupling_path_mm to the ground plane.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.single_termination_acceptable",
+      "statement": "A single 120 ohm resistor per bus end is an acceptable termination; split termination is an optional EMC improvement used when common-mode filtering or emission reduction is wanted.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "termination" },
+      "attributes": ["termination"],
+      "citations": [
+        {
+          "source": "mchp_an228",
+          "locator": "Standard Termination, DS00228A-page 9",
+          "quote": "this termination uses a single 120Ω resistor at each end of the bus. This method is acceptable in many CAN systems."
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§10.2.2.1 p.27",
+          "quote": "If filtering and stabilization of the common mode voltage of the bus is desired, then split termination may be used."
+        },
+        {
+          "source": "ti_slla270",
+          "locator": "§4.5 p.7",
+          "quote": "Two different termination models are recommended for high-speed CAN"
+        }
+      ],
+      "links": [{ "refines": "interface.can.split_termination" }],
+      "note": "The sources do not actually disagree: all present split termination as optional. A checker should therefore not require split termination, only score it (EMC). Kept separate so a scoring weight can be attached.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.termination_power",
+      "statement": "Termination resistors are rated for a bus-line short to the highest supply in the system (power ~ transceiver short-circuit current x supply voltage); a 1/4 W part is not enough if the bus can short to 24 V.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "termination" },
+      "attributes": ["termination"],
+      "requirement": { "p_rating_w_min": "I_OS(transceiver) * V_short; > 0.25 W for 24 V systems" },
+      "citations": [
+        {
+          "source": "ti_slla270",
+          "locator": "§4.5.1 p.7",
+          "quote": "a bus-line short-circuit to a 24 V supply line would generate a transceiver's IOS short-circuit output current multiplied by the supply voltage."
+        },
+        {
+          "source": "ti_slla270",
+          "locator": "§4.5.1 p.7",
+          "quote": "The 1/4 W resistor would blow up in this circumstance."
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "See the application section for information on power ratings needed for the termination resistor(s)."
+        }
+      ],
+      "could_enforce": "ccomp check package on the resistor's power rating / package size (e.g. >= 1206 or a rated part) when the board has a supply above 12 V.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.stub_length",
+      "statement": "The unterminated stub from the bus trunk to each transceiver (cable drop plus on-board CANH/CANL trace) is kept as short as possible; ISO 11898 recommends at most 0.3 m at 1 Mbps.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "stub" },
+      "attributes": ["trace_length"],
+      "requirement": { "stub_length_m_max": 0.3, "at_bitrate_bps": 1000000.0 },
+      "citations": [
+        {
+          "source": "ti_slla270",
+          "locator": "§4 p.5",
+          "quote": "It also recommends a maximum un-terminated stub length of 0.3 m."
+        },
+        {
+          "source": "ti_sloa101",
+          "locator": "§4 p.7",
+          "quote": "It also recommends a maximum unterminated stub length of 0.3 m."
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§10.2.2.1 p.27",
+          "quote": "Unterminated drop lines (stubs) connecting nodes to the bus should be kept as short as possible to minimize signal reflections."
+        }
+      ],
+      "enforced_by": ["intent max_length (per net) on CANH/CANL from connector to transceiver"],
+      "note": "On a pass-through node (two connectors), the on-board trunk is not a stub but the branch to the transceiver is.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.stub_critical_length",
+      "statement": "A stub stays invisible to the bus if it is no longer than one third of the critical length, where critical length = driver transition time / round-trip delay per metre (50 ns, 10 ns/m gives 5 m, so 1.67 m); slower edges allow longer stubs.",
+      "scope": { "circuit": "can", "block": "can_bus", "role": "stub" },
+      "attributes": ["trace_length"],
+      "requirement": { "stub_length_max": "t_transition / (2 * t_pd_per_m) / 3", "example_m": 1.67 },
+      "citations": [
+        {
+          "source": "ti_slla270",
+          "locator": "§4.8 p.9",
+          "quote": "To minimized reflections, stub-line length should not exceed one-third (1/3) of the line's critical length."
+        },
+        {
+          "source": "ti_slla270",
+          "locator": "§4.8 p.9",
+          "quote": "the max un-terminated stub length for the network is 1/3rd of the critical length, or 5/3 m (1.67 m)."
+        },
+        {
+          "source": "ti_slla270",
+          "locator": "§4.8 p.10",
+          "quote": "with slew rate control, reduced signaling rate, and careful design, longer stub lengths are easily obtained."
+        }
+      ],
+      "links": [{ "refines": "interface.can.stub_length" }],
+      "could_enforce": "Derive max_length for the CAN stub nets from the transceiver's datasheet transition time and the board's propagation delay.",
+      "note": "CAN FD transceivers have faster edges than the 50 ns example; the bound shrinks accordingly (inference, not stated in these sources).",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.node_capacitance",
+      "statement": "Each node's lumped differential capacitance (transceiver pins, connector, PCB traces at ~0.5-0.8 pF/cm, protection devices) loads the bus and sets a minimum spacing to the next node d > CL/(0.98*C), so board-side bus traces and TVS capacitance are kept small.",
+      "scope": { "circuit": "can", "block": "can_bus" },
+      "attributes": ["capacitance", "trace_length"],
+      "requirement": { "pcb_trace_pf_per_cm": [0.5, 0.8], "min_node_spacing": "CL / (0.98 * C_cable_per_m) m" },
+      "citations": [
+        {
+          "source": "ti_slla279",
+          "locator": "§1 p.2",
+          "quote": "Load capacitance includes contributions from the CAN transceiver bus pins, connector contacts, printed-circuit board traces, protection devices"
+        },
+        {
+          "source": "ti_slla279",
+          "locator": "§1 p.2",
+          "quote": "Board traces add about 0.5 pF/cm to 0.8 pF/cm depending on their construction."
+        }
+      ],
+      "could_enforce": "Sum TVS/filter-cap capacitance from part values plus 0.8 pF/cm of CANH/CANL trace; report CL per node.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.protection_order",
+      "statement": "On a CAN node the TVS (or varistor) and optional bus filter capacitors sit as close to the bus connector as possible, and an optional common-mode choke goes in series between the transceiver and the connector.",
+      "scope": { "circuit": "can", "block": "can_bus" },
+      "attributes": ["placement", "placement_order", "part_distance"],
+      "citations": [
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "Layout p.30",
+          "quote": "TVS diodes and bus filtering capacitors should be placed as close to the on-board connectors as possible"
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "a series common mode choke (CMC) can be placed on the CANH and CANL lines between the transceiver U1 and connector J1."
+        }
+      ],
+      "links": [{ "supports": "interface.esd.tvs_near_connector" }],
+      "enforced_by": ["verifier part_distance_mm (connector to TVS)"],
+      "could_enforce": "placement_order along CANH/CANL: connector -> TVS/filter caps -> CMC -> termination -> transceiver.",
+      "note": "The TCAN1042 layout example (Figure 12-1) places termination R6/R7 and C3 between U1 and the TVS D1; the sources do not say where the CMC goes relative to the TVS.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.cmc_for_fd",
+      "statement": "A common-mode choke on CANH/CANL may be needed to meet EMC requirements at data rates above 1 Mbps (CAN FD), and helps against noise induced on the bus wiring.",
+      "scope": { "circuit": "can_fd", "block": "can_bus", "role": "cmc" },
+      "attributes": ["filter", "inductance"],
+      "requirement": { "bitrate_bps_above": 1000000.0 },
+      "citations": [
+        {
+          "source": "mchp_mcp2542",
+          "locator": "§1.8 DS20005514C-page 9",
+          "quote": "In order to meet the EMC/EMI requirements, a Common-Mode Choke (CMC) may be required for data rates greater than 1 Mbps."
+        },
+        {
+          "source": "ti_slla270",
+          "locator": "§4.7 p.9",
+          "quote": "Chokes such as the ZJYS81RS-2PL51(T)-G01 have been developed by TDK specifically to address this problem in CAN applications."
+        }
+      ],
+      "could_enforce": "Schematic check: CAN FD block with bitrate > 1 Mbps and no CMC footprint -> warning (fit-or-bypass footprint suggested).",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.can.transceiver_decoupling",
+      "statement": "The CAN transceiver has a ~0.1 uF bypass capacitor as close as possible to each of VCC and VIO, plus ~4.7 uF bulk nearby.",
+      "scope": { "circuit": "can", "block": "can_transceiver", "role": "decoupling" },
+      "attributes": ["decoupling_path", "capacitance"],
+      "requirement": { "bypass_f": 1e-07, "bulk_f": 4.7e-06 },
+      "citations": [
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§11 p.29",
+          "quote": "A bulk capacitance, typically 4.7 μF, should be placed near the CAN transceiver's main VCC supply output"
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§11 p.29",
+          "quote": "a bypass capacitor, typically 0.1 μF, should be placed as close to the device VCC and VIO supply terminals."
+        },
+        {
+          "source": "mchp_mcp2542",
+          "locator": "§1.8 Figures 1-3, 1-4, DS20005514C-page 9",
+          "figure": "application schematics show 0.1 μF on VDD and on VIO"
+        }
+      ],
+      "enforced_by": ["verifier decoupling_path_mm"],
+      "status": "asserted"
+    },
+    {
+      "id": "interface.protection.two_vias",
+      "statement": "Bypass capacitors and protection devices connect to the supply and ground planes with at least two vias each to cut trace and via inductance.",
+      "scope": { "circuit": "can", "block": "can_transceiver" },
+      "attributes": ["via_count", "return_path", "inductance"],
+      "requirement": { "vias_per_gnd_or_supply_pad_min": 2 },
+      "citations": [
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "Use at least two vias for supply (VCC) and ground connections of bypass capacitors and protection devices to minimize trace and via inductance."
+        }
+      ],
+      "links": [{ "supports": "interface.esd.tvs_ground" }, { "supports": "signal.decoupling.multiple_vias" }],
+      "enforced_by": ["verifier via_count (as a minimum on ground pads)"],
+      "status": "asserted"
+    },
+    {
+      "id": "interface.esd.tvs_near_connector",
+      "statement": "The TVS sits as near to the connector as design rules allow, and the protected IC much further from the TVS than the TVS is from the connector (L4 >> L1), so the ESD current is steered into the TVS.",
+      "scope": { "circuit": "esd", "block": "connector_protection", "role": "tvs" },
+      "attributes": ["part_distance", "placement"],
+      "requirement": { "ratio_tvs_to_ic_over_connector_to_tvs_min": "much greater than 1 (no number given)" },
+      "citations": [
+        {
+          "source": "ti_slva680",
+          "locator": "§2.1 p.4",
+          "quote": "placing the TVS as near to the ESD Source as the PCB design rules allow while placing the Protected IC far away"
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§3 p.9",
+          "quote": "Place the Protected IC much further from the TVS than the TVS is to the connector"
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "Place the protection and filtering circuitry as close to the bus connector, J1, to prevent transients, ESD and noise from propagating onto the board."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "interface.protection.tvs_near_protected_device" }],
+      "enforced_by": ["verifier part_distance_mm (connector pad to TVS pad)"],
+      "could_enforce": "Ratio check: trace length TVS->IC divided by connector->TVS along the protected net."
+    },
+    {
+      "id": "interface.protection.tvs_near_protected_device",
+      "statement": "Supply-side protection devices (TVS, Schottky, snubber, capacitor) are placed physically close to the device they protect (here the eFuse) with short traces.",
+      "scope": { "circuit": "efuse", "block": "supply_input", "role": "tvs" },
+      "attributes": ["part_distance", "placement"],
+      "citations": [
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.63",
+          "quote": "Protection devices such as TVS, snubbers, capacitors, or diodes must be placed physically close to the device they are intended to protect."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "interface.esd.tvs_near_connector" }],
+      "note": "Reconcilable when the eFuse sits at the input connector; the conflict is real when the connector is far from the protected IC. SLVA680A's argument is about ESD (ns edges); TPS25947's is about supply surges and inductive kicks from the eFuse switching off, where the TVS must clamp at the IC pin."
+    },
+    {
+      "id": "interface.esd.no_stub_to_tvs",
+      "statement": "The protected line runs from the connector directly onto the TVS protection pad before branching anywhere; no stub (branch trace or via) between the line and the TVS pad.",
+      "scope": { "circuit": "esd", "block": "connector_protection", "role": "tvs" },
+      "attributes": ["trace_length", "placement_order", "inductance"],
+      "requirement": { "stub_length_mm_max": 0 },
+      "citations": [
+        {
+          "source": "ti_slva680",
+          "locator": "§2.1 p.4",
+          "quote": "The Protected Line should run directly from the ESD Source to the protection Pin of the TVS, ideally with no VIAs in the path."
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.1 p.4",
+          "quote": "the PCB designer needs to minimize L3 and eliminate L2."
+        },
+        {
+          "source": "ti_tcan1042q1",
+          "locator": "§12.1 p.30",
+          "quote": "Do not force the transient current to divert from the signal path to reach the protection device."
+        }
+      ],
+      "could_enforce": "Net-topology check: on each protected net, every path from the connector pad to any other pad passes through the TVS pad (TVS pad is a cut vertex), and the TVS branch length is 0 mm.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.esd.no_via_before_tvs",
+      "statement": "Avoid vias between the connector and the TVS; if a layer change is unavoidable, reach the TVS pin first (or put the via so the current passes the TVS before any path to the IC), never branch to the TVS through a via.",
+      "scope": { "circuit": "esd", "block": "connector_protection", "role": "tvs" },
+      "attributes": ["via_count", "placement_order"],
+      "requirement": { "via_count_connector_to_tvs_max": 0 },
+      "citations": [
+        {
+          "source": "ti_slva680",
+          "locator": "§2.3 p.7",
+          "quote": "Avoid VIAs between the ESD Source and TVS if possible"
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.3 p.7",
+          "quote": "route directly from the ESD Source to the TVS before using the VIA"
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.3 p.6",
+          "quote": "In Case 2, IESD branches between the Protected IC and the VIA to the TVS protection pin. ... This practice should be avoided."
+        }
+      ],
+      "links": [{ "refines": "interface.esd.no_stub_to_tvs" }],
+      "enforced_by": ["verifier via_count (connector-to-TVS segment)"],
+      "status": "asserted"
+    },
+    {
+      "id": "interface.esd.tvs_ground",
+      "statement": "The TVS ground pad connects to a same-layer ground plane with a stitching via immediately adjacent to the pad into a coupled inner ground plane; this ground inductance dominates the clamp voltage (0.25 nH adds ~10 V at an 8 kV IEC strike).",
+      "scope": { "circuit": "esd", "block": "connector_protection", "role": "tvs" },
+      "attributes": ["return_path", "inductance", "via_count", "ground_topology"],
+      "requirement": { "gnd_via_adjacent_to_pad": true, "example": "L = 0.25 nH, di/dt = 4e10 A/s -> 10 V" },
+      "citations": [
+        {
+          "source": "ti_slva680",
+          "locator": "§2.4 p.7",
+          "quote": "These ground planes should be stitched together with VIAs, with one VIA immediately adjacent to the ground pin of the TVS"
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.1 p.4",
+          "quote": "perhaps represents the most predominant parasitic influencing VESD."
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.1 p.4",
+          "quote": "So even with 0.25 nH of inductance an additional 10 V is presented to the system."
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.4 p.8",
+          "quote": "make both the VIA pad diameter and the VIA drill diameter as large as possible"
+        }
+      ],
+      "enforced_by": ["verifier decoupling_path_mm (TVS ground pad to nearest ground via)"],
+      "could_enforce": "TVS GND pad to nearest plane via <= ~1 mm; no plane cutout around that via.",
+      "note": "SLVA680A §1 p.3 also recommends a chassis-screw ground right beside the TVS ground and connector shield where a chassis earth exists, else tightly coupled multilayer ground planes; it notes a chassis ground separated by inductance protects well but complicates high-speed routing, and does not choose.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.esd.keepout_unprotected",
+      "statement": "The region between the connector and the TVS (including any via on that path, on every layer it crosses) is a keep-out for unprotected traces, which would pick up the ESD field.",
+      "scope": { "circuit": "esd", "block": "connector_protection" },
+      "attributes": ["clearance", "placement"],
+      "citations": [
+        {
+          "source": "ti_slva680",
+          "locator": "§2.2 p.5",
+          "quote": "the PCB designer should consider this region a Keep-Out area for unprotected PCB traces"
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.2 p.5",
+          "quote": "no unprotected lines should be ran adjacent to the VIA."
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.2 p.6",
+          "quote": "Do not route unprotected circuits in the area between the ESD Source and the TVS."
+        }
+      ],
+      "could_enforce": "Constraint compiler emits a keep-out region (ultraroute --regions) spanning connector pads to TVS pads for nets not marked protected.",
+      "note": "No distance given; the region needs a margin chosen by the tool.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.esd.path_corners",
+      "statement": "The connector-to-TVS trace is straight and as short as possible; if it must turn, use curves or at most 45 degree corners, not 90 degree.",
+      "scope": { "circuit": "esd", "block": "connector_protection" },
+      "attributes": ["trace_length"],
+      "requirement": { "corner_angle_deg_max": 45 },
+      "citations": [
+        {
+          "source": "ti_slva680",
+          "locator": "§2.2 p.5",
+          "quote": "The best method of routing from the ESD Source to the TVS is using straight paths which are as short as possible."
+        },
+        {
+          "source": "ti_slva680",
+          "locator": "§2.2 p.6",
+          "quote": "If corners must be used, curves are preferred and a maximum of 45° is acceptable."
+        }
+      ],
+      "enforced_by": ["intent max_length (connector-to-TVS segment)"],
+      "could_enforce": "Router setting: no 90 degree bends on protected nets before the TVS pad.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.supply.tvs_polarity_reverse",
+      "statement": "If the supply input can be reverse-connected, the input TVS is bidirectional or has a series reverse-blocking diode; a unidirectional TVS is only for signals that never go negative.",
+      "scope": { "circuit": "supply_input", "block": "supply_input", "role": "tvs" },
+      "attributes": ["supply"],
+      "citations": [
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.3.1 Note p.61",
+          "quote": "TI recommends to use a bi-directional TVS, or a reverse blocking diode in series with the TVS."
+        },
+        {
+          "source": "ti_slvae37",
+          "locator": "§2.5 p.5",
+          "quote": "if a signal can nominally go negative, it is required to use a bidirectional TVS diode."
+        }
+      ],
+      "could_enforce": "Schematic check from intent: supply input marked reverse_polarity_possible -> TVS part is bidirectional (part attribute).",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.supply.tvs_selection",
+      "statement": "A surge TVS has VRWM at or above the maximum operating voltage of the line (not just VBR), IPP above the peak surge current on the same reference waveform and derated for temperature, and VCLAMP below the protected circuit's absolute maximum.",
+      "scope": { "circuit": "supply_input", "role": "tvs" },
+      "attributes": ["supply"],
+      "requirement": {
+        "vrwm_v_min": "V_operating_max",
+        "ipp_a_min": "I_surge_peak (same waveform, temperature-derated)",
+        "vclamp_v_max": "protected abs max"
+      },
+      "citations": [
+        {
+          "source": "ti_slvae37",
+          "locator": "§2.1 p.3",
+          "quote": "VRWM should be selected to ensure that it is above the expected maximum operating voltage."
+        },
+        {
+          "source": "ti_slvae37",
+          "locator": "§2.2 p.4",
+          "quote": "Ensure that nominal voltage stays below VRWM, rather than VBR, to assure very low system leakage."
+        },
+        {
+          "source": "ti_slvae37",
+          "locator": "§2.3 p.4",
+          "quote": "many TVS diodes derate significantly (up to 80% of their nominal value) when raised to 105°C or 125°C."
+        },
+        {
+          "source": "ti_slvae37",
+          "locator": "§2.4 p.5",
+          "quote": "if VCLAMP violates the absolute maximum voltage of your input circuitry system, failures can occur even if the TVS diode is shunting current."
+        }
+      ],
+      "could_enforce": "ccomp check package: TVS VRWM >= the net's declared max voltage (domain intent).",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.efuse.input_decoupling",
+      "statement": "An eFuse input has a ceramic capacitor of at least 0.1 uF closest to IN and GND with minimal loop area; a ~1 uF ceramic CIN rated at least twice the input voltage damps inductive spikes when the eFuse cuts off.",
+      "scope": { "circuit": "efuse", "block": "supply_input", "role": "cin" },
+      "attributes": ["decoupling_path", "capacitance", "hot_loop_area"],
+      "requirement": { "cin_f_min": 1e-07, "cin_damping_f": 1e-06, "cin_voltage_rating_min": "2 * V_IN" },
+      "citations": [
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.62",
+          "quote": "TI recommends a ceramic decoupling capacitor of 0.1μF or greater between the IN terminal and GND terminal."
+        },
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.62",
+          "quote": "Take care to minimize the loop area formed by the bypass-capacitor connection, the IN terminal, and the GND terminal of the IC."
+        },
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.3.1 p.61",
+          "quote": "The capacitor voltage rating must be at least twice the input supply voltage to be able to withstand the positive voltage excursion during inductive ringing."
+        }
+      ],
+      "enforced_by": ["verifier decoupling_path_mm", "verifier hot_loop_area_mm2 (IN-CIN-GND loop)"],
+      "status": "asserted"
+    },
+    {
+      "id": "interface.efuse.output_clamp",
+      "statement": "An eFuse output has a Schottky diode to ground for negative inductive kicks and a >= 1 uF ceramic capacitor, both physically close to OUT with minimal loop to the IC ground.",
+      "scope": { "circuit": "efuse", "block": "supply_input", "role": "cout" },
+      "attributes": ["part_distance", "output_loop_area", "capacitance"],
+      "requirement": { "cout_f_min": 1e-06 },
+      "citations": [
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.63",
+          "quote": "a ceramic decoupling capacitor of 1μF or greater between OUT and GND. These components must be physically close to the OUT pins."
+        },
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.3.1 p.60",
+          "quote": "Connect a Schottky diode from the OUT pin ground to absorb negative spikes."
+        }
+      ],
+      "enforced_by": ["verifier output_loop_area_mm2", "verifier part_distance_mm"],
+      "status": "asserted"
+    },
+    {
+      "id": "interface.efuse.ground_island",
+      "statement": "The eFuse's GND pin ties by the shortest trace to a separate quiet ground island carrying its sense components (current-limit, timer, dV/dt, UVLO), which joins the system power ground at one star point.",
+      "scope": { "circuit": "efuse", "block": "supply_input" },
+      "attributes": ["ground_topology", "return_path"],
+      "citations": [
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.63",
+          "quote": "TI recommends to have a separate ground plane island for the eFuse. This plane does not carry any high currents"
+        },
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.63",
+          "quote": "The device ground plane must be connected to the system power ground plane using a star connection."
+        }
+      ],
+      "note": "Same pattern as rp2350.vreg.pgnd_single_point (analogous, different chip). Conflicts with the 'one solid ground plane' school; not linked as a contradiction because no source read here argues against it.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.efuse.power_path_width",
+      "statement": "High-current power-path traces through an eFuse are as short as possible and sized for at least twice the full-load current.",
+      "scope": { "circuit": "efuse", "block": "supply_input", "role": "power_path" },
+      "attributes": ["trace_width", "trace_length"],
+      "requirement": { "current_capacity_factor_min": 2 },
+      "citations": [
+        {
+          "source": "ti_tps25947",
+          "locator": "§8.4.1 p.62",
+          "quote": "High current-carrying power-path connections must be as short as possible and must be sized to carry at least twice the full-load current."
+        }
+      ],
+      "links": [{ "supports": "interface.trace.current_sizing" }],
+      "could_enforce": "Width check on power-path nets: width >= width_for(2 * I_load) by interface.trace.current_sizing.",
+      "status": "asserted"
+    },
+    {
+      "id": "interface.trace.current_sizing",
+      "statement": "Trace cross-section for a current is chosen for an allowed temperature rise above the local board temperature (which includes heat from nearby parts and parallel traces), not above ambient.",
+      "scope": { "circuit": "any", "role": "power_path" },
+      "attributes": ["trace_width"],
+      "citations": [
+        {
+          "source": "olson_2152",
+          "locator": "p.4 (PDF page)",
+          "quote": "For this reason the new standard has preferred the term “local board temperature” to ambient temperature."
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.4 (PDF page)",
+          "quote": "Parallel traces are a critical factor that should not be ignored."
+        }
+      ],
+      "could_enforce": "Intent per power net: current_a and temp_rise_c; checker computes width from IPC-2152-style data and flags narrower segments (necks included).",
+      "status": "asserted",
+      "links": [{ "refines": "buck.trace.width_per_amp" }, { "refines": "buck.trace.width_per_amp_rohm" }]
+    },
+    {
+      "id": "interface.trace.conservative_chart",
+      "statement": "The old IPC-2221 'internal conductor' chart approximates a trace in free air and is a safe worst-case sizing anywhere except vacuum (e.g. 4 A at 10 C rise needs ~0.19 mm2 = 300 sq mil); the less conservative external/IPC-2152 universal charts are only safe on boards larger than ~76 x 76 mm with planes.",
+      "scope": { "circuit": "any", "role": "power_path" },
+      "attributes": ["trace_width"],
+      "requirement": {
+        "example": { "current_a": 4, "temp_rise_c": 10, "area_mm2": 0.194 },
+        "less_conservative_charts_need_board_min_mm": [76.2, 76.2]
+      },
+      "could_enforce": "Trace-width checker uses this chart by default and switches to IPC-2152 universal data only when the board is > 76x76 mm and the trace has a plane under it.",
+      "citations": [
+        {
+          "source": "olson_2152",
+          "locator": "p.2 (PDF page)",
+          "quote": "Since the internal chart values approximate the temperature rise of a trace in free air (which can be considered a worst-case scenario)"
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.2 (PDF page)",
+          "quote": "Values obtained from this chart are very safe and will work in any circumstance except vacuum, regardless of other variables."
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.2 (PDF page)",
+          "quote": "The new data also showed that the external trace chart was only safe for boards greater than 3x3in and with planes"
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.4 (PDF page)",
+          "quote": "use the new one only if your board is greater than 3x3in!"
+        }
+      ],
+      "links": [{ "contradicts": "interface.trace.internal_double_area" }],
+      "status": "contested"
+    },
+    {
+      "id": "interface.trace.internal_double_area",
+      "statement": "Common practice from IPC-2221: an internal trace needs about twice the cross-section of an external trace for the same current and temperature rise; IPC-2152 data says the doubling was never measured and in still air internal traces run cooler than external ones.",
+      "scope": { "circuit": "any", "role": "power_path" },
+      "attributes": ["trace_width"],
+      "citations": [
+        {
+          "source": "olson_2152",
+          "locator": "p.1 (PDF page)",
+          "quote": "it is thought that when multi-layer board constructions became practical, the external values were merely doubled to get values for internal traces."
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.1 (PDF page)",
+          "quote": "in a still-air environment the internal traces actually run cooler than external."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "interface.trace.conservative_chart" }],
+      "note": "This record holds the IPC-2221 practice so the dispute has two sides; its only citation is the IPC-2152 summary that disputes it. IPC-2221 itself was not read (paywalled). Internal = 2x is still conservative, so following it is safe but wastes area."
+    },
+    {
+      "id": "interface.trace.plane_reduces_width",
+      "statement": "A solid copper plane close under a power trace cuts its temperature rise strongly (one worked case: 0.47 x the area; 10 A, 20 C rise, 1 oz external on a 1.6 mm 4-layer board needs 4.6 mm width instead of the historical 6.35 mm); plane cutouts, splits and board edges reduce the benefit.",
+      "scope": { "circuit": "any", "role": "power_path" },
+      "attributes": ["trace_width", "return_path"],
+      "requirement": {
+        "example": {
+          "current_a": 10,
+          "temp_rise_c": 20,
+          "copper_oz": 1,
+          "plane_distance_mm": 0.51,
+          "width_mm": 4.57,
+          "width_mm_historical_ipc2221": 6.35,
+          "width_mm_conservative_chart": 13.46
+        }
+      },
+      "citations": [
+        {
+          "source": "olson_2152",
+          "locator": "p.5 (PDF page)",
+          "quote": "the presence of planes will cause the most significant adjustment to the CV."
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.9 (PDF page)",
+          "quote": "Since we have a 1oz plane 20mils away, using the Planes Chart multiplier = 0.47"
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.9 (PDF page)",
+          "quote": "The Historical Chart would have recommended a 250 mil Trace Width for a 10amp 1oz external trace"
+        },
+        {
+          "source": "olson_2152",
+          "locator": "p.7 (PDF page)",
+          "quote": "located near a board edge or over a plane that has clearances in it for through-holes or plane splits, which will be less effective"
+        }
+      ],
+      "links": [{ "refines": "interface.trace.current_sizing" }],
+      "note": "Worked numbers are one example from a non-vendor tutorial of IPC-2152; the standard's charts were not read.",
+      "status": "asserted"
+    }
+  ]
+}

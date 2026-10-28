@@ -1,0 +1,801 @@
+{
+  "topic": "buck",
+  "note": "Synchronous buck converter layout and passive selection: hot loop, switch node, feedback, output loop, grounding, vias, MLCC DC bias, inductors. Extracted 2026-10-27; quotes checked by tools/library_quotes.py.",
+  "claims": [
+    {
+      "id": "buck.hot_loop.cin_first_closest",
+      "statement": "The input capacitor is placed first, on the same layer as the IC and as close to its VIN and PGND pins as manufacturing rules allow, connected by short wide copper rather than traces, so the hot loop is minimal.",
+      "scope": { "circuit": "buck", "role": "cin" },
+      "attributes": ["hot_loop_area", "part_distance", "placement_order"],
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #1, p.11",
+          "quote": "Place the input capacitor as close to the IC as allowed by manufacturing rules."
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #1, p.11",
+          "quote": "it should be the first component placed in the layout after the IC."
+        },
+        {
+          "source": "ti_snva021",
+          "locator": "§3 p.2",
+          "quote": "it should be located as close to the VIN pin of the IC as possible."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§2 item 1, p.1",
+          "quote": "Place input capacitor and free-wheel diode on the same PCB surface layer as the IC terminal and as close as possible to IC."
+        },
+        {
+          "source": "ti_slta055",
+          "locator": "Input Capacitor Selection, p.2",
+          "quote": "Even a few nanohenries of stray inductance in the capacitor current path raises the impedance at the switching frequency to levels that negate their effectiveness."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.cin" }, { "supports": "rp2350.vreg.small_loop" }],
+      "enforced_by": ["generator objective w_hot", "verifier hot_loop_area_mm2"],
+      "note": "SLYT614 treats CIN as the single most important part; placement order (CIN, then L/snubber, then COUT/feedback, then small-signal, then vias) could become a generator priority list."
+    },
+    {
+      "id": "buck.hot_loop.hf_bypass_plus_bulk",
+      "statement": "A small high-frequency ceramic bypass (0.1-0.47 uF X5R/X7R, or several 10 nF 0402/0603 parts) sits at the IC's VIN/PGND pins in parallel with the bulk CIN; the bulk capacitor may then be up to about 20 mm away.",
+      "scope": { "circuit": "buck", "role": "cin" },
+      "attributes": ["capacitance", "esl", "part_distance", "hot_loop_area"],
+      "requirement": { "bypass_capacitance_f": [1e-07, 4.7e-07], "bulk_to_bypass_distance_mm_max": 20 },
+      "citations": [
+        {
+          "source": "rohm_60an066e",
+          "locator": "§3 p.1",
+          "quote": "For CBYPASS, use surface mount type laminated ceramic capacitor with value of 0.1µF to 0.47µF"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§3 p.1, Figure 3-b",
+          "quote": "large capacitance capacitor CIN can be separated about 2cm from CBYPASS"
+        },
+        {
+          "source": "ti_snva803",
+          "locator": "p.2, Figure 3",
+          "quote": "Four 10-nF input capacitors with small 0402 or 0603 case size"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "buck.hot_loop.cin_first_closest" }, { "supports": "signal.decoupling.mixed_values" }],
+      "could_enforce": "hot_loop_area_mm2 computed through the smallest-ESL CIN only; part_distance_mm(CIN_bulk, CBYPASS) <= 20",
+      "note": "Rohm says a single ceramic may serve as both CIN and CBYPASS at IO <= 1 A (p.1)."
+    },
+    {
+      "id": "buck.hot_loop.no_vias",
+      "statement": "The power components (CIN, IC, inductor, COUT) are connected on one layer without vias; a bypass capacitor on the opposite side through vias is wrong.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["via_count", "hot_loop_area"],
+      "requirement": { "hot_loop_via_count_max": 0 },
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #3, p.12 (sentence continues: vias add significant inductance to the trace)",
+          "quote": "Finally, no vias should be used to route these components"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§3 p.1, Figure 3-d",
+          "quote": "Figure 3-d shows the layout of CBYPASS and CIN placed on the reverse side."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§3 p.1",
+          "quote": "Do not carry out this kind of layout design."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "refines": "buck.hot_loop.cin_first_closest" }, { "contradicts": "buck.hot_loop.vertical_loop" }],
+      "could_enforce": "via_count on the CIN-VIN and CIN-PGND connections == 0",
+      "note": "Contested by buck.hot_loop.vertical_loop (SNVA803), which deliberately closes the hot loop through many 0.3 mm vias from CIN's ground pads to an L2 plane. Rohm's objection is narrower: a bypass capacitor moved to the far side. A board can satisfy both only if the hot loop stays on L1 with its return on L2 directly beneath."
+    },
+    {
+      "id": "buck.hot_loop.vertical_loop",
+      "statement": "On a multilayer board the hot loop can be closed vertically through a solid L2 ground plane directly under the top layer, with the CIN ground pads stitched to it by multiple 0.3 mm vias, giving about 2 mm2 loop area and < 0.5 nH instead of about 20 mm2 and > 1 nH for a lateral loop.",
+      "scope": { "circuit": "buck", "block": "power_stage", "layers": ">= 4" },
+      "attributes": ["hot_loop_area", "return_path", "inductance"],
+      "requirement": {
+        "hot_loop_area_mm2_reference": 2,
+        "lateral_hot_loop_area_mm2_reference": 20,
+        "loop_inductance_h_reference": 5e-10,
+        "gnd_via_diameter_mm_reference": 0.3
+      },
+      "citations": [
+        {
+          "source": "ti_snva803",
+          "locator": "p.1, Figure 1",
+          "quote": "a high-frequency switching loop with lateral orientation and a relatively high area of almost 20 mm2."
+        },
+        {
+          "source": "ti_snva803",
+          "locator": "p.1, Figure 3",
+          "quote": "uses layer 2 of the PCB as a power-loop return path directly underneath the top layer"
+        },
+        {
+          "source": "ti_snva803",
+          "locator": "p.2",
+          "quote": "connected to the L2 GND plane with multiple 12-mil (0.3-mm) diameter vias, minimizing inductance."
+        },
+        {
+          "source": "ti_snva803",
+          "locator": "p.2, Figure 5",
+          "quote": "With a parasitic loop inductance less than 500 pH, ringing is not evident"
+        }
+      ],
+      "status": "contested",
+      "links": [
+        { "contradicts": "buck.hot_loop.no_vias" },
+        { "supports": "buck.ground.solid_plane" },
+        { "supports": "half_bridge.power.loop_return_inner_layer" }
+      ],
+      "could_enforce": "hot_loop_area_mm2 measured in the vertical (cross-section) plane when the return is on L2: loop perimeter x L1-L2 dielectric thickness",
+      "note": "Measured on a discrete-MOSFET controller (LM5146-Q1); peak SW overshoot about 4 V lower than the lateral layout. Values are what TI achieved, not limits."
+    },
+    {
+      "id": "buck.emi.loop_area_radiation",
+      "statement": "Differential-mode radiated field from a hot loop scales as f^2 x loop area x current (E = 263e-16 f^2 A I / r), so hot_loop_area is a linear EMI weight; a ground plane under the loop shrinks the effective area to perimeter x layer spacing.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["hot_loop_area", "return_path"],
+      "citations": [
+        {
+          "source": "ti_snva638",
+          "locator": "§2.1 p.3 (citing Ott)",
+          "quote": "the radiated field is proportional to the frequency (f) squared, the loop area (A), the current (I)"
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§2.3 p.6",
+          "quote": "A ground plane will reduce the area of the current loops"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.small_loop" }],
+      "enforced_by": ["generator objective w_hot (linear in area)"],
+      "could_enforce": "estimate E at 3 m from hot_loop_area_mm2, f = 0.35/t_rise and I = Iout*sqrt(D) as SNVA638 p.5 does; compare with the CISPR 22 class B 40 dBuV/m line",
+      "note": "Worked example p.5: 12 mm2, 35 MHz, 1.05 A gives 135 uV/m, just over the 100 uV/m limit."
+    },
+    {
+      "id": "buck.sw.min_area",
+      "statement": "The inductor sits close to the IC and the switch-node copper is kept to the inductor pad plus the minimum needed to reach the IC's SW pins; extra SW copper is an antenna and a capacitive coupling plate.",
+      "scope": { "circuit": "buck", "role": "inductor" },
+      "attributes": ["switch_node_area", "part_distance"],
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #2, p.12",
+          "quote": "place the inductor as close as possible to the IC with the area of the SW-node copper kept to a minimum."
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #2, p.12",
+          "quote": "All copper connected to the SW node is one plate of a parasitic capacitor"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5",
+          "quote": "Place inductor close to IC, no need to place it as close as the input capacitor"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5",
+          "quote": "enlarged area may work as an antenna and may lead to increase in EMI."
+        },
+        {
+          "source": "ti_snva803",
+          "locator": "p.2",
+          "quote": "the switch-node copper polygon in Figure 3 includes just the pad of the inductor and the minimum area required to connect to the MOSFETs."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.top_copper_cut" }],
+      "enforced_by": ["generator objective w_sw", "verifier switch_node_area_mm2"],
+      "note": "Rohm: the inductor is second priority to CIN, i.e. hot loop wins any placement conflict."
+    },
+    {
+      "id": "buck.sw.length_near_field_only",
+      "statement": "Over a solid ground plane, doubling switch-node length changed far-field EMI by less than 1 dBuV/m but increased near-field emission, so switch_node_area matters mostly for near-field coupling to neighbouring nets.",
+      "scope": { "circuit": "buck", "layers": ">= 4" },
+      "attributes": ["switch_node_area"],
+      "citations": [
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8 (Board 6 vs Board 2)",
+          "quote": "Doubling the length of the switch node on a board with a ground plane had little effect on the farfield EMI."
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8",
+          "quote": "The longer switch node did increase near field."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "buck.sw.min_area" }],
+      "could_enforce": "weight w_sw relative to w_hot; TI rates SW length MEDIUM and ground plane / cap placement HIGH",
+      "note": "Single experiment on an LM3102 board, 1 MHz, 12 V to 3.3 V at 2 A."
+    },
+    {
+      "id": "buck.sw.keep_ground_under",
+      "statement": "The ground plane on the layer under the switch node and high-current path is kept solid: cutting it out measurably increases radiated EMI.",
+      "scope": { "circuit": "buck", "layers": ">= 4" },
+      "attributes": ["switch_node_underlap", "return_path"],
+      "citations": [
+        {
+          "source": "ti_snva638",
+          "locator": "§3.1 p.7, layout 4",
+          "quote": "The ground copper beneath the switch node has been removed from #2."
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8 (Board 2 vs Board 4)",
+          "quote": "Board 2 increased its margin for passing Cispr-22 by 6dBµV/m over Board 4."
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8",
+          "quote": "Cutting the ground plane under the high current path increases EMI."
+        },
+        {
+          "source": "ti_snva803",
+          "locator": "p.2",
+          "quote": "Ground plane copper shields the polygon pour connecting the MOSFETs to the inductor terminal."
+        }
+      ],
+      "status": "contested",
+      "links": [
+        { "contradicts": "rp2350.vreg.lx_cutout" },
+        { "contradicts": "buck.sw.cut_ground_under_inductor" },
+        { "supports": "buck.ground.solid_plane" }
+      ],
+      "could_enforce": "switch_node_underlap_mm2 >= SW copper area (opposite sign to the rp2350 rule); settle by a slow-tier simulation of the two layouts",
+      "note": "The SNVA638 test measured far-field radiated EMI only, at 2 A / 1 MHz. Arguments for a cutout (less SW-to-ground capacitance, so less capacitive coupling and switching loss; less eddy loss under the inductor) are not measured here. RP2350 (Figure 27) and Rohm call for the cutout."
+    },
+    {
+      "id": "buck.sw.cut_ground_under_inductor",
+      "statement": "No ground plane or other copper is placed directly under the inductor, because eddy currents in it reduce inductance and Q and can carry switching noise into the copper.",
+      "scope": { "circuit": "buck", "role": "inductor" },
+      "attributes": ["switch_node_underlap", "inductance"],
+      "citations": [
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5, Figure 6-c",
+          "quote": "Not placing ground layer directly below the inductor (Figure 6-c) is also a point to pay attention to, when placing inductor."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5",
+          "quote": "Due to the eddy current occurring in the ground layer, the inductor value decreases and the loss increases (decrease of Q)"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "buck.sw.keep_ground_under" }, { "supports": "rp2350.vreg.lx_cutout" }],
+      "could_enforce": "no copper on any layer inside the inductor footprint (keepout); measure as switch_node_underlap_mm2 restricted to the inductor courtyard",
+      "note": "Rohm's English is ambiguous; Figure 6-c is captioned 'Unsuitable wiring directly below inductor', and the surrounding text reads as advice against a ground layer there. Applies most to unshielded or semi-shielded inductors."
+    },
+    {
+      "id": "buck.sw.no_signal_under_inductor",
+      "statement": "Signal traces are not routed directly under the inductor; if unavoidable, use a closed-magnetic-path (shielded) inductor.",
+      "scope": { "circuit": "buck", "role": "inductor" },
+      "attributes": ["clearance", "placement"],
+      "citations": [
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5",
+          "quote": "It is better to avoid wiring directly under inductor. If wiring is unavoidable, please use closed magnetic circuit structured inductor"
+        },
+        {
+          "source": "ti_snva021",
+          "locator": "§1 p.2",
+          "quote": "Open core can be used if they have low EMI characteristics and are located a bit more away from the low power traces and components."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "buck.inductor.shielded" }],
+      "could_enforce": "no non-power net may cross the inductor courtyard on any layer (keepout region per inductor)"
+    },
+    {
+      "id": "buck.sw.single_layer",
+      "statement": "SW and BST are routed on the top layer only, so no high-dv/dt vias appear on other layers; moving SW to another layer matters mainly when it breaks the return path.",
+      "scope": { "circuit": "buck", "role": "sw" },
+      "attributes": ["via_count", "return_path"],
+      "requirement": { "sw_via_count_max": 0, "bst_via_count_max": 0 },
+      "citations": [
+        {
+          "source": "ti_snva803",
+          "locator": "p.2",
+          "quote": "The single-layer routing of traces for SW and BST means that vias with high dv/dt do not appear on the bottom side"
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8 (Board 8)",
+          "quote": "not the routing of the switch to multiple layers that greatly increases EMI but the fact that doing so can interrupt the return path"
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Special considerations, p.14",
+          "quote": "The preferred PCB layout method is to route the SW pin underneath the input capacitor (Figure 7)."
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "p.14",
+          "quote": "Using vias in this path is a better choice than moving the input capacitor out of its ideal location."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "buck.sw.min_area" }, { "refines": "buck.hot_loop.cin_first_closest" }],
+      "could_enforce": "via_count on SW and BST nets == 0; else unreferenced_length_mm / return-path check on the layer the SW via lands on",
+      "note": "Exception (SLYT614, WCSP pinouts with SW between VIN and PGND): route SW under CIN, or via SW to the inductor, rather than move CIN; the via inductance is in series with the inductor. So the hot-loop objective outranks the SW-via penalty."
+    },
+    {
+      "id": "buck.snubber.at_sw_pgnd",
+      "statement": "An RC snubber, when fitted, is placed with the shortest possible routing between the IC's SW and PGND pins, not across a remote diode or the inductor.",
+      "scope": { "circuit": "buck", "role": "snubber" },
+      "attributes": ["part_distance", "trace_length"],
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #2, p.12",
+          "quote": "This is where it has the shortest possible routing between the SW and PGND (GND) pins, minimizing its parasitic inductance."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§3 p.3, Figures 3-g/3-h",
+          "quote": "This snubber-circuit must be placed closer to switching terminal and GND terminal of IC"
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "part_distance_mm(snubber, IC SW/PGND pins) minimised; loop area of SW-R-C-PGND"
+    },
+    {
+      "id": "buck.fb.away_from_sw_and_inductor",
+      "statement": "The feedback trace runs as far as possible from the inductor, switch node and power traces, never directly under the inductor or parallel beside it; distance from noise outranks short length.",
+      "scope": { "circuit": "buck", "role": "feedback" },
+      "attributes": ["feedback_clearance"],
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§2 p.2",
+          "quote": "Try to run the feedback trace as far from the inductor and noisy power traces as possible."
+        },
+        {
+          "source": "ti_snva021",
+          "locator": "§2 p.2",
+          "quote": "keeping it away from inductor EMI and other noise sources is the more critical of the two."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§7(d) p.7",
+          "quote": "Draw wire far away from switching node of inductor and diode. Do not wire directly below the inductor and diode"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§7 p.7, Figure 7-d",
+          "quote": "noise is induced to feedback route by magnetic field generated around the inductor."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.fb_not_under_lx" }],
+      "enforced_by": ["generator floor fb_clearance_min", "verifier feedback_clearance_mm"],
+      "note": "No source gives a minimum distance in mm."
+    },
+    {
+      "id": "buck.fb.shielded_other_layer",
+      "statement": "The feedback trace may be routed on the opposite layer from the inductor through vias, with a ground plane between it and the power stage, rather than beside the inductor on the top layer.",
+      "scope": { "circuit": "buck", "role": "feedback" },
+      "attributes": ["feedback_clearance", "via_count", "unreferenced_length"],
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§2 p.2",
+          "quote": "run the feedback trace on the side of the PCB opposite of the inductor with a ground plane separating the two."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§7 p.7, Figure 7-c",
+          "quote": "Transfer the feedback route to bottom layer of PCB through via, and the layout away from the switching node."
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #3, p.12",
+          "quote": "route the VOS pin with two vias and a dedicated trace to the output capacitor."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "buck.fb.away_from_sw_and_inductor" }],
+      "could_enforce": "feedback_clearance_mm measured in 3D (through a ground plane counts as shielded); unreferenced_length_mm of the FB net == 0"
+    },
+    {
+      "id": "buck.fb.sense_at_cout",
+      "statement": "The output-voltage sense (VOS / top of the FB divider) is taken at the output capacitor, after it or across its terminals, with a short direct dedicated trace.",
+      "scope": { "circuit": "buck", "role": "feedback" },
+      "attributes": ["feedback_point", "trace_length"],
+      "citations": [
+        {
+          "source": "rohm_60an066e",
+          "locator": "§7(b) p.7",
+          "quote": "Part which detects the output voltage must be connected after output capacitor or at both ends of output capacitor."
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #3, p.12",
+          "quote": "Make the VOS pin trace short and direct to the output capacitor."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.cout" }],
+      "enforced_by": ["generator (the feedback run ends at COUT's output pad)"]
+    },
+    {
+      "id": "buck.fb.divider_at_ic",
+      "statement": "The FB divider, feed-forward and compensation parts sit next to the IC so the high-impedance FB node is as small as possible, and away from the inductor.",
+      "scope": { "circuit": "buck", "role": "feedback" },
+      "attributes": ["part_distance", "trace_length"],
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #4, p.12",
+          "quote": "It is especially important to keep the FB node as small as possible to minimize noise pickup"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§7(a) p.7",
+          "quote": "Output of this terminal and resistor crossover network must be connected with short wire."
+        },
+        {
+          "source": "ti_snva021",
+          "locator": "§4 p.2",
+          "quote": "If external compensation components are needed for stability, they should also be placed closed to the IC."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "max_length on the FB net (pin to divider midpoint); part_distance_mm(divider, IC FB pin)"
+    },
+    {
+      "id": "buck.out_loop.cout_at_inductor",
+      "statement": "The output capacitor is placed close to the inductor output and returns to the same power ground as the IC and CIN, closing the output loop; it need not be as close as CIN.",
+      "scope": { "circuit": "buck", "role": "cout" },
+      "attributes": ["output_loop_area", "part_distance"],
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§5 p.2",
+          "quote": "The inductor, output capacitors, and output diode should be as close to each other possible."
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #3, p.12",
+          "quote": "placed to minimize the distance from the inductor back to power ground."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§6 p.7",
+          "quote": "Place output capacitor close to inductor; no need to place it as close as input capacitor."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.small_loop" }],
+      "enforced_by": ["generator objective w_out", "verifier output_loop_area_mm2"]
+    },
+    {
+      "id": "buck.loop.same_rotation",
+      "statement": "Power components are arranged so the on-state and off-state current loops circulate in the same direction, avoiding magnetic-field reversal between half-cycles.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["placement", "hot_loop_area", "output_loop_area"],
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§5 p.2",
+          "quote": "Arrange the components so that the switching current loops curl in the same direction."
+        }
+      ],
+      "status": "asserted",
+      "could_enforce": "signed area (winding direction) of the on-state loop CIN-HS-L-COUT and off-state loop LS-L-COUT have the same sign"
+    },
+    {
+      "id": "buck.ground.single_point",
+      "statement": "Power ground (CIN, COUT, PGND) and quiet analog ground (FB divider, soft-start, AGND) are kept separate and joined at one point, normally the IC's exposed pad; quiet-ground parts are not via'd straight into the system ground plane.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["ground_topology"],
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #5, p.13",
+          "quote": "join these two grounds at a single point, typically the exposed thermal pad under the IC"
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #5, p.13",
+          "quote": "Placing vias into the system ground plane on the quiet grounded components is not generally recommended"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§8 p.8",
+          "quote": "Analog small-signal ground and power-ground must be isolated."
+        }
+      ],
+      "status": "contested",
+      "links": [
+        { "supports": "rp2350.vreg.pgnd_single_point" },
+        { "contradicts": "buck.ground.solid_plane" },
+        { "supports": "half_bridge.ground.split_power_quiet" }
+      ],
+      "enforced_by": ["generator (ground vias beside CIN's ground pad only), for rp2350"],
+      "could_enforce": "ground_topology: quiet-ground pads reach PGND only through the AGND pin / exposed pad, no direct via to the plane"
+    },
+    {
+      "id": "buck.ground.solid_plane",
+      "statement": "The grounds of the IC, CIN and COUT connect close together directly to a continuous ground plane (on both sides of a 2-layer board, or an inner layer separating power and signal layers), which reduces EMI.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["ground_topology", "return_path"],
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§5 p.2",
+          "quote": "The grounds of the IC, input capacitors, output capacitors, and output diode (if applicable) should be connected close together directly to a ground plane."
+        },
+        {
+          "source": "ti_snva021",
+          "locator": "§5 p.2",
+          "quote": "a ground plane can be used to separate the power plane (where the power traces and components are) and the signal plane"
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8 (Board 2 vs Board 1)",
+          "quote": "Board 2 increased its margin for passing Cispr-22 by 4dBµV/m over Board 1."
+        }
+      ],
+      "status": "contested",
+      "links": [
+        { "contradicts": "buck.ground.single_point" },
+        { "contradicts": "buck.ground.cin_cout_separation" },
+        { "supports": "half_bridge.ground.single_plane" }
+      ],
+      "could_enforce": "ground_topology = plane; unreferenced_length_mm == 0 for the power stage",
+      "note": "The SLYT614 single-point scheme can coexist with a plane (the plane is the system ground, joined at the exposed pad); the real disagreement is whether quiet-ground parts may via straight into the plane."
+    },
+    {
+      "id": "buck.ground.cin_cout_separation",
+      "statement": "The ground terminals of CIN and COUT are separated by 10-20 mm so high-frequency input noise on CIN's ground does not reach the output through COUT.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["part_distance", "ground_topology"],
+      "requirement": { "cin_gnd_to_cout_gnd_mm_min": 10, "cin_gnd_to_cout_gnd_mm_max": 20 },
+      "citations": [
+        {
+          "source": "rohm_60an066e",
+          "locator": "§3 p.3",
+          "quote": "placing ground of CIN and CO must be separated from each other by at least 1cm to 2cm."
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§6 p.7",
+          "quote": "If they are close to each other, high frequency noise of input may be propagated to output through CO."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "buck.ground.solid_plane" }],
+      "could_enforce": "part_distance_mm between CIN and COUT ground pads >= 10",
+      "note": "Directly against TI SNVA803's U-shaped layout, which 'positions the output capacitors for a shorter return connection to the low-side MOSFET and input capacitors' (p.1), and SNVA021's 'connected close together'. For a small integrated buck (RP2350 core regulator) 10 mm would dominate the whole block."
+    },
+    {
+      "id": "buck.vias.per_amp",
+      "statement": "Vias carrying the input, output and ground current to other layers are sized at about one via per ampere (more if room allows).",
+      "scope": { "circuit": "buck" },
+      "attributes": ["via_count"],
+      "requirement": { "vias_per_a_min": 1 },
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #5, p.13",
+          "quote": "A good rule of thumb for the number of vias necessary is to use one via per amp of current flowing."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "buck.vias.per_200ma" }],
+      "could_enforce": "via_count per power net >= ceil(I_net / 1 A)"
+    },
+    {
+      "id": "buck.vias.per_200ma",
+      "statement": "A standard via carries about 200 mA, so a high-current layer change needs one via per 0.2 A.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["via_count"],
+      "requirement": { "current_per_via_a_max": 0.2 },
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§5 p.2",
+          "quote": "It is good practice to use one standard via per 200 mA of current"
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "buck.vias.per_amp" }],
+      "could_enforce": "via_count per power net >= ceil(I_net / 0.2 A)",
+      "note": "Five times stricter than SLYT614. Neither gives drill size or plating; a thermal/IR-drop calculation from via geometry (Rohm §10 gives the formula) would settle it per board."
+    },
+    {
+      "id": "buck.vias.outside_power_loop",
+      "statement": "Vias to the system VIN, VOUT and ground planes go at the outer side of CIN and COUT (and ground vias under the exposed pad), not between CIN and the IC where they would obstruct the critical connection.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["placement", "hot_loop_area"],
+      "citations": [
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #4/#5, p.13",
+          "quote": "It is best to place the vias outside the circuit, versus between the input capacitor and IC"
+        },
+        {
+          "source": "ti_slyt614",
+          "locator": "Step #5, p.13",
+          "quote": "vias are best placed directly under the IC so that the exposed thermal pad conducts its heat down into the PCB layers."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "buck.hot_loop.cin_first_closest" }],
+      "could_enforce": "no via centre inside the polygon spanned by CIN pads and IC VIN/PGND pins"
+    },
+    {
+      "id": "buck.trace.width_per_amp",
+      "statement": "High-current traces are at least 0.381 mm (15 mil) wide per ampere.",
+      "scope": { "circuit": "buck" },
+      "attributes": ["trace_width"],
+      "requirement": { "trace_width_mm_per_a_min": 0.381 },
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§5 p.2",
+          "quote": "make the traces an absolute minimum of 15 mils (0.381mm) per Ampere."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "buck.trace.width_per_amp_rohm" }],
+      "could_enforce": "trace_width >= 0.381 mm x net current (A)",
+      "note": "SNVA021 does not state copper weight."
+    },
+    {
+      "id": "buck.trace.width_per_amp_rohm",
+      "statement": "High-current traces are more than 1 mm wide per ampere on 35 um (1 oz) copper and more than 0.7 mm per ampere on 70 um (2 oz).",
+      "scope": { "circuit": "buck" },
+      "attributes": ["trace_width"],
+      "requirement": { "trace_width_mm_per_a_min_35um": 1.0, "trace_width_mm_per_a_min_70um": 0.7 },
+      "citations": [
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5",
+          "quote": "for 1 ounce (35µm) board conductor, width more than 1mm per 1A, and for 2 ounce (70µm) board conductor, width more than 0.7mm per 1A"
+        },
+        {
+          "source": "rohm_60an066e",
+          "locator": "§5 p.5, Figure 5",
+          "quote": "keeping conductor width of 0.53mm is suitable to prevent temperature to rise by 20°C."
+        }
+      ],
+      "status": "contested",
+      "links": [{ "contradicts": "buck.trace.width_per_amp" }],
+      "could_enforce": "trace_width >= k(copper) x net current; better: IPC-2152 temperature rise",
+      "note": "About 2.6x stricter than SNVA021 at 1 oz; Rohm's own thermal figure (0.53 mm for 2 A at 20 C rise) is between the two, so the 1 mm/A rule carries margin for ambient heating."
+    },
+    {
+      "id": "buck.inductor.shielded",
+      "statement": "The inductor is a shielded / closed-core ferrite type (toroid or encased core); open-core and especially stick-core inductors radiate more.",
+      "scope": { "circuit": "buck", "role": "inductor" },
+      "attributes": ["inductance"],
+      "requirement": { "shielded": true },
+      "citations": [
+        {
+          "source": "ti_snva021",
+          "locator": "§1 p.2",
+          "quote": "Always try to use a low EMI inductor with a ferrite type closed core."
+        },
+        {
+          "source": "ti_snva021",
+          "locator": "§1 p.2",
+          "quote": "Stick cores usually emit the most unwanted noise."
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§4 table, p.8",
+          "quote": "Shielded inductors have improved EMI performance over nonshielded incuctors."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.inductor" }],
+      "could_enforce": "ccomp check package: inductor part attribute shielded == true (needs a part database; not in the value string)"
+    },
+    {
+      "id": "buck.inductor.isat_above_peak",
+      "statement": "The inductor's current rating (Isat) exceeds the peak switch current Iout_max + dIL/2, with ripple dIL typically chosen as 20-40 % of Iout_max when the datasheet gives no inductor value.",
+      "scope": { "circuit": "buck", "role": "inductor" },
+      "attributes": ["isat", "inductance"],
+      "requirement": { "ripple_fraction_of_iout": [0.2, 0.4] },
+      "citations": [
+        {
+          "source": "ti_slva477",
+          "locator": "§3 p.3",
+          "quote": "the inductor must always have a higher current rating than the maximum current given in Equation 4"
+        },
+        {
+          "source": "ti_slva477",
+          "locator": "§3 p.3",
+          "quote": "A good estimation for the inductor ripple current is 20% to 40% of the output current."
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.inductor" }],
+      "could_enforce": "schematic check: Isat(L) > Iout_max + (Vin_max - Vout) x D / (2 fs L)",
+      "note": "SLVA477 also warns the current rises as inductance falls, so the rating must hold at the inductor's minimum tolerance."
+    },
+    {
+      "id": "buck.cap.dc_bias_effective",
+      "statement": "Ceramic CIN and COUT are X5R or better, and the capacitance a requirement is checked against is the effective value at the operating DC bias, not the nominal value; Class II (X5R/X7R) parts lose a large fraction at bias while C0G hardly changes.",
+      "scope": { "circuit": "buck", "role": "cin|cout" },
+      "attributes": ["capacitance"],
+      "citations": [
+        {
+          "source": "ti_slva477",
+          "locator": "§6 p.5",
+          "quote": "The dielectric material must be X5R or better. Otherwise, the capacitor loses much of its capacitance due to dc bias or temperature."
+        },
+        {
+          "source": "ti_slta055",
+          "locator": "Calculating Ceramic Capacitance, p.3",
+          "quote": "The actual capacitance of a ceramic is less than the stated nominal value at a given dc voltage."
+        },
+        {
+          "source": "murata_simsurfing_mlcc",
+          "locator": "§3 p.7, Fig.3",
+          "quote": "Capacitors for temperature compensation (C0G type etc.) hardly change when DC bias voltage is applied."
+        },
+        {
+          "source": "murata_simsurfing_mlcc",
+          "locator": "§3 p.7",
+          "quote": "the high dielectric constant type (X5R type etc.) changes when DC bias voltage is applied."
+        },
+        {
+          "source": "murata_simsurfing_mlcc",
+          "locator": "§3 p.8",
+          "quote": "DC bias apply duration : 60 sec"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "refines": "rp2350.vreg.cout" }, { "refines": "rp2350.vreg.cin" }],
+      "could_enforce": "ccomp check package: compare the derated capacitance at the net's DC voltage (vendor DC-bias curve, e.g. Murata SimSurfing) with the requirement, not the nominal value",
+      "note": "Murata's curves are measured after 60 s of bias at 25 C; long-term DC-bias aging reduces capacitance further (EPCI/Borcsa paper, not cited here). Fig.3's X5R example falls by roughly 60-70 % at 10 V (read off the plot; part not named)."
+    },
+    {
+      "id": "buck.cap.ceramic_low_esr",
+      "statement": "Input and output decoupling uses ceramic (X5R/X7R) or other low-ESR capacitors; if the regulator needs an output capacitor with defined ESR, small ceramics are paralleled with it for high frequency, and output ripple includes ESR x dIL.",
+      "scope": { "circuit": "buck", "role": "cin|cout" },
+      "attributes": ["esr", "esl"],
+      "citations": [
+        {
+          "source": "ti_snva638",
+          "locator": "§2.2 p.4",
+          "quote": "Ceramic (X7R or X5R) or other low ESR type capacitors are recommended."
+        },
+        {
+          "source": "ti_snva638",
+          "locator": "§2.2 p.4",
+          "quote": "then small ceramics can be placed in parallel with this bulk capacitor to handle the high frequency"
+        },
+        {
+          "source": "ti_slta055",
+          "locator": "Input Capacitor Selection, p.2",
+          "quote": "Large bulk capacitors do not reduce ripple voltage."
+        },
+        {
+          "source": "ti_slva477",
+          "locator": "§7 p.5",
+          "quote": "The ESR of the output capacitor adds some more ripple"
+        }
+      ],
+      "status": "asserted",
+      "links": [{ "supports": "rp2350.vreg.cout" }],
+      "could_enforce": "ccomp check package: ESR <= limit from (ripple budget / dIL)",
+      "note": "SLTA055 recommends <= 75 mVpp input ripple from the ceramics so bulk electrolytic RMS current stays within rating (p.3)."
+    }
+  ]
+}

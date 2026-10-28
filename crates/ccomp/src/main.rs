@@ -87,6 +87,47 @@ enum Cmd {
         #[command(subcommand)]
         from: Import,
     },
+    /// The research library: cited claims from `library/` and every package's `rules.json`.
+    Library {
+        #[command(subcommand)]
+        op: LibraryOp,
+    },
+}
+
+#[derive(Subcommand)]
+enum LibraryOp {
+    /// Check the database: unique ids, known statuses, every citation's source and every link's
+    /// claim found, contradictions recorded on both sides.
+    Check {
+        /// The repository root holding `library/` and `packages/`.
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+    },
+    /// Claims matching every filter given, with their sources and the links that point at them.
+    Query {
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        /// A set (`library/buck`, `packages/rp2350`, or just `buck`).
+        #[arg(long)]
+        set: Option<String>,
+        /// A claim id, or an id prefix (`buck.layout`).
+        #[arg(long)]
+        id: Option<String>,
+        /// A scope key and value, `circuit=buck`; repeatable.
+        #[arg(long, value_parser = parse_kv)]
+        scope: Vec<(String, String)>,
+        #[arg(long)]
+        attribute: Option<String>,
+        #[arg(long)]
+        status: Option<String>,
+        /// Words in the statement.
+        #[arg(long)]
+        text: Option<String>,
+    },
+}
+
+fn parse_kv(s: &str) -> Result<(String, String), String> {
+    s.split_once('=').map(|(k, v)| (k.to_string(), v.to_string())).ok_or_else(|| format!("{s}: expected KEY=VALUE"))
 }
 
 #[derive(Subcommand)]
@@ -370,6 +411,15 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 }),
                 true,
             ))
+        }
+        Cmd::Library { op: LibraryOp::Check { root } } => {
+            let report = library::Library::load(&root)?.check();
+            Ok((serde_json::to_value(&report).unwrap(), report.ok))
+        }
+        Cmd::Library { op: LibraryOp::Query { root, set, id, scope, attribute, status, text } } => {
+            let lib = library::Library::load(&root)?;
+            let hits = lib.query(&library::Query { set, status, attribute, scope, id, text });
+            Ok((json!({ "count": hits.len(), "claims": hits }), true))
         }
         Cmd::Import { from: Import::EasyPcb { nets_csv, board, netlist, output } } => {
             let text = std::fs::read_to_string(&nets_csv).map_err(|e| format!("{}: {e}", nets_csv.display()))?;
