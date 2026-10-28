@@ -24,6 +24,8 @@ def main():
     ap.add_argument("placement")
     ap.add_argument("-o", "--output", required=True)
     ap.add_argument("--back", nargs="*", default=[])
+    ap.add_argument("--keep-sides", action="store_true", help="leave every part on the side the board has it (ignore --back)")
+    ap.add_argument("--keep-outline", action="store_true", help="keep the board's own Edge.Cuts (a shaped board) instead of drawing the placement's rectangle")
     a = ap.parse_args()
     pl = json.load(open(a.placement))
     b = pcbnew.LoadBoard(a.board)
@@ -33,10 +35,13 @@ def main():
         fp = fps.get(r)
         if fp is None:
             continue
-        if (r in a.back) != fp.IsFlipped():
+        if not a.keep_sides and (r in a.back) != fp.IsFlipped():
             fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_TOP_BOTTOM)
         fp.SetPosition(pcbnew.VECTOR2I(int(round(p["x"] * NM)), int(round(p["y"] * NM))))
         fp.SetOrientationDegrees(p["rotation"])
+    if a.keep_outline:
+        b.Save(a.output)
+        return report(a)
     for d in list(b.GetDrawings()):
         if d.GetLayer() == pcbnew.Edge_Cuts:
             b.Remove(d)
@@ -49,6 +54,12 @@ def main():
     rect.SetWidth(int(0.05 * NM))
     b.Add(rect)
     b.Save(a.output)
+    return report(a, pl, missing)
+
+
+def report(a, pl=None, missing=()):
+    pl = pl or json.load(open(a.placement))
+    x0, y0, x1, y1 = pl["outline"]
     with tempfile.NamedTemporaryFile(suffix=".json") as t:
         subprocess.run(["kicad-cli", "pcb", "drc", "--format", "json", "--severity-all", "-o", t.name, a.output], capture_output=True)
         drc = json.load(open(t.name))

@@ -132,6 +132,64 @@ pub struct Problem {
     /// outline is whatever the parts need.
     #[serde(default)]
     pub outline: Option<[f64; 4]>,
+    /// A board outline of any shape, as a closed polygon: every courtyard stays inside it, less
+    /// the margin. Checked against a signed-distance grid built once.
+    #[serde(default)]
+    pub outline_polygon: Option<Vec<P>>,
+}
+
+/// Signed distance to a polygon's edge on a grid (positive inside), looked up bilinearly.
+struct Sdf {
+    x0: f64,
+    y0: f64,
+    step: f64,
+    nx: usize,
+    ny: usize,
+    d: Vec<f64>,
+}
+
+impl Sdf {
+    fn new(poly: &[P], step: f64) -> Sdf {
+        let (mut x0, mut y0, mut x1, mut y1) = (f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+        for p in poly {
+            x0 = x0.min(p.0);
+            y0 = y0.min(p.1);
+            x1 = x1.max(p.0);
+            y1 = y1.max(p.1);
+        }
+        let pad = 3.0;
+        let (x0, y0) = (x0 - pad, y0 - pad);
+        let nx = ((x1 + pad - x0) / step) as usize + 2;
+        let ny = ((y1 + pad - y0) / step) as usize + 2;
+        let mut d = vec![0.0; nx * ny];
+        for j in 0..ny {
+            for i in 0..nx {
+                let (x, y) = (x0 + i as f64 * step, y0 + j as f64 * step);
+                let mut inside = false;
+                let mut best = f64::INFINITY;
+                for k in 0..poly.len() {
+                    let (a, b) = (poly[k], poly[(k + 1) % poly.len()]);
+                    if (a.1 > y) != (b.1 > y) && x < a.0 + (y - a.1) * (b.0 - a.0) / (b.1 - a.1) {
+                        inside = !inside;
+                    }
+                    let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+                    let t = (((x - a.0) * dx + (y - a.1) * dy) / (dx * dx + dy * dy).max(1e-12)).clamp(0.0, 1.0);
+                    best = best.min(((x - a.0 - t * dx).powi(2) + (y - a.1 - t * dy).powi(2)).sqrt());
+                }
+                d[j * nx + i] = if inside { best } else { -best };
+            }
+        }
+        Sdf { x0, y0, step, nx, ny, d }
+    }
+
+    fn at(&self, x: f64, y: f64) -> f64 {
+        let fx = ((x - self.x0) / self.step).clamp(0.0, (self.nx - 2) as f64);
+        let fy = ((y - self.y0) / self.step).clamp(0.0, (self.ny - 2) as f64);
+        let (i, j) = (fx as usize, fy as usize);
+        let (u, v) = (fx - i as f64, fy - j as f64);
+        let g = |a: usize, b: usize| self.d[b * self.nx + a];
+        g(i, j) * (1.0 - u) * (1.0 - v) + g(i + 1, j) * u * (1.0 - v) + g(i, j + 1) * (1.0 - u) * v + g(i + 1, j + 1) * u * v
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -233,6 +291,7 @@ pub struct Placement {
 
 struct State<'a> {
     pr: &'a Problem,
+    sdf: Option<Sdf>,
     /// Movable poses.
     mv: Vec<Pose>,
     movables: Vec<Movable>,
@@ -279,7 +338,8 @@ impl<'a> State<'a> {
         let mut ov = 0.0;
         for i in 0..n {
             for j in i + 1..n {
-                if self.in_group[i].is_some() && self.in_group[i] == self.in_group[j] {
+                // Within a rigid group, or between two parts nothing here can move: not ours.
+                if (self.in_group[i].is_some() && self.in_group[i] == self.in_group[j]) || (pr.parts[i].fixed.is_some() && pr.parts[j].fixed.is_some()) {
                     continue;
                 }
                 let a = if pr.parts[i].back != pr.parts[j].back {
@@ -324,6 +384,32 @@ impl<'a> State<'a> {
             }
             all = ol;
             m.board_mm = [ol[2] - ol[0], ol[3] - ol[1]];
+            m.area_mm2 = m.board_mm[0] * m.board_mm[1];
+        }
+        if let (Some(sdf), Some(poly)) = (&self.sdf, &pr.outline_polygon) {
+            for (i, b) in boxes.iter().enumerate() {
+                if pr.parts[i].edge.is_some() || pr.parts[i].fixed.is_some() {
+                    continue;
+                }
+                // Corners and side midpoints, each at least the margin inside the edge.
+                let (mx, my) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
+                let pts = [(b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3]), (mx, b[1]), (mx, b[3]), (b[0], my), (b[2], my)];
+                let d: f64 = pts.iter().map(|p| (o.margin - sdf.at(p.0, p.1)).max(0.0)).sum();
+                if d > 1e-6 {
+                    outside += d * ((b[2] - b[0]) + (b[3] - b[1]));
+                    m.overlaps += 1;
+                    m.overlap_pairs.push(format!("{} outside {d:.3}", pr.parts[i].reference));
+                }
+            }
+            let (mut x0, mut y0, mut x1, mut y1) = (f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+            for p in poly {
+                x0 = x0.min(p.0);
+                y0 = y0.min(p.1);
+                x1 = x1.max(p.0);
+                y1 = y1.max(p.1);
+            }
+            all = [x0, y0, x1, y1];
+            m.board_mm = [x1 - x0, y1 - y0];
             m.area_mm2 = m.board_mm[0] * m.board_mm[1];
         }
         let mut near = 0.0;
@@ -434,12 +520,19 @@ pub fn solve(pr: &Problem) -> Placement {
     let total: f64 = pr.parts.iter().map(|p| (p.bbox[2] - p.bbox[0] + o.clearance) * (p.bbox[3] - p.bbox[1] + o.clearance)).sum();
     let span = (total * 2.0).sqrt();
     let mut rng = Rng(o.seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
-    let (cx, cy, sx, sy) = match pr.outline {
-        Some(o) => ((o[0] + o[2]) / 2.0, (o[1] + o[3]) / 2.0, o[2] - o[0], o[3] - o[1]),
+    let poly_box = pr.outline_polygon.as_ref().map(|p| {
+        let xs = p.iter().map(|q| q.0);
+        let ys = p.iter().map(|q| q.1);
+        [xs.clone().fold(f64::INFINITY, f64::min), ys.clone().fold(f64::INFINITY, f64::min), xs.fold(f64::NEG_INFINITY, f64::max), ys.fold(f64::NEG_INFINITY, f64::max)]
+    });
+    let (cx, cy, sx, sy) = match pr.outline.or(poly_box) {
+        // Start inside the middle half, so parts begin on the board.
+        Some(o) => ((o[0] + o[2]) / 2.0, (o[1] + o[3]) / 2.0, (o[2] - o[0]) * 0.5, (o[3] - o[1]) * 0.5),
         None => (0.0, 0.0, span, span),
     };
     let mv: Vec<Pose> = movables.iter().map(|m| fixed(m).unwrap_or(Pose { x: cx + (rng.f() - 0.5) * sx, y: cy + (rng.f() - 0.5) * sy, rotation: 0.0 })).collect();
-    let mut st = State { pr, mv, movables, of_part, in_group };
+    let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
+    let mut st = State { pr, sdf, mv, movables, of_part, in_group };
     let free: Vec<usize> = (0..st.movables.len()).filter(|&m| fixed(&st.movables[m]).is_none()).collect();
     // An edge part with its side named, on a set outline, starts flush on that side facing out
     // and only slides along it: true for x on top and bottom, for y on left and right.
@@ -569,7 +662,7 @@ pub fn solve(pr: &Problem) -> Placement {
             }
         }
     }
-    if let Some(ol) = pr.outline {
+    if let Some(ol) = pr.outline.or(poly_box) {
         outline = ol;
     }
     let parts = pr.parts.iter().enumerate().map(|(i, p)| (p.reference.clone(), round_pose(poses[i]))).collect();
@@ -587,7 +680,8 @@ pub fn evaluate(pr: &Problem, poses: &BTreeMap<String, Pose>) -> Result<Metrics,
     for p in &pr.parts {
         mv.push(*poses.get(&p.reference).ok_or_else(|| format!("{} has no pose", p.reference))?);
     }
-    let st = State { pr, mv, movables: (0..n).map(Movable::Part).collect(), of_part: (0..n).map(|i| (i, (0.0, 0.0), 0.0)).collect(), in_group: vec![None; n] };
+    let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
+    let st = State { pr, sdf, mv, movables: (0..n).map(Movable::Part).collect(), of_part: (0..n).map(|i| (i, (0.0, 0.0), 0.0)).collect(), in_group: vec![None; n] };
     Ok(st.cost(pr.options.w_overlap).1)
 }
 
@@ -668,7 +762,7 @@ mod tests {
     fn a_chain_packs_without_overlap() {
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
         let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
-        let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None };
+        let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
         // Twelve 1.6 x 0.8 parts (with clearance, 1.8 x 1.0 each) take about 22 mm²; a sane
@@ -682,13 +776,24 @@ mod tests {
         parts[2].edge = Some(Edge { side: None, facing: (0.0, 1.0) });
         let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0 }];
         let groups = vec![Rigid { name: "core".into(), anchor: 0, members: vec![(1, (0.0, -2.5), 0.0)] }];
-        let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 40_000, ..Default::default() }, outline: None };
+        let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 40_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         let (u, c) = (p.parts["U1"], p.parts["C1"]);
         let off = rot((0.0, -2.5), u.rotation);
         assert!((c.x - u.x - off.0).abs() < 1e-3 && (c.y - u.y - off.1).abs() < 1e-3, "{u:?} {c:?}");
         assert!(p.metrics.edge_misses.is_empty(), "{:?}", p.metrics);
         assert_eq!(p.metrics.overlaps, 0);
+    }
+
+    #[test]
+    fn a_polygon_outline_holds_the_parts() {
+        // A triangle: twelve small parts must all end up inside it.
+        let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.0, 0.5)).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let tri = vec![(0.0, 0.0), (20.0, 0.0), (10.0, 15.0)];
+        let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: Some(tri) };
+        let p = solve(&pr);
+        assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
     }
 
     #[test]
@@ -699,7 +804,7 @@ mod tests {
         }
         let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (3, "1".into())], weight: 1.0 }];
         let seps = vec![Separation { a: "sw".into(), b: "xtal".into(), min_mm: 5.0, note: None }];
-        let pr = Problem { parts, nets, groups: vec![], separations: seps, options: Options { moves: 40_000, ..Default::default() }, outline: None };
+        let pr = Problem { parts, nets, groups: vec![], separations: seps, options: Options { moves: 40_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         assert!(p.metrics.separation_misses.is_empty(), "{:?}", p.metrics);
     }

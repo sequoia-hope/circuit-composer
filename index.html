@@ -77,6 +77,10 @@ code {
   border-radius: 5px; padding: .06em .35em;
 }
 a { color: var(--accent); }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1rem; align-items: center; border: 2px solid var(--accent); }
+.feature img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #101318; }
+.feature .go { display: inline-block; margin-top: .6rem; padding: .55rem 1rem; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; }
+@media (max-width: 640px) { .feature { grid-template-columns: 1fr; } }
 footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 @media (max-width: 480px) { .entry { grid-template-columns: 1fr; gap: .1rem; } }
 </style>
@@ -86,7 +90,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 <header>
   <div class="title">
     <h1>circuit-composer</h1>
-    <span class="state active"><span class="dot"></span>Milestone 4 done</span>
+    <span class="state active"><span class="dot"></span>Milestone 5 in progress</span>
   </div>
   <p class="lede">Board design as composition: chips ingested once into verified packages, boards
   built by combining them. Sits between <a href="../easy_pcb">easy_pcb</a> (schematic) and
@@ -94,6 +98,17 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 </header>
 
 <main>
+
+  <section class="card feature">
+    <a href="boards/flame-earring/viewer/index.html"><img src="boards/flame-earring/viewer-preview.png" alt="The flame earring board in the viewer: LED rings and rails on the front copper"></a>
+    <div>
+      <h2>Flame earring: board viewer</h2>
+      <p>A point-tipped S flame, 59 × 20.7 mm, 6 layers. 117 WS2816C on four nested flame rings,
+      turned 45° so data and power run along each ring on the front copper. simple_earring's circuit
+      on the back under a 501230-class cell. Every copper layer, the parts and a 3D view.</p>
+      <a class="go" href="boards/flame-earring/viewer/index.html">Open the flame earring viewer →</a>
+    </div>
+  </section>
 
   <section class="card">
     <h2>Where it stands</h2>

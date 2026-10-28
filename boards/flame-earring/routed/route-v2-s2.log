@@ -1,0 +1,8 @@
+reserve: waiting for 4 cores — 1 in line; running: waffle-iron 8 (N100 silent-path census), rust-games 12 (land mp/atlas-mode), circuit-composer 4 (ultraroute flame earring v2 s1)
+reserve: granted 4 cores
+prefanout: 9 parts, 15 inward, 63 of 77 escaped (14 failed), 49 vias, skipped 21 no-net 4 pth 16 exposed 174 escaped, 9.9 s
+planes: 63 of 71 pads off their planes joined, 10.4 s
+pairs: 2 pairs, 4 of 4 runs coupled, 24.0 mm, 52.7 s
+negotiated 131 of 157 connections in 29 rounds, 94 vias, 97.5 s
+rip-up: 48 tries, 1 kept, 0 ripped; lost 38 with no way through, 0 to copper it may not rip, 6 no better; 105.1 s
+shove pass 1: 49 trapped tried, 49 routed out, 35 kept, 22 -> 4 open, 716.9 s

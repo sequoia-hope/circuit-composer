@@ -1,0 +1,478 @@
+# Parts database: every placeable part with LCSC number + footprint.
+# footprint: "<name>" refers to library/parts.pretty/<name>.kicad_mod
+# verified: yes = LCSC number confirmed against datasheet/prior build this project
+#           prior = proven on a previous board of ours (earring / rp2350a-compact / pendant)
+#           check = plausible but must be validated before ordering (see notes)
+
+mcu:
+  mpn: RP2350A
+  lcsc: C42411118
+  footprint: RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias
+  verified: yes          # 2026-08-05: LCSC 7251 in stock, $1.71@1; QFN-60-EP(7x7)
+  notes: no internal flash (RP2354A C41378174 was OOS) -> external QSPI
+    flash U6; pinout identical to RP2354A, same footprint. QSPI_SS still
+    doubles as the BOOTSEL strap (button + 1k), flash /CS rides the same
+    net (Pico-style, no series link).
+
+flash:
+  mpn: W25Q16JVUXIQ
+  lcsc: C2843335
+  footprint: USON-8_L3.0-W2.0-P0.50-BL-EP
+  verified: yes          # 2026-08-05: LCSC 16994 in stock, $1.63@1/$0.85@1k
+  notes: 16Mbit (2MB, same as RP2354A internal) QSPI NOR, 2.7-3.6V, 133MHz,
+    USON-8-EP 2x3mm. Footprint+WRL via easyeda2kicad C2843335; pads
+    0.6x0.28 @ 0.5mm pitch, rows 3.02mm apart, 0.3x1.7 center EP (GND).
+    Pinout 1=/CS 2=DO(IO1) 3=/WP(IO2) 4=GND 5=DI(IO0) 6=CLK 7=/HOLD(IO3)
+    8=VCC — wiring copied from RPI-RP2350A-MINIMAL R4 (docs/).
+
+led:
+  mpn: WS2816C-1313/4P
+  lcsc: C42417612
+  footprint: LED_WS2816C-1313
+  verified: yes          # 2026-10-24: LCSC 67,115 in stock, $0.071@50; Worldsemi ds
+                         # design/datasheets/WS2816C-1313-4P.pdf (Chinese, 7 p.)
+  notes: >
+    Since 2026-10-24 (user decision; was SK6805-EC10 C22394946, 8-bit).
+    16-bit per channel + internal 4-bit gamma, so the earring's very low
+    brightness levels still have fine steps. 10kHz PWM. GRB order, MSB first,
+    48 bits per pixel; T0H 200-320ns, T1H 520-800ns, bit period >= 1.25us,
+    reset >= 280us (SK6805: 80us). Pin map (ds p.2, top view): 1 VDD (TL),
+    2 DO (BL), 3 GND (BR), 4 DI (TR); 0.40 pads on a 0.80 grid. Land = the
+    LCSC/EasyEDA C42417612 footprint (0.50 pads at +-0.40), checked against
+    the ds drawing; courtyard 1.6 square. That is the SK6805's cyclic pin order
+    rotated 90deg, so DI/DO stay diagonal and place.py's k-loop picks the
+    rotation. VDD 3.3-5.5V (SK6805 3.7V); VIH 0.7*VDD (so Q3/Q9/Q10 stay);
+    IDD static <0.8mA, IDDdyn 0.7 typ / 1.0 max mA per LED (SK6805 0.3) —
+    why the ring is split into three switched zones. Iout 10-11.5mA total
+    (R+G+B, fixed; no current-gain register on the C variant). 90/190/25 mcd.
+    **Operating -40..+65C, storage -40..+85C.** **MSL 5a** (24h floor life,
+    bake 70-75C >= 24h on reel) — JLC handles MSL parts but may charge for
+    baking. Body 1.3 x 1.3 x 0.65mm (SK6805 0.33): front side, check the
+    TPU case clearance.
+
+charger:
+  mpn: LGS4056HDA
+  lcsc: C5124109
+  footprint: DFN-8-1EP_2x2mm_P0.5mm_EP0.9x1.5mm
+  verified: prior        # earring used C5124109 with this footprint
+  notes: I_BAT=900/R_PROG (<300mA); TEMP->GND disables NTC; CE->VCC; 10uF on VCC & BAT
+
+ldo:
+  mpn: NCP730BMT330TBG
+  lcsc: C892821
+  footprint: WDFN-6-2x2
+  verified: prior        # earring
+  notes: 3.3V 150mA, ~1uA Iq
+
+load_switch:
+  mpn: TPS22913BYZVR
+  lcsc: C544698
+  footprint: YZV0004ADAD
+  verified: prior        # earring; 4-ball CSP, ON active high
+  notes: >-
+    switches VSYS -> VLED (was VBATT before the rev-2 power path). VSYS is
+    VBUS-0.3V when plugged, so the 5.5V max input matters now: a 5.25V port
+    leaves ~4.95V, inside spec.
+
+usb_conn:
+  mpn: TYPE-C-31-M-12
+  lcsc: C165948
+  footprint: USB-C_SMD-TYPE-C-31-M-12_1
+  verified: yes          # HRO right-angle 16p SMD, EasyEDA footprint+3D
+
+usb_esd:
+  mpn: USBLC6-2P6
+  lcsc: C2827693
+  footprint: SOT-666
+  verified: prior        # earring
+
+crystal:
+  mpn: ABM8-272-T3
+  lcsc: C20625731
+  footprint: Crystal_SMD_3225-4Pin_3.2x2.5mm_ABM8
+  verified: yes          # Aug 5 2026: the part RPi specifies, guide §4.1
+  notes: >-
+    Abracon ABM8-272-T3, 12MHz, +-30ppm, CL 10pF, max ESR 50R, 3.2x2.5mm.
+    Pins 1/3 = crystal terminals (diagonal), 2/4 = GND/shield — same
+    convention as the 2520 it replaced, so the netlist was unchanged.
+    Land pattern copied exactly from the official RPI-RP2350A-MINIMAL R4
+    board in docs/ (generic_xtalcc320x250x80-4).
+    WHY THIS PART: was C284155 (Yajingxin TXM12M0004252FBCEO00T, 2520)
+    until Aug 5 2026. That crystal is CL 12pF / max ESR 120R, but C14/C15
+    (15p) and R1 (1k) were copied from the RP2350 guide, which derives them
+    for a CL 10pF / ESR<=50R crystal: 15p/2 + 3p stray = 10.5pF ~ 10pF, and
+    1k is sized not to over-drive a <=50R crystal at 3.3V IOVDD. Against a
+    12pF/120R part the caps ran it fast (needs 18p) and the 1k ate startup
+    margin at cold. JLCPCB flagged it ("does not use the recommended crystal
+    and polarised inductor circuitry"). Switching the crystal makes the
+    existing 15p/1k correct again — do NOT retune them.
+    A drop-in 2520 was not an option: at 12MHz the smaller blank runs
+    ~100R+ ESR, which is why RPi chose a 3225.
+
+vreg_inductor:
+  mpn: AOTA-B201610S3R3-101-T
+  lcsc: C42411119
+  footprint: L_pol_2016
+  verified: yes          # Aug 5 2026: checked against "Hardware design with
+                         # RP2350" (RP-008280-DS-1) AND the official
+                         # RPI-RP2350A-MINIMAL R4 board in docs/
+  notes: >-
+    3.3uH for RP2350 internal VREG. This IS the part Raspberry Pi specifies:
+    the guide §2.1 recap names "L1 - Abracon AOTA-B201610S3R3-101-T (0806,
+    2016 metric)" verbatim, and LCSC/JLCPCB C42411119 resolves to that exact
+    MPN (Abracon, 3.3uH, 0806, Isat 2.4A, DCR 115mR typ; JLC lists it as an
+    Extended part available for SMT assembly). Our L_pol_2016 land pattern is
+    pad-for-pad identical to the official R4 board's
+    abracon_aota-b201610s3r3-101-t: pads at (+-0.7, 0), 0.7 x 1.7mm.
+    RPi worked with Abracon specifically so this part ships on reel with all
+    dots aligned — a generic 3.3uH has randomly distributed winding direction
+    and the guide is blunt that a "wrong way round" inductor lets the coil's
+    stray field upset COUT and the regulator control loop ("if you choose not
+    to use our example, then you do so at your own risk"). JLCPCB is known to
+    challenge RP2350 designs that substitute a different inductor. Do NOT let
+    a substitution through.
+    POLARITY MATTERS (ds §6.3.8.3 / Fig 23): the dot must land on the VOUT
+    pad = L1 pad 1 (netlist swapped accordingly); L_pol_2016 draws its dot at
+    pad 1. Still worth an eyeball on the JLC assembly preview before ordering.
+
+battery_pads:
+  mpn: ~
+  lcsc: ~
+  footprint: BAT_LPR302823_PADS
+  verified: yes          # bare pads, not assembled; cell ds design/datasheets/LPR302823.pdf
+  notes: >-
+    Two 1.2x1.6 B.Cu solder pads, one each side of J1, for the LiPol
+    LPR302823's wires (+ = pad 1 = VBATT on the SW2 side, - = pad 2 = GND).
+    The cell is hand-fitted after assembly and taped to the back over parts
+    no taller than 1.1mm; see design/brief.md for the outline, tolerance
+    envelope and orientation (flat normal at -120deg, i.e. toward SW2).
+
+battery_clip:            # UNUSED since the LiPo change (kept: ordered rev 43eadc1 / rev-2 coin 4538da2)
+  mpn: MY-2032-12-R
+  lcsc: C964834
+  footprint: BAT_MY2032_12R
+  verified: yes          # datasheet MY-CP-0120 fetched; flat-foot SMD, no holes
+  notes: >-
+    clip=+ (cell can/sides), center pad=-; cell inserted + marking outward.
+    Replaces QIJEY CR2032-W (C70373): that drawing's Ø3.5/3.6 holes are NOT
+    optional — its feet are bent for reverse-side soldering, and we can't
+    drill under the clip (LED ring on the front). Ordered rev 43eadc1 shipped
+    with the QIJEY footprint; salvage = flatten QIJEY feet or fit this part
+    (feet span 10.65..12.05, pads 10.9..13.9 -> 1.15mm on-pad) or DigiKey
+    MPD BC-2003 (feet to 12.7 -> 1.8mm on-pad). Copper kept identical to
+    ordered rev; rev-2 TODO: stretch pads inward toward datasheet land
+    (2.4x6.1 at +-11.35).
+
+bootsel_button:          # UNUSED since 2026-10-24 (one-button BOOTSEL: SW2 long hold, circuit.py)
+  mpn: SKRPAME010
+  lcsc: C19724063
+  footprint: KEY-SMD_4P-L4.2-W3.2-P2.20-LS4.6
+  verified: check        # ALPS SKRP 4-pin tact; footprint via easyeda2kicad
+  notes: >-
+    Replaces TS-1101-C-W (C318938, 2-pad, 8.0mm land span). Body 4.2x3.2mm,
+    lead span 4.6mm, pads at (+-2.10, +-1.07) — strictly smaller than the
+    part it replaced, so it fits the old placement with room to spare.
+    3D model is the vendor WRL in parts/, not the easyeda2kicad-generated one.
+    CONTACT PAIRING — read before changing SW1's netlist. The footprint puts
+    pads 1 and 3 on ONE side of the body (x = -2.10) and 2 and 4 on the other
+    (x = +2.10). A 4-terminal tact is SPST with two terminals leaving each
+    side, and the two on a side are the same node, so the contacts are the
+    same-side pairs {1,3} and {2,4} — NOT {1,2}/{3,4} as the LCSC symbol
+    implies. circuit.py used to net {1,2} = BOOTSEL_SW and {3,4} = GND, which
+    ties both nodes to both nets: BOOTSEL_SW shorted to GND, holding QSPI_SS
+    low so the chip would have come up in the USB bootloader every boot and
+    the flash /CS would have been fighting a 1k pulldown.
+    It is now netted on the DIAGONAL only — pad 1 = BOOTSEL_SW, pad 4 = GND,
+    pads 2 and 3 unnetted. Diagonal pads land on opposite contacts under
+    EITHER pairing convention, so the strap is correct without needing the
+    ALPS drawing (which is not downloadable) to settle it. If you do confirm
+    same-side pairing from the drawing, you can add 3 -> BOOTSEL_SW and
+    2 -> GND for the redundant second joint.
+
+slide_switch:            # UNUSED since the LiPo change (power button + latch replaced it)
+  mpn: MSK12C02
+  lcsc: C431540
+  footprint: SW-TH_MSK12C02
+  verified: check        # SHOU HAN SPDT side-slide 8x2.8x1.4; footprint via easyeda2kicad
+  notes: >-
+    Power switch on LDO EN (50mA contact rating - do NOT put battery
+    current through it). Pin 2 = center = common. Knob = footprint +y.
+    Two 0.9mm THT locating holes at (+-1.5, 0.55) punch through to the
+    front - keep clear of front-side parts.
+
+imu:
+  mpn: LSM6DS3TR-C
+  lcsc: C967633
+  footprint: LGA-14_L3.0-W2.5-P0.50-TL
+  verified: yes          # LCSC stock confirmed Aug 2026 (18k+ units, ~$0.99)
+  notes: >-
+    6-axis IMU, LGA-14 2.5x3.0mm, 1.71-3.6V, wake-on-motion INT. I2C mode 1
+    per ds application hints: CS->VDDIO, SDx/SCx->VDDIO (lowest power),
+    SDO/SA0->GND (addr 0x6A), INT2/NC floating. Back side, opposite SW2.
+    PIN ORDER — the serial trio at the top of the package is 12 = CS,
+    13 = SCL, 14 = SDA (ST ds DocID030071 rev 3, Table 2 / Figure 1; the
+    KiCad stock Sensor_Motion:LSM6DS3 symbol agrees). circuit.py had these
+    rotated by one (12 = SCL, 13 = SDA, 14 = CS) until Aug 6 2026, which is
+    fatal both ways: CS would have been driven by the I2C clock, so the part
+    re-entered SPI mode on every edge, and SDA — an open-drain pin — was
+    strapped hard to 3V3, so the IMU would short 3V3 to ground through its
+    own output FET whenever it tried to ACK. Verified pad-by-pad that the
+    LGA-14_L3.0-W2.5-P0.50-TL footprint numbering matches Figure 1.
+
+or_diode:
+  mpn: BAV99W,115
+  lcsc: C8662
+  footprint: SOT-323_BAT54SW   # same SOT-323 land; BAV99W pinning == BAT54SW
+  verified: yes          # 2026-10-24: JLC 81,219 in stock (extended), $0.033@20;
+                         # Nexperia ds design/datasheets/BAV99W.pdf Table 2
+  notes: >-
+    SILICON since 2026-10-24 (was BAT54SW,115 C78606, a Schottky pair).
+    design/sim/button found the hot self-start: diode 2's reverse current
+    from VBATT into R17 (Schottky ~20uA @85C) put ~2V on the LDO EN. BAV99W:
+    IR <= 30nA @25V/25C, <= 30uA @25V/Tj 150C; VF <= 715mV @1mA, 855mV
+    @10mA (ds Table 7). Same series pair and the same Table 2 pinning as the
+    BAT54SW it replaces (1 = A1, 2 = K2, 3 = K1/A2), so the footprint and
+    netlist are unchanged. The clamp becomes VBATT + ~0.6V (see circuit.py).
+    Text below is the original BAT54SW rationale, still true of the topology.
+    Dual SERIES diode (not the common-cathode BAT54CW): 1 = anode
+    (diode 1), 2 = cathode (diode 2), 3 = cathode 1 + anode 2 (the
+    midpoint). Diode 1 (pin1->pin3) ORs SW_ON into the LDO EN so the
+    switch still enables the board; diode 2 (pin3->pin2) clamps EN to
+    VBATT+Vf. The clamp is NOT optional: NCP730 ds Maximum Ratings
+    table says V_EN = -0.3 to (V_IN + 0.3) — not an independent
+    40V-tolerant pin — so the USB feed (R18 from VBUS) must never lift
+    EN above the battery by more than a Schottky drop, including
+    during precharge of a deeply dead cell. 30V / 200mA per diode.
+    SOT-323 (SC-70), NOT the SOT-23 BAT54S: a placement grid scan over
+    the full board (both sides, all courtyards + hole/edge rules)
+    found ZERO legal spots for a SOT-23 courtyard — SC-70 fits 150+,
+    including the SW2 pocket this lives in. Footprint+WRL via
+    easyeda2kicad C78606 (vendor land, 0.9x0.8 pads at 1.3mm pitch);
+    courtyard widened to cover the pads.
+
+cc_diode:
+  mpn: BAV70W,115
+  lcsc: C28064
+  footprint: SOT-323_BAT54SW   # same SOT-323 land as D2; only the pinning differs
+  verified: yes          # 2026-10-24: Nexperia BAV70W,115, JLC 17,286 in stock. Was Diodes
+                         # BAV70W-7-F C93029, down to 100 units. Nexperia ds
+                         # design/datasheets/BAV70W_nexperia.pdf Table 2: 1 = A1, 2 = A2,
+                         # 3 = CC (same as Diodes DS30063); IR <= 30nA @25V/25C, VF <= 715mV @1mA
+  notes: >-
+    Power-latch diode pair D4: SILICON switching diodes, common cathode
+    (pin 1 = A1, pin 2 = A2, pin 3 = K, top-view diagram p.1). Chosen over
+    the BAT54CW for reverse leakage: IR <= 25nA @20V/25C vs a Schottky's
+    ~20uA at 85C, which would false-trigger the latch through R24 (see
+    circuit.py latch block). VF <= 0.715V @1mA.
+
+power_button:
+  mpn: B3U-3000P
+  lcsc: C963349
+  footprint: SW_B3U-3000P
+  verified: yes          # Omron ds design/datasheets/B3U-3000P.pdf p.3; JLC extended, 15.8k stock (2026-10-22)
+  notes: >-
+    Side-actuated tact, body 3.0x2.5x1.2(+0.15), actuator 0.7 past the body
+    face, two pads, no holes/boss (NOT the -B variant, which needs a Ø0.75
+    hole). Power button for the soft latch (circuit.py). Sits on the left
+    tip straight, actuator out past the edge, outside the cell envelope.
+    Same-land second source: Jianfu THAF46-NJ-R (C19270956, thin stock).
+
+oring_pfet:
+  mpn: CJ2101
+  lcsc: C52641
+  footprint: SOT-323_MOSFET
+  verified: yes          # 2026-08-31: JLC 80,920 in stock, $0.048@1; Vgs/pinout
+                         # from the Jiangsu Changjing ds (jscj-elec.com) + LCSC
+                         # attributes — pin 1 = G, 2 = S, 3 = D
+  notes: >-
+    Q2, the battery->VSYS ORing switch of the rev-2 power path. P-channel,
+    -20V / -1.4A, Vgs(th) -450mV, Rds(on) 210mOhm@-1.8V / 100mOhm@-4.5V,
+    Vgs abs max +-8V. The datasheet's own application list is exactly this
+    job ("high side load switch, charging circuit, single cell battery").
+    ORIENTATION IS LOAD-BEARING: source = VSYS, drain = VBATT, NOT the
+    other way round. The body diode of a P-FET conducts drain->source, so
+    source-on-VSYS points it BAT->VSYS: it blocks the 4.7V USB rail from
+    back-feeding the cell around the charger (the failure mode of the
+    naive source-on-battery wiring), and it still lets the cell carry the
+    load through ~0.4V of diode if VSYS ever sags below VBATT (brownout
+    valve on unplug). Gate drive is R22/R21 off VBUS — see circuit.py.
+    Worst-case |Vgs| in circuit is 3.5V, well inside the +-8V rating.
+    SOT-323, the one 3-lead package proven to fit this board (a SOT-23
+    courtyard scan found ZERO legal spots board-wide — see or_diode).
+
+sys_diode:
+  mpn: 1N4007WS
+  lcsc: C193404
+  footprint: D_SOD-323
+  verified: yes          # 2026-10-24: MDD 1N4007WS, JLC 908,031 in stock (extended),
+                         # $0.036@20; ds design/datasheets/1N4007WS_MDD.pdf
+  notes: >-
+    SILICON since 2026-10-24 (was B5819WS C7420331). The Schottky's reverse
+    leakage from VSYS into the dead VBUS node (~120uA @75C) was the second
+    half of the hot self-start (design/sim/button, circuit.py D3 note).
+    MDD typical curves: VF 0.80V @0.1A / 0.97V @1A at 25C (Fig. 3), IR
+    ~0.02uA @25C, ~0.6uA @75C at low VR (Fig. 2). Ratings 1kV / 1A /
+    IFSM 25A; VF <= 1.1V @1A. Drawn SOD-323 with the cathode bar, pad 1 =
+    cathode on our land -> VSYS, pad 2 = anode -> VBUS (unchanged).
+    VSYS ~4.2V on a 5.0V port (was ~4.7V); <=0.12W at the 140mA system
+    cap. The original Schottky rationale follows.
+    Was: 40V / 1A Schottky; Vf ~0.3V at the ~60mA the board
+    actually pulls, so VSYS lands ~4.7V on a 5.0V port. 1A is deliberate
+    headroom: the LED ring is the only load that can run away, and a
+    USB-C DFP at our 5.1k CC pulldowns can legally source 500mA.
+    Its job is purely to stop VSYS back-driving the dead VBUS node (and
+    the charger's VCC/CE pins) when running on the cell. Cost of that:
+    a few uA of reverse leakage from the cell at ~3.6V reverse, flowing
+    out through R19/R20 — an order of magnitude under R17's 40uA, but
+    unlike R17 it flows with SW2 OFF too. If standby drain ever matters,
+    RB521S-30 (C727120, SOD-523, 200mA) is the lower-leakage swap.
+    Pad 1 = cathode (KiCad stock SOD-323 land, F.Fab bar on the pad-1
+    side) -> VSYS; pad 2 = anode -> VBUS.
+
+latch_pfet:
+  mpn: LBSS84WT1G
+  lcsc: C383208
+  footprint: SOT-323_MOSFET
+  verified: yes          # 2026-10-24: LRC, JLC/LCSC 8,860 in stock (extended), $0.045@10;
+                         # ds design/datasheets/LBSS84WT1G.pdf
+  notes: >-
+    Q4, the soft latch's high-side switch, since 2026-10-24 (was CJ2101).
+    Review F2: Q4 only passes SW_ON's ~30uA (D2a -> R17, R11/R12), so it
+    doesn't need the CJ2101's 100mOhm. What it does need is a threshold
+    that the board-off leaks (D4 A1, D6, Q5 IDSS) can't reach through R24
+    when hot. LBSS84WT1G VGS(th) -0.8 / -2.0V @250uA (CJ2101: -0.45V min,
+    no tempco given), IDSS <= 0.1uA @-25V (CJ2101 1uA @-20V), VGS +-20V,
+    RDS(on) 2/6 ohm @-5V. Pin 1 = G, 2 = S, 3 = D (ds p.1 diagram) = the
+    CJ2101 pin order on SOT-323_MOSFET. Turn-on: LATCH_G ~0.7V pressed (cold
+    VF) gives VGS -2.3V at a 3.0V cell, past the -2.0V max VGS(th) (+~0.1V
+    cold), and SW_ON needs ~30uA vs 250uA at threshold. Transfer curves
+    are taken near the ZTC point; BSS84-class VGS(th) tempco is ~-3..-4mV/C,
+    and leakstudy passes to -4mV/C with <=1uA extra LATCH_G leak.
+
+lvl_nfet:
+  mpn: BSS138W
+  lcsc: C5224279
+  footprint: SOT-323_MOSFET
+  verified: yes          # 2026-08-31: JLC 30,927 in stock, $0.025@1
+  notes: >-
+    (2026-10-24: the ring is WS2816C, same VIH = 0.7*VDD, and there are now
+    three of these, Q3/Q9/Q10, one per LED zone, each pulled up to its own
+    zone rail; Q6/Q7/Q5 use the part too. The SK6805 text below still
+    holds for the numbers.)
+    Q3, the LED data level shifter that the power path FORCES. SK6805-EC10
+    wants VIH = 0.7*VDD; on the cell that was 2.94V at a full 4.2V (a 3.3V
+    GPIO clears it, which is why rev 1 needs no shifter), but on VSYS it
+    becomes 3.29V at a 5.0V port and 3.5V at the 5.25V USB ceiling — above
+    anything a 3.3V IOVDD pad can output. Open-drain inverter: gate = the
+    MCU's LED_DATA, source = GND, drain = LED_D0 pulled up to VLED by R23
+    (1k). Level-correct for ANY VLED from 3.0V to 5.5V, so it also
+    survives a future boosted or swapped LED rail.
+    FIRMWARE PAIRING (rev-2 boards only): the stage inverts, so main.cpp
+    must set gpio_set_outover(LED_DATA, GPIO_OVERRIDE_INVERT) — the pad
+    override sits after the peripheral mux, so the NeoPixel PIO program is
+    untouched. Idle is safe both ways: PIO idle-low -> pad high -> Q3 on
+    -> LED_D0 low (the reset level the ring wants), and before the
+    override is set VLED is still off (R10 holds LED_EN low), so R23's
+    pull-up is dead and the line cannot float.
+    N-channel 60V, Vgs(th) 1V max (full enhancement from 3.3V), Ciss
+    ~25pF -> ~33ns rise into 1k, against the protocol's 300ns T0H.
+    Same SOT-323 land as Q2: pin 1 = G, 2 = S, 3 = D.
+
+light_sensor:
+  mpn: ALS-PT19-315C/L177/TR8
+  lcsc: C146233
+  footprint: SENSOR_ALS-PT19
+  verified: yes          # 2026-08-25: LCSC in stock (~9k+), $0.05@20; SMD 1.7x0.8x0.6
+  notes: >-
+    Visible-light ambient phototransistor (peak 630nm, range 390-700nm,
+    IR-rejecting): the in-stock 0603 alternatives all peak at 850/940nm
+    and are nearly blind under LED room lighting. Pin 1 = COLLECTOR
+    (green paint on top / notch on bottom), pin 2 = emitter, per ds
+    DLS-0000039 rev 8 p2; easyeda footprint pads verified against the
+    recommended land (0.8x0.8 at 1.5mm pitch). App circuit (ds p6):
+    C->3V3, E->LIGHT node with R load + C filter to GND, RL*CL >= 0.5
+    kOhm*uF. With 22k: 0.15uA/lux typ -> ~16mV dark room, 0.33V @ 100
+    lux, saturates ~900 lux (Vcc-0.4). Reads on ADC0/GPIO26 (pin 40).
+    CAUTION: the LCSC web listing miscategorizes this part as
+    "through-hole D=5mm"; datasheet + DigiKey confirm SMD 1.7x0.8 —
+    eyeball the reel photo at order review.
+
+logic_schmitt2:
+  mpn: 74LVC2G14GW,125
+  lcsc: C6085
+  footprint: SOT-363_SC-70-6
+  verified: yes          # 2026-10-24: JLC 2,845 in stock (extended), $0.103@50;
+                         # Nexperia ds Rev.14 design/datasheets/74LVC2G14_nexperia.pdf
+  notes: >-
+    U8, the one-button hold timer's threshold (circuit.py). Pinout (Table 3,
+    SOT363): 1 = 1A, 2 = GND, 3 = 2A, 4 = 2Y, 5 = VCC, 6 = 1Y. Transfer
+    characteristics (Table 8, -40..85C, VCC 3.0V): VT+ 1.30 / 1.76 / 2.20,
+    VT- 0.60 / 1.04 / 1.50; II +-1uA max (+-0.1 typ). IOFF: inputs and
+    outputs are high-Z with VCC = 0, so the dead timer loads nothing when
+    the board is off. TI's SN74LVC2G14 (design/datasheets) has the same
+    pinout and threshold limits but II +-5uA; don't substitute it without
+    re-running the sim's ii corner.
+
+si_diode:
+  mpn: 1N4148WS
+  lcsc: C2128
+  footprint: D_SOD-323
+  verified: yes          # 2026-10-24: JSCJ, JLC 2.96M in stock, BASIC part;
+                         # ds design/datasheets/1N4148WS_jscj.pdf
+  notes: >-
+    D5, discharges the hold timer C75 on release. VF <= 0.715V @1mA,
+    IR <= 25nA @20V. SOD-323, cathode bar = pad 1 (-> BTN_SENSE).
+
+tvs_bidir:
+  mpn: PESD5V0S1BL,315
+  lcsc: C84374
+  footprint: D_SOD-882
+  verified: yes          # 2026-10-24: Nexperia, JLC 94,139 in stock (extended), $0.034@20;
+                         # ds design/datasheets/PESD5V0S1BL.pdf
+  notes: >-
+    D6, power-button ESD clamp at the switch pad (gate-8 S4). Bidirectional,
+    VRWM 5V (BTN_EXT never exceeds VBATT 4.35V), VBR 5.5-9.5V @1mA, VCL
+    <=14V @12A 8/20us, IEC 61000-4-2 30kV contact. IRM 5nA typ / 100nA max
+    @5V 25C; Fig. 6 gives the hot multiplier (~x10 from 85C to 150C, ~x2 per
+    17C), so ~1uA worst-case at 85C — inside the LATCH_G leak budget with
+    R24 100k (simulated). Cd 35pF: irrelevant on a button. Non-polar, so pad
+    order is free. DFN1006-2 (SOD882), 1.0 x 0.6mm.
+
+testpoint:
+  mpn: ~
+  lcsc: ~
+  footprint: TestPoint_Pad_1.5x1.5mm
+  verified: yes          # bare pad, not assembled
+
+# --- passives (0402 unless noted) ---
+# Every entry below was re-checked against its LCSC/JLCPCB product page on
+# Aug 5 2026: value, tolerance and PACKAGE all confirmed. The one that was
+# wrong was r_10k (see below) -- a 0603 part sitting on a 0402 land, which is
+# exactly the class of error a value-only review misses. Re-check the package,
+# not just the value, whenever an LCSC code changes.
+r_27:    {lcsc: C138021, footprint: R_0402_1005Metric, verified: yes}     # USB series (YAGEO RC0402FR-0727RL, 27R 1% 0402)
+r_33:    {lcsc: C25105,  footprint: R_0402_1005Metric, verified: yes}     # VREG_AVDD RC filter (0402WGF330JTCE)
+r_1k:    {lcsc: C11702,  footprint: R_0402_1005Metric, verified: yes}     # XOUT series (R1), BOOTSEL (R3) (0402WGF1001TCE)
+r_4k7:   {lcsc: C105871, footprint: R_0402_1005Metric, verified: yes}     # IMU I2C pull-ups, R27 BTN_SENSE pull-down (YAGEO RC0402FR-074K7L, 4.7k 1% 0402)
+# ^ was C25900 (UNI-ROYAL 0402WGF4701TCE) until Aug 5 2026: same value/pkg but
+#   out of stock at LCSC. C105871 is the same YAGEO RC0402 series already used
+#   for r_27, 5.5M in stock, available for JLC SMT assembly.
+r_5k1:   {lcsc: C25905,  footprint: R_0402_1005Metric, verified: yes}     # USB-C CC pulldowns (0402WGF5101TCE)
+r_10k:   {lcsc: C25744,  footprint: R_0402_1005Metric, verified: yes}     # RUN pullup, VBUS_SENSE divider (0402WGF1002TCE)
+# ^ was C25804 until Aug 5 2026: that is 0603WAF1002T5E, a 0603 part, on a
+#   0402 land -- JLCPCB flagged the footprint mismatch. C25744 is the 0402.
+r_22k:   {lcsc: C25768,  footprint: R_0402_1005Metric, verified: yes}     # R16 light-sensor load; was R_PROG until the LiPo change (0402WGF2202TCE, 22k 0402)
+r_18k:   {lcsc: C25762,  footprint: R_0402_1005Metric, verified: yes}     # R_PROG 50mA for the LPR302823 (0402WGF1802TCE, 18k 1% 0402; LCSC page checked 2026-10-22)
+r_100k:  {lcsc: C25741,  footprint: R_0402_1005Metric, verified: yes}     # PWR_EN pulldown R17 + VBUS->EN feed R18 (0402WGF1003TCE, 100k 1% 0402; 7.6M stock Aug 25).
+# ^ 100k, not 1M: NCP730 EN has an INTERNAL PULL-UP to VIN (I_EN-PU up to
+#   1uA, ds p5) and its falling threshold can be as low as 0.5V — a 1M
+#   pulldown could float EN at 1V and never turn the LDO off.
+r_680k:  {lcsc: C4131,   footprint: R_0402_1005Metric, verified: yes}     # R28 hold timer (0402WGF6803TCE, 680k 1% 0402; JLC 128k stock 2026-10-24)
+r_1m:    {lcsc: C26083,  footprint: R_0402_1005Metric, verified: yes}     # SW_ON sense divider, R29 RUN-kick (0402WGF1004TCE, 1M 0402; JLC basic, 2.4M stock 2026-10-24)
+c_100n:  {lcsc: C1525,   footprint: C_0402_1005Metric, verified: yes}     # CL05B104KO5NNNC 100nF 16V X7R 0402
+c_10n:   {lcsc: C15195,  footprint: C_0402_1005Metric, verified: yes}     # C76 RUN-kick differentiator: CL05B103KB5NNNC 10nF 50V X7R 0402 (JLC basic, 6.8M stock 2026-10-24)
+c_15p:   {lcsc: C1548,   footprint: C_0402_1005Metric, verified: yes}     # crystal load (0402CG150J500NT, 15pF 50V C0G)
+c_1u:    {lcsc: C52923,  footprint: C_0402_1005Metric, verified: yes}     # CL05A105KA5NQNC 1uF 25V X5R 0402
+c_4u7:   {lcsc: C23733,  footprint: C_0402_1005Metric_small_pads, verified: yes}  # VREG in/out: CL05A475MP5NRNC 4.7uF 10V X5R 0402
+c_10u_0805: {lcsc: C15850, footprint: C_0805_2012Metric, verified: yes}   # charger VCC/BAT: CL21A106KAYNNNE 10uF 25V X5R 0805
+c_10u_0603: {lcsc: C19702, footprint: C_0603_1608Metric, verified: yes}   # CL10A106KP8NNNC 10uF 10V (not 6.3V) X5R 0603; also C75, the hold timer (+-10%, X5R +-15%, DC bias: sim ctmr corner)

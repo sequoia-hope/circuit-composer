@@ -1,0 +1,292 @@
+{
+ "board": "routed/flame-s1.kicad_pcb",
+ "drc": {
+  "ok": false,
+  "errors": {},
+  "unconnected": 2,
+  "warnings": {
+   "silk_overlap": 199,
+   "silk_over_copper": 199,
+   "text_height": 2,
+   "lib_footprint_issues": 199,
+   "silk_edge_clearance": 164,
+   "track_dangling": 1
+  },
+  "error_items": []
+ },
+ "netlist": {
+  "ok": true,
+  "differences": [],
+  "pins": 812
+ },
+ "under_cell": {
+  "ok": true,
+  "parts": 87,
+  "too_tall": [],
+  "unknown_height": []
+ },
+ "led_chains": {
+  "ok": true,
+  "zones": {
+   "L": 46,
+   "R": 34,
+   "C": 37
+  },
+  "problems": []
+ },
+ "core_regulator": {
+  "roles": {
+   "vin": "U1.49",
+   "sw": "U1.48",
+   "pgnd": "U1.47",
+   "fb": "U1.50",
+   "cin": "C11",
+   "cout": "C12",
+   "inductor": "L1"
+  },
+  "report": {
+   "block": "buck",
+   "geometry": {
+    "feedback_closest": [
+     [
+      -1.785,
+      27.8
+     ],
+     [
+      -2.2649,
+      27.8
+     ]
+    ],
+    "feedback_path": [
+     [
+      -1.4999999999999993,
+      30.062500000000004
+     ],
+     [
+      -1.4999,
+      30.6425
+     ],
+     [
+      -1.6749,
+      30.4675
+     ],
+     [
+      -1.6749,
+      27.7375
+     ],
+     [
+      -1.3249,
+      27.6675
+     ],
+     [
+      -1.1849,
+      27.3525
+     ],
+     [
+      -1.0449,
+      27.177500000000002
+     ],
+     [
+      -1.1849,
+      27.177500000000002
+     ],
+     [
+      -1.5699,
+      27.5625
+     ],
+     [
+      -1.785,
+      27.8
+     ]
+    ],
+    "hot_loop": [
+     [
+      -1.8999999999999995,
+      30.062500000000004
+     ],
+     [
+      -1.9899000000000002,
+      29.5575
+     ],
+     [
+      -1.9199,
+      29.5225
+     ],
+     [
+      -1.9199,
+      29.1025
+     ],
+     [
+      -1.785,
+      28.85
+     ],
+     [
+      -2.815,
+      28.85
+     ],
+     [
+      -2.7249,
+      29.1375
+     ],
+     [
+      -2.7,
+      30.0625
+     ]
+    ],
+    "output_loop": [
+     [
+      -2.2999999999999994,
+      30.062500000000004
+     ],
+     [
+      -3.0,
+      26.180000000000003
+     ],
+     [
+      -1.5999999999999999,
+      26.180000000000003
+     ],
+     [
+      -1.8149,
+      27.0025
+     ],
+     [
+      -1.785,
+      27.8
+     ],
+     [
+      -2.815,
+      27.8
+     ],
+     [
+      -2.815,
+      28.85
+     ],
+     [
+      -2.7249,
+      29.1375
+     ],
+     [
+      -2.7,
+      30.0625
+     ]
+    ],
+    "routed": true
+   },
+   "measurements": [
+    {
+     "block": "buck",
+     "check": "hot_loop_area_mm2",
+     "fix_stage": "block",
+     "location": [
+      -2.219325,
+      29.393124999999998
+     ],
+     "measured": 0.980272622070316,
+     "method": "copper paths on VIN and GND, closed through CIN and the IC",
+     "nets": [
+      "3V3",
+      "GND"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "hot_loop_area_placed_mm2",
+     "fix_stage": "block",
+     "location": [
+      -2.3,
+      29.456250000000004
+     ],
+     "measured": 1.1094350371093789,
+     "method": "pad centres",
+     "nets": [
+      "3V3",
+      "GND"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "output_loop_area_mm2",
+     "fix_stage": "block",
+     "location": [
+      -2.394977777777777,
+      28.119444444444444
+     ],
+     "measured": 2.3809076971875007,
+     "method": "pad centres: a leg is unrouted",
+     "nets": [
+      "VREG_LX",
+      "VDD_CORE",
+      "GND"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "switch_node_area_mm2",
+     "fix_stage": "block",
+     "location": [
+      -2.2999999999999994,
+      30.062500000000004
+     ],
+     "measured": 1.7513,
+     "method": "union of the net's copper per layer, summed, 10 um raster",
+     "nets": [
+      "VREG_LX"
+     ],
+     "unit": "mm2"
+    },
+    {
+     "block": "buck",
+     "check": "feedback_clearance_mm",
+     "fix_stage": "block",
+     "location": [
+      -1.785,
+      27.8
+     ],
+     "measured": 0.4799,
+     "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+     "nets": [
+      "VDD_CORE",
+      "VREG_LX"
+     ],
+     "unit": "mm"
+    },
+    {
+     "block": "buck",
+     "check": "switch_node_underlap_mm2",
+     "fix_stage": "block",
+     "location": [
+      -2.2999999999999994,
+      30.062500000000004
+     ],
+     "measured": 0.31720000000000004,
+     "method": "B.Cu switch copper over other nets' copper on In4.Cu, 20 um raster",
+     "nets": [
+      "VREG_LX"
+     ],
+     "unit": "mm2"
+    }
+   ],
+   "nets": {
+    "gnd": "GND",
+    "out": "VDD_CORE",
+    "sw": "VREG_LX",
+    "vin": "3V3"
+   },
+   "ok": true,
+   "roles": {
+    "cin": "C11",
+    "cout": "C12",
+    "fb": "U1.50",
+    "inductor": "L1",
+    "pgnd": "U1.47",
+    "sw": "U1.48",
+    "vin": "U1.49"
+   }
+  }
+ },
+ "ok": false
+}

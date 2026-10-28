@@ -1,0 +1,19 @@
+reserve: granted 4 cores
+prefanout: 9 parts, 15 inward, 63 of 77 escaped (14 failed), 49 vias, skipped 21 no-net 4 pth 16 exposed 174 escaped, 14.7 s
+planes: 63 of 71 pads off their planes joined, 15.3 s
+pairs: 2 pairs, 4 of 4 runs coupled, 24.0 mm, 71.7 s
+negotiated 131 of 157 connections in 29 rounds, 94 vias, 116.3 s
+rip-up: 48 tries, 1 kept, 0 ripped; lost 38 with no way through, 0 to copper it may not rip, 6 no better; 122.6 s
+shove pass 1: 38 trapped tried, 37 routed out, 30 kept, 22 -> 3 open, 448.5 s
+shove pass 2: 3 trapped tried, 2 routed out, 0 kept, 3 -> 3 open, 483.5 s
+shove pass 3: 9 trapped tried, 9 routed out, 5 kept, 3 -> 2 open, 577.8 s
+shove pass 4: 3 trapped tried, 2 routed out, 1 kept, 2 -> 2 open, 610.9 s
+shove pass 5: 3 trapped tried, 3 routed out, 1 kept, 2 -> 2 open, 651.0 s
+shove pass 6: 2 trapped tried, 2 routed out, 0 kept, 2 -> 2 open, 674.0 s
+shove pass 7: 6 trapped tried, 2 routed out, 2 kept, 2 -> 3 open, 724.5 s
+shove pass 8: 3 trapped tried, 0 routed out, 0 kept, 3 -> 3 open, 748.5 s
+shove pass 9: 4 trapped tried, 1 routed out, 1 kept, 3 -> 2 open, 779.0 s
+shove pass 10: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 793.7 s
+shove pass 11: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 806.6 s
+shove pass 12: 3 trapped tried, 2 routed out, 1 kept, 2 -> 2 open, 838.6 s
+shove pass 13: 3 trapped tried, 2 routed out, 1 kept, 2 -> 2 open, 862.6 s

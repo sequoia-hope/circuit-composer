@@ -1,0 +1,7 @@
+build/
+viewer/
+library/
+routed/*.kicad_prl
+routed/flame-*.kicad_p*
+routed/*.core.svg
+preview_small.png

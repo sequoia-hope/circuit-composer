@@ -1,0 +1,16 @@
+# pcbview.toml -- the flame earring's viewer. From this folder:
+#
+#     ~/Software/easy_pcb/scripts/view.sh build pcbview.toml
+
+title = "Flame earring"
+subtitle = "circuit-composer"
+out = "viewer"
+back = { href = "../../../index.html", label = "Circuit Composer" }
+
+[[boards]]
+id = "flame-s1"
+name = "Flame earring, best route (seed 1)"
+pcb = "routed/best.kicad_pcb"
+front = "LEDs"
+back = "Electronics"
+note = "117 WS2816C on four nested rings, 45 degrees to the ring, rails on F.Cu; simple_earring's circuit on the back under the cell. 6 layers. ultraroute 184f640, seed 1: 0 DRC errors, 2 connections open (LED_EN_C U1.34-R34, VBUS at U5.5)."

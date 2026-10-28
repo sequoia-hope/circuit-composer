@@ -1,0 +1,37 @@
+reserve: granted 4 cores
+prefanout: 9 parts, 15 inward, 64 of 79 escaped (15 failed), 57 vias, skipped 21 no-net 4 pth 16 exposed 174 escaped, 13.3 s
+planes: 60 of 71 pads off their planes joined, 13.8 s
+pairs: 2 pairs, 2 of 2 runs coupled, 1.8 mm, 21.1 s
+first: 2 nets, 8 routed, 6 failed, 6 vias, 22.5 s
+negotiated 124 of 155 connections in 16 rounds, 78 vias, 58.3 s
+rip-up: 60 tries, 2 kept, 3 ripped; lost 44 with no way through, 0 to copper it may not rip, 14 no better; 73.6 s
+shove pass 1: 36 trapped tried, 30 routed out, 19 kept, 29 -> 5 open, 458.5 s
+shove pass 2: 5 trapped tried, 4 routed out, 0 kept, 5 -> 5 open, 538.7 s
+shove pass 3: 14 trapped tried, 11 routed out, 5 kept, 5 -> 3 open, 670.9 s
+shove pass 4: 3 trapped tried, 2 routed out, 0 kept, 3 -> 3 open, 695.1 s
+shove pass 5: 3 trapped tried, 2 routed out, 0 kept, 3 -> 3 open, 717.8 s
+shove pass 6: 3 trapped tried, 2 routed out, 0 kept, 3 -> 3 open, 745.7 s
+shove pass 7: 5 trapped tried, 2 routed out, 2 kept, 3 -> 3 open, 773.9 s
+shove pass 8: 3 trapped tried, 0 routed out, 0 kept, 3 -> 3 open, 785.2 s
+shove pass 9: 5 trapped tried, 3 routed out, 1 kept, 3 -> 2 open, 801.4 s
+shove pass 10: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 807.4 s
+shove pass 11: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 814.6 s
+shove pass 12: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 824.5 s
+shove pass 13: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 840.4 s
+shove pass 14: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 847.0 s
+shove pass 15: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 854.4 s
+shove pass 16: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 862.9 s
+shove pass 17: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 870.4 s
+shove pass 18: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 876.8 s
+shove pass 19: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 884.8 s
+shove pass 20: 2 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 893.6 s
+shove pass 21: 2 trapped tried, 1 routed out, 0 kept, 2 -> 2 open, 906.6 s
+pairs: 9 pieces of pair copper unlocked round 2 open connections
+shove pass 1: 0 trapped tried, 0 routed out, 0 kept, 2 -> 2 open, 906.6 s
+vias: 21 of 159 dropped, 19 of 398 tries kept, 914.6 s
+pulled tight: 1836 -> 1321 segments, 1201 -> 1169 mm, 914.6 s
+dropped 0 doubled, pruned 28 dangling, open 2 -> 2, 914.7 s
+tune: USB_C_DP/USB_C_DN skew 1.32 -> 0.17 mm
+routed 0 more, 35 failed, 2 open, 914.7 s
+split 3 tracks where others end on them
+dropped 4 pour fills new copper cuts; KiCad refills them
