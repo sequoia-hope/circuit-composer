@@ -1,6 +1,6 @@
 build/
 viewer/
-library/
+/library/
 routed/*.kicad_prl
 routed/flame-*.kicad_p*
 routed/*.core.svg

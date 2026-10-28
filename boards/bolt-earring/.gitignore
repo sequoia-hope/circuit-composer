@@ -1,7 +1,7 @@
 build/
 viewer/
 view/
-library/
+/library/
 floorplan/try*.json
 routed/*.kicad_prl
 routed/bolt-*.kicad_p*
