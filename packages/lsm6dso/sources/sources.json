@@ -1,0 +1,39 @@
+{
+ "lsm6dso_ds": {
+  "title": "LSM6DSO iNEMO inertial module: always-on 3D accelerometer and 3D gyroscope",
+  "publisher": "STMicroelectronics",
+  "doc": "DS12140",
+  "kind": "datasheet",
+  "revision": "DS12140 - Rev 2 (PDF dated 2019-01-28)",
+  "url": "https://datasheet.lcsc.com/datasheet/pdf/9b8183d12f183970849d8eecce406049.pdf?productCode=C2655100",
+  "where": "The copy read and hashed is LCSC's datasheet link for C2655100 (url); st.com (vendor_url) timed out.",
+  "sha256": "1074e39739595e97705507c23ba0e31d1587884810b18335822444e8b207acb8",
+  "bytes": 2893624,
+  "retrieved": "2026-10-27",
+  "note": "ST has published later revisions; the hash is of Rev 2, which is what was read. Page numbers are the printed 'page N/172'.",
+  "vendor_url": "https://www.st.com/resource/en/datasheet/lsm6dso.pdf"
+ },
+ "st_tn1383": {
+  "title": "PCB design guidelines for MEMS sensors",
+  "publisher": "STMicroelectronics",
+  "doc": "TN1383",
+  "kind": "app_note",
+  "revision": "TN1383 - Rev 1 - August 2023",
+  "url": "https://www.smtnet.com/library/files/upload/tn1383-pcb-design-guidelines-for-mems-sensors-stmicroelectronics.pdf",
+  "sha256": "3b8977f668c7b6f21e4ca7a1d46174553d033029e1e13e5afe66c1df9ae83111",
+  "bytes": 1464533,
+  "retrieved": "2026-10-27",
+  "note": "Mirror of ST's document (st.com timed out). Its land-pattern rules are stated as taken from TN0018; TN0018 itself could not be fetched (st.com timed out, Mouser returned an HTML page) and was not read."
+ },
+ "ti_slva689": {
+  "title": "I2C Bus Pullup Resistor Calculation (Rajan Arora)",
+  "publisher": "Texas Instruments",
+  "doc": "SLVA689A",
+  "kind": "app_note",
+  "revision": "SLVA689A - February 2015 - revised October 2026",
+  "url": "https://www.ti.com/lit/an/slva689/slva689.pdf",
+  "sha256": "84da7d3745364e881a72914ca609e93132c356dcc0a0461de483fa27a8669e7b",
+  "bytes": 382608,
+  "retrieved": "2026-10-27"
+ }
+}

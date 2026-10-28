@@ -1,0 +1,84 @@
+{
+  "note": "Pins by number for the SOT-23-5 (DBV) variant; what each function means and its default net class. The DBV variant has no power-good pin: PG exists only on TLV62569PDDC and TLV62569PDRL (Device Comparison, p.1; Pin Functions, p.3).",
+  "functions": {
+    "VIN": {
+      "kind": "power_in",
+      "class": "POWER",
+      "supply": "VIN",
+      "note": "Power supply input, 2.5-5.5 V recommended (p.4), 6 V absolute maximum (p.3). Also the high-side switch's drain: CIN goes between this pin and GND.",
+      "citation": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Functions p.3; §6.3 p.4"
+      }
+    },
+    "GND": {
+      "kind": "ground",
+      "class": "GROUND",
+      "note": "Ground pin: the low-side switch's return and the control ground (one pin, no exposed pad on DBV).",
+      "citation": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Functions p.3"
+      }
+    },
+    "SW": {
+      "kind": "switch",
+      "class": "SWITCH",
+      "supply": "VIN",
+      "note": "Switch node: the internal FETs to the inductor. DC -0.3 V to VIN+0.3 V; -3 V to 9 V for under 10 ns while switching (p.3).",
+      "citation": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Functions p.3; §6.1 p.3"
+      }
+    },
+    "FB": {
+      "kind": "feedback",
+      "class": "ANALOG",
+      "note": "Feedback input, regulated to VFB = 0.6 V (0.588-0.612 V). Connect to an external divider from VOUT; 5.5 V absolute maximum.",
+      "citation": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Functions p.3; §6.5 p.4"
+      }
+    },
+    "EN": {
+      "kind": "enable",
+      "class": "SIGNAL",
+      "supply": "VIN",
+      "note": "Enable, active high: VIH 1.2 V max, VIL 0.4 V min (2.5 V <= VIN <= 5.5 V). Must not be left floating. Low = shutdown, 0.1 uA typical, 2 uA max.",
+      "citation": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Functions p.3; §6.5 p.4; §7.4.1 p.7"
+      }
+    }
+  },
+  "variants": {
+    "TLV62569DBV": {
+      "package": "SOT-23-5 (DBV0005A)",
+      "source": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Configuration and Functions p.3 (DBV top view and Pin Functions table); KiCad Regulator_Switching:TLV62569DBV (extends TLV62568DBV) has the same numbers and names"
+      },
+      "pins": {
+        "1": {
+          "name": "EN",
+          "function": "EN"
+        },
+        "2": {
+          "name": "GND",
+          "function": "GND"
+        },
+        "3": {
+          "name": "SW",
+          "function": "SW"
+        },
+        "4": {
+          "name": "VIN",
+          "function": "VIN"
+        },
+        "5": {
+          "name": "FB",
+          "function": "FB"
+        }
+      }
+    }
+  }
+}

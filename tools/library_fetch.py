@@ -60,7 +60,7 @@ def main():
             results.append({"source": sid, "status": "skipped", "why": "no url"})
             continue
         web = s.get("kind") == "article" and not url.lower().split("?")[0].endswith(".pdf")
-        if not web and not url.lower().split("?")[0].endswith(".pdf"):
+        if not web and not url.lower().split("?")[0].endswith(".pdf") and s.get("kind") not in ("datasheet", "app_note", "design_guide", "standard"):
             results.append({"source": sid, "status": "skipped", "why": "not a document"})
             continue
         dest = os.path.join(cache, sid + (".html" if web else ".pdf"))
@@ -68,7 +68,7 @@ def main():
         if not os.path.exists(dest):
             try:
                 req = urllib.request.Request(url, headers={"User-Agent": UA})
-                with urllib.request.urlopen(req, timeout=60) as resp, open(dest + ".part", "wb") as f:
+                with urllib.request.urlopen(req, timeout=180) as resp, open(dest + ".part", "wb") as f:
                     f.write(resp.read())
                 os.replace(dest + ".part", dest)
             except Exception as e:

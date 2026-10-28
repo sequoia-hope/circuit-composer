@@ -1,0 +1,72 @@
+{
+ "note": "Floorplan of the battery demo board: the outline is the floorplanner's to choose. USB-C on the top edge, the battery connector on the bottom edge, both facing out. The RP2350 core regulator is the package's generated qfn60-4layer layout, moved as one. Separations come from the packages' rules: the IMU 10 mm from the USB-C receptacle (a force point) and 5 mm from the heat of the charger and the buck (lsm6dso rules); the buck's switch node 5 mm from the crystal (library crystal.routing.keepout).",
+ "edges": {
+  "J1": {
+   "side": "top",
+   "facing": [
+    0,
+    1
+   ]
+  },
+  "J2": {
+   "side": "bottom",
+   "facing": [
+    0,
+    1
+   ]
+  }
+ },
+ "rigid": [
+  {
+   "name": "core_reg",
+   "anchor": "U4",
+   "layout": "packages/rp2350/layouts/qfn60-4layer/layout.json",
+   "roles": {
+    "cin": "C6",
+    "cout": "C9",
+    "inductor": "L1"
+   }
+  }
+ ],
+ "blocks": {
+  "J1": "usb_in",
+  "R1": "usb_in",
+  "R2": "usb_in",
+  "Q1": "power_path",
+  "R3": "power_path",
+  "D3": "power_path",
+  "R4": "user_led",
+  "D1": "user_led",
+  "J3": "swd"
+ },
+ "separations": [
+  {
+   "a": "usb_in",
+   "b": "imu/imu",
+   "min_mm": 10,
+   "note": "lsm6dso: 10 mm from force points"
+  },
+  {
+   "a": "chg/charger",
+   "b": "imu/imu",
+   "min_mm": 5,
+   "note": "lsm6dso: away from heat sources"
+  },
+  {
+   "a": "reg/reg",
+   "b": "imu/imu",
+   "min_mm": 5,
+   "note": "lsm6dso: away from heat sources"
+  },
+  {
+   "a": "reg/reg",
+   "b": "mcu/crystal",
+   "min_mm": 5,
+   "note": "crystal.routing.keepout: no switching nodes near the crystal"
+  }
+ ],
+ "options": {
+  "moves": 600000,
+  "w_edge": 40
+ }
+}

@@ -12,6 +12,7 @@ and with measurements taken from Raspberry Pi's two minimal boards.
 | `ports.json` | Every pin of both variants by number and name, and each function's supply domain, default net class and notes (datasheet §1.2) |
 | `rules.json` | 27 claims from the datasheet and design guide, each cited, with what enforces it; disputes kept as `contested` |
 | `schematic/support.json` | The support parts by block and role as fitted on both minimal boards: value, footprint, designator; decoupling per pin |
+| `schematic/circuit.RP2350A.json` | The package's circuit for composing it: 31 parts by role with symbol, value and footprint; 17 internal nets; 37 ports (GND and +3V3 must be connected). Read from the minimal board by `tools/package_circuit.py` |
 | `schematic/nets.json` | The package's nets by role pin, and the pin pair each length limit is measured on (`tools/package_nets.py`) |
 | `reference/*/` | `ccomp measure` specs and results, and `ccomp check package` bindings and reports, for the two minimal boards |
 | `sources/sources.json` | The documents and boards, with SHA-256 hashes |
@@ -110,5 +111,23 @@ unverifiable, not failed. A package part with no board part bound to it is repor
 
 The BOOTSEL resistor's distance to the flash was 3.0 mm in 0.2.0's first draft. Both reference
 boards measure 3.9–4.1 mm, so the soft limit is now 4.1 mm, what the vendor achieves.
+
+## Composing the package into a board
+
+`ccomp compose` builds a board from package instances and the board's own parts
+(`reference/rp2350a_minimal/compose.json`). The composition names its nets by port
+(`mcu.+3V3`, `mcu.USB_DP`) and by board pin (`J1.3`). The composed circuit reproduces both
+boards' netlists net for net:
+- the RP2350A minimal board, 55 nets;
+- easy2350, 65 nets (`boards/easy2350/compose.json`, checked by `crates/ccomp/tests/compose.rs`).
+
+easy2350 departs from the package in four places, and its composition states each one:
+- its RUN resistor and button are wired in the other order, so they are the board's own parts;
+- R_XOUT is fitted the other way round;
+- with no link resistor, QSPI_SS and FLASH_SS are joined;
+- a test point taps DVDD.
+
+The RP2350B circuit is not generated yet. Its reference board's decoupling capacitors have no
+roles, because the package's decoupling roles are named by QFN-60 pin.
 
 Not in this release: generators for the interface blocks (milestone 5 places them).

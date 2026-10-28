@@ -1,0 +1,179 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. LGA-14L numbering from DS12140 Table 1 (pp.7-8) and Figure 3 (p.6). The KiCad symbol Sensor_Motion:LSM6DSM has the same 14 numbers and functions (checked pin by pin); its names differ only in case (SDX, SCX for SDx, SCx).",
+ "functions": {
+  "I2C_SDA": {
+   "kind": "i2c",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "protocol": "i2c",
+   "note": "I2C/I3C serial data (SDA); SPI SDI / 3-wire SDO when CS is low. No internal pull-up (Table 19 p.38): needs an external pull-up to VDDIO (§5.1.1 p.17). Fast mode, 400 kHz max (Table 6 p.14)",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   }
+  },
+  "I2C_SCL": {
+   "kind": "i2c",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "protocol": "i2c",
+   "note": "I2C/I3C serial clock (SCL); SPI SPC when CS is low. No internal pull-up; needs an external pull-up to VDDIO",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   }
+  },
+  "SA0": {
+   "kind": "strap",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "I2C address LSb (SA0) in I2C mode, SPI SDO otherwise. Input without pull-up by default (Table 19 p.38): tie to GND (address 0x6A) or VDDIO (0x6B), §5.1.1 p.18",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; §5.1.1 p.18"
+   }
+  },
+  "CS": {
+   "kind": "mode_select",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "1: I2C/I3C enabled (SPI idle); 0: SPI. Tie to VDDIO for I2C (§5.1 p.17). Internal pull-up by default (Table 19 p.38), but the datasheet requires it tied high",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; §5.1 p.17"
+   }
+  },
+  "INT": {
+   "kind": "interrupt_out",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "Programmable interrupt outputs, push-pull and active high by default (CTRL3_C PP_OD, H_LACTIVE, p.51). INT1 is an input with pull-down at power-on and must be low or unconnected then if I2C/SPI is used (Table 19 note 2, p.38); INT1 high at power-up selects I3C only (§5.3 p.24). INT2 is driven low by default (Table 19 p.38); INT2 is also DEN",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38; §5.3 p.24; §9.14 p.51"
+   }
+  },
+  "AUX_MASTER": {
+   "kind": "aux_bus",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "SDx/SCx: I2C master (Mode 2) or auxiliary SPI (Mode 3/4). In Mode 1 (unused): connect to VDDIO or GND. No pull-up by default",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   }
+  },
+  "AUX_SPI": {
+   "kind": "aux_bus",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "OCS_Aux / SDO_Aux: auxiliary SPI (Mode 3/4). Unused (Mode 1/2): OCS_Aux left unconnected; SDO_Aux to VDDIO or left unconnected; an unconnected pin is still soldered to its pad (Table 1 note 2, p.8). Both have internal pull-ups by default in Mode 1/2 (Table 19 p.38)",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   }
+  },
+  "VDD": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    1.71,
+    3.6
+   ],
+   "note": "Core supply, 1.71-3.6 V (1.8 V typ); absolute max -0.3 to 4.8 V. 100 nF ceramic as near the pin as possible",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "Table 3 p.12; Table 7 p.15; §7.1 p.35"
+   }
+  },
+  "VDDIO": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    1.62,
+    3.6
+   ],
+   "note": "I/O supply, 1.62-3.6 V; sets the logic levels (VIH 0.7*VDDIO, VIL 0.3*VDDIO) and the pull-up rail. 100 nF ceramic as near the pin as possible",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "Table 3 p.12; §7.1 p.35"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "0 V supply, pins 6 and 7; both must be soldered (TN1383 §3.5 p.9)",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8"
+   }
+  }
+ },
+ "variants": {
+  "LSM6DSOTR": {
+   "package": "LGA-14L 2.5x3.0x0.86 mm",
+   "pins": {
+    "1": {
+     "name": "SDO/SA0",
+     "function": "SA0"
+    },
+    "2": {
+     "name": "SDx",
+     "function": "AUX_MASTER"
+    },
+    "3": {
+     "name": "SCx",
+     "function": "AUX_MASTER"
+    },
+    "4": {
+     "name": "INT1",
+     "function": "INT"
+    },
+    "5": {
+     "name": "VDDIO",
+     "function": "VDDIO"
+    },
+    "6": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "7": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "8": {
+     "name": "VDD",
+     "function": "VDD"
+    },
+    "9": {
+     "name": "INT2",
+     "function": "INT"
+    },
+    "10": {
+     "name": "OCS_Aux",
+     "function": "AUX_SPI"
+    },
+    "11": {
+     "name": "SDO_Aux",
+     "function": "AUX_SPI"
+    },
+    "12": {
+     "name": "CS",
+     "function": "CS"
+    },
+    "13": {
+     "name": "SCL",
+     "function": "I2C_SCL"
+    },
+    "14": {
+     "name": "SDA",
+     "function": "I2C_SDA"
+    }
+   },
+   "source": {
+    "source": "lsm6dso_ds",
+    "locator": "§3 Figure 3 p.6; §3.1 Table 1 pp.7-8"
+   }
+  }
+ }
+}

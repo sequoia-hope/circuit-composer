@@ -13,6 +13,7 @@ use serde_json::{json, Value};
 use intent::netlist::Netlist;
 use intent::{presets, validate};
 
+mod floorplan_cmd;
 mod package_check;
 
 #[derive(Parser)]
@@ -86,6 +87,45 @@ enum Cmd {
     Import {
         #[command(subcommand)]
         from: Import,
+    },
+    /// A board from package instances, its own parts and the nets joining them: one flat
+    /// circuit (parts by designator, nets by pin) and a binding per instance.
+    Compose {
+        composition: PathBuf,
+        /// Where packages are found, as `DIR/NAME/manifest.toml`.
+        #[arg(long, default_value = "packages")]
+        packages: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        /// Also write each instance's binding here, as `INSTANCE.binding.json`.
+        #[arg(long)]
+        bindings: Option<PathBuf>,
+    },
+    /// Place every part of a composed board: simulated annealing on wirelength, courtyard
+    /// overlap and board area, with block cohesion, placement hints, rigid generated layouts,
+    /// edge connectors and block separation. Prints the placement and the outline it needs.
+    Floorplan {
+        /// The composed board (`compose_kicad.py`), footprints anywhere.
+        board: PathBuf,
+        /// `ccomp compose -o` output.
+        #[arg(long)]
+        composed: PathBuf,
+        /// Edges, rigid layouts, separations, options (`floorplan.json`).
+        #[arg(long)]
+        spec: Option<PathBuf>,
+        /// Paths in the spec are relative to this.
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+        #[arg(long)]
+        seed: Option<u64>,
+        /// Annealing moves (the spec's or 400 000 otherwise).
+        #[arg(long)]
+        moves: Option<usize>,
+        /// Score this board's own placement instead of solving (the parts as placed there).
+        #[arg(long)]
+        evaluate: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
     },
     /// The research library: cited claims from `library/` and every package's `rules.json`.
     Library {
@@ -412,6 +452,54 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
                 true,
             ))
         }
+        Cmd::Compose { composition, packages, output, bindings } => {
+            let text = std::fs::read_to_string(&composition).map_err(|e| format!("{}: {e}", composition.display()))?;
+            let c: compose::Composition = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", composition.display()))?;
+            let r = compose::compose(&c, &packages)?;
+            let value = serde_json::to_value(&r).unwrap();
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            if let Some(dir) = bindings.filter(|_| r.ok) {
+                std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+                for (name, b) in &r.bindings {
+                    write_json(&dir.join(format!("{name}.binding.json")), &serde_json::to_value(b).unwrap())?;
+                }
+            }
+            Ok((value, r.ok))
+        }
+        Cmd::Floorplan { board, composed, spec, root, seed, moves, evaluate, output } => {
+            let comp: Value = read_json_value(&composed)?;
+            let spec: floorplan_cmd::Spec = match spec {
+                Some(p) => serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?,
+                None => serde_json::from_value(json!({})).unwrap(),
+            };
+            let mut pr = floorplan_cmd::problem(&board, &comp, &spec, &root)?;
+            if let Some(s) = seed {
+                pr.options.seed = s;
+            }
+            if let Some(m) = moves {
+                pr.options.moves = m;
+            }
+            if let Some(placed) = evaluate {
+                let b = pcb::Board::load(&placed)?;
+                let poses = b.parts.iter().map(|(r, p)| (r.clone(), floorplan::Pose { x: p.at[0], y: p.at[1], rotation: p.rotation })).collect();
+                for part in pr.parts.iter_mut() {
+                    part.back = b.parts.get(&part.reference).is_some_and(|p| p.back);
+                }
+                let m = floorplan::evaluate(&pr, &poses)?;
+                return Ok((json!({ "evaluated": placed, "metrics": m, "nets_scored": pr.nets.len() }), true));
+            }
+            let placement = floorplan::solve(&pr);
+            let ok = placement.metrics.overlaps == 0 && placement.metrics.edge_misses.is_empty() && placement.metrics.separation_misses.is_empty();
+            let mut value = serde_json::to_value(&placement).unwrap();
+            value["ok"] = ok.into();
+            value["nets_scored"] = pr.nets.len().into();
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, ok))
+        }
         Cmd::Library { op: LibraryOp::Check { root } } => {
             let report = library::Library::load(&root)?.check();
             Ok((serde_json::to_value(&report).unwrap(), report.ok))
@@ -523,4 +611,9 @@ fn relative(target: &Path, dir: &Path) -> String {
 fn write_json(path: &Path, value: &Value) -> Result<(), String> {
     let text = serde_json::to_string_pretty(value).unwrap() + "\n";
     std::fs::write(path, text).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+fn read_json_value(p: &Path) -> Result<Value, String> {
+    let text = std::fs::read_to_string(p).map_err(|e| format!("{}: {e}", p.display()))?;
+    serde_json::from_str(&text).map_err(|e| format!("{}: {e}", p.display()))
 }

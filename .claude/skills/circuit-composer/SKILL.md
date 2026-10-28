@@ -60,6 +60,54 @@ rest out and they are reported `unbound`. Then run `ccomp check package BOARD --
 
 Refill zones before judging a routed board.
 
+## Compose a board from packages
+
+A composition (`compose.json`) has:
+- `instances`: name → `{package: "rp2350@0.2.0", variant}`;
+- `parts`: the board's own parts by designator, `{symbol, value, footprint}`;
+- `nets`: name → endpoints, each `INSTANCE.PORT` or `REF.PIN`.
+
+A package's ports and internal nets are in its `schematic/circuit.VARIANT.json`. Run
+`ccomp compose compose.json -o composed.json --bindings DIR`. It refuses:
+- a ground or supply port left unconnected;
+- a pin on two nets;
+- an unknown port.
+
+An open signal port is listed; if that is intended, put it in `no_connect`.
+
+Departures from the package must be stated per instance, never hidden:
+- `omit`: roles not fitted;
+- `parts`: a role's part changed (value, footprint, LCSC);
+- `reversed`: a two-pin part fitted the other way round;
+- `join`: internal nets an omitted link part separated;
+- a tap: a board net naming an internal net, such as `mcu.DVDD` for a test point.
+
+To recompose an existing board, use `tools/compose_from_netlist.py draft` with
+`--keep-designators`, then check the result with `compare`. It must match.
+
+## Write and floorplan a composed board
+
+1. Check the package circuits against the KiCad the files are written with:
+   `python3 tools/circuit_check.py packages/*/schematic/circuit.*.json --kicad 9`. Versions
+   rename pins: the USB-C shield is S1 in 9 and SH in 10.
+2. Write the project: `python3 tools/compose_kicad.py composed.json OUT_DIR [--lib BOARD_LIBS]`.
+   It writes the schematic, board and library tables, and runs ERC. It refuses a net pin the
+   symbol lacks. `nets_match` must be true.
+3. Write a floorplan spec:
+   - `outline`, if the mechanical design sets one;
+   - `fixed` and `back` parts;
+   - `edges`, with the side and the way the connector's mouth faces at rotation 0, read off
+     the footprint;
+   - `rigid` generated layouts (`layout.json` plus roles);
+   - `blocks` for the board's own parts;
+   - `separations`, taken from package rules.
+4. Run `ccomp floorplan BOARD --composed composed.json --spec SPEC -o placement.json`. Try
+   several `--seed`s; `ok` needs no overlaps, edge misses or separation misses.
+5. Compare with a person's board using `--evaluate`. Apply with `tools/apply_placement.py`,
+   which also runs KiCad's DRC.
+6. Look at a render: the metrics have missed things before (a connector placed off the
+   board).
+
 ## Consult and extend the research library
 
 Before choosing a layout rule or a limit, look it up:

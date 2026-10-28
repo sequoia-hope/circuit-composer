@@ -1,0 +1,13 @@
+[package]
+name = "compose"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The composer: a board from package instances, the board's own parts, and the nets that join
+# them. Out comes one flat circuit (parts by designator, nets by pin) and, per instance, the
+# binding `ccomp check package` judges the board with.
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

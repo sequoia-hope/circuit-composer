@@ -1,0 +1,586 @@
+{
+ "package": "lsm6dso",
+ "version": "0.1.0",
+ "note": "Claims scoped to the LSM6DSO (variant LSM6DSOTR, LGA-14L). Page numbers are DS12140 Rev 2's printed 'page N/172' (sha256 1074e397…), TN1383 Rev 1's and SLVA689A's printed pages. Layout and placement come from ST's TN1383 (PCB design guidelines for MEMS sensors), whose land rules are stated as TN0018's; TN0018 itself was not read. `requirement` uses SI-unit keys; `checks` name this package's roles and are read by `ccomp check package`.",
+ "claims": [
+  {
+   "id": "lsm6dso.supply.range",
+   "statement": "VDD is held at 1.71-3.6 V and VDDIO at 1.62-3.6 V; no pin may exceed 4.8 V. A single 3.3 V rail for both is within range.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vdd_v": [
+     1.71,
+     3.6
+    ],
+    "vddio_v": [
+     1.62,
+     3.6
+    ],
+    "v_abs_max_v": 4.8
+   },
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§4.2 Table 3 p.12; §4.5 Table 7 p.15",
+    "quote": "Supply voltage on any pin should never exceed 4.8 V."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "not yet enforced (needs a rail voltage in the board's intent)"
+   ],
+   "note": "Table 3: Vdd 1.71 min, 1.8 typ, 3.6 max V; Vdd_IO 1.62 min, 3.6 max V. Input voltage on control pins is limited to -0.3 V to Vdd_IO + 0.3 V (Table 7), so a pull-up or host pin must not sit above VDDIO."
+  },
+  {
+   "id": "lsm6dso.io.levels",
+   "statement": "Signals into the LSM6DSO stay between -0.3 V and VDDIO + 0.3 V; VDDIO sets the logic levels (VIH >= 0.7*VDDIO, VIL <= 0.3*VDDIO), so the I2C pull-ups and the host's I/O run from the VDDIO rail.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic_level"
+   ],
+   "requirement": {
+    "vih_frac_vddio_min": 0.7,
+    "vil_frac_vddio_max": 0.3,
+    "vin_max_above_vddio_v": 0.3
+   },
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "Table 3 p.12; Table 7 p.15; §5.1.1 p.17",
+    "quote": "Both the lines must be connected to Vdd_IO through external pull-up resistors."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "circuit (pull-ups on the VDD port, which carries VDDIO)"
+   ]
+  },
+  {
+   "id": "lsm6dso.decoupling.per_pin",
+   "statement": "VDD (pin 8) and VDDIO (pin 5) each have their own 100 nF ceramic capacitor, placed as near as possible to that pin.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "C_VDD"
+   },
+   "attributes": [
+    "capacitance",
+    "decoupling_path"
+   ],
+   "requirement": {
+    "capacitance_f": 1e-07,
+    "count": 2
+   },
+   "checks": [
+    {
+     "part": "C_VDD",
+     "quantity": "capacitance",
+     "min": 1e-07,
+     "max": 1e-07
+    },
+    {
+     "part": "C_VDDIO",
+     "quantity": "capacitance",
+     "min": 1e-07,
+     "max": 1e-07
+    }
+   ],
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§7.1 Figure 21 p.35; Table 1 note 1 p.8",
+    "quote": "Power supply decoupling capacitors (C1, C2 = 100 nF ceramic) should be placed as near as possible to the supply pin of the device"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "rp2350.decoupling.close"
+    }
+   ],
+   "enforced_by": [
+    "ccomp check package (value)",
+    "circuit `near` hints U1.8 / U1.5 (placement)"
+   ],
+   "note": "ST gives no distance; '(common design practice)' follows the sentence. The circuit's `near` hints put C_VDD by U1.8 and C_VDDIO by U1.5. The capacitors are outside the package outline: nothing goes on the top side under the part (lsm6dso.layout.no_top_copper_under)."
+  },
+  {
+   "id": "lsm6dso.i2c.cs_high",
+   "statement": "For I2C, CS (pin 12) is tied to VDDIO; CS low selects SPI and disables I2C.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "mode_select"
+   ],
+   "requirement": {
+    "cs": "VDDIO"
+   },
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§5.1 p.17",
+    "quote": "To select/exploit the I²C interface, the CS line must be tied high (i.e connected to Vdd_IO)."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "circuit (U1.12 on the VDD port)"
+   ],
+   "note": "CS has an internal pull-up by default (Table 19 p.38), but ST still asks for the tie; the pull-up is disabled by I2C_disable/I3C_disable writes."
+  },
+  {
+   "id": "lsm6dso.i2c.address",
+   "statement": "SDO/SA0 (pin 1) sets the I2C address LSb and must be tied: to GND for 0x6A (1101010b), to VDDIO for 0x6B (1101011b); it has no pull-up by default.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "i2c_address"
+   ],
+   "requirement": {
+    "address_sa0_gnd": "0x6A",
+    "address_sa0_vddio": "0x6B"
+   },
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§5.1.1 p.18; Table 19 p.38",
+    "quote": "else if the SDO/SA0 pin is connected to ground, the LSb value is ‘0’ (address 1101010b)."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "circuit (U1.1 on GND: 0x6A)"
+   ],
+   "note": "Table 19: SA0 'Default: input without pull-up'; a pull-up is enabled only by SDO_PU_EN in reg 02h, which needs a working bus first. Two LSM6DSx parts can share a bus, one per address."
+  },
+  {
+   "id": "lsm6dso.i2c.speed",
+   "statement": "The I2C slave runs in standard mode (100 kHz) or fast mode (400 kHz max).",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "bus_speed"
+   ],
+   "requirement": {
+    "f_scl_hz_max": 400000
+   },
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§4.4.2 Table 6 p.14; §5.1.1 p.17",
+    "quote": "The I²C interface is implemented with fast mode (400 kHz) I²C standards as well as with the standard mode."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "firmware (host I2C clock)"
+   ]
+  },
+  {
+   "id": "lsm6dso.i2c.pullup",
+   "statement": "SDA and SCL each have a pull-up to VDDIO between Rp(min) = (VDDIO - 0.4 V)/3 mA (967 ohm at 3.3 V) and Rp(max) = tr/(0.8473*Cb), tr = 300 ns at 400 kHz or 1000 ns at 100 kHz; ST's figure shows 10 kohm.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "R_SDA_PU"
+   },
+   "attributes": [
+    "resistance",
+    "rise_time"
+   ],
+   "requirement": {
+    "resistance_ohm_min": 967,
+    "tr_s_max_fast": 3e-07,
+    "tr_s_max_standard": 1e-06,
+    "cb_f_max": 4e-10,
+    "rp_ohm_st_figure": 10000
+   },
+   "checks": [
+    {
+     "part": "R_SDA_PU",
+     "quantity": "resistance",
+     "min": 967,
+     "max": 10000
+    },
+    {
+     "part": "R_SCL_PU",
+     "quantity": "resistance",
+     "min": 967,
+     "max": 10000
+    }
+   ],
+   "citations": [
+    {
+     "source": "lsm6dso_ds",
+     "locator": "§7.1 Figure 21 p.35",
+     "figure": "I2C configuration: Rpu from SCL and SDA to Vdd_IO, 'Pull-up to be added', 'Rpu=10kOhm'."
+    },
+    {
+     "source": "ti_slva689",
+     "locator": "§2 eq. (1), (6), Table 2-1 p.3",
+     "quote": "The maximum pullup resistance is limited by the bus capacitance (Cb) due to I2C standard rise time specifications."
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (967 ohm to 10 kohm; the bus capacitance is not known to the checker)"
+   ],
+   "note": "Table 2-1 (SLVA689A): tr max 1000 ns standard, 300 ns fast; Cb max 400 pF; VOL 0.4 V at 3 mA. At 400 kHz, 10 kohm allows Cb <= 35 pF and 4.7 kohm (this circuit) <= 75 pF. The LSM6DSO itself sinks 4 mA at VOL 0.2 V (Table 3 p.12), so the 3 mA I2C limit is the binding one. The bus has one pair of pull-ups: a board whose bus already has them omits R_SDA_PU and R_SCL_PU, and the parallel value of all pull-ups on the bus is what these limits apply to."
+  },
+  {
+   "id": "lsm6dso.int1.low_at_powerup",
+   "statement": "INT1 (pin 4) is low or floating at power-on when I2C/SPI is used: no pull-up on it, and the host must not drive it high before the IMU boots, or the part starts I3C-only.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "power_up_state"
+   ],
+   "requirement": {
+    "int1_at_power_on": "low_or_floating"
+   },
+   "citations": [
+    {
+     "source": "lsm6dso_ds",
+     "locator": "Table 19 note 2 p.38",
+     "quote": "INT1 must be set to '0' or left unconnected during power-on if the I²C/SPI interfaces are used."
+    },
+    {
+     "source": "lsm6dso_ds",
+     "locator": "§5.3 p.24",
+     "quote": "INT1 pin connected to VDD_IO: only I3C active"
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "circuit (INT1 port has no pull-up)",
+    "firmware (host GPIO left as input until configured)"
+   ],
+   "note": "INT1 has an internal pull-down at power-on (Table 19). INT1/INT2 are push-pull, active high by default (CTRL3_C PP_OD = 0, H_LACTIVE = 0, §9.14 p.51), so they need no pull-up in normal use either."
+  },
+  {
+   "id": "lsm6dso.aux.unused",
+   "statement": "With the auxiliary interface unused (Mode 1): SDx and SCx (pins 2, 3) go to VDDIO or GND; OCS_Aux (pin 10) is left unconnected and SDO_Aux (pin 11) unconnected or on VDDIO; unconnected pins are still soldered to their pads.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "unused_pins"
+   ],
+   "requirement": {
+    "sdx_scx": "VDDIO_or_GND",
+    "ocs_aux": "unconnected",
+    "sdo_aux": "unconnected_or_VDDIO"
+   },
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8, note 2",
+    "quote": "Leave pin electrically unconnected and soldered to PCB."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "circuit (U1.2, U1.3 on GND; U1.10, U1.11 in chip_pins_unconnected)"
+   ],
+   "note": "Table 1 p.7, Mode 1: SDx, SCx 'Connect to VDDIO or GND'; OCS_Aux 'Leave unconnected'; SDO_Aux 'Connect to VDD_IO or leave unconnected'. In Mode 1 OCS_Aux and SDO_Aux have internal pull-ups by default (Table 19 p.38), which is why leaving them open is allowed; SDx/SCx have none, hence the tie."
+  },
+  {
+   "id": "lsm6dso.land.pattern",
+   "statement": "The LGA-14 lands are all one size, the package pad + 0.1 mm in length and width (0.575 x 0.35 mm for its 0.475 x 0.25 mm pads at 0.5 mm pitch, pad gap 250 um > 200 um), with solder-mask openings 0.1 mm larger than the land; the KiCad footprint's 0.625 x 0.35 mm lands at the datasheet's pad centres are 0.05 mm longer.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "land_pattern",
+    "solder_mask"
+   ],
+   "requirement": {
+    "land_length_m": 0.000575,
+    "land_width_m": 0.00035,
+    "mask_opening_over_land_m": 0.0001,
+    "pitch_m": 0.0005,
+    "package_pad_m": [
+     0.000475,
+     0.00025
+    ],
+    "package_pad_edge_inset_m": 0.0001,
+    "kicad_land_m": [
+     0.000625,
+     0.00035
+    ]
+   },
+   "citations": [
+    {
+     "source": "st_tn1383",
+     "locator": "§3.1 p.6",
+     "quote": "For LGA pad spacing greater than 200 µm: A = PCB land length = LGA solder pad length + 0.1 mm"
+    },
+    {
+     "source": "lsm6dso_ds",
+     "locator": "§17.1 Figure 25 p.151",
+     "figure": "Bottom view: 14x 0.475±0.05 by 0.25±0.05 mm pads, 0.5 mm pitch, 4x (0.1) mm from pad end to package edge; body 2.50 x 3.00 x 0.86 max mm."
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "footprint (Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y, checked by hand)"
+   ],
+   "note": "Checked: KiCad pad centres x = +/-1.1625 (pins 1-4, 8-11) and y = +/-0.9125 (5-7, 12-14) equal 1.5 or 1.25 mm minus the 0.1 mm inset minus half of 0.475 mm; pin-1 corner, numbering and pitch match Figure 3/25. KiCad's land width 0.35 mm equals the rule; its length 0.625 mm is 0.05 mm over it (0.025 mm each end), which ST's rule does not forbid but does not ask for. The datasheet itself defers land pattern to www.st.com/mems (§16 p.150); TN0018, the note TN1383 takes the rule from, was not read. Mask opening (+0.05 mm a side) is the board's solder-mask expansion."
+  },
+  {
+   "id": "lsm6dso.land.stencil",
+   "statement": "Solder paste is printed through a stainless-steel stencil 90-150 um thick, with apertures 70-90 % of the land area, aligned within 25 um.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "paste"
+   ],
+   "requirement": {
+    "stencil_thickness_m": [
+     9e-05,
+     0.00015
+    ],
+    "aperture_area_frac": [
+     0.7,
+     0.9
+    ],
+    "alignment_m_max": 2.5e-05
+   },
+   "citation": {
+    "source": "st_tn1383",
+    "locator": "§3.1 p.6",
+    "quote": "The openings of the stencil for the signal pads should be between 70% and 90% of the PCB pad area."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "not yet enforced (KiCad's footprint has paste = land; a paste margin or the assembler's stencil rule sets the reduction)"
+   ],
+   "note": "A paste margin of about -0.02 mm a side on 0.625 x 0.35 mm lands gives (0.585*0.31)/(0.625*0.35) = 83 %."
+  },
+  {
+   "id": "lsm6dso.layout.no_top_copper_under",
+   "statement": "No trace, via or copper on the top side under the package; inner and bottom layers under it may carry a plane or signals.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "keepout"
+   ],
+   "requirement": {
+    "top_copper_under_package": false,
+    "vias_under_package": false,
+    "bottom_layers_under_package": "allowed"
+   },
+   "citations": [
+    {
+     "source": "st_tn1383",
+     "locator": "§3.3 p.8",
+     "quote": "Never place any routing or via on the top side under the device"
+    },
+    {
+     "source": "st_tn1383",
+     "locator": "§3.4 p.8",
+     "quote": "It is possible to use the bottom side under the device for power plane or signal routing."
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "not yet enforced (a top-layer rule area over the courtyard, no tracks/vias/pour)"
+   ],
+   "note": "Applies to the top copper between the lands. §3.5 p.9 (a field case): vias below pads and a pin-8 trace under the part caused zero-g/zero-rate offset; 'trace of pin 8 should flow directly outside the component'."
+  },
+  {
+   "id": "lsm6dso.layout.symmetric_traces",
+   "statement": "Traces leave every land outward, parallel to the land's long edge, all the same width (no wide power traces), laid out symmetrically.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "trace_width",
+    "fanout"
+   ],
+   "requirement": {
+    "same_width": true,
+    "direction": "outward_along_land"
+   },
+   "citation": {
+    "source": "st_tn1383",
+    "locator": "§3.2 p.7",
+    "quote": "All traces should flow outside the component, parallel to the long edge of the pad."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "not yet enforced"
+   ],
+   "note": "§3.2: 'The traces must have the same thickness. There is no need to have thicker traces for power signals since very low current can flow into them.' The IMU draws 0.55 mA in high-performance mode (Table 3 p.12 of the datasheet)."
+  },
+  {
+   "id": "lsm6dso.layout.ground_by_trace",
+   "statement": "Ground pads connect to the ground plane through a standard-width trace leaving the package, not by a pour joined directly to the pad.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "ground_connection",
+    "thermal_relief"
+   ],
+   "requirement": {
+    "pour_on_pad": false
+   },
+   "citation": {
+    "source": "st_tn1383",
+    "locator": "§3.2 p.7",
+    "quote": "The ground plane should not be connected directly to the footprint pads. It is better to connect it through a standard trace."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "signal.decoupling.via_at_pad"
+    }
+   ],
+   "enforced_by": [
+    "not yet enforced (zone connection: none on U1's pads)"
+   ],
+   "note": "For the IMU's own lands; its decoupling capacitors may still have their ground via at the capacitor pad (signal.decoupling.via_at_pad), outside the package. The reason is mechanical (stress from uneven copper), not electrical."
+  },
+  {
+   "id": "lsm6dso.layout.all_pads_soldered",
+   "statement": "Every land is soldered, including both GND pins (6, 7) and the unconnected OCS_Aux/SDO_Aux pins; an unsoldered pad stresses the sensor.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "solder_joint"
+   ],
+   "requirement": {
+    "all_lands_soldered": true
+   },
+   "citations": [
+    {
+     "source": "st_tn1383",
+     "locator": "§3.5 p.9",
+     "quote": "Pin 6 and 7 are not soldered: this can cause mechanical stress on the inner sensors."
+    },
+    {
+     "source": "lsm6dso_ds",
+     "locator": "§3.1 Table 1 note 2 p.8",
+     "quote": "Leave pin electrically unconnected and soldered to PCB."
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "footprint (all 14 lands have paste)"
+   ]
+  },
+  {
+   "id": "lsm6dso.placement.heat",
+   "statement": "The IMU sits away from heat sources such as the battery, the charger and the regulator, so temperature gradients do not stress it.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement",
+    "thermal_gradient"
+   ],
+   "citation": {
+    "source": "st_tn1383",
+    "locator": "§4.1 p.10; §4.4 p.12",
+    "quote": "ST recommends placing the sensor away from heat sources (such as batteries and power management integrated circuits)."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "not yet enforced (floorplanner keep-apart; ST gives no distance)"
+   ],
+   "note": "On the milestone-5 board this means the MCP73831 (up to about 0.5 W while charging) and the TLV62569 and the LiPo cell. ST gives no distance; the 10 mm of lsm6dso.placement.force is a reasonable floor."
+  },
+  {
+   "id": "lsm6dso.placement.force",
+   "statement": "The IMU is at least 10 mm from points where force is applied to the board (buttons, connectors), between the fasteners, and away from unsupported, vibration-prone sections, shields, screws and holes.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement",
+    "mechanical_stress"
+   ],
+   "requirement": {
+    "distance_to_force_point_m_min": 0.01
+   },
+   "citations": [
+    {
+     "source": "st_tn1383",
+     "locator": "§4.5 p.13",
+     "quote": "keeping it at least 10 mm away from the source of the external force reduces the effect on the MEMS sensor."
+    },
+    {
+     "source": "st_tn1383",
+     "locator": "§4.1-4.3 pp.10-11",
+     "quote": "Inertial MEMS sensors should be located between fasteners so as to minimize and distribute homogenously the stress on the MEMS sensor"
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "not yet enforced (floorplanner keep-apart from connectors, buttons and mounting holes)"
+   ],
+   "note": "§4.1 lists screws, holes, pillars, nearby shields and underfill as sources of anisotropic stress; §4.3: keep the sensor off protruding board sections without fasteners. On the demo board: the USB-C connector and BOOT/RESET buttons are force points."
+  },
+  {
+   "id": "lsm6dso.assembly.reflow",
+   "statement": "The part is reflowed to JEDEC J-STD-020 with slow cooling; mounting stress shifts zero-g and zero-rate offsets, so offsets are calibrated after assembly if they matter.",
+   "scope": {
+    "chip": "LSM6DSO",
+    "block": "imu",
+    "role": "U1"
+   },
+   "attributes": [
+    "reflow",
+    "offset"
+   ],
+   "citations": [
+    {
+     "source": "lsm6dso_ds",
+     "locator": "§16 p.150",
+     "quote": "It is qualified for soldering heat resistance according to JEDEC J-STD-020."
+    },
+    {
+     "source": "st_tn1383",
+     "locator": "§2.4 p.5",
+     "quote": "Slow cooling of the board after assembly (JEDEC specs) is recommended to avoid stress on the sensor."
+    }
+   ],
+   "status": "asserted",
+   "enforced_by": [
+    "assembler (JLCPCB reflow profile)"
+   ],
+   "note": "Datasheet §4.6.2 p.16: offset 'can slightly change after mounting the sensor onto a printed circuit board'. Table 2 p.9: zero-g offset +/-20 mg, zero-rate +/-1 dps typical."
+  }
+ ]
+}

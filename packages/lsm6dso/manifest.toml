@@ -1,0 +1,63 @@
+# Circuit Composer package: ST LSM6DSO 6-axis IMU (3D accelerometer + 3D gyroscope).
+#
+# 0.1.0: the datasheet's Mode 1 connection (Figure 21, I2C to a host, auxiliary interface
+# unused) as a circuit with ports VDD, GND, SDA, SCL, INT1, INT2; pin table (ports.json);
+# cited rules for supplies, decoupling, I2C pull-ups, the land pattern and ST's MEMS layout
+# and placement guidance (TN1383). No layout is generated: the block is two capacitors.
+
+[package]
+name = "lsm6dso"
+version = "0.1.0"
+family = "LSM6DSO"
+license = "MIT"
+summary = "LSM6DSO IMU in I2C mode: circuit, ports, pin table, cited supply/decoupling/pull-up/land-pattern/placement rules"
+
+[[variants]]
+name = "LSM6DSOTR"
+package = "LGA-14L 2.5x3.0x0.86 mm, 0.5 mm pitch"
+footprint = "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y"
+symbol = "Sensor_Motion:LSM6DSM"
+# KiCad 10 has no LSM6DSO symbol; LSM6DSM has the same pin numbers and functions (checked pin
+# by pin against DS12140 Table 1, pp.7-8; see ports.json).
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "DS12140 Rev 2 (sha256 1074e397…)"
+layout_note = "ST TN1383 Rev 1, PCB design guidelines for MEMS sensors (August 2023)"
+pullup_note = "TI SLVA689A, I2C Bus Pullup Resistor Calculation (revised October 2026)"
+
+# LCSC parts the circuit names. Stock read with jlc_parts.py show on the date given.
+[[sourcing]]
+role = "U1"
+part = "ST LSM6DSOTR, LGA-14"
+lcsc = "C2655100"
+checked = "2026-10-27"
+# extended part, JLC stock 21241, LCSC stock 20000, lifecycle normal
+
+[[sourcing]]
+role = "C_VDD"
+part = "Samsung CL05B104KO5NNNC, 100 nF 16 V X7R 0402"
+lcsc = "C1525"
+checked = "2026-10-27"
+# basic part, JLC stock 33921403, lifecycle normal
+
+[[sourcing]]
+role = "C_VDDIO"
+part = "Samsung CL05B104KO5NNNC, 100 nF 16 V X7R 0402"
+lcsc = "C1525"
+checked = "2026-10-27"
+# basic part, JLC stock 33921403, lifecycle normal
+
+[[sourcing]]
+role = "R_SDA_PU"
+part = "UNI-ROYAL 0402WGF4701TCE, 4.7 kohm 1 % 0402"
+lcsc = "C25900"
+checked = "2026-10-27"
+# basic part, JLC stock 14263827, lifecycle normal
+
+[[sourcing]]
+role = "R_SCL_PU"
+part = "UNI-ROYAL 0402WGF4701TCE, 4.7 kohm 1 % 0402"
+lcsc = "C25900"
+checked = "2026-10-27"
+# basic part, JLC stock 14263827, lifecycle normal

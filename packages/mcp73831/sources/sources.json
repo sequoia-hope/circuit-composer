@@ -1,0 +1,13 @@
+{
+  "mcp73831_ds": {
+    "title": "MCP73831/2 Miniature Single-Cell, Fully Integrated Li-Ion, Li-Polymer Charge Management Controllers",
+    "publisher": "Microchip Technology",
+    "doc": "DS20001984H",
+    "kind": "datasheet",
+    "revision": "Revision H (June 2020)",
+    "url": "https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP73831-Family-Data-Sheet-DS20001984H.pdf",
+    "sha256": "75297f2a5235599368381adfb63df2652cc22d757f171f388147b2ab3d32776f",
+    "bytes": 889186,
+    "retrieved": "2026-10-27"
+  }
+}

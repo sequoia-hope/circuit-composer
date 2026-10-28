@@ -1,0 +1,787 @@
+{
+ "note": "The package's circuit as the RP2350A reference board fits it (rp2350a_minimal, netlist read by tools/package_circuit.py). Parts by role; `reference_ref` is the board's designator; `near` is the chip pin a decoupling capacitor serves, a placement hint. Nets inside the package by role pin; ports are where it meets the board, named as the board names them. Ground and supply ports must be connected.",
+ "variant": "RP2350A",
+ "board": "qfn60",
+ "source": "rp2350a_minimal",
+ "parts": {
+  "CFILT": {
+   "block": "core_reg",
+   "symbol": "Device:C",
+   "value": "4.7u",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C9"
+  },
+  "CIN": {
+   "block": "core_reg",
+   "symbol": "Device:C",
+   "value": "4.7u",
+   "footprint": "RP2350_60QFN_minimal:C_0402_1005Metric_small_pads",
+   "reference_ref": "C6"
+  },
+  "CL_XIN": {
+   "block": "crystal",
+   "symbol": "Device:C",
+   "value": "15p",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C3"
+  },
+  "CL_XOUT": {
+   "block": "crystal",
+   "symbol": "Device:C",
+   "value": "15p",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C4"
+  },
+  "COUT": {
+   "block": "core_reg",
+   "symbol": "Device:C",
+   "value": "4.7u",
+   "footprint": "RP2350_60QFN_minimal:C_0402_1005Metric_small_pads",
+   "reference_ref": "C7"
+  },
+  "C_DVDD_23": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "4.7u",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C10",
+   "near": "U1.23"
+  },
+  "C_DVDD_39": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C11",
+   "near": "U1.39"
+  },
+  "C_DVDD_6": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C8",
+   "near": "U1.6"
+  },
+  "C_FLASH": {
+   "block": "flash",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C2"
+  },
+  "C_IOVDD_1": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C13",
+   "near": "U1.1"
+  },
+  "C_IOVDD_11": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C15",
+   "near": "U1.11"
+  },
+  "C_IOVDD_20": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C18",
+   "near": "U1.20"
+  },
+  "C_IOVDD_30": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C16",
+   "near": "U1.30"
+  },
+  "C_IOVDD_38": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C14",
+   "near": "U1.38"
+  },
+  "C_IOVDD_45_ADC": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C17",
+   "near": "U1.44"
+  },
+  "C_OTP_QSPI": {
+   "block": "mcu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C12",
+   "near": "U1.53"
+  },
+  "FLASH": {
+   "block": "flash",
+   "symbol": "Memory_Flash:W25Q128JVS",
+   "value": "W25Q128JVS",
+   "footprint": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",
+   "reference_ref": "U3",
+   "reference_footprint": "Package_SO:SOIC-8_5.23x5.23mm_P1.27mm"
+  },
+  "L1": {
+   "block": "core_reg",
+   "symbol": "Device:L",
+   "value": "3.3u",
+   "footprint": "RP2350_60QFN_minimal:L_pol_2016",
+   "reference_ref": "L1"
+  },
+  "RFILT": {
+   "block": "core_reg",
+   "symbol": "Device:R",
+   "value": "33",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R5"
+  },
+  "R_BOOTSEL": {
+   "block": "bootsel",
+   "symbol": "Device:R",
+   "value": "1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R6"
+  },
+  "R_CS1_LINK": {
+   "block": "flash",
+   "symbol": "Device:R",
+   "value": "DNF",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R9"
+  },
+  "R_RUN": {
+   "block": "reset",
+   "symbol": "Device:R",
+   "value": "1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R4"
+  },
+  "R_SS_LINK": {
+   "block": "flash",
+   "symbol": "Device:R",
+   "value": "0",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R10"
+  },
+  "R_SS_PULLUP": {
+   "block": "flash",
+   "symbol": "Device:R",
+   "value": "DNF",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R1"
+  },
+  "R_USB_DM": {
+   "block": "usb",
+   "symbol": "Device:R",
+   "value": "27",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R8"
+  },
+  "R_USB_DP": {
+   "block": "usb",
+   "symbol": "Device:R",
+   "value": "27",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R7"
+  },
+  "R_XOUT": {
+   "block": "crystal",
+   "symbol": "Device:R",
+   "value": "1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R2"
+  },
+  "SW_BOOTSEL": {
+   "block": "bootsel",
+   "symbol": "Switch:SW_Push",
+   "value": "SW_Push",
+   "footprint": "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816",
+   "reference_ref": "SW1"
+  },
+  "SW_RUN": {
+   "block": "reset",
+   "symbol": "Switch:SW_Push",
+   "value": "SW_Push",
+   "footprint": "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816",
+   "reference_ref": "SW2"
+  },
+  "U1": {
+   "block": "mcu",
+   "symbol": "MCU_RaspberryPi_RP2350:RP2350_60QFN",
+   "value": "RP2350_60QFN",
+   "footprint": "RP2350_60QFN_minimal:RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias",
+   "reference_ref": "U1"
+  },
+  "XTAL": {
+   "block": "crystal",
+   "symbol": "Device:Crystal_GND24",
+   "value": "ABM8-272-T3",
+   "footprint": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+   "reference_ref": "Y1"
+  }
+ },
+ "nets": {
+  "DVDD": [
+   "U1.23",
+   "U1.39",
+   "U1.50",
+   "U1.6",
+   "COUT.1",
+   "C_DVDD_23.1",
+   "C_DVDD_39.1",
+   "C_DVDD_6.1",
+   "L1.1"
+  ],
+  "FLASH_SS": [
+   "FLASH.1",
+   "R_CS1_LINK.2",
+   "R_SS_LINK.2",
+   "R_SS_PULLUP.2"
+  ],
+  "N_R_RUN_1": [
+   "R_RUN.1",
+   "SW_RUN.1"
+  ],
+  "QSPI_SCLK": [
+   "U1.56",
+   "FLASH.6"
+  ],
+  "QSPI_SD0": [
+   "U1.57",
+   "FLASH.5"
+  ],
+  "QSPI_SD1": [
+   "U1.59",
+   "FLASH.2"
+  ],
+  "QSPI_SD2": [
+   "U1.58",
+   "FLASH.3"
+  ],
+  "QSPI_SD3": [
+   "U1.55",
+   "FLASH.7"
+  ],
+  "QSPI_SS": [
+   "U1.60",
+   "R_BOOTSEL.1",
+   "R_SS_LINK.1"
+  ],
+  "USB_DM_PIN": [
+   "U1.51",
+   "R_USB_DM.2"
+  ],
+  "USB_DP_PIN": [
+   "U1.52",
+   "R_USB_DP.2"
+  ],
+  "VREG_AVDD": [
+   "U1.46",
+   "CFILT.1",
+   "RFILT.2"
+  ],
+  "VREG_LX": [
+   "U1.48",
+   "L1.2"
+  ],
+  "XIN": [
+   "U1.21",
+   "CL_XIN.1",
+   "XTAL.1"
+  ],
+  "XOUT": [
+   "U1.22",
+   "R_XOUT.1"
+  ],
+  "XOUT_XTAL": [
+   "CL_XOUT.1",
+   "R_XOUT.2",
+   "XTAL.3"
+  ],
+  "~USB_BOOT": [
+   "R_BOOTSEL.2",
+   "SW_BOOTSEL.2"
+  ]
+ },
+ "ports": {
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.47",
+    "U1.61",
+    "CFILT.2",
+    "CIN.2",
+    "CL_XIN.2",
+    "CL_XOUT.2",
+    "COUT.2",
+    "C_DVDD_23.2",
+    "C_DVDD_39.2",
+    "C_DVDD_6.2",
+    "C_FLASH.2",
+    "C_IOVDD_1.2",
+    "C_IOVDD_11.2",
+    "C_IOVDD_20.2",
+    "C_IOVDD_30.2",
+    "C_IOVDD_38.2",
+    "C_IOVDD_45_ADC.2",
+    "C_OTP_QSPI.2",
+    "FLASH.4",
+    "R_RUN.2",
+    "SW_BOOTSEL.1",
+    "XTAL.2",
+    "XTAL.4"
+   ],
+   "reference_net": "GND",
+   "reference_board_pins": [
+    "C1.2",
+    "C19.2",
+    "C5.2",
+    "J1.5",
+    "J1.6",
+    "J2.1",
+    "J2.11",
+    "J2.13",
+    "J2.15",
+    "J2.17",
+    "J2.19",
+    "J2.21",
+    "J2.23",
+    "J2.25",
+    "J2.27",
+    "J2.29",
+    "J2.3",
+    "J2.31",
+    "J2.33",
+    "J2.35",
+    "J2.36",
+    "J2.5",
+    "J2.7",
+    "J2.9",
+    "J3.10",
+    "J3.12",
+    "J3.14",
+    "J3.16",
+    "J3.18",
+    "J3.2",
+    "J3.20",
+    "J3.22",
+    "J3.24",
+    "J3.26",
+    "J3.28",
+    "J3.30",
+    "J3.32",
+    "J3.34",
+    "J3.35",
+    "J3.36",
+    "J3.4",
+    "J3.6",
+    "J3.8",
+    "J4.2",
+    "J4.MP",
+    "U2.1"
+   ]
+  },
+  "+3V3": {
+   "kind": "supply",
+   "pins": [
+    "U1.1",
+    "U1.11",
+    "U1.20",
+    "U1.30",
+    "U1.38",
+    "U1.44",
+    "U1.45",
+    "U1.49",
+    "U1.53",
+    "U1.54",
+    "CIN.1",
+    "C_FLASH.1",
+    "C_IOVDD_1.1",
+    "C_IOVDD_11.1",
+    "C_IOVDD_20.1",
+    "C_IOVDD_30.1",
+    "C_IOVDD_38.1",
+    "C_IOVDD_45_ADC.1",
+    "C_OTP_QSPI.1",
+    "FLASH.8",
+    "RFILT.1",
+    "R_SS_PULLUP.1"
+   ],
+   "reference_net": "+3V3",
+   "reference_board_pins": [
+    "C19.1",
+    "C5.1",
+    "J2.2",
+    "U2.2"
+   ]
+  },
+  "GPIO0": {
+   "kind": "signal",
+   "pins": [
+    "U1.2",
+    "R_CS1_LINK.1"
+   ],
+   "reference_net": "/GPIO0",
+   "reference_board_pins": [
+    "J2.4"
+   ]
+  },
+  "GPIO1": {
+   "kind": "signal",
+   "pins": [
+    "U1.3"
+   ],
+   "reference_net": "/GPIO1",
+   "reference_board_pins": [
+    "J2.6"
+   ]
+  },
+  "GPIO10": {
+   "kind": "signal",
+   "pins": [
+    "U1.14"
+   ],
+   "reference_net": "/GPIO10",
+   "reference_board_pins": [
+    "J2.24"
+   ]
+  },
+  "GPIO11": {
+   "kind": "signal",
+   "pins": [
+    "U1.15"
+   ],
+   "reference_net": "/GPIO11",
+   "reference_board_pins": [
+    "J2.26"
+   ]
+  },
+  "GPIO12": {
+   "kind": "signal",
+   "pins": [
+    "U1.16"
+   ],
+   "reference_net": "/GPIO12",
+   "reference_board_pins": [
+    "J2.28"
+   ]
+  },
+  "GPIO13": {
+   "kind": "signal",
+   "pins": [
+    "U1.17"
+   ],
+   "reference_net": "/GPIO13",
+   "reference_board_pins": [
+    "J2.30"
+   ]
+  },
+  "GPIO14": {
+   "kind": "signal",
+   "pins": [
+    "U1.18"
+   ],
+   "reference_net": "/GPIO14",
+   "reference_board_pins": [
+    "J2.32"
+   ]
+  },
+  "GPIO15": {
+   "kind": "signal",
+   "pins": [
+    "U1.19"
+   ],
+   "reference_net": "/GPIO15",
+   "reference_board_pins": [
+    "J2.34"
+   ]
+  },
+  "GPIO16": {
+   "kind": "signal",
+   "pins": [
+    "U1.27"
+   ],
+   "reference_net": "/GPIO16",
+   "reference_board_pins": [
+    "J3.27"
+   ]
+  },
+  "GPIO17": {
+   "kind": "signal",
+   "pins": [
+    "U1.28"
+   ],
+   "reference_net": "/GPIO17",
+   "reference_board_pins": [
+    "J3.25"
+   ]
+  },
+  "GPIO18": {
+   "kind": "signal",
+   "pins": [
+    "U1.29"
+   ],
+   "reference_net": "/GPIO18",
+   "reference_board_pins": [
+    "J3.23"
+   ]
+  },
+  "GPIO19": {
+   "kind": "signal",
+   "pins": [
+    "U1.31"
+   ],
+   "reference_net": "/GPIO19",
+   "reference_board_pins": [
+    "J3.21"
+   ]
+  },
+  "GPIO2": {
+   "kind": "signal",
+   "pins": [
+    "U1.4"
+   ],
+   "reference_net": "/GPIO2",
+   "reference_board_pins": [
+    "J2.8"
+   ]
+  },
+  "GPIO20": {
+   "kind": "signal",
+   "pins": [
+    "U1.32"
+   ],
+   "reference_net": "/GPIO20",
+   "reference_board_pins": [
+    "J3.19"
+   ]
+  },
+  "GPIO21": {
+   "kind": "signal",
+   "pins": [
+    "U1.33"
+   ],
+   "reference_net": "/GPIO21",
+   "reference_board_pins": [
+    "J3.17"
+   ]
+  },
+  "GPIO22": {
+   "kind": "signal",
+   "pins": [
+    "U1.34"
+   ],
+   "reference_net": "/GPIO22",
+   "reference_board_pins": [
+    "J3.15"
+   ]
+  },
+  "GPIO23": {
+   "kind": "signal",
+   "pins": [
+    "U1.35"
+   ],
+   "reference_net": "/GPIO23",
+   "reference_board_pins": [
+    "J3.13"
+   ]
+  },
+  "GPIO24": {
+   "kind": "signal",
+   "pins": [
+    "U1.36"
+   ],
+   "reference_net": "/GPIO24",
+   "reference_board_pins": [
+    "J3.11"
+   ]
+  },
+  "GPIO25": {
+   "kind": "signal",
+   "pins": [
+    "U1.37"
+   ],
+   "reference_net": "/GPIO25",
+   "reference_board_pins": [
+    "J3.9"
+   ]
+  },
+  "GPIO26_ADC0": {
+   "kind": "signal",
+   "pins": [
+    "U1.40"
+   ],
+   "reference_net": "/GPIO26_ADC0",
+   "reference_board_pins": [
+    "J3.7"
+   ]
+  },
+  "GPIO27_ADC1": {
+   "kind": "signal",
+   "pins": [
+    "U1.41"
+   ],
+   "reference_net": "/GPIO27_ADC1",
+   "reference_board_pins": [
+    "J3.5"
+   ]
+  },
+  "GPIO28_ADC2": {
+   "kind": "signal",
+   "pins": [
+    "U1.42"
+   ],
+   "reference_net": "/GPIO28_ADC2",
+   "reference_board_pins": [
+    "J3.3"
+   ]
+  },
+  "GPIO29_ADC3": {
+   "kind": "signal",
+   "pins": [
+    "U1.43"
+   ],
+   "reference_net": "/GPIO29_ADC3",
+   "reference_board_pins": [
+    "J3.1"
+   ]
+  },
+  "GPIO3": {
+   "kind": "signal",
+   "pins": [
+    "U1.5"
+   ],
+   "reference_net": "/GPIO3",
+   "reference_board_pins": [
+    "J2.10"
+   ]
+  },
+  "GPIO4": {
+   "kind": "signal",
+   "pins": [
+    "U1.7"
+   ],
+   "reference_net": "/GPIO4",
+   "reference_board_pins": [
+    "J2.12"
+   ]
+  },
+  "GPIO5": {
+   "kind": "signal",
+   "pins": [
+    "U1.8"
+   ],
+   "reference_net": "/GPIO5",
+   "reference_board_pins": [
+    "J2.14"
+   ]
+  },
+  "GPIO6": {
+   "kind": "signal",
+   "pins": [
+    "U1.9"
+   ],
+   "reference_net": "/GPIO6",
+   "reference_board_pins": [
+    "J2.16"
+   ]
+  },
+  "GPIO7": {
+   "kind": "signal",
+   "pins": [
+    "U1.10"
+   ],
+   "reference_net": "/GPIO7",
+   "reference_board_pins": [
+    "J2.18"
+   ]
+  },
+  "GPIO8": {
+   "kind": "signal",
+   "pins": [
+    "U1.12"
+   ],
+   "reference_net": "/GPIO8",
+   "reference_board_pins": [
+    "J2.20"
+   ]
+  },
+  "GPIO9": {
+   "kind": "signal",
+   "pins": [
+    "U1.13"
+   ],
+   "reference_net": "/GPIO9",
+   "reference_board_pins": [
+    "J2.22"
+   ]
+  },
+  "RUN": {
+   "kind": "signal",
+   "pins": [
+    "U1.26",
+    "SW_RUN.2"
+   ],
+   "reference_net": "/RUN",
+   "reference_board_pins": [
+    "J3.29"
+   ]
+  },
+  "SWCLK": {
+   "kind": "signal",
+   "pins": [
+    "U1.24"
+   ],
+   "reference_net": "/SWCLK",
+   "reference_board_pins": [
+    "J3.33",
+    "J4.1"
+   ]
+  },
+  "SWD": {
+   "kind": "signal",
+   "pins": [
+    "U1.25"
+   ],
+   "reference_net": "/SWD",
+   "reference_board_pins": [
+    "J3.31",
+    "J4.3"
+   ]
+  },
+  "USB_DM": {
+   "kind": "signal",
+   "pins": [
+    "R_USB_DM.1"
+   ],
+   "reference_net": "/USB_D-",
+   "reference_board_pins": [
+    "J1.2"
+   ]
+  },
+  "USB_DP": {
+   "kind": "signal",
+   "pins": [
+    "R_USB_DP.1"
+   ],
+   "reference_net": "/USB_D+",
+   "reference_board_pins": [
+    "J1.3"
+   ]
+  }
+ },
+ "chip_pins_unconnected": []
+}

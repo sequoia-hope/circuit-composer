@@ -32,6 +32,26 @@ It sits between two sibling projects:
   parts by role. `ccomp check package` judges any board against the package by role. Both
   reference boards pass every hard check. easy2350 fails one: its USB pair runs over the
   +3V3 plane, not ground.
+- **Milestone 5, floorplanner and composer:** in progress.
+  - **Composer:** `ccomp compose` builds a board's circuit from package instances, the board's
+    own parts and the nets joining them, with a binding per instance for `ccomp check package`.
+    Recomposing the RP2350A minimal board (55 nets) and easy2350 (65) reproduces their netlists
+    exactly.
+  - **Packages:** three more, each ingested from its datasheet with cited rules: `mcp73831`
+    (LiPo charger), `tlv62569` (2 A buck, with a buck intent block) and `lsm6dso` (IMU).
+  - **KiCad output:** `tools/compose_kicad.py` writes the schematic (a box per block, a net
+    label per pin) and the board through easy_pcb's writer. ERC is clean, and the board's pad
+    nets equal the composed nets.
+  - **Floorplanner:** `ccomp floorplan` places every part by simulated annealing, using
+    pad-to-pad wirelength, courtyard overlap, board area, block cohesion, decoupling hints,
+    rigid generated layouts, connectors flush on an edge facing out, through-hole pads that
+    block both sides, and separations taken from the packages' rules.
+    - In easy2350's own outline it finds a legal placement with 10 % less wirelength than the
+      person's (790 mm against 878; KiCad DRC: no courtyard, clearance or short findings).
+    - The demo board is in `boards/rp2350-battery/`: USB-C, a charger, load sharing, a buck,
+      the RP2350 and an IMU. It composes and floorplans legally at 39 × 31 mm.
+  - **Not yet:** design rules and stack-up for composed boards; routing them; package
+    schematic sheets; the buck generator for off-chip regulators.
 - **Research library:** `library/` holds 143 cited claims from 41 vendor app notes, datasheets
   and articles, on five topics:
   - buck layout,
@@ -87,6 +107,26 @@ python3 tools/kicad_pins.py board.net U1 --rename SWD=SWDIO   # a part's pin tab
 $ccomp check package board.kicad_pcb --package packages/rp2350 --binding boards/easy2350/rp2350.binding.json
 ```
 
+Composing and floorplanning (milestone 5):
+
+```sh
+python3 tools/circuit_check.py packages/*/schematic/circuit.*.json --kicad 9   # symbols, footprints, pins
+$ccomp compose boards/rp2350-battery/compose.json -o composed.json
+python3 tools/compose_kicad.py composed.json OUT_DIR                           # schematic, ERC, board
+$ccomp floorplan OUT_DIR/BOARD.kicad_pcb --composed composed.json --spec boards/rp2350-battery/floorplan.json -o placement.json
+$ccomp floorplan ... --evaluate PLACED.kicad_pcb                               # score a person's placement
+python3 tools/apply_placement.py OUT_DIR/BOARD.kicad_pcb placement.json -o placed.kicad_pcb   # + KiCad DRC
+```
+
+Recomposing an existing board:
+
+```sh
+$ccomp compose boards/easy2350/compose.json -o composed.json --bindings OUT_DIR   # circuit + bindings
+python3 tools/package_circuit.py packages/rp2350 --board qfn60 --variant RP2350A --netlist REF.net --chip U1 --source rp2350a_minimal -o packages/rp2350/schematic/circuit.RP2350A.json
+python3 tools/compose_from_netlist.py draft BOARD.net --instance mcu rp2350@0.2.0 RP2350A BINDING.json --keep-designators -o compose.json
+python3 tools/compose_from_netlist.py compare BOARD.net composed.json --binding mcu BINDING.json
+```
+
 The research library:
 
 ```sh
@@ -106,6 +146,8 @@ Every command prints one JSON result. Exit status: 0 success, 1 the input failed
 | `crates/ccomp/` | The command-line harness |
 | `crates/pcb/` | A KiCad board as copper per net (read with ultraroute's `kicad-pcb`, pinned), geometry, and copper-path search |
 | `crates/verify/` | Fast-tier verifier checks (`buck.rs`, `nets.rs`) and SVG drawings of what they measured |
+| `crates/floorplan/` | The floorplanner: simulated annealing over part poses, rigid groups, edges, separations |
+| `crates/compose/` | The composer: package instances, the board's own parts and nets into one circuit, with a binding per instance |
 | `crates/library/` | The research library: cited claims from `library/` and every package's `rules.json`, checked and queried as one database |
 | `crates/blockgen/` | Block generators (`buck.rs`) and the layout format, in the anchor part's frame |
 | `tools/` | pcbnew-side steps: apply a layout, the test bench, comparisons |

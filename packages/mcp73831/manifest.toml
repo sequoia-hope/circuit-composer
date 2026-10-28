@@ -1,0 +1,63 @@
+# Circuit Composer package: Microchip MCP73831 single-cell Li-Ion/Li-Po linear charger.
+#
+# 0.1.0: the datasheet's typical application (DS20001984H Figure 6-1 / page 1) as a circuit:
+# input and VBAT capacitors, the PROG resistor set for a 500-1000 mAh cell, and a STAT LED
+# (omittable by role). Pin table (ports.json) and cited rules (rules.json). No layout yet.
+
+[package]
+name = "mcp73831"
+version = "0.1.0"
+family = "MCP73831"
+license = "MIT"
+summary = "MCP73831 1S Li-Ion/Li-Po linear charger (SOT-23-5): typical application circuit, ports, cited rules"
+
+[[variants]]
+name = "MCP73831T-2ACI-OT"
+mpn = "MCP73831T-2ACI/OT"
+# The variant name has "-" for the MPN's "/", since it names schematic/circuit.VARIANT.json.
+package = "SOT-23-5"
+footprint = "Package_TO_SOT_SMD:SOT-23-5"
+vreg_v = 4.20
+# Options AC (DS20001984H p.26): IPREG/IREG 10 %, VPTH/VREG 66.5 %, ITERM/IREG 7.5 %,
+# VRTH/VREG 96.5 %. Marking code KDNN (p.19). STAT is tri-state (the MCP73832 is open-drain).
+
+[sources]
+# Document revision this package was built from; hash in sources/sources.json.
+datasheet = "MCP73831/2 datasheet DS20001984H, Revision H (June 2020) (sha256 75297f2a…)"
+
+# LCSC parts the circuit names. Stock from jlc_parts.py show on 2026-10-27; price not snapshotted.
+[[sourcing]]
+role = "U1"
+part = "Microchip MCP73831T-2ACI/OT, SOT-23-5"
+lcsc = "C424093"
+checked = "2026-10-27"   # extended, JLC stock 6372, lifecycle normal
+
+[[sourcing]]
+role = "CIN"
+part = "Samsung CL21A106KAYNNNE, 10 uF 25 V X5R 0805"
+lcsc = "C15850"
+checked = "2026-10-27"   # basic, JLC stock 8731333, lifecycle normal
+
+[[sourcing]]
+role = "COUT"
+part = "Samsung CL21A106KAYNNNE, 10 uF 25 V X5R 0805"
+lcsc = "C15850"
+checked = "2026-10-27"   # basic, JLC stock 8731333, lifecycle normal
+
+[[sourcing]]
+role = "RPROG"
+part = "UNI-ROYAL 0402WGF4701TCE, 4.7 kohm 1 % 0402"
+lcsc = "C25900"
+checked = "2026-10-27"   # basic, JLC stock 14261528, lifecycle normal
+
+[[sourcing]]
+role = "R_STAT"
+part = "UNI-ROYAL 0402WGF4700TCE, 470 ohm 1 % 0402"
+lcsc = "C25117"
+checked = "2026-10-27"   # basic, JLC stock 1111477, lifecycle normal
+
+[[sourcing]]
+role = "D_STAT"
+part = "Hubei KENTO KT-0603R, red LED 0603"
+lcsc = "C2286"
+checked = "2026-10-27"   # basic, JLC stock 7581202, lifecycle normal

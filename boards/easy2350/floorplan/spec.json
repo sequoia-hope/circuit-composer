@@ -1,0 +1,92 @@
+{
+ "note": "Floorplanning easy2350 from scratch inside its own outline, to compare with the person's placement. The mechanical design fixes the outline (21.05 x 51.05 mm, a Pico-style stick) and the two 20-pin headers on the bottom at breadboard pitch; J1, the USB-C receptacle, goes on an edge facing out (at rotation 0 its mouth faces +y). The core regulator is the package's generated qfn60-4layer layout, moved as one.",
+ "outline": [
+  99.975,
+  99.975,
+  121.025,
+  151.025
+ ],
+ "fixed": {
+  "J2": {
+   "x": 101.61,
+   "y": 101.37,
+   "rotation": 180.0
+  },
+  "J3": {
+   "x": 119.39,
+   "y": 149.63,
+   "rotation": 0.0
+  }
+ },
+ "back": [
+  "J2",
+  "J3"
+ ],
+ "edges": {
+  "J1": {
+   "side": "top",
+   "facing": [
+    0,
+    1
+   ]
+  }
+ },
+ "rigid": [
+  {
+   "name": "core_reg",
+   "anchor": "U1",
+   "layout": "packages/rp2350/layouts/qfn60-4layer/layout.json",
+   "roles": {
+    "cin": "C14",
+    "cout": "C15",
+    "inductor": "L1"
+   }
+  }
+ ],
+ "separations": [
+  {
+   "a": "mcu/core_reg",
+   "b": "mcu/crystal",
+   "min_mm": 2.0,
+   "note": "Keep the switch node away from the crystal (library crystal.routing.keepout)"
+  }
+ ],
+ "blocks": {
+  "J1": "usb_in",
+  "U2": "usb_in",
+  "C1": "usb_in",
+  "R1": "usb_in",
+  "R2": "usb_in",
+  "U3": "ldo_3v3",
+  "C2": "ldo_3v3",
+  "C3": "ldo_3v3",
+  "SW2": "reset",
+  "R8": "reset",
+  "D1": "status_led",
+  "R9": "status_led",
+  "U4": "level_shifter",
+  "C24": "level_shifter",
+  "R10": "level_shifter",
+  "R12": "level_shifter",
+  "D3": "led_chain",
+  "D4": "led_chain",
+  "D5": "led_chain",
+  "D6": "led_chain",
+  "C23": "led_chain",
+  "C25": "led_chain",
+  "C26": "led_chain",
+  "C27": "led_chain",
+  "C28": "led_chain",
+  "D2": "led_chain",
+  "D7": "led_chain",
+  "R11": "led_chain",
+  "J2": "headers",
+  "J3": "headers",
+  "J4": "swd",
+  "TP3": "test_points"
+ },
+ "options": {
+  "moves": 600000,
+  "w_edge": 40
+ }
+}

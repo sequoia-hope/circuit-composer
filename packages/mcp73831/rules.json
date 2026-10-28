@@ -1,0 +1,530 @@
+{
+ "package": "mcp73831",
+ "version": "0.1.0",
+ "note": "Claims scoped to the MCP73831 (variant MCP73831T-2ACI-OT, SOT-23-5, 4.20 V, options AC). Page numbers are DS20001984H's printed pages (Revision H, sha256 75297f2a…). `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names; `ccomp check package` reads them). Arithmetic for this package's choices is in each claim's note.",
+ "claims": [
+  {
+   "id": "mcp73831.vin.cin",
+   "statement": "VDD is bypassed to VSS with at least 4.7 uF.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "CIN"
+   },
+   "attributes": [
+    "capacitance"
+   ],
+   "requirement": {
+    "capacitance_uf_min": 4.7
+   },
+   "checks": [
+    {
+     "part": "CIN",
+     "quantity": "capacitance",
+     "min": 4.7e-06
+    }
+   ],
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§3.1 p.11",
+    "quote": "Bypass to VSS with a minimum of 4.7 µF."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "The datasheet gives a nominal minimum and no dielectric or bias condition; read with buck.cap.dc_bias_effective, the 4.7 uF is the capacitance left at the VIN bias (5 V), which is why the package fits 10 uF 25 V X5R 0805.",
+   "enforced_by": [
+    "ccomp check package (nominal value; DC-bias derating is not in a value string)"
+   ]
+  },
+  {
+   "id": "mcp73831.vbat.cout",
+   "statement": "VBAT is bypassed to VSS with at least 4.7 uF, which keeps the constant-voltage loop stable when the battery is disconnected and compensates the battery leads' inductance.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "COUT"
+   },
+   "attributes": [
+    "capacitance",
+    "stability"
+   ],
+   "requirement": {
+    "capacitance_uf_min": 4.7
+   },
+   "checks": [
+    {
+     "part": "COUT",
+     "quantity": "capacitance",
+     "min": 4.7e-06
+    }
+   ],
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§3.2 p.11; §6.1.1.4 p.18",
+    "quote": "Bypass to VSS with a minimum of 4.7 µF to ensure loop stability when the battery is disconnected."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "enforced_by": [
+    "ccomp check package (nominal value)"
+   ]
+  },
+  {
+   "id": "mcp73831.vbat.cout_any_esr",
+   "statement": "The VBAT capacitor may be ceramic, tantalum or aluminium electrolytic with no minimum ESR; 4.7 uF is usually enough for output currents up to 500 mA.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "COUT"
+   },
+   "attributes": [
+    "esr",
+    "dielectric"
+   ],
+   "requirement": {
+    "esr_ohm_min": 0,
+    "output_current_a_max_for_4u7": 0.5
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.1.1.4 p.18",
+    "quote": "4.7 µF ceramic, tantalum or aluminum electrolytic capacitor at the output is usually sufficient to ensure stability for output currents up to a 500 mA."
+   },
+   "status": "asserted",
+   "note": "A board that draws more than 500 mA from VBAT through the charger (the system load while charging) is outside what this sentence covers; the datasheet says the value 'depends on the output load current' without a formula.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.vin.range",
+   "statement": "The VDD supply is 3.75-6 V in operation (VREG + 0.3 V to 6 V recommended), with 7.0 V absolute maximum; the charger shuts down below the 3.38 V typical UVLO stop threshold or when VDD falls within 50 mV of VBAT.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vdd_v": [
+     3.75,
+     6.0
+    ],
+    "vdd_v_abs_max": 7.0,
+    "vstop_v_typ": 3.38,
+    "vstart_v_typ": 3.45
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§1.0 p.3; §3.1 p.11; §4.1 p.13",
+    "quote": "A supply voltage of [VREG (typical) + 0.3V] to 6V is recommended."
+   },
+   "status": "asserted",
+   "note": "USB VBUS at 5 V sits inside the range with 1 V margin to the 6 V operating limit, 2 V to absolute maximum.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.prog.equation",
+   "statement": "The fast-charge current is set by one resistor from PROG to VSS: IREG (mA) = 1000 V / RPROG (kohm), with RPROG in the 2-67 kohm charge range (500 mA to 15 mA).",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "charge_current",
+    "resistance"
+   ],
+   "requirement": {
+    "rprog_ohm": [
+     2000,
+     67000
+    ],
+    "ireg_ma_equals": "1000 / RPROG_kohm"
+   },
+   "checks": [
+    {
+     "part": "RPROG",
+     "quantity": "resistance",
+     "min": 2000,
+     "max": 67000
+    }
+   ],
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§5.1.2 p.15; §1.0 p.4",
+    "quote": "The program resistor and the charge current are calculated using the following equation:"
+   },
+   "status": "asserted",
+   "note": "The equation follows the quote as a displayed formula, IREG = 1000V / RPROG, RPROG in kOhms and IREG in milliampere (p.15). The package fits 4.7 kohm: 213 mA nominal. Figure 2-4 (p.7) plots the curve over 2-67 kohm.",
+   "enforced_by": [
+    "ccomp check package (RPROG range)"
+   ]
+  },
+  {
+   "id": "mcp73831.prog.accuracy",
+   "statement": "The charger's own fast-charge current spread is about +/-10 % (90-110 mA at 10 kohm, 450-550 mA at 2 kohm), so a 1 % RPROG is enough; the datasheet states no resistor tolerance.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "charge_current",
+    "tolerance"
+   ],
+   "requirement": {
+    "rprog_tolerance_pct_max": 1,
+    "ireg_tolerance_pct": 10
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§1.0 DC Characteristics p.3",
+    "figure": "Fast Charge Current Regulation rows: IREG 90/100/110 mA at PROG = 10 kOhm, 450/505/550 mA at PROG = 2.0 kOhm (Note 1: not production tested), 12.5/14.5/16.5 mA at 67 kOhm; TA = -5 to +55 C."
+   },
+   "status": "asserted",
+   "note": "The 1 % limit is this package's choice, not a datasheet requirement: RPROG enters IREG 1:1, so a 5 % part would add half again to the chip's 10 % spread. Tolerance is not in the value string, so no tool can check it.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.prog.disable",
+   "statement": "PROG left floating, or above the 70-200 kohm shutdown impedance, or driven logic-high disables the charger (25 uA supply, < 2 uA battery drain), so RPROG must be fitted and its PROG connection solid.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "fitted",
+    "enable"
+   ],
+   "requirement": {
+    "rprog_shutdown_ohm_min": [
+     70000,
+     200000
+    ]
+   },
+   "checks": [
+    {
+     "part": "RPROG",
+     "quantity": "fitted"
+    }
+   ],
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§5.2.2 p.15; §4.3 p.13; §1.0 p.4",
+    "quote": "Allowing the PROG input to float or by applying a logic-high input signal, disables the device and terminates a charge cycle."
+   },
+   "status": "asserted",
+   "note": "The pin is also a charge-enable input: a host could switch RPROG's ground end with a FET or drive PROG high. This package ties RPROG to GND.",
+   "enforced_by": [
+    "ccomp check package (RPROG fitted)"
+   ]
+  },
+  {
+   "id": "mcp73831.charge.rate",
+   "statement": "The preferred fast-charge current for a Li-Ion cell is 1C, the absolute maximum 2C (a 500 mAh pack: 500 mA preferred); the MCP73831 programs at most 500 mA.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "charge_current"
+   ],
+   "requirement": {
+    "charge_rate_c_max": 2,
+    "charge_rate_c_preferred": 1,
+    "ireg_ma_max": 500
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.1.1.1 p.17; Features p.1",
+    "quote": "The preferred fast charge current for Lithium-Ion cells is at the 1C rate, with an absolute maximum current at the 2C rate."
+   },
+   "status": "asserted",
+   "note": "For a 500-1000 mAh cell the package picks 213 mA (RPROG 4.7 kohm): 0.43C at 500 mAh, 0.21C at 1000 mAh. 1C for the smallest cell (500 mA) would be within the rule but triples the SOT-23-5's dissipation (mcp73831.thermal.dissipation) and forces thermal regulation (Figure 6-3 shows it at 500 mA, 1000 mAh). The cell's own datasheet charge rate overrides both.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.thermal.dissipation",
+   "statement": "Worst-case dissipation is P = (VDDmax - VPTHmin) x IREGmax at the switch from preconditioning to fast charge; the SOT-23-5 has thetaJA 230 C/W on a minimum-copper JESD51-7 4-layer board, 130 C/W or better with large copper. At this package's 213 mA from 5 V USB that is 0.47 W nominal (61-108 C rise) and 0.67 W worst case.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "power_dissipation",
+    "theta_ja",
+    "copper_area"
+   ],
+   "requirement": {
+    "theta_ja_c_per_w_min_copper": 230,
+    "theta_ja_c_per_w_large_copper": 130,
+    "p_diss_w_nominal": 0.47,
+    "p_diss_w_worst": 0.67,
+    "tj_c_max_operating": 125
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.1.1.3 p.18; Temperature Specifications p.5",
+    "quote": "The worst-case power dissipation in the battery charger occurs when the input voltage is at the maximum and the device has transitioned"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "half_bridge.thermal.continuous_copper"
+    }
+   ],
+   "note": "Nominal: (5.0 V - 0.665 x 4.20 V = 2.79 V) x 0.213 A = 0.47 W; x 230 C/W = 108 C rise, x 130 C/W = 61 C. Worst case by the datasheet's method: VDDmax 5.5 V (its own 5 V +/-10 % example), VPTHmin = 64 % x 4.168 V = 2.67 V (p.4, p.3), IREGmax = 1.10 x 213 mA = 234 mA (the +/-10 % at 10 kohm assumed to hold at 4.7 kohm; the datasheet does not give it there): 2.83 V x 0.234 A = 0.66 W, 0.67 W with a 1 % low RPROG; x 230 = 154 C rise, x 130 = 87 C. The die cannot reach that: thermal regulation (mcp73831.thermal.regulation) cuts the current. The datasheet's own 500 mA example is 1.54 W. As VBAT rises the dissipation falls (3.7 V: 0.28 W).",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.thermal.regulation",
+   "statement": "The charger folds its charge current back as die temperature rises (from about 80 C junction in Figure 4-2) and suspends charging above 150 C, resuming about 10 C cooler; so a hot layout lengthens the charge, it does not overheat the part.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "junction_temperature",
+    "charge_current"
+   ],
+   "requirement": {
+    "tsd_c": 150,
+    "tsd_hyst_c": 10,
+    "fold_back_onset_c_approx": 80
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§4.9-4.10 p.14",
+    "quote": "The MCP73831/2 suspend charge if the die temperature exceeds 150°C."
+   },
+   "status": "asserted",
+   "note": "The ~80 C onset is read off Figure 4-2 (RPROG = 2 kohm): flat at about 505 mA to 80 C, about 225 mA at 100 C, near zero at 125 C. The datasheet does not say whether the curve shifts with RPROG. At 25 C ambient and 130 C/W the package's nominal 0.47 W start sits just above the onset (86 C), so expect a brief fold-back at the start of fast charge.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.layout.battery_close",
+   "statement": "The battery (its connector) is placed as close as possible to the VBAT and VSS pins, to minimise voltage drop in the high-current traces that would otherwise degrade the 4.20 V regulation.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement",
+    "trace_length"
+   ],
+   "requirement": {
+    "vbat_vss_trace": "shortest",
+    "vreg_tolerance_pct": 0.75
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.2 p.18",
+    "quote": "For optimum voltage regulation, place the battery pack as close as possible to the device’s VBAT and VSS pins."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "floorplanner (battery connector next to the charger block; not yet a check)"
+   ]
+  },
+  {
+   "id": "mcp73831.layout.heatsink_vias",
+   "statement": "VDD, VBAT and VSS each connect to a copper heat-sink pad with many vias into matching pours on the opposite layer, which conducts heat to the PCB backplane and lowers the junction temperature.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "copper_area",
+    "thermal_vias"
+   ],
+   "requirement": {
+    "pours": [
+     "VDD",
+     "VBAT",
+     "VSS"
+    ],
+    "pour_layers": "top and bottom"
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.2 p.18, Figures 6-4 and 6-5",
+    "quote": "adding many vias in the heat sink pad can help conduct more heat to the PCB backplane"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "half_bridge.thermal.direct_vias"
+    },
+    {
+     "supports": "half_bridge.thermal.continuous_copper"
+    }
+   ],
+   "note": "Figure 6-5 (bottom) repeats the three pours with vias; the VSS pour is the largest. This is what takes thetaJA from 230 C/W toward 130 C/W (mcp73831.thermal.dissipation).",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.layout.parts_adjacent",
+   "statement": "CIN sits beside the VDD pin between VDD and VSS, COUT beside VBAT between VBAT and VSS, and RPROG beside PROG returning to VSS, all on the IC's layer; the LED and its resistor sit at the STAT side.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "CIN|COUT|RPROG"
+   },
+   "attributes": [
+    "placement"
+   ],
+   "requirement": {
+    "cin": "between VDD and VSS pours, next to pin 4",
+    "cout": "between VBAT and VSS pours, next to pin 3",
+    "rprog": "next to pin 5"
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.2 p.18, Figure 6-4",
+    "figure": "Figure 6-4 Typical Layout (Top): three pours, VSS across the top, VBAT bottom-left, VDD bottom-right; COUT bridges VBAT-VSS left of the MCP73831, CIN bridges VDD-VSS right of it, RPROG next to PROG at the upper right, RLED and LED above the IC."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "rp2350.decoupling.close"
+    }
+   ],
+   "enforced_by": [
+    "generator (block layout from this figure; not yet written)"
+   ]
+  },
+  {
+   "id": "mcp73831.input.iovp",
+   "statement": "A hot-pluggable input (USB cable, wall supply) needs a transient suppressor (transzorb) from the V+ input connector to ground; Figure 6-1 shows an SMAJ5.0A.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "tvs"
+   },
+   "attributes": [
+    "protection",
+    "supply"
+   ],
+   "requirement": {
+    "tvs": "VIN to GND at the input connector",
+    "example_part": "SMAJ5.0A"
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§6.1.1.2 p.18; Figure 6-1 p.17",
+    "quote": "Input overvoltage protection must be used when the input power source is hot-pluggable. This includes USB cables and Wall-type power supplies."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "interface.esd.tvs_near_connector"
+    },
+    {
+     "refines": "interface.supply.tvs_selection"
+    }
+   ],
+   "note": "The TVS is a board part on the USB input, not in this package's circuit. An SMAJ5.0A's VRWM is 5.0 V, at USB VBUS nominal; interface.supply.tvs_selection asks VRWM >= the line's maximum operating voltage, so check the chosen TVS against the board's VBUS maximum.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.stat.output",
+   "statement": "STAT is a tri-state output: low while preconditioning, fast-charging or in constant voltage, high at charge complete, high-impedance in shutdown or with no battery; it sinks up to 25 mA and sources up to 35 mA, so an LED from VDD through a resistor into STAT lights while charging.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "status_led",
+    "role": "R_STAT"
+   },
+   "attributes": [
+    "current",
+    "logic_level"
+   ],
+   "requirement": {
+    "isink_ma_max": 25,
+    "isource_ma_max": 35,
+    "vol_v_typ_at_4ma": 0.4
+   },
+   "checks": [
+    {
+     "part": "R_STAT",
+     "quantity": "resistance",
+     "min": 170,
+     "when_fitted": "D_STAT"
+    }
+   ],
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§5.2.1 Table 5-1 p.15; §1.0 p.4; Figure 6-1 p.17",
+    "quote": "The charge status output of the MCP73831 has three different states: High (H), Low (L), and High-Impedance (High Z)."
+   },
+   "status": "asserted",
+   "note": "The 170 ohm floor keeps the LED current under 25 mA in the worst case this package sees: (6 V VDD max - 1.8 V LED, VOL taken as 0) / 0.025 A = 168 ohm. The fitted 470 ohm (the p.1 value) gives about 5.5 mA from 5 V with a 2 V red LED.",
+   "enforced_by": [
+    "ccomp check package (R_STAT floor, when D_STAT is fitted)"
+   ]
+  },
+  {
+   "id": "mcp73831.stat.host",
+   "statement": "STAT may instead (or as well) go to a host microcontroller with a pull-up; on the MCP73831 its high level is VDD - 0.4 V typical, the USB input, so a 3.3 V host input needs level conversion or a 5 V-tolerant pin.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "status_led",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic_level",
+    "interface"
+   ],
+   "requirement": {
+    "voh_v_typ": "VDD - 0.4",
+    "voh_v_min": "VDD - 1"
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§3.3 p.11; §1.0 p.4",
+    "quote": "Alternatively, a pull-up resistor can be applied for interfacing to a host microcontroller."
+   },
+   "status": "asserted",
+   "note": "The pull-up sentence matters for the open-drain MCP73832; the MCP73831's push-pull high (VOH = VDD-0.4 V typ, VDD-1 V max at 4 mA, p.4) drives the host pin to about 4.6 V from USB. With the LED fitted, Hi-Z reads as the LED's leak toward VDD. The level conversion is the board's to add.",
+   "enforced_by": []
+  },
+  {
+   "id": "mcp73831.vbat.battery_detect",
+   "statement": "Battery detection needs more than 7 MOhm at VBAT before a battery is connected: VBAT sources 6 uA (0.6 uA minimum) and treats VBAT rising above VREG + 100 mV as no battery.",
+   "scope": {
+    "chip": "MCP73831",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "load",
+    "detection"
+   ],
+   "requirement": {
+    "zvbat_ohm_min_without_battery": 7000000.0
+   },
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§4.2 p.13; §1.0 p.4",
+    "quote": "the impedance seen by the VBAT pin before the battery is connected must be greater than 7 MΩ"
+   },
+   "status": "asserted",
+   "note": "A board that powers its regulator from VBAT puts a load there, so the charger sees 'battery present', charges the output to 4.20 V and STAT stays low with no cell. A system load above ITERM (7.5 % of IREG, 16 mA here) also keeps the charger from ever terminating; that is the board's power-path question, not this package's.",
+   "enforced_by": []
+  }
+ ]
+}

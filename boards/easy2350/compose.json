@@ -1,0 +1,488 @@
+{
+ "board": "easy2350",
+ "note": "Drafted by tools/compose_from_netlist.py from easy2350.net.",
+ "instances": {
+  "mcu": {
+   "package": "rp2350@0.2.0",
+   "variant": "RP2350A",
+   "designators": {
+    "CFILT": "C13",
+    "CIN": "C14",
+    "CL_XIN": "C20",
+    "CL_XOUT": "C21",
+    "COUT": "C15",
+    "C_DVDD_23": "C16",
+    "C_DVDD_39": "C18",
+    "C_DVDD_6": "C17",
+    "C_FLASH": "C22",
+    "C_IOVDD_1": "C4",
+    "C_IOVDD_11": "C5",
+    "C_IOVDD_20": "C6",
+    "C_IOVDD_30": "C7",
+    "C_IOVDD_38": "C8",
+    "C_IOVDD_45_ADC": "C9",
+    "C_OTP_QSPI": "C11",
+    "FLASH": "U5",
+    "L1": "L1",
+    "RFILT": "R3",
+    "R_BOOTSEL": "R7",
+    "R_USB_DM": "R4",
+    "R_USB_DP": "R5",
+    "R_XOUT": "R6",
+    "SW_BOOTSEL": "SW1",
+    "U1": "U1",
+    "XTAL": "Y1"
+   },
+   "omit": [
+    "R_CS1_LINK",
+    "R_RUN",
+    "R_SS_LINK",
+    "R_SS_PULLUP",
+    "SW_RUN"
+   ],
+   "join": [
+    [
+     "QSPI_SS",
+     "FLASH_SS"
+    ]
+   ],
+   "reversed": [
+    "R_XOUT"
+   ]
+  }
+ },
+ "parts": {
+  "C1": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric"
+  },
+  "C2": {
+   "symbol": "Device:C",
+   "value": "2.2u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric"
+  },
+  "C23": {
+   "symbol": "Device:C",
+   "value": "4.7u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric"
+  },
+  "C24": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric"
+  },
+  "C25": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric"
+  },
+  "C26": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric"
+  },
+  "C27": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric"
+  },
+  "C28": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric"
+  },
+  "C3": {
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric"
+  },
+  "D1": {
+   "symbol": "Device:LED",
+   "value": "RED",
+   "footprint": "LED_SMD:LED_0603_1608Metric"
+  },
+  "D2": {
+   "symbol": "Device:D",
+   "value": "SM4007PL",
+   "footprint": "easy2350:D_SOD-123F_MDD"
+  },
+  "D3": {
+   "symbol": "LED:WS2812B-2020",
+   "value": "WS2812B-2020-V6",
+   "footprint": "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+  },
+  "D4": {
+   "symbol": "LED:WS2812B-2020",
+   "value": "WS2812B-2020-V6",
+   "footprint": "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+  },
+  "D5": {
+   "symbol": "LED:WS2812B-2020",
+   "value": "WS2812B-2020-V6",
+   "footprint": "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+  },
+  "D6": {
+   "symbol": "LED:WS2812B-2020",
+   "value": "WS2812B-2020-V6",
+   "footprint": "LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm"
+  },
+  "D7": {
+   "symbol": "Device:D_Zener",
+   "value": "BZT52B5V1",
+   "footprint": "Diode_SMD:D_SOD-123"
+  },
+  "J1": {
+   "symbol": "Connector:USB_C_Receptacle_USB2.0_16P",
+   "value": "USB-C",
+   "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12"
+  },
+  "J2": {
+   "symbol": "Connector_Generic:Conn_01x20",
+   "value": "GPIO left",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x20_P2.54mm_Vertical"
+  },
+  "J3": {
+   "symbol": "Connector_Generic:Conn_01x20",
+   "value": "GPIO right",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x20_P2.54mm_Vertical"
+  },
+  "J4": {
+   "symbol": "Connector_Generic:Conn_01x03",
+   "value": "SWD",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+  },
+  "R1": {
+   "symbol": "Device:R",
+   "value": "5.1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "R10": {
+   "symbol": "Device:R",
+   "value": "33R",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "R11": {
+   "symbol": "Device:R",
+   "value": "4.7k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "R12": {
+   "symbol": "Device:R",
+   "value": "100k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "R2": {
+   "symbol": "Device:R",
+   "value": "5.1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "R8": {
+   "symbol": "Device:R",
+   "value": "1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "R9": {
+   "symbol": "Device:R",
+   "value": "1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric"
+  },
+  "SW2": {
+   "symbol": "Switch:SW_Push",
+   "value": "RESET",
+   "footprint": "Button_Switch_SMD:SW_SPST_TS-1088-xR020"
+  },
+  "TP3": {
+   "symbol": "Connector:TestPoint",
+   "value": "1V1",
+   "footprint": "TestPoint:TestPoint_Pad_D1.0mm"
+  },
+  "U2": {
+   "symbol": "Power_Protection:USBLC6-2SC6",
+   "value": "USBLC6-2SC6",
+   "footprint": "Package_TO_SOT_SMD:SOT-23-6"
+  },
+  "U3": {
+   "symbol": "easy2350:AP7361C-33FGE",
+   "value": "AP7361C-33FGE",
+   "footprint": "easy2350:DFN-8-1EP_3x3mm_P0.65mm_EP1.5x2.25mm_ThermalVias"
+  },
+  "U4": {
+   "symbol": "easy2350:SN74LV1T125",
+   "value": "SN74LV1T125DBVR",
+   "footprint": "Package_TO_SOT_SMD:SOT-23-5"
+  }
+ },
+ "nets": {
+  "+1V1": [
+   "mcu.DVDD",
+   "TP3.1"
+  ],
+  "+3V3": [
+   "mcu.+3V3",
+   "C3.1",
+   "J3.16",
+   "U3.1"
+  ],
+  "CC1": [
+   "J1.A5",
+   "R1.1"
+  ],
+  "CC2": [
+   "J1.B5",
+   "R2.1"
+  ],
+  "GND": [
+   "mcu.GND",
+   "C1.2",
+   "C2.2",
+   "C23.2",
+   "C24.2",
+   "C25.2",
+   "C26.2",
+   "C27.2",
+   "C28.2",
+   "C3.2",
+   "D1.1",
+   "D3.2",
+   "D4.2",
+   "D5.2",
+   "D6.2",
+   "D7.2",
+   "J1.A1",
+   "J1.A12",
+   "J1.B1",
+   "J1.B12",
+   "J1.S1",
+   "J2.13",
+   "J2.18",
+   "J2.3",
+   "J2.8",
+   "J3.18",
+   "J3.3",
+   "J3.8",
+   "J4.2",
+   "R1.2",
+   "R11.2",
+   "R12.2",
+   "R2.2",
+   "SW2.1",
+   "U2.2",
+   "U3.4",
+   "U3.9",
+   "U4.1",
+   "U4.3"
+  ],
+  "GPIO0": [
+   "mcu.GPIO0",
+   "J2.1"
+  ],
+  "GPIO1": [
+   "mcu.GPIO1",
+   "J2.2"
+  ],
+  "GPIO10": [
+   "mcu.GPIO10",
+   "J2.14"
+  ],
+  "GPIO11": [
+   "mcu.GPIO11",
+   "J2.15"
+  ],
+  "GPIO12": [
+   "mcu.GPIO12",
+   "J2.16"
+  ],
+  "GPIO13": [
+   "mcu.GPIO13",
+   "J2.17"
+  ],
+  "GPIO14": [
+   "mcu.GPIO14",
+   "J2.19"
+  ],
+  "GPIO15": [
+   "mcu.GPIO15",
+   "J2.20"
+  ],
+  "GPIO16": [
+   "mcu.GPIO16",
+   "J3.1"
+  ],
+  "GPIO17": [
+   "mcu.GPIO17",
+   "J3.2"
+  ],
+  "GPIO18": [
+   "mcu.GPIO18",
+   "J3.4"
+  ],
+  "GPIO19": [
+   "mcu.GPIO19",
+   "J3.5"
+  ],
+  "GPIO2": [
+   "mcu.GPIO2",
+   "J2.4"
+  ],
+  "GPIO20": [
+   "mcu.GPIO20",
+   "J3.6"
+  ],
+  "GPIO21": [
+   "mcu.GPIO21",
+   "J3.7"
+  ],
+  "GPIO22": [
+   "mcu.GPIO22",
+   "J3.9"
+  ],
+  "GPIO23": [
+   "mcu.GPIO23",
+   "J3.11",
+   "R12.1",
+   "U4.2"
+  ],
+  "GPIO24": [
+   "mcu.GPIO24",
+   "J3.12"
+  ],
+  "GPIO25": [
+   "mcu.GPIO25",
+   "J3.13",
+   "R9.1"
+  ],
+  "GPIO26": [
+   "mcu.GPIO26_ADC0",
+   "J3.14"
+  ],
+  "GPIO27": [
+   "mcu.GPIO27_ADC1",
+   "J3.15"
+  ],
+  "GPIO28": [
+   "mcu.GPIO28_ADC2",
+   "J3.17"
+  ],
+  "GPIO29": [
+   "mcu.GPIO29_ADC3",
+   "J3.19"
+  ],
+  "GPIO3": [
+   "mcu.GPIO3",
+   "J2.5"
+  ],
+  "GPIO4": [
+   "mcu.GPIO4",
+   "J2.6"
+  ],
+  "GPIO5": [
+   "mcu.GPIO5",
+   "J2.7"
+  ],
+  "GPIO6": [
+   "mcu.GPIO6",
+   "J2.9"
+  ],
+  "GPIO7": [
+   "mcu.GPIO7",
+   "J2.10"
+  ],
+  "GPIO8": [
+   "mcu.GPIO8",
+   "J2.11"
+  ],
+  "GPIO9": [
+   "mcu.GPIO9",
+   "J2.12"
+  ],
+  "LED_DIN": [
+   "D3.3",
+   "R10.2"
+  ],
+  "Net-(D1-A)": [
+   "D1.2",
+   "R9.2"
+  ],
+  "Net-(R8-Pad2)": [
+   "R8.2",
+   "SW2.2"
+  ],
+  "Net-(U4-Y)": [
+   "R10.1",
+   "U4.4"
+  ],
+  "PIX12": [
+   "D3.1",
+   "D4.3"
+  ],
+  "PIX23": [
+   "D4.1",
+   "D5.3"
+  ],
+  "PIX34": [
+   "D5.1",
+   "D6.3"
+  ],
+  "RUN": [
+   "mcu.RUN",
+   "J3.10",
+   "R8.1"
+  ],
+  "SWCLK": [
+   "mcu.SWCLK",
+   "J4.1"
+  ],
+  "SWDIO": [
+   "mcu.SWD",
+   "J4.3"
+  ],
+  "USB_DM": [
+   "mcu.USB_DM",
+   "U2.6"
+  ],
+  "USB_DM_C": [
+   "J1.A7",
+   "J1.B7",
+   "U2.1"
+  ],
+  "USB_DP": [
+   "mcu.USB_DP",
+   "U2.4"
+  ],
+  "USB_DP_C": [
+   "J1.A6",
+   "J1.B6",
+   "U2.3"
+  ],
+  "VBUS": [
+   "C1.1",
+   "C2.1",
+   "D2.2",
+   "J1.A4",
+   "J1.A9",
+   "J1.B4",
+   "J1.B9",
+   "J3.20",
+   "U2.5",
+   "U3.5",
+   "U3.8"
+  ],
+  "VLED": [
+   "C23.1",
+   "C24.1",
+   "C25.1",
+   "C26.1",
+   "C27.1",
+   "C28.1",
+   "D2.1",
+   "D3.4",
+   "D4.4",
+   "D5.4",
+   "D6.4",
+   "D7.1",
+   "R11.1",
+   "U4.5"
+  ]
+ }
+}

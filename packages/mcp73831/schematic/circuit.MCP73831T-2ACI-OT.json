@@ -1,0 +1,116 @@
+{
+ "note": "The datasheet's typical application (DS20001984H Figure 6-1, p.17; values from the p.1 figure) as a circuit. Parts by role; the datasheet figure has labels (CIN, COUT, RPROG, RLED, LED), not numbered designators, so `reference_ref` is a conventional designator and each part's note names its figure label. Values are chosen for a 500-1000 mAh 1S cell charged from USB 5 V (see RPROG). D_STAT and R_STAT are the optional status LED: omit both to drop it; STAT is also a signal port.",
+ "variant": "MCP73831T-2ACI-OT",
+ "board": "datasheet",
+ "source": "mcp73831_ds",
+ "parts": {
+  "U1": {
+   "block": "charger",
+   "symbol": "Battery_Management:MCP73831-2-OT",
+   "value": "MCP73831T-2ACI/OT",
+   "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+   "reference_ref": "U1",
+   "lcsc": "C424093",
+   "mpn": "MCP73831T-2ACI/OT",
+   "note": "Figure 6-1 'MCP73831/2'. 4.20 V VREG, options AC (p.26). Symbol pins 1 STAT, 2 VSS, 3 VBAT, 4 VDD, 5 PROG match Table 3-1 (p.11) pin by pin."
+  },
+  "CIN": {
+   "block": "charger",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "reference_ref": "C1",
+   "lcsc": "C15850",
+   "mpn": "CL21A106KAYNNNE",
+   "note": "Figure 6-1 'CIN' (4.7 uF on p.1). VDD needs at least 4.7 uF to VSS (§3.1 p.11). 10 uF 25 V X5R 0805 so that the capacitance left at 5 V DC bias stays above the 4.7 uF minimum (buck.cap.dc_bias_effective); the datasheet itself names only the minimum."
+  },
+  "COUT": {
+   "block": "charger",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "reference_ref": "C2",
+   "lcsc": "C15850",
+   "mpn": "CL21A106KAYNNNE",
+   "note": "Figure 6-1 'COUT' (4.7 uF on p.1). VBAT needs at least 4.7 uF to VSS for stability with the battery disconnected (§3.2 p.11, §6.1.1.4 p.18). Same part as CIN; at 4.2 V bias it keeps more than 4.7 uF."
+  },
+  "RPROG": {
+   "block": "charger",
+   "symbol": "Device:R",
+   "value": "4.7k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R1",
+   "lcsc": "C25900",
+   "mpn": "0402WGF4701TCE",
+   "note": "Figure 6-1 'RPROG' (2 kohm on p.1, for 500 mA). IREG = 1000 V / RPROG (§5.1.2 p.15) = 1000 / 4.7 = 213 mA: 0.43C for a 500 mAh cell, 0.21C for 1000 mAh, below the 1C preferred rate (§6.1.1.1 p.17) so one value serves the whole 500-1000 mAh range and the SOT-23-5 dissipates about 0.47 W at 5.0 V in and the 2.79 V fast-charge threshold, not the 1.54 W the datasheet's 500 mA example does (§6.1.1.3 p.18). 1 %: the charger's own IREG spread is +/-10 % (p.3)."
+  },
+  "R_STAT": {
+   "block": "status_led",
+   "symbol": "Device:R",
+   "value": "470",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R2",
+   "lcsc": "C25117",
+   "mpn": "0402WGF4700TCE",
+   "note": "Figure 6-1 'RLED', 470 ohm on p.1. With a red LED (about 2 V) from 5 V and STAT's 0.4 V typical low (p.4): about 5.5 mA, under STAT's 25 mA sink limit. Optional: omit with D_STAT."
+  },
+  "D_STAT": {
+   "block": "status_led",
+   "symbol": "Device:LED",
+   "value": "RED",
+   "footprint": "LED_SMD:LED_0603_1608Metric",
+   "reference_ref": "D1",
+   "lcsc": "C2286",
+   "mpn": "KT-0603R",
+   "note": "Figure 6-1 'LED'. Anode on VDD, cathode through R_STAT to STAT: lit while charging (STAT = L), dark at charge complete (H) and with no input or no battery (Hi-Z), Table 5-1 p.15. Optional: a board omits D_STAT and R_STAT (instance omit) to drop the indicator."
+  }
+ },
+ "nets": {
+  "STAT_LED": [
+   "D_STAT.1",
+   "R_STAT.1"
+  ],
+  "PROG": [
+   "U1.5",
+   "RPROG.1"
+  ]
+ },
+ "ports": {
+  "VIN": {
+   "kind": "supply",
+   "pins": [
+    "U1.4",
+    "CIN.1",
+    "D_STAT.2"
+   ],
+   "note": "Charger input, the USB 5 V (VBUS). 3.75-6 V operating, 7.0 V absolute maximum (p.3). A hot-pluggable source needs a TVS from VIN to GND at the connector (§6.1.1.2 p.18); that belongs to the board's USB input, not this package."
+  },
+  "VBAT": {
+   "kind": "supply",
+   "pins": [
+    "U1.3",
+    "COUT.1"
+   ],
+   "note": "The cell's positive terminal (and whatever load the board hangs on the battery). Place the battery connector close to VBAT and VSS (§6.2 p.18)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.2",
+    "CIN.2",
+    "COUT.2",
+    "RPROG.2"
+   ],
+   "note": "VSS: the cell's negative terminal and the input return (§3.4 p.11)."
+  },
+  "STAT": {
+   "kind": "signal",
+   "pins": [
+    "U1.1",
+    "R_STAT.2"
+   ],
+   "note": "Charge status for a host, optional: leave it in no_connect if nothing reads it. Tri-state: L charging, H complete, Hi-Z shutdown/no battery (Table 5-1 p.15). Its high is VDD-0.4 V typ (p.4), i.e. about 4.6 V from USB: a 3.3 V host needs a divider, a series resistor into a 5 V-tolerant input, or a level shifter, which this package does not include. With the LED fitted the Hi-Z and H states read alike unless the host adds a pull."
+  }
+ },
+ "chip_pins_unconnected": []
+}

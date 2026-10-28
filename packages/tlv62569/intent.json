@@ -1,0 +1,296 @@
+{
+  "schema_version": "0.1",
+  "board": {
+    "name": "tlv62569 package: 3.3 V buck from a 1S LiPo or USB 5 V"
+  },
+  "sources": {
+    "tlv62569_ds": {
+      "title": "TLV62569 2-A High Efficiency Synchronous Buck Converter in SOT Package (SLVSDG1C)",
+      "location": "https://www.ti.com/lit/ds/symlink/tlv62569.pdf",
+      "revision": "SLVSDG1C, revised October 2017",
+      "sha256": "1ba6f55dfe678d06d563acd6632f1f950a497d812270806021097b55cd81d3c4"
+    },
+    "smnr4020_ds": {
+      "title": "SXN SMNR series magnetic resin shielded SMD power inductors",
+      "location": "https://datasheet.lcsc.com/datasheet/pdf/c30b0f031d0070e2292eba9306a4bf8b.pdf?productCode=C135262",
+      "sha256": "1deed22423597bd5cb68f8417c6c51a0c994c898bff827e1a7f7fc85bf5cc0c1"
+    },
+    "board_m5": {
+      "title": "Milestone 5 demo board brief: RP2350A + MCP73831 + 1S LiPo + TLV62569 + LSM6DSO, 3.3 V rail up to 600 mA",
+      "revision": "2026-10-27"
+    }
+  },
+  "nets": {
+    "VIN": {
+      "class": "POWER",
+      "voltage": {
+        "value": {
+          "peak_v": 5.5
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§6.3 p.4",
+          "kind": "datasheet",
+          "note": "Recommended maximum; 6 V absolute maximum (p.3). 4.2 V from the cell, up to 5.5 V if fed from USB."
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.6,
+          "peak_a": 0.8
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "board_m5",
+          "locator": "3.3 V rail budget",
+          "kind": "requirement",
+          "note": "Input current is below the 600 mA output whenever VIN > VOUT; peak is the inductor's IL,MAX at VIN = 5.5 V (Equation 3 p.10), drawn from CIN."
+        }
+      }
+    },
+    "SW": {
+      "class": "SWITCH",
+      "voltage": {
+        "value": {
+          "peak_v": 5.8
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§6.1 p.3",
+          "kind": "datasheet",
+          "note": "DC limit VIN + 0.3 V; ringing to 9 V for under 10 ns is within absolute maximum."
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.6,
+          "peak_a": 0.8
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§8.2.2.4 Equation 3 p.10",
+          "kind": "datasheet",
+          "note": "IL,MAX = 0.6 A + 0.40 A / 2 at VIN = 5.5 V, L = 2.2 uH, 1.5 MHz."
+        }
+      },
+      "aggressor": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§10.1 p.13",
+          "kind": "datasheet",
+          "note": "Keep FB sense traces away from SW nodes."
+        }
+      }
+    },
+    "VOUT": {
+      "class": "POWER",
+      "voltage": {
+        "value": {
+          "peak_v": 3.4
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§8.2.2.2 Equation 2 p.9; §6.5 p.4",
+          "kind": "datasheet",
+          "note": "0.612 V x (1 + 453k/100k) = 3.39 V at the top of VFB's range."
+        }
+      },
+      "current": {
+        "value": {
+          "continuous_a": 0.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "board_m5",
+          "locator": "3.3 V rail budget",
+          "kind": "requirement",
+          "note": "RP2350, flash, IMU and LEDs; the IC is rated 2 A (p.4)."
+        }
+      }
+    },
+    "FB": {
+      "class": "ANALOG",
+      "voltage": {
+        "value": {
+          "peak_v": 0.612
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§6.5 p.4",
+          "kind": "datasheet"
+        }
+      },
+      "bandwidth": {
+        "value": {
+          "kind": "dc"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§8.2.2.2 p.9",
+          "kind": "datasheet",
+          "note": "High-impedance divider node (100 kOhm to ground); the regulation loop's bandwidth is not given."
+        }
+      },
+      "victim": {
+        "value": {
+          "level": "strong"
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§10.1 p.13",
+          "kind": "datasheet",
+          "note": "The sense traces connected to FB are signal traces; avoid noise being induced."
+        }
+      }
+    },
+    "EN": {
+      "class": "SIGNAL",
+      "voltage": {
+        "value": {
+          "peak_v": 5.5
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "tlv62569_ds",
+          "locator": "§6.1 p.3; §6.3 p.4",
+          "kind": "datasheet",
+          "note": "Pulled up to VIN."
+        }
+      }
+    },
+    "GND": {
+      "class": "GROUND",
+      "current": {
+        "value": {
+          "continuous_a": 0.6
+        },
+        "strength": "hard",
+        "provenance": {
+          "source": "board_m5",
+          "locator": "3.3 V rail budget",
+          "kind": "requirement"
+        }
+      }
+    }
+  },
+  "blocks": {
+    "reg": {
+      "type": "buck",
+      "parts": [
+        "U1",
+        "L1",
+        "CIN",
+        "COUT",
+        "RFB_TOP",
+        "RFB_BOT",
+        "CFF",
+        "R_EN"
+      ],
+      "roles": {
+        "vin": "U1.4",
+        "sw": "U1.3",
+        "pgnd": "U1.2",
+        "fb": "U1.5",
+        "cin": "CIN",
+        "cout": "COUT",
+        "inductor": "L1"
+      },
+      "placement_goal": {
+        "objectives": [
+          {
+            "metric": "hot_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 1.0
+          },
+          {
+            "metric": "switch_node_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          },
+          {
+            "metric": "output_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          }
+        ],
+        "constraints": [
+          {
+            "value": {
+              "metric": "feedback_clearance_mm",
+              "op": ">=",
+              "limit": 0.3,
+              "nets": [
+                "FB",
+                "SW"
+              ]
+            },
+            "strength": "soft",
+            "provenance": {
+              "source": "tlv62569_ds",
+              "locator": "§10.1 p.13",
+              "kind": "datasheet",
+              "note": "Datasheet: keep FB sense traces away from SW nodes, no distance given. 0.3 mm is the rp2350 package's floor, borrowed; soft until a source or a measurement gives one. With the divider the checked path is FB pin to the nearest divider pad (crates/verify/src/buck.rs); the VOUT sense run from COUT to RFB_TOP is not covered."
+            }
+          }
+        ]
+      },
+      "ports": {
+        "vin": {
+          "kind": "supply",
+          "nets": [
+            "VIN"
+          ],
+          "direction": "in",
+          "voltage_v": 4.2,
+          "current_a": 0.6
+        },
+        "out": {
+          "kind": "supply",
+          "nets": [
+            "VOUT"
+          ],
+          "direction": "out",
+          "voltage_v": 3.3,
+          "current_a": 0.6
+        },
+        "en": {
+          "kind": "signal",
+          "nets": [
+            "EN"
+          ],
+          "direction": "in"
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "GND"
+          ]
+        }
+      },
+      "note": "U1 is the TLV62569DBV (SOT-23-5): 1 EN, 2 GND, 3 SW, 4 VIN, 5 FB. The GND pin is both power and signal ground (no exposed pad, no separate AGND). The feedback divider is external (RFB_TOP from VOUT to FB, RFB_BOT from FB to GND, CFF across RFB_TOP), so `fb` is not on the output net. Part references are roles, renamed when composed onto a board. No switch_node_underlap constraint: this datasheet does not ask for the plane under SW to be cut (see the library dispute buck.sw.keep_ground_under)."
+    }
+  },
+  "domains": {
+    "name": "tlv62569",
+    "kind": "board",
+    "supplies": [
+      "VIN",
+      "VOUT"
+    ],
+    "reference_ground": "GND",
+    "blocks": [
+      "reg"
+    ]
+  }
+}

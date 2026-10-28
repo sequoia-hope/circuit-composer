@@ -1,0 +1,74 @@
+# Circuit Composer package: Texas Instruments TLV62569, 2 A synchronous step-down converter.
+#
+# 0.1.0: the DBV (SOT-23-5) variant as the datasheet's typical application, set for 3.3 V out
+# from a 1S LiPo (3.0-4.2 V) or USB 5 V, 600 mA for the milestone 5 board; pins, cited rules
+# with part-value checks, and a buck intent block. No generated or verified layout yet.
+
+[package]
+name = "tlv62569"
+version = "0.1.0"
+family = "TLV62569"
+license = "MIT"
+summary = "TLV62569DBV 2 A buck: 3.3 V typical application (external divider, 2.2 uH), ports, cited rules, buck intent block"
+
+[[variants]]
+name = "TLV62569DBV"
+package = "SOT-23-5 (DBV0005A), 2.9 x 2.8 mm body (nominal, p.1)"
+footprint = "Package_TO_SOT_SMD:SOT-23-5"
+power_good = false
+# PG exists only on TLV62569PDDC (SOT-23-6) and TLV62569PDRL (SOT563); not packaged here.
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "TI SLVSDG1C, revised October 2017 (sha256 1ba6f55d…)"
+inductor = "SXN SMNR series catalogue, as linked by LCSC for C135262 (sha256 1deed224…)"
+
+# LCSC parts the circuit names. Stock is JLCPCB's, from
+# ~/Software/easy_pcb/.claude/skills/pcb-design/scripts/jlc_parts.py show, on the date given.
+[[sourcing]]
+role = "U1"
+part = "TI TLV62569DBVR, SOT-23-5"
+lcsc = "C141836"
+checked = "2026-10-27"   # extended, stock 27872, lifecycle normal
+
+[[sourcing]]
+role = "L1"
+part = "SXN SMNR4020-2.2UH, 2.2 uH 3.4 A 40 mOhm, 4x4x2 mm"
+lcsc = "C135262"
+checked = "2026-10-27"   # extended, stock 136135, lifecycle normal
+
+[[sourcing]]
+role = "CIN"
+part = "Samsung CL21A106KAYNNNE, 10 uF 25 V X5R 0805"
+lcsc = "C15850"
+checked = "2026-10-27"   # basic, stock 8729891, lifecycle normal
+
+[[sourcing]]
+role = "COUT"
+part = "Samsung CL21A226MAQNNNE, 22 uF 25 V X5R 0805"
+lcsc = "C45783"
+checked = "2026-10-27"   # basic, stock 4039423, lifecycle normal
+
+[[sourcing]]
+role = "RFB_TOP"
+part = "UNI-ROYAL 0402WGF4533TCE, 453 kOhm 1 % 0402"
+lcsc = "C27009"
+checked = "2026-10-27"   # extended, stock 679741, lifecycle normal
+
+[[sourcing]]
+role = "RFB_BOT"
+part = "UNI-ROYAL 0402WGF1003TCE, 100 kOhm 1 % 0402"
+lcsc = "C25741"
+checked = "2026-10-27"   # basic, stock 7532339, lifecycle normal
+
+[[sourcing]]
+role = "CFF"
+part = "FH 0402CG6R8C500NT, 6.8 pF 50 V C0G 0402"
+lcsc = "C1576"
+checked = "2026-10-27"   # preferred, stock 161070, lifecycle normal
+
+[[sourcing]]
+role = "R_EN"
+part = "UNI-ROYAL 0402WGF1004TCE, 1 MOhm 1 % 0402"
+lcsc = "C26083"
+checked = "2026-10-27"   # basic, stock 2297855, lifecycle normal

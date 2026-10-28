@@ -1,0 +1,42 @@
+{
+ "board": "rp2350-battery",
+ "note": "Milestone 5's demo: a battery-powered RP2350A board composed from four packages. USB-C 5 V charges a 1S LiPo through the MCP73831; a load-sharing P-FET (Q1) and Schottky (D3) feed the TLV62569 from USB when it is present and from the cell when not, so the charger's termination is not held off by the system load (packages/mcp73831/README.md). The IMU is on I2C0 (GPIO4/5, address 0x6A) with its interrupts on GPIO6/7. SWD on J3, a user LED on GPIO25. The charger's STAT drives its own LED and is not wired to the RP2350: it swings to VIN, above IOVDD.",
+ "instances": {
+  "mcu": { "package": "rp2350@0.2.0", "variant": "RP2350A" },
+  "chg": { "package": "mcp73831@0.1.0", "variant": "MCP73831T-2ACI-OT" },
+  "reg": { "package": "tlv62569@0.1.0", "variant": "TLV62569DBV" },
+  "imu": { "package": "lsm6dso@0.1.0", "variant": "LSM6DSOTR" }
+ },
+ "parts": {
+  "J1": { "symbol": "Connector:USB_C_Receptacle_USB2.0_16P", "value": "USB-C", "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12", "lcsc": "C165948", "note": "USB 2.0 receptacle, device role. Its shield pin is S1 in KiCad 9 libraries (SH in 10); this board is written with 9" },
+  "R1": { "symbol": "Device:R", "value": "5.1k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25905", "note": "CC1 pull-down: a sink (USB Type-C spec, Rd = 5.1 k)" },
+  "R2": { "symbol": "Device:R", "value": "5.1k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25905", "note": "CC2 pull-down" },
+  "J2": { "symbol": "Connector_Generic:Conn_01x02", "value": "BATT", "footprint": "Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal", "lcsc": "C295747", "note": "1S LiPo, pin 1 positive" },
+  "Q1": { "symbol": "Transistor_FET:AO3401A", "value": "AO3401A", "footprint": "Package_TO_SOT_SMD:SOT-23", "lcsc": "C15127", "note": "Load sharing: drain at the cell, source at VSYS, gate at VBUS. Off while USB is present; on (and its body diode already conducting) on battery" },
+  "R3": { "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "note": "Pulls Q1's gate low when USB is unplugged" },
+  "D3": { "symbol": "Device:D_Schottky", "value": "B5819W", "footprint": "Diode_SMD:D_SOD-123", "lcsc": "C8598", "note": "VBUS to VSYS while USB is present" },
+  "J3": { "symbol": "Connector_Generic:Conn_01x03", "value": "SWD", "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical", "note": "SWCLK, GND, SWDIO as on the Raspberry Pi Debug Probe" },
+  "R4": { "symbol": "Device:R", "value": "1k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C11702" },
+  "D1": { "symbol": "Device:LED", "value": "GREEN", "footprint": "LED_SMD:LED_0603_1608Metric", "lcsc": "C72043", "note": "User LED on GPIO25" }
+ },
+ "nets": {
+  "GND": ["mcu.GND", "chg.GND", "reg.GND", "imu.GND", "J1.A1", "J1.A12", "J1.B1", "J1.B12", "J1.S1", "R1.2", "R2.2", "J2.2", "R3.2", "J3.2", "D1.1"],
+  "VBUS": ["chg.VIN", "J1.A4", "J1.A9", "J1.B4", "J1.B9", "D3.2", "Q1.1", "R3.1"],
+  "VBAT": ["chg.VBAT", "J2.1", "Q1.3"],
+  "VSYS": ["reg.VIN", "Q1.2", "D3.1"],
+  "+3V3": ["reg.VOUT", "mcu.+3V3", "imu.VDD"],
+  "CC1": ["J1.A5", "R1.1"],
+  "CC2": ["J1.B5", "R2.1"],
+  "USB_DP": ["mcu.USB_DP", "J1.A6", "J1.B6"],
+  "USB_DM": ["mcu.USB_DM", "J1.A7", "J1.B7"],
+  "I2C0_SDA": ["imu.SDA", "mcu.GPIO4"],
+  "I2C0_SCL": ["imu.SCL", "mcu.GPIO5"],
+  "IMU_INT1": ["imu.INT1", "mcu.GPIO6"],
+  "IMU_INT2": ["imu.INT2", "mcu.GPIO7"],
+  "SWCLK": ["mcu.SWCLK", "J3.1"],
+  "SWDIO": ["mcu.SWD", "J3.3"],
+  "LED": ["mcu.GPIO25", "R4.1"],
+  "LED_A": ["R4.2", "D1.2"]
+ },
+ "no_connect": ["chg.STAT", "reg.EN"]
+}

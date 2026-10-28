@@ -6,3 +6,7 @@ members = ["crates/*"]
 edition = "2021"
 license = "MIT"
 version = "0.1.0"
+
+# The floorplanner anneals hundreds of thousands of moves; tests run it, so build it optimised.
+[profile.dev.package.floorplan]
+opt-level = 3

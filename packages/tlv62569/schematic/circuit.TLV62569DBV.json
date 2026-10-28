@@ -1,0 +1,140 @@
+{
+ "note": "The package's circuit: the datasheet's typical application (Figure 5, p.8; parts Table 3) set for VOUT = 3.3 V from a 1S LiPo (3.0-4.2 V) or USB 5 V (up to 5.5 V), for a battery-powered RP2350A board's 3.3 V rail (up to 600 mA). Parts by role; reference_ref is Figure 5's designator. Nets inside the package by role pin; ports are where it meets the board. Ground and supply ports must be connected; EN is pulled up inside the package.",
+ "variant": "TLV62569DBV",
+ "board": "datasheet",
+ "source": "tlv62569_ds",
+ "parts": {
+  "U1": {
+   "block": "reg",
+   "symbol": "Regulator_Switching:TLV62569DBV",
+   "value": "TLV62569DBV",
+   "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+   "reference_ref": "U1",
+   "lcsc": "C141836",
+   "mpn": "TLV62569DBVR",
+   "note": "Figure 5 draws the TLV62569P (with PG); the DBV variant has no PG pin (p.1, p.3). The figure gives the IC no designator; U1 is ours."
+  },
+  "CIN": {
+   "block": "reg",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "reference_ref": "C1",
+   "lcsc": "C15850",
+   "mpn": "CL21A106KAYNNNE",
+   "note": "10 uF 25 V X5R 0805 (JLC basic). The datasheet's C1 is 4.7 uF 10 V X7R 0805, and 'for most applications, 4.7-uF input capacitance is sufficient; a larger value reduces input voltage ripple' (§8.2.2.5 p.10). 10 uF is margin for DC-bias loss at 4.2-5.5 V; the capacitor maker's bias curve was not read, so how much is left is not quantified."
+  },
+  "L1": {
+   "block": "reg",
+   "symbol": "Device:L",
+   "value": "2.2u",
+   "footprint": "Inductor_SMD:L_Sunlord_SWPA4020S",
+   "reference_ref": "L1",
+   "lcsc": "C135262",
+   "mpn": "SMNR4020-2.2UH",
+   "note": "SXN SMNR4020-2.2UH: 2.2 uH +/-20 %, DCR 0.040 ohm +/-30 % (52 mohm max), rated DC current 3.40 A max, 4.0x4.0x2.0 mm, magnetic-resin shielded (smnr4020_ds p.4). 2.2 uH is Table 4's standard value (p.9). Peak current at 600 mA load and VIN = 5.5 V: dIL = 3.3 x (1 - 3.3/5.5) / (2.2u x 1.5 MHz) = 0.40 A, IL,MAX = 0.80 A, so Isat >= 0.96-1.04 A by the 20-30 % margin of §8.2.2.4 p.10; at the IC's full 2 A it is 2.2 A and 2.64-2.86 A, still under 3.40 A, and above the 3 A typical high-side current limit (p.5) only by 0.4 A. The datasheet does not say whether 'rated DC current' is Isat or the heating current; LCSC lists it as Isat. The footprint is KiCad's SWPA4020S land (pads 1.1x3.7 mm at +/-1.5 mm), which covers SXN's recommended 0.95x3.3 mm pads 2.1 mm apart (p.4)."
+  },
+  "COUT": {
+   "block": "reg",
+   "symbol": "Device:C",
+   "value": "22u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "reference_ref": "C2",
+   "lcsc": "C45783",
+   "mpn": "CL21A226MAQNNNE",
+   "note": "22 uF 25 V X5R 0805 (JLC basic). Table 4 (p.9) checks 2.2 uH with 10 uF (the standard), 22 uF and 2 x 22 uF for VOUT >= 1.8 V, and anticipates effective capacitance -50 % from tolerance and DC bias. 22 uF rather than 10 uF as margin for DC-bias loss at 3.3 V (the bias curve was not read), and a larger COUT lowers the Power Save Mode overshoot (§7.3.1 p.6). Within the 10-47 uF the device is designed for (§8.2.2.5 p.10)."
+  },
+  "RFB_TOP": {
+   "block": "reg",
+   "symbol": "Device:R",
+   "value": "453k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R1",
+   "lcsc": "C27009",
+   "mpn": "0402WGF4533TCE",
+   "note": "VOUT = 0.6 V x (1 + R1/R2) (Equation 2, p.9). For 3.3 V, R1/R2 = 4.5; with R2 = 100k the nearest E96 value is 453k: VOUT = 3.318 V nominal, 3.25-3.39 V over VFB's 0.588-0.612 V (p.4) before resistor tolerance (1 %). Extended part at JLC; 100k/22k basic parts would draw 150 uA instead of 6 uA."
+  },
+  "RFB_BOT": {
+   "block": "reg",
+   "symbol": "Device:R",
+   "value": "100k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R2",
+   "lcsc": "C25741",
+   "mpn": "0402WGF1003TCE",
+   "note": "R2 <= 200 kOhm (§8.2.2.2 p.9); 100 kOhm is the value the feed-forward capacitor recommendation is given for. Divider current 3.3 V / 553 kOhm = 6 uA, against the IC's 35 uA quiescent current (p.4)."
+  },
+  "CFF": {
+   "block": "reg",
+   "symbol": "Device:C",
+   "value": "6.8p",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C3",
+   "lcsc": "C1576",
+   "mpn": "0402CG6R8C500NT",
+   "note": "Feed-forward capacitor across R1: '6.8-pF capacitance is recommended for R2 of 100-kOhm resistance' (§8.2.2.2 p.9); optional in Table 3 but fitted here for load-transient response (Figure 19 p.12). C0G 50 V. A board that omits it keeps a stable loop (Figure 18 is without it)."
+  },
+  "R_EN": {
+   "block": "reg",
+   "symbol": "Device:R",
+   "value": "1M",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R4",
+   "lcsc": "C26083",
+   "mpn": "0402WGF1004TCE",
+   "note": "Not in Figure 5, which ties EN straight to VIN. A pull-up to VIN so EN is never floating (§7.4.1 p.7) while the EN port lets a board switch the rail off (a slide switch or open-drain to GND: 4.2 uA through this resistor at a full cell, plus 2 uA max shutdown current, p.4). EN input current is not specified in the datasheet, so 1 MOhm assumes it is well under 1 uA (VIH max is 1.2 V). A board that wants Figure 5 exactly omits R_EN and ties the EN port to VIN. reference_ref R4: the datasheet's R3 is the PG pull-up, absent on DBV."
+  }
+ },
+ "nets": {
+  "SW": [
+   "U1.3",
+   "L1.1"
+  ],
+  "FB": [
+   "U1.5",
+   "RFB_TOP.2",
+   "RFB_BOT.1",
+   "CFF.2"
+  ]
+ },
+ "ports": {
+  "VIN": {
+   "kind": "supply",
+   "pins": [
+    "U1.4",
+    "CIN.1",
+    "R_EN.1"
+   ],
+   "note": "Input, 2.5-5.5 V (p.4): the battery (3.0-4.2 V) or USB 5 V. Under-voltage lockout at 2.3 V typical, 2.45 V max, falling (p.4)."
+  },
+  "VOUT": {
+   "kind": "supply",
+   "pins": [
+    "L1.2",
+    "COUT.1",
+    "RFB_TOP.1",
+    "CFF.1"
+   ],
+   "note": "3.3 V output (3.318 V nominal with 453k/100k), up to 600 mA for this board; the IC is rated 2 A (p.4). Follows VIN minus about 84 mV at 600 mA once VIN < 3.40 V (100 % duty cycle, §7.3.2 p.6)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.2",
+    "CIN.2",
+    "COUT.2",
+    "RFB_BOT.2"
+   ],
+   "note": "Power and control ground: the single GND pin, CIN's and COUT's low sides and the divider's foot."
+  },
+  "EN": {
+   "kind": "signal",
+   "pins": [
+    "U1.1",
+    "R_EN.2"
+   ],
+   "note": "Enable, active high, pulled up to VIN by R_EN. Leave unconnected for always-on, or pull below 0.4 V to shut down (p.4)."
+  }
+ },
+ "chip_pins_unconnected": []
+}

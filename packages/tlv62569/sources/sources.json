@@ -1,0 +1,26 @@
+{
+  "tlv62569_ds": {
+    "title": "TLV62569 2-A High Efficiency Synchronous Buck Converter in SOT Package",
+    "publisher": "Texas Instruments",
+    "doc": "SLVSDG1C",
+    "kind": "datasheet",
+    "revision": "SLVSDG1C - DECEMBER 2016 - REVISED OCTOBER 2017 (Rev. C); packaging addendum dated 23-Jul-2026",
+    "url": "https://www.ti.com/lit/ds/symlink/tlv62569.pdf",
+    "sha256": "1ba6f55dfe678d06d563acd6632f1f950a497d812270806021097b55cd81d3c4",
+    "bytes": 1357133,
+    "retrieved": "2026-10-27",
+    "note": "30 pages; pages 1-15 carry printed page numbers equal to the PDF page; 16-30 are the package option addendum and mechanical drawings (DBV0005A land pattern p.22)."
+  },
+  "smnr4020_ds": {
+    "title": "Magnetic Resin Shielded SMD Power Inductors, SMNR series",
+    "publisher": "Shenzhen Shunxiangnuo Electronics (SXN)",
+    "doc": "SMNR4020/SMNR4030 catalogue (as linked by LCSC for C135262)",
+    "kind": "datasheet",
+    "revision": "no revision printed; PDF created 2021-08-11",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/c30b0f031d0070e2292eba9306a4bf8b.pdf?productCode=C135262",
+    "sha256": "1deed22423597bd5cb68f8417c6c51a0c994c898bff827e1a7f7fc85bf5cc0c1",
+    "bytes": 937017,
+    "retrieved": "2026-10-27",
+    "note": "9 pages; printed page = PDF page + 2 (the SMNR4020 table is printed p.4, PDF p.2). Text is overlaid with a watermark; values were read from a rendering of the page."
+  }
+}

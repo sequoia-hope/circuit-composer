@@ -139,6 +139,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
         <li class="done"><code>ccomp measure</code>: pad-to-pad paths, ground under fast nets, decoupling per power pin</li>
         <li class="done"><code>ccomp check package</code>: a board against a package by role (wiring, block constraints, lengths, part values). References pass; easy2350's USB runs over +3V3</li>
         <li class="done">Rerun with ultraroute's <code>--regions</code> (971e723), seeds 0–2: all pass; router's report agrees since 724f835</li>
+        <li class="done">M5: composer (<code>ccomp compose</code>; the minimal board and easy2350 recompose exactly), packages mcp73831 / tlv62569 / lsm6dso, KiCad output (ERC clean), floorplanner (easy2350: legal, 10 % less wire than the person's; demo board 39 × 31 mm)</li>
         <li class="done">Research library: 143 cited claims from 41 vendor documents (buck, half-bridge, crystal, USB/return path/decoupling, CAN/protection), 17 disputes kept; every quote checked against its PDF; <code>ccomp library check|query</code></li>
         <li class="done">Mined the motor controller's rev A: RP2350B regulator and the XL7005A 60 V buck measured; async bucks and plane shielding in the checks</li>
       </ul>
@@ -147,7 +148,9 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
     <section class="card">
       <h2>Next up</h2>
       <ul class="checks">
-        <li>Apply the generated block in context on easy2350; 2-layer variant</li>
+        <li>Design rules and stack-up for composed boards, then route the demo board with ultraroute and check its seams</li>
+        <li>Buck generator for off-chip regulators (TLV62569: output from the inductor, divider roles, SOT-23 rows)</li>
+        <li>Package schematic sheets, so composed schematics are drawn, not labelled</li>
         <li>PCBGolf: shrink comma.ai's panda-jungle-style board (score = volume + vias + layers)</li>
         <li>Async buck in the generator; half-bridge checks (M7)</li>
       </ul>
@@ -176,6 +179,14 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 5. A composition names package instances, the board's own parts and the nets joining them; recomposing the
+        RP2350A minimal board and easy2350 gives their netlists back net for net, with easy2350's departures stated (two parts in the
+        other order, a reversed resistor, a joined net, a tapped test point). Three packages ingested from their datasheets. KiCad
+        output through easy_pcb's writer. A floorplanner by simulated annealing: inside easy2350's outline it places every part legally
+        with 10 % less wire than the person did. The first render put USB-C off the board; fixed, and now a rule: look at the render.</div>
+      </div>
       <div class="entry">
         <time datetime="2026-10-27">2026-10-27</time>
         <div>Research library. Five agents found and read 41 vendor app notes, datasheets and articles (TI, ROHM, Allegro,

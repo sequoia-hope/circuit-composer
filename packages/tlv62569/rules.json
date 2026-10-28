@@ -1,0 +1,620 @@
+{
+ "package": "tlv62569",
+ "version": "0.1.0",
+ "note": "Claims scoped to the TLV62569 (DBV variant): parts, operating limits and the datasheet's layout guidelines. Page numbers are SLVSDG1C's printed pages (sha256 1ba6f55d…). `requirement` gives values in SI-style keys; `checks` the part a board's part values can show (`ccomp check package`); `this_board` entries are the 3.3 V / 600 mA design in schematic/circuit.TLV62569DBV.json, worked from the cited equations. `enforced_by` says which tool does.",
+ "claims": [
+  {
+   "id": "tlv62569.vin.range",
+   "statement": "VIN is 2.5-5.5 V in operation (6 V absolute maximum); the converter stops below its under-voltage lockout, 2.3 V typical and 2.45 V max with VIN falling, 100 mV hysteresis.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "vin"
+   },
+   "attributes": [
+    "voltage"
+   ],
+   "requirement": {
+    "vin_v": [
+     2.5,
+     5.5
+    ],
+    "vin_abs_max_v": 6.0,
+    "uvlo_falling_v_typ": 2.3,
+    "uvlo_falling_v_max": 2.45,
+    "uvlo_hysteresis_v": 0.1
+   },
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§6.3 p.4; §6.1 p.3; §6.5 p.4",
+    "quote": "VIN Input voltage 2.5 5.5 V"
+   },
+   "status": "asserted",
+   "enforced_by": [],
+   "note": "The quote is the Recommended Operating Conditions row as pdftotext lays it out. A 1S LiPo (3.0-4.2 V) and USB 5 V are both inside the range."
+  },
+  {
+   "id": "tlv62569.fb.divider",
+   "statement": "The output is set by an external divider, VOUT = VFB x (1 + R1/R2) with VFB = 0.6 V (0.588-0.612 V); R2, from FB to ground, is at most 200 kOhm.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "fb_divider"
+   },
+   "attributes": [
+    "resistance",
+    "output_voltage"
+   ],
+   "requirement": {
+    "vfb_v": [
+     0.588,
+     0.612
+    ],
+    "vfb_v_typ": 0.6,
+    "r2_ohm_max": 200000
+   },
+   "checks": [
+    {
+     "part": "RFB_BOT",
+     "quantity": "resistance",
+     "max": 200000
+    }
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.2 Equation 2 p.9; §6.5 p.4",
+    "quote": "When sizing R2, in order to achieve low current consumption and acceptable noise sensitivity, use a maximum of 200 kΩ for R2."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (R2 value; the ratio R1/R2 is not checked)"
+   ],
+   "note": "This package's 3.3 V output: R1 = 453k, R2 = 100k, VOUT = 3.318 V nominal (Equation 2)."
+  },
+  {
+   "id": "tlv62569.fb.feedforward",
+   "statement": "A 6.8 pF feed-forward capacitor across R1 (VOUT to FB) is recommended with R2 = 100 kOhm, for loop bandwidth and load-transient response; the parts list marks it optional.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "cff"
+   },
+   "attributes": [
+    "capacitance",
+    "transient_response"
+   ],
+   "requirement": {
+    "capacitance_pf": 6.8,
+    "with_r2_ohm": 100000
+   },
+   "checks": [
+    {
+     "part": "CFF",
+     "quantity": "capacitance",
+     "equals": 6.8e-12
+    }
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.2 p.9; Table 3 p.8; Figures 18-19 p.12",
+    "quote": "6.8-pF capacitance is recommended for R2 of 100-kΩ resistance."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (CFF value, when R2 is 100k)"
+   ],
+   "links": [
+    {
+     "refines": "buck.fb.divider_at_ic"
+    }
+   ],
+   "note": "Valid for R2 = 100 kOhm only; another divider needs CFF rescaled (the datasheet points to SLVA289, which was not read)."
+  },
+  {
+   "id": "tlv62569.filter.lc_matrix",
+   "statement": "L and COUT come from the datasheet's stability matrix: for VOUT >= 1.8 V, 1 uH or 2.2 uH with 10 uF, 22 uF or 2 x 22 uF; 2.2 uH with 10 uF is the standard combination.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "inductor"
+   },
+   "attributes": [
+    "inductance",
+    "capacitance",
+    "stability"
+   ],
+   "requirement": {
+    "inductance_uh": [
+     1.0,
+     2.2
+    ],
+    "cout_uf_checked": [
+     10,
+     22,
+     44
+    ],
+    "standard": {
+     "inductance_uh": 2.2,
+     "cout_uf": 10
+    }
+   },
+   "checks": [
+    {
+     "part": "L1",
+     "quantity": "inductance",
+     "min": 1e-06,
+     "max": 2.2e-06
+    }
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.3 Table 4 p.9",
+    "quote": "Checked cells represent combinations that are proven for stability by simulation and lab test."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (inductance; the L-COUT pairing is not checked)"
+   ],
+   "note": "Table 4's columns are 4.7, 10, 22, 2 x 22 and 100 uF; read from the column positions, the 1.8 V <= VOUT row has no 4.7 uF or 100 uF entry. Only the nominal values 1.0 and 2.2 uH are listed; the check admits anything between."
+  },
+  {
+   "id": "tlv62569.filter.derating",
+   "statement": "The stability matrix already allows effective inductance +20 %/-30 % and effective output capacitance +20 %/-50 % (tolerance and DC-bias derating), so a part's nominal value is what is checked against it.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "inductance",
+    "capacitance",
+    "dc_bias"
+   ],
+   "requirement": {
+    "inductance_effective_fraction": [
+     0.7,
+     1.2
+    ],
+    "cout_effective_fraction": [
+     0.5,
+     1.2
+    ]
+   },
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.3 Table 4 notes (1)-(2) p.9",
+    "quote": "Capacitance tolerance and bias voltage de-rating is anticipated. The effective capacitance can vary by +20% and -50%."
+   },
+   "status": "asserted",
+   "enforced_by": [],
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "Refines the library claim: for this chip the -50 % is already inside the table, so a nominal 10 uF that keeps >= 5 uF at 3.3 V is enough."
+  },
+  {
+   "id": "tlv62569.cout.range",
+   "statement": "COUT is a low-ESR ceramic, X5R or X7R, of 10 uF to 47 uF.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "cout"
+   },
+   "attributes": [
+    "capacitance",
+    "esr",
+    "dielectric"
+   ],
+   "requirement": {
+    "capacitance_uf": [
+     10,
+     47
+    ],
+    "dielectric": [
+     "X5R",
+     "X7R"
+    ]
+   },
+   "checks": [
+    {
+     "part": "COUT",
+     "quantity": "capacitance",
+     "min": 1e-05,
+     "max": 4.7e-05
+    }
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.5 p.10",
+    "quote": "The TLV62569 is designed to operate with an output capacitor of 10 µF to 47 µF, as outlined in Table 4."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (capacitance; dielectric is not in a value string)"
+   ],
+   "links": [
+    {
+     "supports": "buck.cap.ceramic_low_esr"
+    }
+   ]
+  },
+  {
+   "id": "tlv62569.cin.min",
+   "statement": "CIN is a low-ESR multilayer ceramic of at least 4.7 uF; more reduces input ripple.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "cin"
+   },
+   "attributes": [
+    "capacitance",
+    "esr"
+   ],
+   "requirement": {
+    "capacitance_uf_min": 4.7
+   },
+   "checks": [
+    {
+     "part": "CIN",
+     "quantity": "capacitance",
+     "min": 4.7e-06
+    }
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.5 p.10",
+    "quote": "For most applications, 4.7-μF input capacitance is sufficient; a larger value reduces input voltage ripple."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (capacitance)"
+   ],
+   "links": [
+    {
+     "supports": "buck.cap.ceramic_low_esr"
+    }
+   ]
+  },
+  {
+   "id": "tlv62569.inductor.isat",
+   "statement": "The inductor's saturation current is 20-30 % above IL,MAX = IOUT,MAX + dIL/2, with dIL = VOUT x (1 - VOUT/VIN) / (L x fSW) and fSW = 1.5 MHz; DCR and size also count.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "inductor"
+   },
+   "attributes": [
+    "isat",
+    "dcr"
+   ],
+   "requirement": {
+    "isat_margin_fraction": [
+     1.2,
+     1.3
+    ],
+    "fsw_hz": 1500000.0,
+    "ilim_high_side_a_typ": 3.0,
+    "this_board": {
+     "iout_a": 0.6,
+     "vin_v_max": 5.5,
+     "inductance_h": 2.2e-06,
+     "ripple_a": 0.4,
+     "il_max_a": 0.8,
+     "isat_a_min": 1.04
+    }
+   },
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§8.2.2.4 Equation 3 p.10; §6.5 p.5",
+    "quote": "It is recommended to choose a saturation current for the inductor that is approximately 20% to 30% higher than IL,MAX."
+   },
+   "status": "asserted",
+   "enforced_by": [],
+   "links": [
+    {
+     "refines": "buck.inductor.isat_above_peak"
+    }
+   ],
+   "note": "Isat is not in a value string, so no check. The high-side current limit (3 A typical on DBV, no min/max given, p.5) bounds the peak in overload; the datasheet does not ask Isat to exceed it. SMNR4020-2.2UH is rated 3.40 A."
+  },
+  {
+   "id": "tlv62569.inductor.part",
+   "statement": "This package's inductor, SXN SMNR4020-2.2UH, is 2.2 uH +/-20 % with DCR 0.040 ohm +/-30 % and a rated DC current of 3.40 A max, 4.0 x 4.0 x 2.0 mm, magnetic-resin shielded.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "inductor"
+   },
+   "attributes": [
+    "inductance",
+    "dcr",
+    "isat",
+    "shielded"
+   ],
+   "requirement": {
+    "inductance_uh": 2.2,
+    "dcr_ohm_typ": 0.04,
+    "dcr_tolerance_fraction": 0.3,
+    "rated_current_a": 3.4,
+    "shielded": true
+   },
+   "checks": [
+    {
+     "part": "L1",
+     "quantity": "inductance",
+     "equals": 2.2e-06
+    }
+   ],
+   "citation": {
+    "source": "smnr4020_ds",
+    "locator": "SMNR4020 Series Electrical Characteristics p.4; Shape and Dimensions p.4",
+    "figure": "Table row SMNR4020-2.2UH: L 2.2 uH, Tol +/-20 %, DCR 0.040 ohm (column header +/-30 %), Rated DC Current 3.40 A Max; dimensions A 4.0, B 4.0, C 2.0 mm; land pattern F 0.95, G 2.1, H 3.3 mm"
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (inductance)"
+   ],
+   "links": [
+    {
+     "supports": "buck.inductor.shielded"
+    }
+   ],
+   "note": "The catalogue does not define 'rated DC current' (saturation or heating); LCSC lists 3.4 A as Isat. Either way it is above this board's 1.04 A requirement and the IC's full-load 2.86 A. Magnetic-resin shielding is not a fully closed molded core."
+  },
+  {
+   "id": "tlv62569.dropout.full_duty",
+   "statement": "When VIN approaches VOUT the converter runs at 100 % duty cycle (high-side switch held on) and regulates down to VIN(MIN) = VOUT + IOUT x (RDS(on) + DCR), with RDS(on) of the high-side switch 100 mOhm typical; below that VOUT follows VIN.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "dropout",
+    "output_voltage"
+   ],
+   "requirement": {
+    "rds_on_high_side_ohm_typ": 0.1,
+    "rds_on_low_side_ohm_typ": 0.06,
+    "this_board": {
+     "vout_v": 3.318,
+     "iout_a": 0.6,
+     "dcr_ohm": 0.04,
+     "vin_min_v": 3.4
+    }
+   },
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§7.3.2 Equation 1 p.6; §6.5 p.5",
+    "quote": "In this mode, the high-side MOSFET switch is constantly turned on and the low-side MOSFET is switched off."
+   },
+   "status": "asserted",
+   "enforced_by": [],
+   "note": "RDS(on) is typical at VIN = 5 V and 25 °C (no max, no curve against VIN), so the dropout at a 3.4 V cell is an estimate: about 84 mV at 600 mA."
+  },
+  {
+   "id": "tlv62569.en.terminated",
+   "statement": "EN is driven or tied, never left floating: high (>= 1.2 V) enables, low (<= 0.4 V) shuts down to 2 uA max.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "en"
+   },
+   "attributes": [
+    "logic_level",
+    "pull"
+   ],
+   "requirement": {
+    "vih_v_max": 1.2,
+    "vil_v_min": 0.4,
+    "shutdown_current_a_max": 2e-06
+   },
+   "checks": [
+    {
+     "part": "R_EN",
+     "quantity": "fitted",
+     "equals": true
+    }
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§7.4.1 p.7; §5 p.3; §6.5 p.4",
+    "quote": "The EN input must be terminated and should not be left floating."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (R_EN fitted)"
+   ],
+   "note": "The check fails a board that omits R_EN; such a board must tie the EN port itself (Figure 5 ties EN to VIN). EN input current is not specified."
+  },
+  {
+   "id": "tlv62569.psm.overshoot",
+   "statement": "At light load the converter enters Power Save Mode and the output sits slightly above nominal; a larger COUT reduces this.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "cout"
+   },
+   "attributes": [
+    "output_voltage",
+    "ripple"
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§7.3.1 p.6",
+    "quote": "In Power Save Mode, the output voltage rises slightly above the nominal output voltage. This effect is minimized by increasing the output capacitor."
+   },
+   "status": "asserted",
+   "enforced_by": []
+  },
+  {
+   "id": "tlv62569.layout.parts_close",
+   "statement": "CIN, COUT and the inductor are placed as close as possible to the IC, with short, direct and wide power traces for low resistance and parasitic inductance.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "hot_loop_area",
+    "output_loop_area",
+    "part_distance",
+    "trace_width"
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§10.1 p.13",
+    "quote": "The input/output capacitors and the inductor should be placed as close as possible to the IC."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "generator objectives w_hot, w_out (once it handles a divider)",
+    "verifier hot_loop_area_mm2, output_loop_area_mm2"
+   ],
+   "links": [
+    {
+     "supports": "buck.hot_loop.cin_first_closest"
+    },
+    {
+     "supports": "buck.out_loop.cout_at_inductor"
+    },
+    {
+     "supports": "buck.sw.min_area"
+    }
+   ],
+   "note": "The datasheet gives no order between them and no number."
+  },
+  {
+   "id": "tlv62569.layout.cap_ground",
+   "statement": "The low sides of CIN and COUT connect directly to the power ground beside the IC's GND pin, so the ground potential does not shift between them.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "ground_connection",
+    "hot_loop_area"
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§10.1 p.13",
+    "quote": "The low side of the input and output capacitors must be connected properly to the power GND to avoid a GND potential shift."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "verifier hot_loop_area_mm2, output_loop_area_mm2 (close through the GND pin)"
+   ],
+   "links": [
+    {
+     "supports": "buck.ground.solid_plane"
+    }
+   ],
+   "note": "Figure 20 puts both capacitors' ground pads on one GND pour a few millimetres apart, against the 10-20 mm separation of buck.ground.cin_cout_separation; not linked as a contradiction because the datasheet states no distance."
+  },
+  {
+   "id": "tlv62569.layout.fb_away_from_sw",
+   "statement": "The FB sense traces are signal traces kept away from the switch node.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg",
+    "role": "fb"
+   },
+   "attributes": [
+    "feedback_clearance"
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§10.1 p.13",
+    "quote": "Special care should be taken to avoid noise being induced. Keep these traces away from SW nodes."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "verifier feedback_clearance_mm (intent: >= 0.3 mm, soft)"
+   ],
+   "links": [
+    {
+     "supports": "buck.fb.away_from_sw_and_inductor"
+    }
+   ],
+   "note": "No distance is given; the intent's 0.3 mm is borrowed from the rp2350 package's floor and is soft."
+  },
+  {
+   "id": "tlv62569.layout.gnd_shield",
+   "statement": "Ground layers may be used to shield the feedback and other sensitive traces from the power stage.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "feedback_clearance",
+    "shielding"
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§10.1 p.13",
+    "quote": "GND layers might be used for shielding."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "verifier feedback_clearance_mm (a plane between counts as shielding)"
+   ],
+   "links": [
+    {
+     "supports": "buck.fb.shielded_other_layer"
+    }
+   ]
+  },
+  {
+   "id": "tlv62569.layout.dbv_example",
+   "statement": "In TI's DBV layout L1 bridges the SW pin to a VOUT pour above the IC, C1 sits beside VIN and GND, C2 beside SW/GND on the VOUT side, R1 and R2 sit by the FB pin, and the VOUT sense runs from C2 to R1 on another layer.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "placement",
+    "feedback_clearance",
+    "sense_point"
+   ],
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§10.2 Figure 20 p.13",
+    "figure": "Figure 20, TLV62569DBV Layout: VIN pour left, VOUT pour right, GND pour below; L1 above the IC, C1 left between VIN and GND, C2 right between VOUT and GND; R2 and R1 below the FB pin; a trace drawn in a second colour, with a via at each end, from beside C2 to R1."
+   },
+   "status": "asserted",
+   "enforced_by": [],
+   "links": [
+    {
+     "supports": "buck.fb.sense_at_cout"
+    },
+    {
+     "supports": "buck.fb.divider_at_ic"
+    }
+   ],
+   "note": "The second-layer reading of the sense trace is from its colour and vias; the figure has no layer legend. A template for the generator once it handles SOT-23 pinouts."
+  },
+  {
+   "id": "tlv62569.thermal.dbv",
+   "statement": "The SOT-23-5 package's junction-to-ambient resistance is 188.2 °C/W on the JEDEC board; the junction is rated to 125 °C in operation and shuts down at 150 °C.",
+   "scope": {
+    "chip": "TLV62569",
+    "block": "reg"
+   },
+   "attributes": [
+    "thermal"
+   ],
+   "requirement": {
+    "theta_ja_c_per_w": 188.2,
+    "tj_c_max": 125,
+    "tsd_c": 150
+   },
+   "citation": {
+    "source": "tlv62569_ds",
+    "locator": "§6.4 p.4; §6.3 p.4; §6.5 p.4",
+    "figure": "Thermal Information table, DBV column: RθJA 188.2 °C/W, RθJB 41.2 °C/W"
+   },
+   "status": "asserted",
+   "enforced_by": [],
+   "note": "At this board's 600 mA the IC's loss is not given by the datasheet (efficiency curves at 3.3 V out are for VIN = 5 V only, Figure 9); copper on the GND and VIN pins is the heat path."
+  }
+ ]
+}

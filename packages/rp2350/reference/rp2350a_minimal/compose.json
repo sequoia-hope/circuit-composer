@@ -1,0 +1,313 @@
+{
+ "board": "rp2350a-minimal",
+ "note": "Drafted by tools/compose_from_netlist.py from min60.net.",
+ "instances": {
+  "mcu": {
+   "package": "rp2350@0.2.0",
+   "variant": "RP2350A",
+   "designators": {
+    "CFILT": "C9",
+    "CIN": "C6",
+    "CL_XIN": "C3",
+    "CL_XOUT": "C4",
+    "COUT": "C7",
+    "C_DVDD_23": "C10",
+    "C_DVDD_39": "C11",
+    "C_DVDD_6": "C8",
+    "C_FLASH": "C2",
+    "C_IOVDD_1": "C13",
+    "C_IOVDD_11": "C15",
+    "C_IOVDD_20": "C18",
+    "C_IOVDD_30": "C16",
+    "C_IOVDD_38": "C14",
+    "C_IOVDD_45_ADC": "C17",
+    "C_OTP_QSPI": "C12",
+    "FLASH": "U3",
+    "L1": "L1",
+    "RFILT": "R5",
+    "R_BOOTSEL": "R6",
+    "R_CS1_LINK": "R9",
+    "R_RUN": "R4",
+    "R_SS_LINK": "R10",
+    "R_SS_PULLUP": "R1",
+    "R_USB_DM": "R8",
+    "R_USB_DP": "R7",
+    "R_XOUT": "R2",
+    "SW_BOOTSEL": "SW1",
+    "SW_RUN": "SW2",
+    "U1": "U1",
+    "XTAL": "Y1"
+   }
+  }
+ },
+ "parts": {
+  "C1": {
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric"
+  },
+  "C19": {
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric"
+  },
+  "C5": {
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric"
+  },
+  "H1": {
+   "symbol": "Mechanical:MountingHole",
+   "value": "MountingHole",
+   "footprint": "MountingHole:MountingHole_2.7mm_M2.5"
+  },
+  "H2": {
+   "symbol": "Mechanical:MountingHole",
+   "value": "MountingHole",
+   "footprint": "MountingHole:MountingHole_2.7mm_M2.5"
+  },
+  "H3": {
+   "symbol": "Mechanical:MountingHole",
+   "value": "MountingHole",
+   "footprint": "MountingHole:MountingHole_2.7mm_M2.5"
+  },
+  "H4": {
+   "symbol": "Mechanical:MountingHole",
+   "value": "MountingHole",
+   "footprint": "MountingHole:MountingHole_2.7mm_M2.5"
+  },
+  "J1": {
+   "symbol": "Connector:USB_B_Micro",
+   "value": "USB_B_Micro",
+   "footprint": "Connector_USB:USB_Micro-B_Amphenol_10103594-0001LF_Horizontal"
+  },
+  "J2": {
+   "symbol": "Connector_Generic:Conn_02x18_Odd_Even",
+   "value": "Conn_02x18_Odd_Even",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x18_P2.54mm_Vertical"
+  },
+  "J3": {
+   "symbol": "Connector_Generic:Conn_02x18_Odd_Even",
+   "value": "Conn_02x18_Odd_Even",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_2x18_P2.54mm_Vertical"
+  },
+  "J4": {
+   "symbol": "Connector_Generic_MountingPin:Conn_01x03_MountingPin",
+   "value": "SM03B-SRSS-TB",
+   "footprint": "Connector_JST:JST_SH_SM03B-SRSS-TB_1x03-1MP_P1.00mm_Horizontal"
+  },
+  "U2": {
+   "symbol": "Regulator_Linear:NCP1117-3.3_SOT223",
+   "value": "NCP1117-3.3_SOT223",
+   "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
+  }
+ },
+ "nets": {
+  "+3V3": [
+   "mcu.+3V3",
+   "C19.1",
+   "C5.1",
+   "J2.2",
+   "U2.2"
+  ],
+  "GND": [
+   "mcu.GND",
+   "C1.2",
+   "C19.2",
+   "C5.2",
+   "J1.5",
+   "J1.6",
+   "J2.1",
+   "J2.11",
+   "J2.13",
+   "J2.15",
+   "J2.17",
+   "J2.19",
+   "J2.21",
+   "J2.23",
+   "J2.25",
+   "J2.27",
+   "J2.29",
+   "J2.3",
+   "J2.31",
+   "J2.33",
+   "J2.35",
+   "J2.36",
+   "J2.5",
+   "J2.7",
+   "J2.9",
+   "J3.10",
+   "J3.12",
+   "J3.14",
+   "J3.16",
+   "J3.18",
+   "J3.2",
+   "J3.20",
+   "J3.22",
+   "J3.24",
+   "J3.26",
+   "J3.28",
+   "J3.30",
+   "J3.32",
+   "J3.34",
+   "J3.35",
+   "J3.36",
+   "J3.4",
+   "J3.6",
+   "J3.8",
+   "J4.2",
+   "J4.MP",
+   "U2.1"
+  ],
+  "GPIO0": [
+   "mcu.GPIO0",
+   "J2.4"
+  ],
+  "GPIO1": [
+   "mcu.GPIO1",
+   "J2.6"
+  ],
+  "GPIO10": [
+   "mcu.GPIO10",
+   "J2.24"
+  ],
+  "GPIO11": [
+   "mcu.GPIO11",
+   "J2.26"
+  ],
+  "GPIO12": [
+   "mcu.GPIO12",
+   "J2.28"
+  ],
+  "GPIO13": [
+   "mcu.GPIO13",
+   "J2.30"
+  ],
+  "GPIO14": [
+   "mcu.GPIO14",
+   "J2.32"
+  ],
+  "GPIO15": [
+   "mcu.GPIO15",
+   "J2.34"
+  ],
+  "GPIO16": [
+   "mcu.GPIO16",
+   "J3.27"
+  ],
+  "GPIO17": [
+   "mcu.GPIO17",
+   "J3.25"
+  ],
+  "GPIO18": [
+   "mcu.GPIO18",
+   "J3.23"
+  ],
+  "GPIO19": [
+   "mcu.GPIO19",
+   "J3.21"
+  ],
+  "GPIO2": [
+   "mcu.GPIO2",
+   "J2.8"
+  ],
+  "GPIO20": [
+   "mcu.GPIO20",
+   "J3.19"
+  ],
+  "GPIO21": [
+   "mcu.GPIO21",
+   "J3.17"
+  ],
+  "GPIO22": [
+   "mcu.GPIO22",
+   "J3.15"
+  ],
+  "GPIO23": [
+   "mcu.GPIO23",
+   "J3.13"
+  ],
+  "GPIO24": [
+   "mcu.GPIO24",
+   "J3.11"
+  ],
+  "GPIO25": [
+   "mcu.GPIO25",
+   "J3.9"
+  ],
+  "GPIO26_ADC0": [
+   "mcu.GPIO26_ADC0",
+   "J3.7"
+  ],
+  "GPIO27_ADC1": [
+   "mcu.GPIO27_ADC1",
+   "J3.5"
+  ],
+  "GPIO28_ADC2": [
+   "mcu.GPIO28_ADC2",
+   "J3.3"
+  ],
+  "GPIO29_ADC3": [
+   "mcu.GPIO29_ADC3",
+   "J3.1"
+  ],
+  "GPIO3": [
+   "mcu.GPIO3",
+   "J2.10"
+  ],
+  "GPIO4": [
+   "mcu.GPIO4",
+   "J2.12"
+  ],
+  "GPIO5": [
+   "mcu.GPIO5",
+   "J2.14"
+  ],
+  "GPIO6": [
+   "mcu.GPIO6",
+   "J2.16"
+  ],
+  "GPIO7": [
+   "mcu.GPIO7",
+   "J2.18"
+  ],
+  "GPIO8": [
+   "mcu.GPIO8",
+   "J2.20"
+  ],
+  "GPIO9": [
+   "mcu.GPIO9",
+   "J2.22"
+  ],
+  "RUN": [
+   "mcu.RUN",
+   "J3.29"
+  ],
+  "SWCLK": [
+   "mcu.SWCLK",
+   "J3.33",
+   "J4.1"
+  ],
+  "SWD": [
+   "mcu.SWD",
+   "J3.31",
+   "J4.3"
+  ],
+  "USB_D+": [
+   "mcu.USB_DP",
+   "J1.3"
+  ],
+  "USB_D-": [
+   "mcu.USB_DM",
+   "J1.2"
+  ],
+  "VBUS": [
+   "C1.1",
+   "J1.1",
+   "U2.3"
+  ],
+  "unconnected-(J1-ID-Pad4)": [
+   "J1.4"
+  ]
+ }
+}

@@ -1,0 +1,915 @@
+{
+  "bindings": {
+    "chg": {
+      "chip": "U1",
+      "note": "Written by ccomp compose for instance chg of board rp2350-battery.",
+      "package": "mcp73831@0.1.0",
+      "parts": {
+        "CIN": "C1",
+        "COUT": "C2",
+        "D_STAT": "D2",
+        "RPROG": "R5",
+        "R_STAT": "R6"
+      },
+      "variant": "MCP73831T-2ACI-OT"
+    },
+    "imu": {
+      "chip": "U2",
+      "note": "Written by ccomp compose for instance imu of board rp2350-battery.",
+      "package": "lsm6dso@0.1.0",
+      "parts": {
+        "C_VDD": "C3",
+        "C_VDDIO": "C4",
+        "R_SCL_PU": "R7",
+        "R_SDA_PU": "R8"
+      },
+      "variant": "LSM6DSOTR"
+    },
+    "mcu": {
+      "chip": "U4",
+      "note": "Written by ccomp compose for instance mcu of board rp2350-battery.",
+      "package": "rp2350@0.2.0",
+      "parts": {
+        "CFILT": "C5",
+        "CIN": "C6",
+        "CL_XIN": "C7",
+        "CL_XOUT": "C8",
+        "COUT": "C9",
+        "C_DVDD_23": "C10",
+        "C_DVDD_39": "C11",
+        "C_DVDD_6": "C12",
+        "C_FLASH": "C13",
+        "C_IOVDD_1": "C14",
+        "C_IOVDD_11": "C15",
+        "C_IOVDD_20": "C16",
+        "C_IOVDD_30": "C17",
+        "C_IOVDD_38": "C18",
+        "C_IOVDD_45_ADC": "C19",
+        "C_OTP_QSPI": "C20",
+        "FLASH": "U3",
+        "L1": "L1",
+        "RFILT": "R9",
+        "R_BOOTSEL": "R10",
+        "R_CS1_LINK": "R11",
+        "R_RUN": "R12",
+        "R_SS_LINK": "R13",
+        "R_SS_PULLUP": "R14",
+        "R_USB_DM": "R15",
+        "R_USB_DP": "R16",
+        "R_XOUT": "R17",
+        "SW_BOOTSEL": "SW1",
+        "SW_RUN": "SW2",
+        "XTAL": "Y1"
+      },
+      "variant": "RP2350A"
+    },
+    "reg": {
+      "chip": "U5",
+      "note": "Written by ccomp compose for instance reg of board rp2350-battery.",
+      "package": "tlv62569@0.1.0",
+      "parts": {
+        "CFF": "C21",
+        "CIN": "C22",
+        "COUT": "C23",
+        "L1": "L2",
+        "RFB_BOT": "R18",
+        "RFB_TOP": "R19",
+        "R_EN": "R20"
+      },
+      "variant": "TLV62569DBV"
+    }
+  },
+  "board": "rp2350-battery",
+  "errors": [],
+  "joined": {},
+  "nets": {
+    "+3V3": [
+      "C3.1",
+      "C4.1",
+      "C6.1",
+      "C13.1",
+      "C14.1",
+      "C15.1",
+      "C16.1",
+      "C17.1",
+      "C18.1",
+      "C19.1",
+      "C20.1",
+      "C21.1",
+      "C23.1",
+      "L2.2",
+      "R7.1",
+      "R8.1",
+      "R9.1",
+      "R14.1",
+      "R19.1",
+      "U2.12",
+      "U2.5",
+      "U2.8",
+      "U3.8",
+      "U4.1",
+      "U4.11",
+      "U4.20",
+      "U4.30",
+      "U4.38",
+      "U4.44",
+      "U4.45",
+      "U4.49",
+      "U4.53",
+      "U4.54"
+    ],
+    "/chg/PROG": [
+      "R5.1",
+      "U1.5"
+    ],
+    "/chg/STAT": [
+      "R6.2",
+      "U1.1"
+    ],
+    "/chg/STAT_LED": [
+      "D2.1",
+      "R6.1"
+    ],
+    "/mcu/DVDD": [
+      "C9.1",
+      "C10.1",
+      "C11.1",
+      "C12.1",
+      "L1.1",
+      "U4.23",
+      "U4.39",
+      "U4.50",
+      "U4.6"
+    ],
+    "/mcu/FLASH_SS": [
+      "R11.2",
+      "R13.2",
+      "R14.2",
+      "U3.1"
+    ],
+    "/mcu/GPIO0": [
+      "R11.1",
+      "U4.2"
+    ],
+    "/mcu/N_R_RUN_1": [
+      "R12.1",
+      "SW2.1"
+    ],
+    "/mcu/QSPI_SCLK": [
+      "U3.6",
+      "U4.56"
+    ],
+    "/mcu/QSPI_SD0": [
+      "U3.5",
+      "U4.57"
+    ],
+    "/mcu/QSPI_SD1": [
+      "U3.2",
+      "U4.59"
+    ],
+    "/mcu/QSPI_SD2": [
+      "U3.3",
+      "U4.58"
+    ],
+    "/mcu/QSPI_SD3": [
+      "U3.7",
+      "U4.55"
+    ],
+    "/mcu/QSPI_SS": [
+      "R10.1",
+      "R13.1",
+      "U4.60"
+    ],
+    "/mcu/RUN": [
+      "SW2.2",
+      "U4.26"
+    ],
+    "/mcu/USB_DM_PIN": [
+      "R15.2",
+      "U4.51"
+    ],
+    "/mcu/USB_DP_PIN": [
+      "R16.2",
+      "U4.52"
+    ],
+    "/mcu/VREG_AVDD": [
+      "C5.1",
+      "R9.2",
+      "U4.46"
+    ],
+    "/mcu/VREG_LX": [
+      "L1.2",
+      "U4.48"
+    ],
+    "/mcu/XIN": [
+      "C7.1",
+      "U4.21",
+      "Y1.1"
+    ],
+    "/mcu/XOUT": [
+      "R17.1",
+      "U4.22"
+    ],
+    "/mcu/XOUT_XTAL": [
+      "C8.1",
+      "R17.2",
+      "Y1.3"
+    ],
+    "/mcu/~USB_BOOT": [
+      "R10.2",
+      "SW1.2"
+    ],
+    "/reg/EN": [
+      "R20.2",
+      "U5.1"
+    ],
+    "/reg/FB": [
+      "C21.2",
+      "R18.1",
+      "R19.2",
+      "U5.5"
+    ],
+    "/reg/SW": [
+      "L2.1",
+      "U5.3"
+    ],
+    "CC1": [
+      "J1.A5",
+      "R1.1"
+    ],
+    "CC2": [
+      "J1.B5",
+      "R2.1"
+    ],
+    "GND": [
+      "C1.2",
+      "C2.2",
+      "C3.2",
+      "C4.2",
+      "C5.2",
+      "C6.2",
+      "C7.2",
+      "C8.2",
+      "C9.2",
+      "C10.2",
+      "C11.2",
+      "C12.2",
+      "C13.2",
+      "C14.2",
+      "C15.2",
+      "C16.2",
+      "C17.2",
+      "C18.2",
+      "C19.2",
+      "C20.2",
+      "C22.2",
+      "C23.2",
+      "D1.1",
+      "J1.A1",
+      "J1.A12",
+      "J1.B1",
+      "J1.B12",
+      "J1.S1",
+      "J2.2",
+      "J3.2",
+      "R1.2",
+      "R2.2",
+      "R3.2",
+      "R5.2",
+      "R12.2",
+      "R18.2",
+      "SW1.1",
+      "U1.2",
+      "U2.1",
+      "U2.2",
+      "U2.3",
+      "U2.6",
+      "U2.7",
+      "U3.4",
+      "U4.47",
+      "U4.61",
+      "U5.2",
+      "Y1.2",
+      "Y1.4"
+    ],
+    "I2C0_SCL": [
+      "R7.2",
+      "U2.13",
+      "U4.8"
+    ],
+    "I2C0_SDA": [
+      "R8.2",
+      "U2.14",
+      "U4.7"
+    ],
+    "IMU_INT1": [
+      "U2.4",
+      "U4.9"
+    ],
+    "IMU_INT2": [
+      "U2.9",
+      "U4.10"
+    ],
+    "LED": [
+      "R4.1",
+      "U4.37"
+    ],
+    "LED_A": [
+      "D1.2",
+      "R4.2"
+    ],
+    "SWCLK": [
+      "J3.1",
+      "U4.24"
+    ],
+    "SWDIO": [
+      "J3.3",
+      "U4.25"
+    ],
+    "USB_DM": [
+      "J1.A7",
+      "J1.B7",
+      "R15.1"
+    ],
+    "USB_DP": [
+      "J1.A6",
+      "J1.B6",
+      "R16.1"
+    ],
+    "VBAT": [
+      "C2.1",
+      "J2.1",
+      "Q1.3",
+      "U1.3"
+    ],
+    "VBUS": [
+      "C1.1",
+      "D2.2",
+      "D3.2",
+      "J1.A4",
+      "J1.A9",
+      "J1.B4",
+      "J1.B9",
+      "Q1.1",
+      "R3.1",
+      "U1.4"
+    ],
+    "VSYS": [
+      "C22.1",
+      "D3.1",
+      "Q1.2",
+      "R20.1",
+      "U5.4"
+    ]
+  },
+  "ok": true,
+  "parts": {
+    "C1": {
+      "block": "charger",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "chg",
+      "lcsc": "C15850",
+      "mpn": "CL21A106KAYNNNE",
+      "role": "CIN",
+      "symbol": "Device:C",
+      "value": "10u"
+    },
+    "C10": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.23",
+      "role": "C_DVDD_23",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C11": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.39",
+      "role": "C_DVDD_39",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C12": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.6",
+      "role": "C_DVDD_6",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C13": {
+      "block": "flash",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "C_FLASH",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C14": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.1",
+      "role": "C_IOVDD_1",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C15": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.11",
+      "role": "C_IOVDD_11",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C16": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.20",
+      "role": "C_IOVDD_20",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C17": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.30",
+      "role": "C_IOVDD_30",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C18": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.38",
+      "role": "C_IOVDD_38",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C19": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.44",
+      "role": "C_IOVDD_45_ADC",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C2": {
+      "block": "charger",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "chg",
+      "lcsc": "C15850",
+      "mpn": "CL21A106KAYNNNE",
+      "role": "COUT",
+      "symbol": "Device:C",
+      "value": "10u"
+    },
+    "C20": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U4.53",
+      "role": "C_OTP_QSPI",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C21": {
+      "block": "reg",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C1576",
+      "mpn": "0402CG6R8C500NT",
+      "role": "CFF",
+      "symbol": "Device:C",
+      "value": "6.8p"
+    },
+    "C22": {
+      "block": "reg",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "reg",
+      "lcsc": "C15850",
+      "mpn": "CL21A106KAYNNNE",
+      "role": "CIN",
+      "symbol": "Device:C",
+      "value": "10u"
+    },
+    "C23": {
+      "block": "reg",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "reg",
+      "lcsc": "C45783",
+      "mpn": "CL21A226MAQNNNE",
+      "role": "COUT",
+      "symbol": "Device:C",
+      "value": "22u"
+    },
+    "C3": {
+      "block": "imu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "imu",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "U2.8",
+      "role": "C_VDD",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C4": {
+      "block": "imu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "imu",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "U2.5",
+      "role": "C_VDDIO",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C5": {
+      "block": "core_reg",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "CFILT",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C6": {
+      "block": "core_reg",
+      "footprint": "RP2350_60QFN_minimal:C_0402_1005Metric_small_pads",
+      "instance": "mcu",
+      "role": "CIN",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C7": {
+      "block": "crystal",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "CL_XIN",
+      "symbol": "Device:C",
+      "value": "15p"
+    },
+    "C8": {
+      "block": "crystal",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "CL_XOUT",
+      "symbol": "Device:C",
+      "value": "15p"
+    },
+    "C9": {
+      "block": "core_reg",
+      "footprint": "RP2350_60QFN_minimal:C_0402_1005Metric_small_pads",
+      "instance": "mcu",
+      "role": "COUT",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "D1": {
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "lcsc": "C72043",
+      "note": "User LED on GPIO25",
+      "symbol": "Device:LED",
+      "value": "GREEN"
+    },
+    "D2": {
+      "block": "status_led",
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "instance": "chg",
+      "lcsc": "C2286",
+      "mpn": "KT-0603R",
+      "role": "D_STAT",
+      "symbol": "Device:LED",
+      "value": "RED"
+    },
+    "D3": {
+      "footprint": "Diode_SMD:D_SOD-123",
+      "lcsc": "C8598",
+      "note": "VBUS to VSYS while USB is present",
+      "symbol": "Device:D_Schottky",
+      "value": "B5819W"
+    },
+    "J1": {
+      "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+      "lcsc": "C165948",
+      "note": "USB 2.0 receptacle, device role. Its shield pin is S1 in KiCad 9 libraries (SH in 10); this board is written with 9",
+      "symbol": "Connector:USB_C_Receptacle_USB2.0_16P",
+      "value": "USB-C"
+    },
+    "J2": {
+      "footprint": "Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal",
+      "lcsc": "C295747",
+      "note": "1S LiPo, pin 1 positive",
+      "symbol": "Connector_Generic:Conn_01x02",
+      "value": "BATT"
+    },
+    "J3": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "note": "SWCLK, GND, SWDIO as on the Raspberry Pi Debug Probe",
+      "symbol": "Connector_Generic:Conn_01x03",
+      "value": "SWD"
+    },
+    "L1": {
+      "block": "core_reg",
+      "footprint": "RP2350_60QFN_minimal:L_pol_2016",
+      "instance": "mcu",
+      "role": "L1",
+      "symbol": "Device:L",
+      "value": "3.3u"
+    },
+    "L2": {
+      "block": "reg",
+      "footprint": "Inductor_SMD:L_Sunlord_SWPA4020S",
+      "instance": "reg",
+      "lcsc": "C135262",
+      "mpn": "SMNR4020-2.2UH",
+      "role": "L1",
+      "symbol": "Device:L",
+      "value": "2.2u"
+    },
+    "Q1": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "lcsc": "C15127",
+      "note": "Load sharing: drain at the cell, source at VSYS, gate at VBUS. Off while USB is present; on (and its body diode already conducting) on battery",
+      "symbol": "Transistor_FET:AO3401A",
+      "value": "AO3401A"
+    },
+    "R1": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C25905",
+      "note": "CC1 pull-down: a sink (USB Type-C spec, Rd = 5.1 k)",
+      "symbol": "Device:R",
+      "value": "5.1k"
+    },
+    "R10": {
+      "block": "bootsel",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_BOOTSEL",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R11": {
+      "block": "flash",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_CS1_LINK",
+      "symbol": "Device:R",
+      "value": "DNF"
+    },
+    "R12": {
+      "block": "reset",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_RUN",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R13": {
+      "block": "flash",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_SS_LINK",
+      "symbol": "Device:R",
+      "value": "0"
+    },
+    "R14": {
+      "block": "flash",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_SS_PULLUP",
+      "symbol": "Device:R",
+      "value": "DNF"
+    },
+    "R15": {
+      "block": "usb",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_USB_DM",
+      "symbol": "Device:R",
+      "value": "27"
+    },
+    "R16": {
+      "block": "usb",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_USB_DP",
+      "symbol": "Device:R",
+      "value": "27"
+    },
+    "R17": {
+      "block": "crystal",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_XOUT",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R18": {
+      "block": "reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C25741",
+      "mpn": "0402WGF1003TCE",
+      "role": "RFB_BOT",
+      "symbol": "Device:R",
+      "value": "100k"
+    },
+    "R19": {
+      "block": "reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C27009",
+      "mpn": "0402WGF4533TCE",
+      "role": "RFB_TOP",
+      "symbol": "Device:R",
+      "value": "453k"
+    },
+    "R2": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C25905",
+      "note": "CC2 pull-down",
+      "symbol": "Device:R",
+      "value": "5.1k"
+    },
+    "R20": {
+      "block": "reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C26083",
+      "mpn": "0402WGF1004TCE",
+      "role": "R_EN",
+      "symbol": "Device:R",
+      "value": "1M"
+    },
+    "R3": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C25741",
+      "note": "Pulls Q1's gate low when USB is unplugged",
+      "symbol": "Device:R",
+      "value": "100k"
+    },
+    "R4": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C11702",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R5": {
+      "block": "charger",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "chg",
+      "lcsc": "C25900",
+      "mpn": "0402WGF4701TCE",
+      "role": "RPROG",
+      "symbol": "Device:R",
+      "value": "4.7k"
+    },
+    "R6": {
+      "block": "status_led",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "chg",
+      "lcsc": "C25117",
+      "mpn": "0402WGF4700TCE",
+      "role": "R_STAT",
+      "symbol": "Device:R",
+      "value": "470"
+    },
+    "R7": {
+      "block": "imu",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "imu",
+      "lcsc": "C25900",
+      "mpn": "0402WGF4701TCE",
+      "role": "R_SCL_PU",
+      "symbol": "Device:R",
+      "value": "4.7k"
+    },
+    "R8": {
+      "block": "imu",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "imu",
+      "lcsc": "C25900",
+      "mpn": "0402WGF4701TCE",
+      "role": "R_SDA_PU",
+      "symbol": "Device:R",
+      "value": "4.7k"
+    },
+    "R9": {
+      "block": "core_reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "RFILT",
+      "symbol": "Device:R",
+      "value": "33"
+    },
+    "SW1": {
+      "block": "bootsel",
+      "footprint": "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816",
+      "instance": "mcu",
+      "role": "SW_BOOTSEL",
+      "symbol": "Switch:SW_Push",
+      "value": "SW_Push"
+    },
+    "SW2": {
+      "block": "reset",
+      "footprint": "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816",
+      "instance": "mcu",
+      "role": "SW_RUN",
+      "symbol": "Switch:SW_Push",
+      "value": "SW_Push"
+    },
+    "U1": {
+      "block": "charger",
+      "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+      "instance": "chg",
+      "lcsc": "C424093",
+      "mpn": "MCP73831T-2ACI/OT",
+      "role": "U1",
+      "symbol": "Battery_Management:MCP73831-2-OT",
+      "value": "MCP73831T-2ACI/OT"
+    },
+    "U2": {
+      "block": "imu",
+      "footprint": "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y",
+      "instance": "imu",
+      "lcsc": "C2655100",
+      "mpn": "LSM6DSOTR",
+      "role": "U1",
+      "symbol": "Sensor_Motion:LSM6DSM",
+      "value": "LSM6DSOTR"
+    },
+    "U3": {
+      "block": "flash",
+      "footprint": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",
+      "instance": "mcu",
+      "role": "FLASH",
+      "symbol": "Memory_Flash:W25Q128JVS",
+      "value": "W25Q128JVS"
+    },
+    "U4": {
+      "block": "mcu",
+      "footprint": "RP2350_60QFN_minimal:RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias",
+      "instance": "mcu",
+      "role": "U1",
+      "symbol": "MCU_RaspberryPi_RP2350:RP2350_60QFN",
+      "value": "RP2350_60QFN"
+    },
+    "U5": {
+      "block": "reg",
+      "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+      "instance": "reg",
+      "lcsc": "C141836",
+      "mpn": "TLV62569DBVR",
+      "role": "U1",
+      "symbol": "Regulator_Switching:TLV62569DBV",
+      "value": "TLV62569DBV"
+    },
+    "Y1": {
+      "block": "crystal",
+      "footprint": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+      "instance": "mcu",
+      "role": "XTAL",
+      "symbol": "Device:Crystal_GND24",
+      "value": "ABM8-272-T3"
+    }
+  },
+  "taps": {},
+  "unconnected_ports": [
+    "mcu.GPIO0",
+    "mcu.GPIO1",
+    "mcu.GPIO10",
+    "mcu.GPIO11",
+    "mcu.GPIO12",
+    "mcu.GPIO13",
+    "mcu.GPIO14",
+    "mcu.GPIO15",
+    "mcu.GPIO16",
+    "mcu.GPIO17",
+    "mcu.GPIO18",
+    "mcu.GPIO19",
+    "mcu.GPIO2",
+    "mcu.GPIO20",
+    "mcu.GPIO21",
+    "mcu.GPIO22",
+    "mcu.GPIO23",
+    "mcu.GPIO24",
+    "mcu.GPIO26_ADC0",
+    "mcu.GPIO27_ADC1",
+    "mcu.GPIO28_ADC2",
+    "mcu.GPIO29_ADC3",
+    "mcu.GPIO3",
+    "mcu.GPIO8",
+    "mcu.GPIO9",
+    "mcu.RUN"
+  ]
+}
