@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Circuit Composer — debug</title>
+<style>
+/* Same palette as the hub dashboard, so a project page and the project list
+   read as one system when you tab between them. */
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --line: #e2e5ea; --fg: #14171c;
+  --muted: #5f6875; --accent: #2f6feb; --up: #1a9c5b; --warn: #b7791f;
+  --down: #98a1ae; --chip: #eef1f5;
+  --shadow: 0 1px 2px rgba(16,20,28,.06), 0 4px 12px rgba(16,20,28,.05);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --card: #171b22; --line: #262c36; --fg: #e6e9ee;
+    --muted: #8b94a3; --accent: #5b9bff; --up: #35c07d; --warn: #d9a441;
+    --down: #4d5563; --chip: #222833; --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 0 0 3rem;
+}
+header, main, footer { max-width: 900px; margin: 0 auto; padding: 0 1.25rem; }
+header { padding-top: 1.75rem; padding-bottom: 1rem; }
+.title { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+h1 { font-size: 1.5rem; margin: 0; letter-spacing: -.015em; }
+h2 {
+  font-size: .78rem; margin: 0 0 .6rem; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted); font-weight: 650;
+}
+.state {
+  display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px;
+  padding: .2rem .65rem; font-size: .76rem; font-weight: 600;
+  background: var(--chip); border: 1px solid var(--line); color: var(--muted);
+}
+.state .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--down); }
+.state.active { color: var(--up); border-color: color-mix(in srgb, var(--up) 35%, var(--line)); }
+.state.active .dot { background: var(--up); box-shadow: 0 0 0 3px color-mix(in srgb, var(--up) 22%, transparent); }
+.state.blocked { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); }
+.state.blocked .dot { background: var(--warn); }
+.lede { color: var(--muted); font-size: .95rem; margin: .55rem 0 0; }
+main { display: grid; gap: .9rem; }
+.card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1rem 1.1rem 1.1rem; box-shadow: var(--shadow);
+}
+.cols { display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+ul { margin: 0; padding-left: 1.15rem; }
+li { margin: .25rem 0; }
+ul.checks { list-style: none; padding-left: 0; }
+ul.checks li { padding-left: 1.4em; text-indent: -1.4em; }
+ul.checks li::before { content: "○"; color: var(--muted); font-size: .9em; display: inline-block; width: 1.4em; text-indent: 0; }
+ul.checks li.done { color: var(--muted); }
+ul.checks li.done::before { content: "●"; color: var(--up); }
+.log { display: grid; gap: .7rem; }
+.entry { display: grid; grid-template-columns: 5.5rem 1fr; gap: .75rem; align-items: baseline; }
+li code { overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; margin-bottom: .8rem; }
+th, td { padding: .3rem .55rem; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; white-space: normal; }
+.figs { display: grid; gap: .7rem; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+figure { margin: 0; }
+figure img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #101318; }
+figcaption { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
+.entry time { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.todo { color: var(--muted); font-style: italic; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em;
+  background: var(--chip); border: 1px solid var(--line);
+  border-radius: 5px; padding: .06em .35em;
+}
+a { color: var(--accent); }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 1rem; align-items: center; border: 2px solid var(--accent); }
+.feature img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #101318; }
+.feature .go { display: inline-block; margin-top: .6rem; padding: .55rem 1rem; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; }
+@media (max-width: 640px) { .feature { grid-template-columns: 1fr; } }
+.quick { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
+.quick a { padding: .3rem .7rem; border: 1px solid var(--accent); border-radius: 999px; font-size: .85rem; font-weight: 600; text-decoration: none; }
+footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
+@media (max-width: 480px) { .entry { grid-template-columns: 1fr; gap: .1rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">
+    <h1>circuit-composer</h1>
+    <span class="state active"><span class="dot"></span>Milestone 5 in progress</span>
+  </div>
+  <p class="lede">Board design as composition: chips ingested once into verified packages, boards
+  built by combining them. Sits between <a href="../easy_pcb">easy_pcb</a> (schematic) and
+  <a href="../ultraroute">ultraroute</a> (routing).</p>
+  <nav class="quick">
+    <a href="app/dist/index.html">▦ Circuit Composer app (prototype)</a>
+    <a href="app/dist/index.html?board=bolt-earring&amp;ws=shape">⚡ Bolt outline (Shape tools)</a>
+    <a href="boards/bolt-earring/viewer/index.html">Bolt earring viewer</a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="card feature">
+    <a href="boards/bolt-earring/viewer/index.html"><img src="boards/bolt-earring/viewer-preview.png" alt="The lightning-bolt earring in the viewer: LED rings and rails on the front copper"></a>
+    <div>
+      <h2>Bolt earring: board viewer</h2>
+      <p>A fat, gently zigzagged ⚡, 72 × 33.7 mm, 6 layers, hanging from a USB-C plug in its top
+      tab. 134 WS2816C on nested bolts, the field symmetric under a half turn, each LED turned 45°
+      so data and power run along its ring on the front copper. simple_earring's circuit on the
+      back under a 10 × 30 mm cell. <strong>Fully routed:</strong> 0 DRC errors, 0 unconnected.
+      Every copper layer, the parts and a 3D view.</p>
+      <a class="go" href="boards/bolt-earring/viewer/index.html">Open the bolt earring viewer →</a>
+      <p style="margin-top:.6rem;font-size:.85rem"><a href="app/dist/index.html?board=bolt-earring&amp;ws=shape">The bolt's outline in the app's Shape tools</a>:
+      its generator's parameters on sliders, from <code>crates/shape</code>.</p>
+      <p style="margin-top:.6rem;font-size:.85rem">Earlier: <a href="boards/flame-earring/viewer/index.html">the flame earring</a> (superseded).</p>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Where it stands</h2>
+    <p>Four milestones are done. The <code>rp2350</code> package (0.2.0) now covers both QFN-60 and
+    QFN-80 on 2 and 4 layers, and the crystal, USB, flash and decoupling, mined from Raspberry Pi's
+    design guide and minimal boards. Earlier: Intent schema v0 and its validator pass easy2350. A buck generator,
+    fast-tier checks and the first package, <code>packages/rp2350</code> 0.1.0, cover the RP2350's
+    core regulator. Starting from nothing but the part footprints, the generator places CIN and
+    COUT where Raspberry Pi did. Every row in the table below is measured by the same checker, and
+    the generated layout comes out ahead on all four checks. It is KiCad DRC clean on a 4-layer
+    test bench. The compiled <code>routing.json</code> now drives ultraroute through <code>--regions</code>,
+    and easy2350 routed that way passes the seam check on three seeds.</p>
+  </section>
+
+  <section class="card">
+    <h2>RP2350 core regulator: reference vs generated</h2>
+    <div id="compare"><p class="todo">Loading packages/rp2350/layouts/qfn60-4layer/compare/compare.json…</p></div>
+    <p class="todo" style="font-size:.85rem">Magenta: hot loop (VIN → CIN → PGND). Cyan dashes: output loop.
+    Yellow: feedback path. Orange: switch-node pads. Dark cut: In1.Cu keepout. Areas in mm², clearance in mm.
+    Score is hot + 0.5 × switch node + 0.5 × output loop. The reference uses copper zones and the generator
+    draws tracks, so part of the smaller switch-node area is narrower copper.</p>
+  </section>
+
+  <section class="card">
+    <h2>easy2350 validation</h2>
+    <div id="report"><p class="todo">Loading boards/easy2350/validate.json…</p></div>
+  </section>
+
+  <div class="cols">
+    <section class="card">
+      <h2>Working</h2>
+      <ul class="checks">
+        <li class="done">Intent schema v0, JSON Schema, validator; easy2350 passes with 0 warnings</li>
+        <li class="done">Import from easy_pcb <code>design/nets.csv</code></li>
+        <li class="done">Board reader on ultraroute's <code>kicad-pcb</code> (pinned); copper-path search</li>
+        <li class="done">Buck checks: hot loop, output loop, switch node, FB clearance, under-switch copper</li>
+        <li class="done">Buck generator; layouts in the IC's frame; pcbnew apply; test bench with KiCad DRC</li>
+        <li class="done">Package <code>rp2350</code> 0.1.0: manifest, intent, 11 cited rules, 4-layer layout, verify report</li>
+        <li class="done">Constraint compiler: <code>routing.json</code> regions and length limits, KiCad length rules merged into the board's own</li>
+        <li class="done">Region check and routed-board seam check; easy_pcb's released easy2350 passes all of it</li>
+        <li class="done">easy2350 routed by ultraroute with its blocks locked: 0 DRC errors, 0 unconnected, all lengths and regions met, block intact</li>
+        <li class="done">M4: <code>rp2350</code> 0.2.0: core-regulator layouts for QFN-60/80 on 2 and 4 layers (all beat the reference), interface blocks, ports, 27 cited rules</li>
+        <li class="done"><code>ccomp measure</code>: pad-to-pad paths, ground under fast nets, decoupling per power pin</li>
+        <li class="done"><code>ccomp check package</code>: a board against a package by role (wiring, block constraints, lengths, part values). References pass; easy2350's USB runs over +3V3</li>
+        <li class="done">Rerun with ultraroute's <code>--regions</code> (971e723), seeds 0–2: all pass; router's report agrees since 724f835</li>
+        <li class="done">M5: composer (<code>ccomp compose</code>; the minimal board and easy2350 recompose exactly), packages mcp73831 / tlv62569 / lsm6dso, KiCad output (ERC clean), floorplanner (easy2350: legal, 10 % less wire than the person's; demo board 39 × 31 mm)</li>
+        <li class="done">Research library: 143 cited claims from 41 vendor documents (buck, half-bridge, crystal, USB/return path/decoupling, CAN/protection), 17 disputes kept; every quote checked against its PDF; <code>ccomp library check|query</code></li>
+        <li class="done">Mined the motor controller's rev A: RP2350B regulator and the XL7005A 60 V buck measured; async bucks and plane shielding in the checks</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Next up</h2>
+      <ul class="checks">
+        <li>Design rules and stack-up for composed boards, then route the demo board with ultraroute and check its seams</li>
+        <li>Buck generator for off-chip regulators (TLV62569: output from the inductor, divider roles, SOT-23 rows)</li>
+        <li>Package schematic sheets, so composed schematics are drawn, not labelled</li>
+        <li>PCBGolf: shrink comma.ai's panda-jungle-style board (score = volume + vias + layers)</li>
+        <li>Async buck in the generator; half-bridge checks (M7)</li>
+      </ul>
+    </section>
+  </div>
+
+  <div class="cols">
+    <section class="card">
+      <h2>Open questions</h2>
+      <ul>
+        <li>Intent file format: JSON for v0 (the schema is generated from the Rust types)</li>
+        <li>EM solver for the slow tier (openEMS or other)</li>
+        <li>Router cost grids: settled as regions in <code>routing.json</code>, read with <code>--regions</code></li>
+        <li>Published: <a href="https://github.com/sequoia-hope/circuit-composer">github.com/sequoia-hope/circuit-composer</a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Blocked on</h2>
+      <ul>
+        <li>Nothing.</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Log</h2>
+    <div class="log">
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 5. A composition names package instances, the board's own parts and the nets joining them; recomposing the
+        RP2350A minimal board and easy2350 gives their netlists back net for net, with easy2350's departures stated (two parts in the
+        other order, a reversed resistor, a joined net, a tapped test point). Three packages ingested from their datasheets. KiCad
+        output through easy_pcb's writer. A floorplanner by simulated annealing: inside easy2350's outline it places every part legally
+        with 10 % less wire than the person did. The first render put USB-C off the board; fixed, and now a rule: look at the render.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Research library. Five agents found and read 41 vendor app notes, datasheets and articles (TI, ROHM, Allegro,
+        EPC, Infineon, ST, Microchip, Abracon, Murata, Bogatin; analog.com was unreachable). They proposed 143 claims; 392 quotes were
+        then checked against the documents' own text. TI's AN-2155 measured more EMI with the ground under a switch node cut, against
+        the RP2350 datasheet's cut-out: kept as a dispute for the slow tier. Gap: IPC-2221 clearance by voltage.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Package check by role. Both minimal boards pass every hard check. easy2350 fails one: its USB pair runs
+        6–8 mm on B.Cu over the +3V3 plane. Judging the ultraroute-routed board found a second path-search bug
+        (via in a pad, track leaving on B.Cu), now fixed. PCBGolf: substitutions researched; one copper layer,
+        vertical USB-C, jumpers instead of vias.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 4: rp2350 0.2.0. Measuring both minimal boards found an undocumented shared decoupling cap
+        (ADC_AVDD with IOVDD), cut ground under every QSPI net on the QFN-80 board (the optional second memory sits
+        under the flash), and a path-search bug (track through a pad) now fixed.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>ultraroute 971e723 reads <code>routing.json</code> via <code>--regions</code>. easy2350, seeds 0–2: 0 DRC errors,
+        0 unconnected, lengths and regions met, block intact. Its report flags a via whose ring only touches the
+        LX cut-out's edge; fixed in 724f835, which reports all three clean.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Mined rp2350-motor-controller rev A. Its RP2350B regulator matches Raspberry Pi's layout
+        but has ground under LX, a datasheet-versus-practice dispute. The XL7005A buck's hot loop is 26 mm².</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 3: ultraroute routed easy2350 around its locked blocks; the seam check passes
+        (DRC, 17 lengths, 12 regions, block intact).</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Published on GitHub. Milestone 3: constraint compiler and region check; sample <code>routing.json</code>
+        sent to ultraroute. Inputs pinned to easy_pcb 2d56198 after finding its working copy changing underneath.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 2: buck checks, generator and the <code>rp2350</code> package. Generated core regulator
+        scores 3.15 vs the reference's 3.44, DRC clean. Agreed the <code>routing.json</code> handoff with ultraroute.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Milestone 1: intent schema v0, validator, <code>ccomp</code> CLI, easy_pcb importer;
+        easy2350 annotated and passing. Found 4 auto-named nets easy_pcb's nets.csv misses.</div>
+      </div>
+      <div class="entry">
+        <time datetime="2026-10-27">2026-10-27</time>
+        <div>Project created and registered with the hub. Status page scaffolded.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Served from <code>~/Software/circuit-composer</code> on its registered port (<code>proj url circuit-composer</code>) —
+  <code>proj up circuit-composer</code> to start, <code>proj down circuit-composer</code> to stop.
+</footer>
+
+<script>
+const D = "packages/rp2350/layouts/qfn60-4layer/compare/";
+fetch(D + "compare.json").then(r => r.json()).then(c => {
+  const esc = t => String(t).replace(/[&<>]/g, x => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[x]));
+  const cols = [["hot_loop_area_mm2","Hot loop"],["switch_node_area_mm2","Switch node"],["output_loop_area_mm2","Output loop"],["feedback_clearance_mm","FB clearance"]];
+  const head = `<tr><th></th>${cols.map(c => `<th>${c[1]}</th>`).join("")}<th>Score</th></tr>`;
+  const rows = c.rows.map(r => `<tr><td>${esc(r.label)}</td>${cols.map(k => `<td>${r.measured[k[0]].toFixed(3)}</td>`).join("")}<td><strong>${r.score.toFixed(2)}</strong></td></tr>`).join("");
+  const figs = c.rows.map(r => `<figure><img src="${D}${esc(r.svg)}" alt="${esc(r.label)}"><figcaption>${esc(r.label)}</figcaption></figure>`).join("");
+  document.getElementById("compare").innerHTML = `<div class="scroll"><table>${head}${rows}</table></div><div class="figs">${figs}</div>`;
+}).catch(e => { document.getElementById("compare").innerHTML = `<p class="todo">Could not load the comparison: ${e}</p>`; });
+fetch("boards/easy2350/validate.json").then(r => r.json()).then(r => {
+  const s = r.summary, esc = t => String(t).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  const rows = r.findings.map(f => `<li><code>${esc(f.severity)}</code> <code>${esc(f.code)}</code> ${esc(f.subject)} <code>${esc(f.id)}</code>: ${esc(f.message)}</li>`).join("");
+  document.getElementById("report").innerHTML =
+    `<p><strong>${r.ok ? "Passes" : "Fails"}</strong>: ${s.nets_passing}/${s.nets_in_netlist} nets, ${s.blocks} blocks,
+     ${s.hard_constraints} hard constraints, ${s.errors} errors, ${s.warnings} warnings.</p>` +
+    (rows ? `<ul>${rows}</ul>` : "");
+}).catch(e => { document.getElementById("report").innerHTML = `<p class="todo">Could not load the report: ${e}</p>`; });
+</script>
+
+</body>
+</html>

@@ -293,6 +293,7 @@
         {/each}
       </nav>
       <div class="right">
+        {#if mode !== 'pages'}<a class="debug" href="../../debug.html" title="The project's status and debug page (local only)">debug</a>{/if}
         <span class="mode" title={mode === 'local' ? 'Served by Composer on this machine' : 'No server: the example boards are built into the page'}>{mode === 'local' ? 'Local project' : 'Demo · example boards'}</span>
         <button disabled={!!serverOnly} title={serverOnly || 'Ask Claude to fill the open fields'}>Fill with AI</button>
         <button disabled={!!serverOnly} title={serverOnly || 'Write the placed board and routing.json for UltraRoute'}>Send to UltraRoute</button>
@@ -390,6 +391,7 @@
   nav button:hover { background: var(--hover); color: var(--ink); }
   nav button.on { background: var(--hover); color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
   .right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+  .debug { font-size: 11.5px; color: var(--muted); }
   .mode { font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; white-space: nowrap; }
   .error { background: color-mix(in srgb, var(--bad) 15%, var(--panel)); color: var(--bad); padding: 6px 14px; font-size: 12.5px; border-bottom: 1px solid var(--line); }
   main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: minmax(0, 1fr) 170px; }

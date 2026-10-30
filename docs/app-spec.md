@@ -7,6 +7,57 @@ and UltraRoute the app that routes it. This file says what the Circuit Composer 
 you do in it, what it writes into a project, and how it is built. Questions for easy_pcb and
 the owner are under **Open questions**.
 
+## What Circuit Composer is
+
+The owner's direction, 2026-10-30:
+
+**Circuit Composer is a knowledge base that makes composition an algorithm.** An LLM's job is to
+go out and gather part data (datasheets, reference designs, application notes) and bring it into
+a local database. That database holds enough, in plain structured form, that **classical
+algorithms do the composition, the floorplan and the layout**: the bolt earring (LEDs, an
+RP2350, a USB-C port, a charger) can be put together in the web app with no language model
+involved. Those algorithms could include learned models such as a diffusion placer, but not an
+LLM.
+
+The pieces follow from that:
+- **The database is the point.** It holds circuit blocks, interfaces, pin functions, support
+  parts, rules and their citations: buckets and categories for circuits, encoded so that
+  composition is straightforward. The packages, intent schema and research library are its
+  first parts.
+- **The app works without an LLM.** Everything from composition to a placed board with routing
+  constraints runs in the page: in WASM on GitHub Pages, or against a project on disk.
+- **An LLM adds power and is not required.** Through the terminal or an MCP server it can:
+  - ingest a part the database lacks;
+  - fill a gap that needs judgment;
+  - answer "why".
+
+  Its output is new database entries or document edits, which the algorithms then use like any
+  others.
+- **Connections may be stated loosely.** "The sensor connects to the CPU" is enough. When the
+  database knows the sensor talks I2C, which of the MCU's pins can be I2C, which address it
+  takes and what pull-ups the bus needs, a solver picks the controller and the pins. No LLM is
+  needed for that. Where the database doesn't know enough, the field stays *open* (see below),
+  and an LLM, or a person, fills it.
+
+## The database composition needs
+
+What the packages hold today (pins by number, function kinds, supply domains, ports as pin
+lists, support parts, cited rules) is enough to check a board. It is not yet enough to compose
+one from loose connections. For that, each part or package also needs:
+
+| Data | Example | Used by |
+|---|---|---|
+| **Pin-mux table** | RP2350 GPIO4 can be I2C0 SDA, SPI0 RX, UART1 TX, PWM2 A… (datasheet §9.4) | The pin solver |
+| **Interfaces**, as typed bundles of ports | LSM6DSO: an `i2c` target (SDA, SCL; address 0x6A or 0x6B by SA0; 400 kHz), two `irq` outputs, `supply` 1.71–3.6 V | Matching interfaces to controllers |
+| **Interface rules** | I2C: one pull-up pair per bus, value by bus capacitance and speed; addresses unique on a bus | Adding the support circuitry a connection implies |
+| **Electrical domains** | IOVDD 3.3 V, so a 5 V STAT line needs a divider or shifter | Refusing or fixing incompatible connections |
+| **Board-level recipes** | USB-C sink (CC pull-downs, ESD), 1S LiPo with load sharing, an LED chain | Blocks a person names by function |
+| **Placement hints and layouts** | already there: `near`, rigid generated layouts, separations | The floorplanner |
+
+The pin solver is a small constraint problem: interfaces to controller instances, signals to
+pins, with conflicts, domains and preferences. Preferences include pins on the side facing the
+peripheral, which ties it to the floorplan. Exact search is fine at these sizes.
+
 ## What the app produces
 
 For one board in an easy_pcb project, the app produces everything up to routing:
@@ -45,7 +96,10 @@ not a new model.
 | Findings: validator and verifier results, each with a location and `fix_stage` | `validate`, `verify`, `check package` JSON | Checks panel; clicking one jumps to the place and workspace that fixes it |
 | Claims: cited statements from datasheets and experts, with disputes | `library/` | Shown wherever a rule or an AI fill cites one |
 
-## Partly defined: the AI-forward model
+## Partly defined: what algorithms fill, and what an LLM fills
+
+Algorithms fill everything the database lets them (rule 1 below). An LLM is asked only about
+what stays open, and only when one is connected.
 
 A person should be able to leave things undefined and have them filled in. Every editable
 field in the composition, intent, shape and floorplan files is in one of three states:
@@ -355,6 +409,24 @@ every `ccomp` command accepts a project path (milestone 3 in easy_pcb's spec).
 - **F. Copper and handoff.** Block layouts, regions, the LED-ring pattern generator, and
   **Send to UltraRoute**. Done when the bolt earring is rebuilt from the app, not from
   `build.sh`.
+
+### Toward composition without an LLM
+
+Separate from the app's milestones A–F, in this order:
+
+1. **Floorplanner work** (in progress; `docs/floorplanning-approaches.md`):
+   - the incremental cost (done, about 10×);
+   - a benchmark of our boards plus Cypress's;
+   - edge connectors on shaped outlines;
+   - an analytical placer;
+   - diffusion as a starting-point generator.
+2. **Interfaces and the pin-mux table** for the four packages (rp2350, lsm6dso, mcp73831,
+   tlv62569), ingested from their datasheets and cited, as everything in a package is.
+3. **The pin solver.** The battery demo board written as loose connections ("imu.i2c to mcu",
+   "imu irqs to mcu", "a LED to mcu"), solved into a pin-level composition that composes,
+   floorplans and passes `ccomp check package`. It runs in `ccomp` and in the app's WASM core.
+4. **Interface rules and recipes**: I2C pull-ups, USB-C sink, LiPo power path, LED chain. With
+   those, the bolt earring composes from its blocks in the browser.
 
 ## Open questions
 
