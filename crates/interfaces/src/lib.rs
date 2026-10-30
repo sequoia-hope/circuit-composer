@@ -46,6 +46,10 @@ pub struct Type {
     /// Which signal of one device meets which of the other's.
     #[serde(default)]
     pub joins: Vec<(String, String)>,
+    /// What a connection of this type implies (I2C's pull-ups), with the numbers and citations
+    /// the pin solver's interface rules read.
+    #[serde(default)]
+    pub rules: Option<Value>,
     #[serde(default)]
     pub note: Option<String>,
 }
@@ -120,6 +124,9 @@ pub struct Mux {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Pin {
     pub name: String,
+    /// The key in `functions` describing it.
+    #[serde(default)]
+    pub function: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -130,6 +137,9 @@ pub struct Variant {
 /// The parts of a package's `ports.json` this crate reads.
 #[derive(Debug, Clone, Deserialize)]
 pub struct Ports {
+    /// What each pin function is: its kind, supply and, where known, logic levels.
+    #[serde(default)]
+    pub functions: BTreeMap<String, Value>,
     pub variants: BTreeMap<String, Variant>,
     #[serde(default)]
     pub interfaces: BTreeMap<String, Interface>,

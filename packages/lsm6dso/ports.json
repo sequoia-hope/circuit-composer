@@ -10,6 +10,18 @@
    "citation": {
     "source": "lsm6dso_ds",
     "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pin's maximum drive; control pins take -0.3 V to VDDIO + 0.3 V",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12; §4.5 Table 7 p.15"
+    }
    }
   },
   "I2C_SCL": {
@@ -21,6 +33,18 @@
    "citation": {
     "source": "lsm6dso_ds",
     "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pin's maximum drive; control pins take -0.3 V to VDDIO + 0.3 V",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12; §4.5 Table 7 p.15"
+    }
    }
   },
   "SA0": {
@@ -31,6 +55,18 @@
    "citation": {
     "source": "lsm6dso_ds",
     "locator": "§3.1 Table 1 pp.7-8; §5.1.1 p.18"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pin's maximum drive; control pins take -0.3 V to VDDIO + 0.3 V",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12; §4.5 Table 7 p.15"
+    }
    }
   },
   "CS": {
@@ -41,6 +77,18 @@
    "citation": {
     "source": "lsm6dso_ds",
     "locator": "§3.1 Table 1 pp.7-8; §5.1 p.17"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pin's maximum drive; control pins take -0.3 V to VDDIO + 0.3 V",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12; §4.5 Table 7 p.15"
+    }
    }
   },
   "INT": {
@@ -51,6 +99,18 @@
    "citation": {
     "source": "lsm6dso_ds",
     "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38; §5.3 p.24; §9.14 p.51"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pin's maximum drive; control pins take -0.3 V to VDDIO + 0.3 V",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12; §4.5 Table 7 p.15"
+    }
    }
   },
   "AUX_MASTER": {

@@ -315,16 +315,40 @@ mod wasm {
         Ok(serde_json::to_string(&shape::evaluate(&doc)).unwrap())
     }
 
-    /// Solve a loose composition's connections into nets (`pinsolve::Solved` as JSON): the
-    /// interface types (`library/interfaces.json`) and each instance's circuit and ports given,
-    /// as `{ instance: { circuit, ports } }`.
+    /// Solve a loose composition's connections into nets and apply the interface rules
+    /// (`pinsolve::Solved` as JSON): the interface types (`library/interfaces.json`), each package
+    /// instance's circuit and ports as `{ instance: { circuit, ports } }`, and the library's
+    /// recipes and stock as `{ recipes: { name: recipe }, stock }` (`{}` when the board has none).
     #[wasm_bindgen]
-    pub fn pins_solve(loose_json: &str, types_json: &str, packages_json: &str) -> Result<String, JsValue> {
+    pub fn pins_solve(loose_json: &str, types_json: &str, packages_json: &str, library_json: &str) -> Result<String, JsValue> {
         let loose: serde_json::Value = serde_json::from_str(loose_json).map_err(err)?;
         let types: interfaces::Types = serde_json::from_str(types_json).map_err(err)?;
-        let pkgs = pinsolve::from_json(&serde_json::from_str(packages_json).map_err(err)?).map_err(err)?;
+        let mut pkgs = pinsolve::from_json(&serde_json::from_str(packages_json).map_err(err)?).map_err(err)?;
+        let (recipes, stock) = library(library_json)?;
+        let comp: compose::Composition = serde_json::from_value(loose.clone()).map_err(err)?;
+        pinsolve::add_recipes(&mut pkgs, &comp, &recipes, &stock).map_err(err)?;
         let solved = pinsolve::solve(&loose, &types, &pkgs, 2_000_000).map_err(err)?;
         Ok(serde_json::to_string(&solved).unwrap())
+    }
+
+    fn library(json: &str) -> Result<(std::collections::BTreeMap<String, compose::recipe::Recipe>, compose::recipe::Stock), JsValue> {
+        let v: serde_json::Value = serde_json::from_str(json).map_err(err)?;
+        let recipes = serde_json::from_value(v.get("recipes").cloned().unwrap_or(serde_json::json!({}))).map_err(err)?;
+        let stock = serde_json::from_value(v.get("stock").cloned().unwrap_or(serde_json::json!({}))).map_err(err)?;
+        Ok((recipes, stock))
+    }
+
+    /// One recipe expanded with `params` (`compose::recipe::Expanded` plus its circuit), for a
+    /// block a person names by function.
+    #[wasm_bindgen]
+    pub fn recipe_expand(recipe_json: &str, params_json: &str, stock_json: &str) -> Result<String, JsValue> {
+        let r: compose::recipe::Recipe = serde_json::from_str(recipe_json).map_err(err)?;
+        let params = serde_json::from_str(params_json).map_err(err)?;
+        let stock = serde_json::from_str(stock_json).map_err(err)?;
+        let x = compose::recipe::expand(&r, &params, &stock).map_err(err)?;
+        let parts: serde_json::Map<String, serde_json::Value> = x.circuit.parts.iter().map(|(k, p)| (k.clone(), serde_json::json!({ "symbol": p.symbol, "value": p.value, "footprint": p.footprint, "lcsc": p.lcsc, "mpn": p.mpn }))).collect();
+        let ports: serde_json::Map<String, serde_json::Value> = x.circuit.ports.iter().map(|(k, p)| (k.clone(), serde_json::json!({ "kind": p.kind, "pins": p.pins }))).collect();
+        Ok(serde_json::json!({ "parts": parts, "nets": x.circuit.nets, "ports": ports, "interfaces": x.ports["interfaces"], "volts": x.volts, "chosen": x.chosen }).to_string())
     }
 
     /// The parametric generators and their parameters.

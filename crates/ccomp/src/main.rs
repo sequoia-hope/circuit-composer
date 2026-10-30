@@ -190,6 +190,16 @@ enum Cmd {
         #[arg(long, default_value_t = 2_000_000)]
         nodes: usize,
     },
+    /// The recipes in `library/recipes/` (a USB-C sink, LiPo load sharing, an LED, an LED
+    /// chain...): with a name, that recipe expanded with the given parameters.
+    Recipe {
+        name: Option<String>,
+        /// A parameter, `NAME=VALUE` (a number, or a choice's name).
+        #[arg(long = "param", short = 'p')]
+        params: Vec<String>,
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+    },
     /// A package's typed interfaces (I2C0, SPI1, the IMU's i2c target) and the pins each signal
     /// can take on a variant: through the pin-mux table or fixed.
     Interfaces {
@@ -720,10 +730,17 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
         Cmd::Library { op: LibraryOp::Check { root } } => {
             let report = library::Library::load(&root)?.check();
             let ifaces = interfaces::check_all(&root)?;
-            let ok = report.ok && ifaces.ok;
+            let recipes = recipes_check(&root)?;
+            let ok = report.ok && ifaces.ok && recipes["ok"] == true;
             let mut value = serde_json::to_value(&report).unwrap();
+            // A source a recipe cites is in use, claim or not.
+            if let Some(w) = value["warnings"].as_array_mut() {
+                let cited: Vec<String> = recipes["cited"].as_array().into_iter().flatten().filter_map(|s| s.as_str().map(|s| format!("library source {s}: no claim cites it"))).collect();
+                w.retain(|x| !cited.iter().any(|c| x.as_str() == Some(c)));
+            }
             value["ok"] = ok.into();
             value["interfaces"] = serde_json::to_value(&ifaces).unwrap();
+            value["recipes"] = recipes;
             Ok((value, ok))
         }
         Cmd::Pins { loose, packages, output, nodes } => {
@@ -739,7 +756,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             let library = packages.parent().unwrap_or(Path::new(".")).join("library/interfaces.json");
             let types = interfaces::load_types(&library)?;
             let solved = pinsolve::solve(&value, &types, &pkgs, nodes)?;
-            let mut out = json!({ "ok": solved.ok, "cost": solved.cost, "exhaustive": solved.exhaustive, "pinout": solved.pinout, "warnings": solved.warnings, "errors": solved.errors });
+            let mut out = json!({ "ok": solved.ok, "cost": solved.cost, "exhaustive": solved.exhaustive, "pinout": solved.pinout, "added": solved.added, "warnings": solved.warnings, "errors": solved.errors });
             if solved.ok {
                 let sc: compose::Composition = serde_json::from_value(solved.composition.clone()).map_err(|e| format!("solved: {e}"))?;
                 let composed = compose::compose(&sc, &packages)?;
@@ -754,6 +771,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((out, ok))
         }
         Cmd::Interfaces { package, variant, interface, root } => interfaces_cmd(&root, &package, variant.as_deref(), interface.as_deref()),
+        Cmd::Recipe { name, params, root } => recipe_cmd(&root, name.as_deref(), &params),
         Cmd::Library { op: LibraryOp::Query { root, set, id, scope, attribute, status, text } } => {
             let lib = library::Library::load(&root)?;
             let hits = lib.query(&library::Query { set, status, attribute, scope, id, text });
@@ -773,6 +791,46 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
     }
+}
+
+/// `ccomp recipe`: every recipe in brief, or one expanded.
+fn recipe_cmd(root: &Path, name: Option<&str>, params: &[String]) -> Result<(Value, bool), String> {
+    let (recipes, stock) = compose::load_library(&root.join("library"))?;
+    let Some(name) = name else {
+        let all: serde_json::Map<String, Value> = recipes.iter().map(|(k, r)| (k.clone(), json!({ "summary": r.summary, "params": r.params.keys().collect::<Vec<_>>(), "ports": r.ports.keys().collect::<Vec<_>>(), "interfaces": r.interfaces.keys().collect::<Vec<_>>() }))).collect();
+        return Ok((json!({ "recipes": all }), true));
+    };
+    let r = recipes.get(name).ok_or_else(|| format!("no recipe {name}: {}", recipes.keys().cloned().collect::<Vec<_>>().join(", ")))?;
+    let mut given = BTreeMap::new();
+    for p in params {
+        let (k, v) = p.split_once('=').ok_or_else(|| format!("--param {p}: expected NAME=VALUE"))?;
+        given.insert(k.to_string(), v.parse::<f64>().map(Value::from).unwrap_or_else(|_| Value::from(v)));
+    }
+    let x = compose::recipe::expand(r, &given, &stock)?;
+    let parts: serde_json::Map<String, Value> = x.circuit.parts.iter().map(|(role, p)| (role.clone(), json!({ "value": p.value, "footprint": p.footprint, "lcsc": p.lcsc }))).collect();
+    let ports: serde_json::Map<String, Value> = x.circuit.ports.iter().map(|(n, p)| (n.clone(), json!({ "kind": p.kind, "pins": p.pins.len() }))).collect();
+    Ok((json!({ "ok": true, "recipe": name, "summary": r.summary, "parts": parts, "nets": x.circuit.nets.len(), "ports": ports, "chosen": x.chosen, "volts": x.volts }), true))
+}
+
+/// Every recipe expands with its defaults and cites only sources the library has.
+fn recipes_check(root: &Path) -> Result<Value, String> {
+    let (recipes, stock) = compose::load_library(&root.join("library"))?;
+    let sources: BTreeMap<String, Value> = serde_json::from_value(read_json_value(&root.join("library/sources.json"))?).map_err(|e| format!("library/sources.json: {e}"))?;
+    let mut errors = Vec::new();
+    for (name, r) in &recipes {
+        if let Err(e) = compose::recipe::expand(r, &BTreeMap::new(), &stock) {
+            errors.push(e);
+        }
+        for c in &r.citations {
+            match c["source"].as_str() {
+                Some(s) if sources.contains_key(s) => {}
+                Some(s) => errors.push(format!("{name}: cites {s}, not in library/sources.json")),
+                None => errors.push(format!("{name}: a citation without a source")),
+            }
+        }
+    }
+    let cited: std::collections::BTreeSet<&str> = recipes.values().flat_map(|r| &r.citations).filter_map(|c| c["source"].as_str()).collect();
+    Ok(json!({ "ok": errors.is_empty(), "recipes": recipes.keys().collect::<Vec<_>>(), "stock": stock.tables.keys().collect::<Vec<_>>(), "cited": cited, "errors": errors }))
 }
 
 /// `ccomp interfaces`: one interface's pins, or every interface in brief.

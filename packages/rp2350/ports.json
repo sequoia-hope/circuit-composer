@@ -9,6 +9,21 @@
    "citation": {
     "source": "rp2350_ds",
     "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   },
+   "levels": {
+    "at_supply_v": 3.3,
+    "vih": "2.0",
+    "vil": "0.8",
+    "voh": "2.62",
+    "vol": "0.5",
+    "vin_max": "5.5",
+    "vin_max_unpowered": "3.63",
+    "when": "while IOVDD is powered (5 V tolerance needs IOVDD at 3.3 V)",
+    "note": "At IOVDD = 3.3 V. Digital IO (FT): fault tolerant, up to 5.5 V with IOVDD at 3.3 V and 3.63 V with it off. VOH and VOL at the selected drive current (2-12 mA)",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "\u00a714.8.2.1 Table 1673 p.1331; \u00a714.9.1 Table 1680 p.1335; \u00a714.9.4 Table 1683 p.1336"
+    }
    }
   },
   "GPIO_ADC": {
@@ -19,6 +34,19 @@
    "citation": {
     "source": "rp2350_ds",
     "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   },
+   "levels": {
+    "at_supply_v": 3.3,
+    "vih": "2.0",
+    "vil": "0.8",
+    "voh": "2.62",
+    "vol": "0.5",
+    "vin_max": "supply + 0.3",
+    "note": "At IOVDD = 3.3 V. Standard digital IO, not fault tolerant: VIH max IOVDD + 0.3 V (absolute maximum IOVDD + 0.5 V)",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "\u00a714.8.2.1 Table 1673 p.1331; \u00a714.9.1 Table 1680 p.1335; \u00a714.9.4 Table 1683 p.1336"
+    }
    }
   },
   "QSPI": {

@@ -127,6 +127,8 @@ def main():
     text = json.dumps(ports, indent=1)
     # One [function, instance, signal] to a line.
     text = re.sub(r'\[\s+("[^"]*"),\s+("[^"]*"),\s+("[^"]*")\s+\]', r"[\1, \2, \3]", text)
+    # And a pair of names (an interface's roles).
+    text = re.sub(r'\[\s+("[^"]*"),\s+("[^"]*")\s+\]', r"[\1, \2]", text)
     with open(PORTS, "w") as f:
         f.write(text + "\n")
     print(f"wrote the mux for {len(mux['pins'])} GPIOs to {os.path.relpath(PORTS, ROOT)}")

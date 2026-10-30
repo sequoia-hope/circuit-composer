@@ -15,6 +15,7 @@ wasm = ["dep:wasm-bindgen", "dep:js-sys"]
 floorplan = { path = "../../crates/floorplan" }
 shape = { path = "../../crates/shape" }
 pinsolve = { path = "../../crates/pinsolve" }
+compose = { path = "../../crates/compose" }
 interfaces = { path = "../../crates/interfaces" }
 # The board renderer shared with UltraRoute Studio; the JS half is pinned at the same commit in
 # app/web/package.json.

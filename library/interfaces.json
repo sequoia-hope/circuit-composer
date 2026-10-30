@@ -9,7 +9,24 @@
     "SCL": { "dir": "out", "drive": "open_drain" }
    },
    "joins": [["SDA", "SDA"], ["SCL", "SCL"]],
-   "note": "A bus: any number of targets on one controller's two lines, each at its own address."
+   "note": "A bus: any number of targets on one controller's two lines, each at its own address.",
+   "rules": {
+    "pullup": {
+     "note": "One pull-up per line to the bus's rail, between Rp(min) = (V - VOL) / IOL and Rp(max) = tr / (0.8473 * Cb), for the mode of the bus's slowest device (its max_khz). Table 2-1 gives VOL at a 3 mA sink for all three modes. Cb is estimated as pin_pf per device plus wiring_pf; both are assumptions, not cited figures, and a connection's bus_pf replaces the estimate.",
+     "modes": [
+      { "name": "standard", "max_khz": 100, "tr_ns": 1000, "cb_max_pf": 400, "vol_v": 0.4, "iol_ma": 3 },
+      { "name": "fast", "max_khz": 400, "tr_ns": 300, "cb_max_pf": 400, "vol_v": 0.4, "iol_ma": 3 },
+      { "name": "fast_plus", "max_khz": 1000, "tr_ns": 120, "cb_max_pf": 550, "vol_v": 0.4, "iol_ma": 3 }
+     ],
+     "pin_pf": 10,
+     "wiring_pf": 20,
+     "recipe": "i2c_pullups",
+     "citation": {
+      "source": "ti_slva689",
+      "locator": "\u00a72 eq. (1), (5), (6), Table 2-1 p.3"
+     }
+    }
+   }
   },
   "spi": {
    "roles": ["controller", "target"],

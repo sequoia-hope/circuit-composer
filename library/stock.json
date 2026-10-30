@@ -1,0 +1,40 @@
+{
+ "note": "Parts a recipe can choose by value (a recipe part's `choose`). Each table is one footprint and one maker's series; `si` is the value in SI units. LCSC numbers, JLC library type and stock were read with jlc_parts.py (easy_pcb's pcb-design skill) on the date in `checked`; only basic and preferred parts (no extended-part fee) are listed.",
+ "resistor_0402": {
+  "note": "UNI-ROYAL 0402WGF series, 1 %, 1/16 W, 0402. E12 and the common E24 values JLC stocks as basic or preferred; 27 and 68 ohm are extended and left out.",
+  "symbol": "Device:R",
+  "footprint": "Resistor_SMD:R_0402_1005Metric",
+  "checked": "2026-10-30",
+  "parts": [
+   { "value": "10", "si": 10.0, "lcsc": "C25077", "mpn": "0402WGF100JTCE", "type": "basic" },
+   { "value": "22", "si": 22.0, "lcsc": "C25092", "mpn": "0402WGF220JTCE", "type": "basic" },
+   { "value": "33", "si": 33.0, "lcsc": "C25105", "mpn": "0402WGF330JTCE", "type": "basic" },
+   { "value": "47", "si": 47.0, "lcsc": "C25118", "mpn": "0402WGF470JTCE", "type": "preferred" },
+   { "value": "100", "si": 100.0, "lcsc": "C25076", "mpn": "0402WGF1000TCE", "type": "basic" },
+   { "value": "150", "si": 150.0, "lcsc": "C25082", "mpn": "0402WGF1500TCE", "type": "preferred" },
+   { "value": "220", "si": 220.0, "lcsc": "C25091", "mpn": "0402WGF2200TCE", "type": "basic" },
+   { "value": "330", "si": 330.0, "lcsc": "C25104", "mpn": "0402WGF3300TCE", "type": "basic" },
+   { "value": "470", "si": 470.0, "lcsc": "C25117", "mpn": "0402WGF4700TCE", "type": "basic" },
+   { "value": "680", "si": 680.0, "lcsc": "C25130", "mpn": "0402WGF6800TCE", "type": "preferred" },
+   { "value": "1k", "si": 1000.0, "lcsc": "C11702", "mpn": "0402WGF1001TCE", "type": "basic" },
+   { "value": "1.5k", "si": 1500.0, "lcsc": "C25867", "mpn": "0402WGF1501TCE", "type": "basic" },
+   { "value": "2k", "si": 2000.0, "lcsc": "C4109", "mpn": "0402WGF2001TCE", "type": "basic" },
+   { "value": "2.2k", "si": 2200.0, "lcsc": "C25879", "mpn": "0402WGF2201TCE", "type": "basic" },
+   { "value": "3.3k", "si": 3300.0, "lcsc": "C25890", "mpn": "0402WGF3301TCE", "type": "basic" },
+   { "value": "4.7k", "si": 4700.0, "lcsc": "C25900", "mpn": "0402WGF4701TCE", "type": "basic" },
+   { "value": "5.1k", "si": 5100.0, "lcsc": "C25905", "mpn": "0402WGF5101TCE", "type": "basic" },
+   { "value": "6.8k", "si": 6800.0, "lcsc": "C25917", "mpn": "0402WGF6801TCE", "type": "preferred" },
+   { "value": "10k", "si": 10000.0, "lcsc": "C25744", "mpn": "0402WGF1002TCE", "type": "basic" },
+   { "value": "15k", "si": 15000.0, "lcsc": "C25756", "mpn": "0402WGF1502TCE", "type": "basic" },
+   { "value": "20k", "si": 20000.0, "lcsc": "C25765", "mpn": "0402WGF2002TCE", "type": "basic" },
+   { "value": "22k", "si": 22000.0, "lcsc": "C25768", "mpn": "0402WGF2202TCE", "type": "basic" },
+   { "value": "33k", "si": 33000.0, "lcsc": "C25779", "mpn": "0402WGF3302TCE", "type": "basic" },
+   { "value": "47k", "si": 47000.0, "lcsc": "C25792", "mpn": "0402WGF4702TCE", "type": "basic" },
+   { "value": "68k", "si": 68000.0, "lcsc": "C36871", "mpn": "0402WGF6802TCE", "type": "preferred" },
+   { "value": "100k", "si": 100000.0, "lcsc": "C25741", "mpn": "0402WGF1003TCE", "type": "basic" },
+   { "value": "220k", "si": 220000.0, "lcsc": "C25767", "mpn": "0402WGF2203TCE", "type": "preferred" },
+   { "value": "470k", "si": 470000.0, "lcsc": "C25790", "mpn": "0402WGF4703TCE", "type": "preferred" },
+   { "value": "1M", "si": 1000000.0, "lcsc": "C26083", "mpn": "0402WGF1004TCE", "type": "basic" }
+  ]
+ }
+}

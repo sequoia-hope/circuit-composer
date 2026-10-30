@@ -7,7 +7,8 @@ are not in the repository (they are the vendors'); the hashes say which revision
 
 Sources come from library/sources.json and every packages/*/sources/sources.json. A PDF is
 kept as it came; a web page (an article) is kept as HTML and as its text, and since pages carry
-ads and dates its hash is expected to drift: a changed web page is reported, not failed. --text also writes pdftotext
+ads and dates its hash is expected to drift: a changed web page is reported, not failed. A source
+whose url is a zip names the PDF inside it under `member`; the hash is the PDF's. --text also writes pdftotext
 output beside each PDF, one form feed per page, for searching a locator. Prints one JSON
 result; exits 1 when a hash differs (the vendor has published a new revision: re-read it
 and update the claims that cite it).
@@ -22,6 +23,7 @@ import re
 import subprocess
 import sys
 import urllib.request
+import zipfile
 
 UA = "Mozilla/5.0 (X11; Linux x86_64) circuit-composer library_fetch"
 
@@ -60,7 +62,7 @@ def main():
             results.append({"source": sid, "status": "skipped", "why": "no url"})
             continue
         web = s.get("kind") == "article" and not url.lower().split("?")[0].endswith(".pdf")
-        if not web and not url.lower().split("?")[0].endswith(".pdf") and s.get("kind") not in ("datasheet", "app_note", "design_guide", "standard"):
+        if not web and not s.get("member") and not url.lower().split("?")[0].endswith(".pdf") and s.get("kind") not in ("datasheet", "app_note", "design_guide", "standard"):
             results.append({"source": sid, "status": "skipped", "why": "not a document"})
             continue
         dest = os.path.join(cache, sid + (".html" if web else ".pdf"))
@@ -70,6 +72,10 @@ def main():
                 req = urllib.request.Request(url, headers={"User-Agent": UA})
                 with urllib.request.urlopen(req, timeout=180) as resp, open(dest + ".part", "wb") as f:
                     f.write(resp.read())
+                if s.get("member"):
+                    with zipfile.ZipFile(dest + ".part") as z, open(dest + ".member", "wb") as f:
+                        f.write(z.read(s["member"]))
+                    os.replace(dest + ".member", dest + ".part")
                 os.replace(dest + ".part", dest)
             except Exception as e:
                 r.update(status="unreachable", error=str(e))

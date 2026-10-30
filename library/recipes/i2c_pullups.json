@@ -1,0 +1,25 @@
+{
+ "name": "i2c_pullups",
+ "summary": "One pair of I2C pull-ups, to the bus's rail",
+ "note": "What the I2C interface rule adds to a bus that has none. The rule works out the window (rmin_ohm from the rail and the 3 mA sink current, rmax_ohm from the rise time and the bus capacitance) and the recipe takes the stocked value nearest target_ohm inside it.",
+ "params": {
+  "rmin_ohm": { "default": 967, "unit": "ohm", "note": "(V - 0.4 V) / 3 mA" },
+  "rmax_ohm": { "default": 10000, "unit": "ohm", "note": "tr / (0.8473 * Cb)" },
+  "target_ohm": { "default": 4700, "unit": "ohm" }
+ },
+ "requires": [
+  { "expr": "rmin_ohm <= rmax_ohm", "message": "no pull-up meets both the sink current and the rise time: lower the bus capacitance or the speed" }
+ ],
+ "parts": {
+  "R_SDA": { "reference_ref": "R1", "choose": { "stock": "resistor_0402", "target": "target_ohm", "min": "rmin_ohm", "max": "rmax_ohm" } },
+  "R_SCL": { "reference_ref": "R2", "choose": { "stock": "resistor_0402", "target": "target_ohm", "min": "rmin_ohm", "max": "rmax_ohm" } }
+ },
+ "ports": {
+  "SDA": { "kind": "signal", "pins": ["R_SDA.1"] },
+  "SCL": { "kind": "signal", "pins": ["R_SCL.1"] },
+  "VDD": { "kind": "supply", "pins": ["R_SDA.2", "R_SCL.2"] }
+ },
+ "citations": [
+  { "source": "ti_slva689", "locator": "§2 eq. (1), (6), Table 2-1 p.3", "quote": "The maximum pullup resistance is limited by the bus capacitance (Cb) due to I2C standard rise time specifications." }
+ ]
+}

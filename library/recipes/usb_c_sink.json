@@ -1,0 +1,29 @@
+{
+ "name": "usb_c_sink",
+ "summary": "USB-C receptacle as a USB 2.0 sink: 5 V from the host, D+/D-, and Rd on each CC pin",
+ "note": "A device that only takes power and USB 2.0 data. Each CC pin has its own 5.1 kohm pull-down (Rd) so the source turns VBUS on whichever way the plug is turned; the two must not share one resistor. 1 % parts meet both the 20 % tolerance that only asks for default power and the 10 % one a sink needs to read the source's advertised current. Both D+ pads and both D- pads are joined at the receptacle, so either plug orientation works. The receptacle's pin names are KiCad 9's (its shield pin is S1; KiCad 10 calls it SH). No ESD protection: add it on boards a person plugs by hand often.",
+ "parts": {
+  "J1": { "reference_ref": "J1", "symbol": "Connector:USB_C_Receptacle_USB2.0_16P", "value": "USB-C", "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12", "lcsc": "C165948", "note": "HRO TYPE-C-31-M-12, USB 2.0, 16 pins" },
+  "R_CC1": { "reference_ref": "R1", "symbol": "Device:R", "value": "5.1k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25905", "mpn": "0402WGF5101TCE", "note": "Rd on CC1" },
+  "R_CC2": { "reference_ref": "R2", "symbol": "Device:R", "value": "5.1k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25905", "mpn": "0402WGF5101TCE", "note": "Rd on CC2" }
+ },
+ "nets": {
+  "CC1": ["J1.A5", "R_CC1.1"],
+  "CC2": ["J1.B5", "R_CC2.1"]
+ },
+ "ports": {
+  "VBUS": { "kind": "supply", "pins": ["J1.A4", "J1.A9", "J1.B4", "J1.B9"], "volts": [4.75, 5.5], "note": "The host's 5 V. Default USB power's range is the USB 2.0 specification's (not read); 4.75-5.5 V unloaded is what a Type-C Current source must give, and up to 5.5 V is what a legacy device may see at light load" },
+  "GND": { "kind": "ground", "pins": ["J1.A1", "J1.A12", "J1.B1", "J1.B12", "J1.S1", "R_CC1.2", "R_CC2.2"] },
+  "DP": { "kind": "signal", "pins": ["J1.A6", "J1.B6"] },
+  "DM": { "kind": "signal", "pins": ["J1.A7", "J1.B7"] }
+ },
+ "interfaces": {
+  "usb": { "type": "usb", "roles": ["host"], "pins": { "DP": "DP", "DM": "DM" }, "note": "The cable's far end is a host, so a device's USB connects here." }
+ },
+ "citations": [
+  { "source": "usb_typec", "locator": "§4.5.2.2.3.1 p.180", "quote": "Both CC1 and CC2 pins shall be independently terminated to ground through Rd." },
+  { "source": "usb_typec", "locator": "Table 4-28 p.245", "quote": "± 20% resistor to GND | 5.1 kΩ | No", "note": "The column is whether the sink can detect the source's power capability; the ±10 % 5.1 kΩ row says Yes." },
+  { "source": "usb_typec", "locator": "§4.4.2 p.152", "quote": "The allowable default range for VBUS as measured at the Source receptacle shall be as defined by the USB 2.0 and USB 3.2 specifications." },
+  { "source": "usb_typec", "locator": "§4.8.1.2 p.233", "quote": "shall output a voltage in the range of 4.75 V – 5.5 V when no current is being drawn" }
+ ]
+}

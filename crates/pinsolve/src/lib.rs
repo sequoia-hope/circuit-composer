@@ -26,7 +26,17 @@
 //! - a connection's pins spread over the package cost their spread in pin numbers, so a bus's
 //!   lines sit together.
 //!
-//! Electrical domains (a 5 V output into a 3.3 V input) are not judged yet.
+//! Electrical domains are judged as pins are chosen (`levels`): a pin whose input can't take the
+//! device's high, or whose high the device can't read, is not a candidate. A 5 V charger status
+//! line goes to one of the RP2350's 5 V-tolerant GPIOs, never to an ADC pin, with a warning that
+//! the tolerance holds only while IOVDD is up.
+//!
+//! Then the interface rules (`rules`) add what a connection implies: a bus's I2C pull-ups, from a
+//! recipe, sized for its rail, speed and capacitance; or, where several packages each bring their
+//! own pair, all but one pair omitted.
+
+pub mod levels;
+pub mod rules;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -53,14 +63,19 @@ pub struct Connect {
     /// The partner's pin (by name) for some of the device's signals.
     #[serde(default)]
     pub pins: BTreeMap<String, String>,
+    /// A bus's capacitance per line, in pF, where the interface rule's estimate won't do.
+    #[serde(default)]
+    pub bus_pf: Option<f64>,
     #[serde(default)]
     pub note: Option<String>,
 }
 
-/// One instance's package, as the solver reads it.
+/// One instance's package (or expanded recipe), as the solver reads it.
 pub struct Package {
     pub circuit: Circuit,
     pub ports: Ports,
+    /// A recipe's ports' voltages.
+    pub volts: BTreeMap<String, (f64, f64)>,
 }
 
 /// One pin the solver chose.
@@ -92,6 +107,8 @@ pub struct Solved {
     pub exhaustive: bool,
     pub warnings: Vec<String>,
     pub errors: Vec<String>,
+    /// What the interface rules added to the composition or changed in it.
+    pub added: Vec<String>,
 }
 
 /// A role's counterpart.
@@ -143,17 +160,32 @@ struct Conn<'a> {
     picks: Vec<Pick>,
     ways: Vec<Way>,
     analog: bool,
+    /// Per device signal: which way it goes from the device (`out`, `in`, `bidir`), whether the
+    /// device drives it open-drain, and whether the partner does.
+    dirs: BTreeMap<String, (Option<String>, bool, bool)>,
 }
 
-/// Load the packages of a loose composition's instances.
+/// Load the packages of a loose composition's instances, and expand its recipes from the
+/// library beside `packages`.
 pub fn load(c: &Composition, packages: &Path) -> Result<BTreeMap<String, Package>, String> {
     let mut out = BTreeMap::new();
-    for (name, inst) in &c.instances {
+    for (name, inst) in c.instances.iter().filter(|(_, i)| i.recipe.is_none()) {
         let circuit = compose::load_circuit(packages, inst)?;
         let ports = interfaces::load_ports(&compose::package_dir(packages, &inst.package)?.join("ports.json"))?;
-        out.insert(name.clone(), Package { circuit, ports });
+        out.insert(name.clone(), Package { circuit, ports, volts: BTreeMap::new() });
     }
+    let (recipes, stock) = compose::load_library(&compose::library_dir(packages))?;
+    add_recipes(&mut out, c, &recipes, &stock)?;
     Ok(out)
+}
+
+/// Expand a composition's recipe instances into packages the solver can read.
+pub fn add_recipes(pkgs: &mut BTreeMap<String, Package>, c: &Composition, recipes: &BTreeMap<String, compose::recipe::Recipe>, stock: &compose::recipe::Stock) -> Result<(), String> {
+    for (name, x) in compose::expand_recipes(c, recipes, stock)? {
+        let ports = serde_json::from_value(x.ports.clone()).map_err(|e| format!("{name}'s interfaces: {e}"))?;
+        pkgs.insert(name, Package { circuit: x.circuit, ports, volts: x.volts });
+    }
+    Ok(())
 }
 
 /// The packages from JSON, for a caller with no package directory (the app): instance name →
@@ -164,14 +196,14 @@ pub fn from_json(v: &Value) -> Result<BTreeMap<String, Package>, String> {
         .map(|(k, x)| {
             let circuit = serde_json::from_value(x["circuit"].clone()).map_err(|e| format!("{k}'s circuit: {e}"))?;
             let ports = serde_json::from_value(x["ports"].clone()).map_err(|e| format!("{k}'s ports: {e}"))?;
-            Ok((k.clone(), Package { circuit, ports }))
+            Ok((k.clone(), Package { circuit, ports, volts: BTreeMap::new() }))
         })
         .collect()
 }
 
 /// The circuit's port on the chip's pin `number` (the chip is the circuit's part `U1`), or a
 /// port named `name` (a pin behind a series part, `USB_DP`).
-fn port_of(circuit: &Circuit, number: &str, name: &str) -> Option<String> {
+pub(crate) fn port_of(circuit: &Circuit, number: &str, name: &str) -> Option<String> {
     let pin = format!("U1.{number}");
     circuit.ports.iter().find(|(_, p)| p.pins.contains(&pin)).map(|(n, _)| n.clone()).or_else(|| circuit.ports.contains_key(name).then(|| name.to_string()))
 }
@@ -202,10 +234,12 @@ fn signal_port(circuit: &Circuit, port: &str) -> bool {
 
 /// Solve a loose composition (`compose.json` with `connect`).
 pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, node_limit: usize) -> Result<Solved, String> {
-    let comp: Composition = serde_json::from_value(loose.clone()).map_err(|e| format!("composition: {e}"))?;
+    let mut comp: Composition = serde_json::from_value(loose.clone()).map_err(|e| format!("composition: {e}"))?;
+    recipe_variants(&mut comp);
     let connects: Vec<Connect> = comp.connect.iter().map(|v| serde_json::from_value(v.clone()).map_err(|e| format!("connect {v}: {e}"))).collect::<Result<_, _>>()?;
     let mut errors = Vec::new();
     let mut warnings = Vec::new();
+    let rails = levels::rails(&comp, pkgs);
 
     // Ports already taken: on a net, or deliberately open.
     let mut taken: BTreeSet<String> = comp.nets.values().flatten().cloned().collect();
@@ -235,7 +269,7 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
         }
     }
     if !errors.is_empty() {
-        return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive: true, warnings, errors });
+        return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive: true, warnings, errors, added: vec![] });
     }
 
     // Every connection's concrete picks, cheapest first.
@@ -243,6 +277,7 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
         let pk = &pkgs[&conn.partner];
         let variant = comp.instances[&conn.partner].variant.clone();
         let mut picks = Vec::new();
+        let mut refused: Vec<(String, String)> = Vec::new();
         for (w, way) in conn.ways.iter().enumerate() {
             let opts = pk.ports.options(&variant, &way.iface)?;
             // Each device signal's candidates: (partner signal, number, name, function), on a
@@ -256,11 +291,20 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
                         if !signal_port(&pk.circuit, &port) || taken.contains(&format!("{}.{port}", conn.partner)) {
                             continue;
                         }
-                        let Some(_) = inside(&pk.circuit, &port, &comp.instances[&conn.partner].omit) else { continue };
+                        // A port found by name (USB_DP behind its series resistor) is reached through
+                        // the part in it; one on the chip's pin is taken by any fitted part.
+                        let on_pin = pk.circuit.ports[&port].pins.contains(&format!("U1.{}", ch.number));
+                        if on_pin && inside(&pk.circuit, &port, &comp.instances[&conn.partner].omit).is_none() {
+                            continue;
+                        }
                         if let Some(want) = conn.c.pins.get(dsig) {
                             if &ch.name != want && !ch.name.starts_with(&format!("{want}_")) && &port != want {
                                 continue;
                             }
+                        }
+                        if let Err(why) = level_ok(&comp, pkgs, &rails, conn, dsig, &port, way) {
+                            refused.push((format!("{}.{port} (", conn.partner), why));
+                            continue;
                         }
                         v.push((ps.clone(), ch.number.clone(), ch.name.clone(), ch.function.clone()));
                     }
@@ -306,13 +350,14 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
         }
         if picks.is_empty() {
             let kinds: Vec<String> = conn.ways.iter().map(|w| w.iface.clone()).collect();
-            errors.push(format!("{} -> {}: no free pins on {}", conn.c.from, conn.c.to, if kinds.is_empty() { "any interface".into() } else { kinds.join(", ") }));
+            let why = if refused.is_empty() { String::new() } else { format!(" (refused: {})", summarize(&conn.partner, &refused).join("; ")) };
+            errors.push(format!("{} -> {}: no free pins on {}{why}", conn.c.from, conn.c.to, if kinds.is_empty() { "any interface".into() } else { kinds.join(", ") }));
         }
         picks.sort_by(|a, b| a.cost.total_cmp(&b.cost));
         conn.picks = picks;
     }
     if !errors.is_empty() {
-        return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive: true, warnings, errors });
+        return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive: true, warnings, errors, added: vec![] });
     }
 
     // Fewest choices first.
@@ -328,13 +373,14 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
     let exhaustive = s.nodes < s.limit;
     let Some((cost, choice)) = s.best else {
         errors.push("no assignment gives every connection its own pins: free some, or connect fewer".into());
-        return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive, warnings, errors });
+        return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive, warnings, errors, added: vec![] });
     };
 
     // Nets: a shared bus signal is one net for all its devices.
     let mut nets: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let mut net_of: BTreeMap<(String, String, String), String> = BTreeMap::new();
     let mut pinout = Vec::new();
+    let mut buses: BTreeMap<(String, String), rules::Bus> = BTreeMap::new();
     for (k, conn) in conns.iter().enumerate() {
         let p = &conn.picks[choice[k]];
         let way = &conn.ways[p.way];
@@ -364,6 +410,32 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
                 e.push(partner.clone());
             }
             e.push(conn.ends[dsig].clone());
+            if let Ok(notes) = level_ok(&comp, pkgs, &rails, conn, dsig, &port, way) {
+                for n in notes.into_iter().map(|n| format!("{} -> {}: {n}", conn.c.from, conn.c.to)) {
+                    if !warnings.contains(&n) {
+                        warnings.push(n);
+                    }
+                }
+            }
+            if way.kind == "i2c" && shared {
+                let ts = pkgs[&conn.partner].ports.interfaces.get(&way.iface).map(|i| i.type_signal(psig).to_string()).unwrap_or(psig.clone());
+                let b = buses.entry((conn.partner.clone(), way.iface.clone())).or_insert_with(|| rules::Bus { partner: conn.partner.clone(), iface: way.iface.clone(), nets: BTreeMap::new(), targets: vec![], bus_pf: None });
+                b.nets.insert(ts.clone(), net.clone());
+                b.bus_pf = match (b.bus_pf, conn.c.bus_pf) {
+                    (Some(a), Some(c)) => Some(a.max(c)),
+                    (a, c) => a.or(c),
+                };
+                if let Some((inst, iface)) = conn.c.from.split_once('.').filter(|(i, _)| comp.instances.contains_key(*i)) {
+                    let dev_port = conn.ends[dsig].split_once('.').map(|x| x.1.to_string()).unwrap_or_default();
+                    let dts = pkgs[inst].ports.interfaces.get(iface).map(|i| i.type_signal(dsig).to_string()).unwrap_or(dsig.clone());
+                    match b.targets.iter_mut().find(|t| t.0 == inst && t.1 == iface) {
+                        Some(t) => {
+                            t.2.insert(dts, dev_port);
+                        }
+                        None => b.targets.push((inst.to_string(), iface.to_string(), [(dts, dev_port)].into())),
+                    }
+                }
+            }
             pinout.push(Row { connection: format!("{} -> {}", conn.c.from, conn.c.to), net, device: conn.ends[dsig].clone(), partner, via: format!("{} {psig}", way.iface), pin: num.clone(), function: f.clone() });
         }
         if way.soft {
@@ -408,7 +480,65 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
         }
         n.insert(k.clone(), serde_json::to_value(v).unwrap());
     }
-    Ok(Solved { ok: errors.is_empty(), composition: out, pinout, cost, exhaustive, warnings, errors })
+    // The interface rules, on the composition with its new nets.
+    let mut added = Vec::new();
+    let mut solved: Composition = serde_json::from_value(out.clone()).map_err(|e| format!("solved: {e}"))?;
+    recipe_variants(&mut solved);
+    let buses: Vec<rules::Bus> = buses.into_values().collect();
+    rules::i2c(&buses, &mut out, &solved, pkgs, types, &rails, &mut warnings, &mut errors, &mut added);
+    Ok(Solved { ok: errors.is_empty(), composition: out, pinout, cost, exhaustive, warnings, errors, added })
+}
+
+/// Refusals said once per kind of pin: `mcu.GPIO4 (GPIO)'s high...` for every GPIO becomes
+/// `mcu's GPIO pins' high...`; a reason only one pin had keeps its name.
+fn summarize(partner: &str, refused: &[(String, String)]) -> Vec<String> {
+    let mut by: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for (head, msg) in refused {
+        let generic = match msg.find(head.as_str()) {
+            Some(a) => {
+                let rest = &msg[a + head.len()..];
+                match rest.find(')') {
+                    Some(b) => {
+                        let tail = &rest[b + 1..];
+                        let tail = tail.strip_prefix("'s").map(|t| format!("'{t}")).unwrap_or(tail.to_string());
+                        format!("{}{partner}'s {} pins{tail}", &msg[..a], &rest[..b])
+                    }
+                    None => msg.clone(),
+                }
+            }
+            None => msg.clone(),
+        };
+        by.entry(generic).or_default().insert(msg.clone());
+    }
+    by.into_iter().map(|(g, specific)| if specific.len() == 1 { specific.into_iter().next().unwrap() } else { g }).take(3).collect()
+}
+
+/// A recipe's expansion has one variant, `recipe`.
+fn recipe_variants(c: &mut Composition) {
+    for i in c.instances.values_mut().filter(|i| i.recipe.is_some() && i.variant.is_empty()) {
+        i.variant = "recipe".into();
+    }
+}
+
+/// Whether a device signal and a partner port can drive each other, as the signal goes: Err with
+/// why not, else what to keep in mind. Pins whose packages say nothing of levels pass.
+fn level_ok(comp: &Composition, pkgs: &BTreeMap<String, Package>, rails: &levels::Rails, conn: &Conn, dsig: &str, port: &str, way: &Way) -> Result<Vec<String>, String> {
+    let (dir, dev_od, par_od) = conn.dirs.get(dsig).cloned().unwrap_or((None, false, false));
+    let dev = conn.ends.get(dsig).and_then(|e| e.split_once('.')).and_then(|(i, p)| levels::of(comp, pkgs, rails, i, p));
+    let par = levels::of(comp, pkgs, rails, &conn.partner, port);
+    let (Some(dev), Some(par)) = (dev, par) else { return Ok(vec![]) };
+    // Software I/O drives push-pull whatever the type says.
+    let par_od = par_od && !way.soft;
+    let mut notes = Vec::new();
+    match dir.as_deref() {
+        Some("out") => notes.extend(levels::drive(&dev, &par, dev_od)?),
+        Some("in") => notes.extend(levels::drive(&par, &dev, par_od)?),
+        _ => {
+            notes.extend(levels::drive(&dev, &par, dev_od)?);
+            notes.extend(levels::drive(&par, &dev, par_od)?);
+        }
+    }
+    Ok(notes)
 }
 
 /// How far apart a connection's pins are, in pin numbers.
@@ -428,6 +558,7 @@ fn prepare<'a>(c: &'a Connect, comp: &Composition, types: &Types, pkgs: &BTreeMa
     };
     let pk = pkgs.get(&partner).ok_or_else(|| format!("no instance {partner}"))?;
     // The device: an instance's interface, or a part's pin.
+    let mut dirs: BTreeMap<String, (Option<String>, bool, bool)> = BTreeMap::new();
     let (kind, roles, dir, dsigs, ends): (String, Vec<String>, Option<String>, Vec<String>, BTreeMap<String, String>) = match c.from.split_once('.') {
         Some((inst, iface)) if comp.instances.contains_key(inst) => {
             let dp = &pkgs[inst];
@@ -448,6 +579,22 @@ fn prepare<'a>(c: &'a Connect, comp: &Composition, types: &Types, pkgs: &BTreeMa
                 Some(r) => return Err(format!("{inst}.{iface} can't be {r}: {}", i.roles.join(", "))),
                 None => i.roles.clone(),
             };
+            // Each signal's direction from the device: the interface's own, or the type's (the
+            // controller's), turned round for a target.
+            if let Some(t) = types.types.get(&i.kind) {
+                for sig in ends.keys() {
+                    let spec = t.signals.get(i.type_signal(sig)).cloned().unwrap_or_default();
+                    let d = i.dir.clone().or_else(|| match (roles.as_slice(), spec.dir.as_deref()) {
+                        (_, Some("bidir")) => Some("bidir".into()),
+                        ([r], Some(d)) if r == "controller" || r == "host" || r == "debugger" => Some(d.into()),
+                        ([_], Some("out")) => Some("in".into()),
+                        ([_], Some("in")) => Some("out".into()),
+                        _ => None,
+                    });
+                    let od = |x: Option<&str>| x == Some("open_drain");
+                    dirs.insert(sig.clone(), (d, od(i.drive.as_deref().or(spec.drive.as_deref())), od(spec.drive.as_deref())));
+                }
+            }
             (i.kind.clone(), roles, i.dir.clone(), ends.keys().cloned().collect(), ends)
         }
         Some((r, _)) => {
@@ -502,7 +649,7 @@ fn prepare<'a>(c: &'a Connect, comp: &Composition, types: &Types, pkgs: &BTreeMa
     if ways.is_empty() {
         return Err(format!("{partner} has no interface that serves {kind}{}", if roles.is_empty() { String::new() } else { format!(" as {}", roles.iter().map(|r| complement(r)).collect::<Vec<_>>().join(" or ")) }));
     }
-    Ok(Conn { c, ends, partner, picks: vec![], ways, analog: kind == "analog" })
+    Ok(Conn { c, ends, partner, picks: vec![], ways, analog: kind == "analog", dirs })
 }
 
 /// A partner interface's own signals that are the type's `ts`.

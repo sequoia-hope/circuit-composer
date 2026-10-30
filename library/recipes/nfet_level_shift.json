@@ -1,0 +1,29 @@
+{
+ "name": "nfet_level_shift",
+ "summary": "One N-MOSFET and a pull-up: a logic output shifted up to another rail, inverted",
+ "note": "The input drives the gate; the drain is pulled up to VOUT. It inverts (input high pulls the output low), so firmware sends the complement: the RP2350 can invert a pin's output in hardware (GPIO OUTOVER). The bolt earring drives its LED chains like this, with 1 kohm pull-ups. The output's high is VOUT through the pull-up: its rise time is the pull-up times the line's capacitance, so keep the pull-up small for fast data (800 kHz LED data wants well under 1 us).",
+ "params": {
+  "pullup_ohm": { "default": 1000, "unit": "ohm" }
+ },
+ "parts": {
+  "Q1": { "reference_ref": "Q1", "symbol": "Transistor_FET:BSS138", "value": "BSS138W", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C5224279", "mpn": "BSS138W-7-F-ES", "note": "1 gate, 2 source, 3 drain, as KiCad's BSS138 symbol" },
+  "R_PU": { "reference_ref": "R1", "choose": { "stock": "resistor_0402", "target": "pullup_ohm" }, "near": "Q1.3" }
+ },
+ "nets": {},
+ "ports": {
+  "IN": { "kind": "signal", "pins": ["Q1.1"], "levels": { "vih": "1.5", "vin_max": "20", "citation": { "source": "bss138w", "locator": "pp.2-3" } }, "note": "VGS(th) 0.8-1.5 V; VGS +/-20 V" },
+  "OUT": { "kind": "signal", "pins": ["Q1.3", "R_PU.1"], "supply": "VOUT", "levels": { "voh": "supply", "vol": "0.1" } },
+  "VOUT": { "kind": "supply", "pins": ["R_PU.2"] },
+  "GND": { "kind": "ground", "pins": ["Q1.2"] }
+ },
+ "interfaces": {
+  "in": { "type": "logic", "dir": "in", "pins": { "IO": "IN" } },
+  "out": { "type": "logic", "dir": "out", "drive": "open_drain", "pins": { "IO": "OUT" } }
+ },
+ "citations": [
+  { "source": "bss138w", "locator": "p.3", "quote": "Gate Threshold Voltage VGS(TH) VGS=VDS, ID=250uA 0.8 1.0 1.5 V" },
+  { "source": "bss138w", "locator": "p.3", "quote": "VGS=2.5V, ID=0.1A 2.7 4.5", "note": "RDS(on) typ and max, ohms: driven from 3.3 V the drain sinks the pull-up's few mA at well under 0.1 V." },
+  { "source": "bss138w", "locator": "p.2", "quote": "Gate-Source Voltage VGS ±20 V" },
+  { "source": "bss138w", "locator": "p.1", "quote": "1 Gate, 2 Source, 3 Drain" }
+ ]
+}

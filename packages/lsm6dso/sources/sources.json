@@ -24,16 +24,5 @@
   "bytes": 1464533,
   "retrieved": "2026-10-27",
   "note": "Mirror of ST's document (st.com timed out). Its land-pattern rules are stated as taken from TN0018; TN0018 itself could not be fetched (st.com timed out, Mouser returned an HTML page) and was not read."
- },
- "ti_slva689": {
-  "title": "I2C Bus Pullup Resistor Calculation (Rajan Arora)",
-  "publisher": "Texas Instruments",
-  "doc": "SLVA689A",
-  "kind": "app_note",
-  "revision": "SLVA689A - February 2015 - revised October 2026",
-  "url": "https://www.ti.com/lit/an/slva689/slva689.pdf",
-  "sha256": "84da7d3745364e881a72914ca609e93132c356dcc0a0461de483fa27a8669e7b",
-  "bytes": 382608,
-  "retrieved": "2026-10-27"
  }
 }

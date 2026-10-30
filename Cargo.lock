@@ -184,6 +184,7 @@ name = "composer-core"
 version = "0.1.0"
 dependencies = [
  "board-draw",
+ "compose",
  "floorplan",
  "interfaces",
  "js-sys",

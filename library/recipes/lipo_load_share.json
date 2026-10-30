@@ -1,0 +1,23 @@
+{
+ "name": "lipo_load_share",
+ "summary": "Load sharing for a 1S LiPo and its charger: the system runs from the input when it is present and from the cell when not",
+ "note": "Microchip AN1149's circuit. With input power present, Q1's gate is at VIN and it is off, so the system draws from VIN through D1 and the charger sees only the cell; a load on the cell would keep the charge current from ever falling to the termination value. Without input, R_GATE pulls the gate to ground and Q1 connects the cell to the system (its body diode already conducts). D1 is a Schottky for its low drop and keeps the cell from back-feeding VIN. Q1: drain at the cell, source at VSYS.",
+ "parts": {
+  "Q1": { "reference_ref": "Q1", "symbol": "Transistor_FET:AO3401A", "value": "AO3401A", "footprint": "Package_TO_SOT_SMD:SOT-23", "lcsc": "C15127", "note": "P-channel: gate VIN, source VSYS, drain the cell" },
+  "R_GATE": { "reference_ref": "R1", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "mpn": "0402WGF1003TCE", "note": "RPULL: pulls Q1's gate low when the input is absent" },
+  "D1": { "reference_ref": "D1", "symbol": "Device:D_Schottky", "value": "B5819W", "footprint": "Diode_SMD:D_SOD-123", "lcsc": "C8598", "note": "VIN to VSYS while input power is present" }
+ },
+ "ports": {
+  "VIN": { "kind": "supply", "pins": ["Q1.1", "R_GATE.1", "D1.2"], "note": "The charger's input (USB VBUS)" },
+  "BAT": { "kind": "supply", "pins": ["Q1.3"], "note": "The cell's positive terminal, where the charger's output is" },
+  "VSYS": { "kind": "supply", "pins": ["Q1.2", "D1.1"], "note": "The system load: VIN less a Schottky drop, or the cell" },
+  "GND": { "kind": "ground", "pins": ["R_GATE.2"] }
+ },
+ "citations": [
+  { "source": "mchp_an1149", "locator": "Figure 2 p.2; Figures 5-7 pp.5-6", "note": "The circuit: P-MOSFET Q1 with its gate at VIN and RPULL to ground, Schottky D1 from VIN to the load." },
+  { "source": "mchp_an1149", "locator": "p.5", "quote": "If the system draws current from the battery, the charge current will never meet the termination value. This causes the non-termination of the charge management circuit." },
+  { "source": "mchp_an1149", "locator": "p.5", "quote": "When the input sources are absent, the RPULL pulls the gate to zero allowing current to flow out of the battery." },
+  { "source": "mchp_an1149", "locator": "p.5", "quote": "A 100 kΩ RPULL resistor is recommended in this design" },
+  { "source": "mchp_an1149", "locator": "p.6", "quote": "A diode, D1 in Figure 7 is required to prevent reverse current from flowing to the power source." }
+ ]
+}

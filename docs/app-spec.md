@@ -460,10 +460,32 @@ Separate from the app's milestones A–F, in this order:
    Done, but not yet wired into the app's UI: `crates/pinsolve`, `ccomp pins` (`-b rp2350-battery` solves
    `boards/rp2350-battery/loose.json`), and `pins_solve` in the WASM core. It puts the IMU on
    I2C0's GPIO4/5, as the hand-drawn board has it; pinned like that board, it reproduces its
-   `compose.json` net for net. Electrical domains and floorplan-side preferences are not in its
-   cost yet.
+   `compose.json` net for net. Electrical domains came with step 4; floorplan-side preferences
+   are not in its cost yet.
 4. **Interface rules and recipes**: I2C pull-ups, USB-C sink, LiPo power path, LED chain. With
-   those, the bolt earring composes from its blocks in the browser.
+   those, the bolt earring composes from its blocks in the browser. Done for the rules and
+   recipes; the bolt earring is not there yet (below).
+   - **Recipes** (`library/recipes/`, `ccomp recipe`): `usb_c_sink`, `lipo_load_share`, `led`,
+     `led_chain`, `nfet_level_shift`, `i2c_pullups`, each cited. They take parameters, choose
+     values from stocked parts (`library/stock.json`, JLC basic and preferred 0402 resistors) and
+     repeat parts (`led_chain` with n = 134 is 134 LEDs and their capacitors). An instance is
+     `{ "recipe": "led", "params": {...} }`, which composes like a package and offers
+     interfaces to the pin solver.
+   - **Electrical domains**: packages' pin functions carry logic levels (`levels`: VIH, VOH,
+     the most an input takes), and the solver rejects pins whose levels don't meet. A 5 V
+     charger status goes to a 5 V-tolerant RP2350 GPIO, not an ADC pin, with a warning that the
+     tolerance needs IOVDD up; a GPIO can't drive an LED chain on the cell (VIH 0.7 VDD) without
+     `nfet_level_shift`.
+   - **The I2C rule**: each bus gets one pull-up pair within SLVA689A's window for its speed,
+     rail and estimated capacitance. With none, it adds `i2c_pullups`; with several packages'
+     pairs in parallel below Rp(min), it omits all but one.
+   - `boards/rp2350-battery/loose.json` is now four packages, three recipes and two
+     connectors. Pinned, it composes pin for pin to the hand-drawn `compose.json`, except the
+     LED: compose.json's green C72043 is discontinued, and the recipe fits KENTO's red KT-0603R.
+   - **What the bolt earring still needs**: packages for its own chips (the LGS4056H charger,
+     NCP730 LDO, TPS22913 load switches, USBLC6 ESD, LSM6DS3TR-C, W25Q16 flash), recipes for
+     simple_earring's power latch and button, and the app wiring the solver and recipes into
+     its Circuit view.
 5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
    suppliers as plug-ins.
 

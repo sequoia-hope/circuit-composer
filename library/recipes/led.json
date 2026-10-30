@@ -1,0 +1,38 @@
+{
+ "name": "led",
+ "summary": "An indicator LED and its series resistor, driven from a logic output",
+ "note": "The resistor is the smallest stocked value that holds the LED to current_a at its lowest forward voltage (and so below its own maximum current). The LED's anode goes to the resistor, its cathode to ground, so the output drives it high. A green (InGaN) LED needs up to 3.1 V: from a 3.3 V output it may barely light, so red is the default.",
+ "params": {
+  "drive_v": { "default": 3.3, "unit": "V", "note": "The output's high level" },
+  "current_a": { "default": 0.002, "unit": "A", "note": "The most current the output should source" },
+  "led": {
+   "default": "red",
+   "choices": {
+    "red": { "symbol": "Device:LED", "value": "RED", "footprint": "LED_SMD:LED_0603_1608Metric", "lcsc": "C2286", "mpn": "KT-0603R", "vf_min_v": 1.8, "vf_max_v": 2.4, "if_max_a": 0.025 },
+    "green": { "symbol": "Device:LED", "value": "GREEN", "footprint": "LED_SMD:LED_0603_1608Metric", "lcsc": "C12624", "mpn": "KT-0603G", "vf_min_v": 2.6, "vf_max_v": 3.1, "if_max_a": 0.03 }
+   },
+   "note": "KENTO 0603 LEDs. Their drawings mark pin 1 as the anode; on KiCad's footprint pad 1 is the cathode, so the part is placed by its cathode mark, not by its pin numbers"
+  }
+ },
+ "requires": [
+  { "expr": "drive_v - led.vf_max_v >= 0.3", "message": "a {led} LED needs up to its maximum forward voltage plus headroom; from this drive it may not light (use red, or drive it from a higher rail)" }
+ ],
+ "parts": {
+  "R1": { "reference_ref": "R1", "choose": { "stock": "resistor_0402", "target": "(drive_v - led.vf_min_v) / current_a", "min": "max((drive_v - led.vf_min_v) / current_a, (drive_v - led.vf_min_v) / led.if_max_a)" } },
+  "D1": { "reference_ref": "D1", "from": "led", "near": "R1.2" }
+ },
+ "nets": {
+  "A": ["R1.2", "D1.2"]
+ },
+ "ports": {
+  "IN": { "kind": "signal", "pins": ["R1.1"] },
+  "GND": { "kind": "ground", "pins": ["D1.1"] }
+ },
+ "interfaces": {
+  "in": { "type": "logic", "dir": "in", "pins": { "IO": "IN" } }
+ },
+ "citations": [
+  { "source": "led_c2286", "locator": "p.3", "quote": "VF 1.8 … 2.4 V IF = 20mA", "note": "Min and max; no typical. DC forward current 25 mA (p.3). Polarity only in the drawing, p.2: pin 1 '+'." },
+  { "source": "led_kt0603g", "locator": "p.3", "quote": "VF 2.6 3.1 V IF = 5mA", "note": "Min and max. DC forward current 30 mA (p.3)." }
+ ]
+}

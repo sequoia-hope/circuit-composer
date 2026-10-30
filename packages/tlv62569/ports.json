@@ -47,6 +47,16 @@
       "citation": {
         "source": "tlv62569_ds",
         "locator": "§5 Pin Functions p.3; §6.5 p.4; §7.4.1 p.7"
+      },
+      "levels": {
+        "vih": "1.2",
+        "vil": "0.4",
+        "vin_max": "6",
+        "note": "VIH 1.2 V max and VIL 0.4 V min for 2.5 V <= VIN <= 5.5 V; EN's absolute maximum is 6 V, whatever VIN is",
+        "citation": {
+          "source": "tlv62569_ds",
+          "locator": "p.3 (absolute maximum ratings); p.4 (electrical characteristics)"
+        }
       }
     }
   },

@@ -15,7 +15,15 @@ chip. Together they are one database: links run between them, and `ccomp library
 
 `interfaces.json` is not claims: it defines the interface types (`i2c`, `spi`, `uart`, `pwm`,
 `logic`, `analog`, `pio`, `usb`, `swd`, `qspi`) that each package's `ports.json` declares
-instances of. `ccomp library check` checks those too.
+instances of, and the interface rules' numbers (`i2c`'s `rules`: SLVA689A's pull-up window).
+`ccomp library check` checks those too.
+
+`recipes/` holds board-level blocks a person names by function: `usb_c_sink`,
+`lipo_load_share`, `led`, `led_chain`, `nfet_level_shift`, `i2c_pullups`. Each is a small
+circuit with parameters, written like a package's circuit, with its citations. `stock.json`
+lists the parts a recipe may choose by value (JLC basic and preferred 0402 resistors, checked
+2026-10-30). `ccomp recipe NAME -p KEY=VALUE` expands one, and `ccomp library check` expands
+each with its defaults and checks its citations.
 
 | Topic | Claims | Contested | Sources |
 |---|---|---|---|
@@ -78,6 +86,8 @@ sources predate CAN FD.
 |---|---|
 | `sources.json` | Every document: publisher, document number, revision as printed, URL, SHA-256, size, date retrieved |
 | `claims/TOPIC.json` | One topic's claims |
+| `recipes/NAME.json` | One recipe |
+| `stock.json` | Parts recipes choose from, with LCSC numbers |
 | `cache/` | Downloaded documents, git-ignored (the vendors own them) |
 
 A citation names a source in `library/sources.json`, in its own package's sources, or in another

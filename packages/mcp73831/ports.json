@@ -44,6 +44,14 @@
    "citation": {
     "source": "mcp73831_ds",
     "locator": "§3.3 p.11; §5.2.1 Table 5-1 p.15; §1.0 p.4"
+   },
+   "levels": {
+    "voh": "supply - 0.4",
+    "note": "supply is VDD, the charger's input: its high follows the USB supply. VOH is typical, at the sourcing current Table 5-1 gives",
+    "citation": {
+     "source": "mcp73831_ds",
+     "locator": "§5.2.1 Table 5-1 p.15; §1.0 p.4"
+    }
    }
   },
   "PROG": {

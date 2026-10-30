@@ -17,6 +17,9 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub mod expr;
+pub mod recipe;
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct Composition {
     pub board: String,
@@ -35,13 +38,25 @@ pub struct Composition {
     /// composing refuses them.
     #[serde(default)]
     pub connect: Vec<Value>,
+    /// Net → its voltage, `3.3` or `[4.75, 5.5]`, where no part in the composition says: what the
+    /// pin solver's level rules judge connections by.
+    #[serde(default)]
+    pub rails: BTreeMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Instance {
-    /// `name@version`, as in a binding.
+    /// `name@version`, as in a binding; empty for a recipe.
+    #[serde(default)]
     pub package: String,
+    #[serde(default)]
     pub variant: String,
+    /// A recipe (`library/recipes/NAME.json`) instead of a package.
+    #[serde(default)]
+    pub recipe: Option<String>,
+    /// The recipe's parameters.
+    #[serde(default)]
+    pub params: BTreeMap<String, Value>,
     /// Roles not fitted on this board.
     #[serde(default)]
     pub omit: Vec<String>,
@@ -159,6 +174,9 @@ pub fn package_dir(packages: &Path, spec: &str) -> Result<PathBuf, String> {
 }
 
 pub fn load_circuit(packages: &Path, inst: &Instance) -> Result<Circuit, String> {
+    if let Some(r) = &inst.recipe {
+        return Err(format!("{r} is a recipe: expand it (compose::expand_recipes)"));
+    }
     let p = package_dir(packages, &inst.package)?.join(format!("schematic/circuit.{}.json", inst.variant));
     let text = std::fs::read_to_string(&p).map_err(|e| format!("{}: {e} (no circuit for variant {})", p.display(), inst.variant))?;
     serde_json::from_str(&text).map_err(|e| format!("{}: {e}", p.display()))
@@ -199,7 +217,12 @@ pub fn compose_with(c: &Composition, circuits: &BTreeMap<String, Circuit>) -> Co
         for r in inst.parts.keys().filter(|r| !circ.parts.contains_key(*r)) {
             out.errors.push(format!("{name}: changes part {r}, which the package does not have"));
         }
-        for (role, part) in circ.parts.iter().filter(|(r, _)| !inst.omit.contains(r)) {
+        let mut roles: Vec<(&String, &CircuitPart)> = circ.parts.iter().filter(|(r, _)| !inst.omit.contains(r)).collect();
+        // A recipe's repeated parts (D1..D134) are numbered in their own order.
+        if inst.recipe.is_some() {
+            roles.sort_by_key(|(r, _)| natural(r));
+        }
+        for (role, part) in roles {
             let des = match inst.designators.get(role) {
                 Some(d) => d.clone(),
                 None => {
@@ -235,6 +258,9 @@ pub fn compose_with(c: &Composition, circuits: &BTreeMap<String, Circuit>) -> Co
             }
             out.parts.insert(des.clone(), cp);
             refs.insert((name.clone(), role.clone()), des);
+        }
+        if inst.recipe.is_some() {
+            continue;
         }
         let chip = refs.get(&(name.clone(), "U1".to_string())).cloned().unwrap_or_default();
         let parts = refs.iter().filter(|((i, r), _)| i == name && r != "U1").map(|((_, r), d)| (r.clone(), d.clone())).collect();
@@ -388,13 +414,42 @@ fn natural(s: &str) -> (String, u64, String) {
     (pre.clone(), r[pre.len()..].parse().unwrap_or(0), p.to_string())
 }
 
-/// Load each instance's package from `packages` and compose.
-pub fn compose(c: &Composition, packages: &Path) -> Result<Composed, String> {
-    let mut circuits = BTreeMap::new();
+/// The library beside a packages directory (`packages/../library`): interface types, recipes,
+/// stock.
+pub fn library_dir(packages: &Path) -> PathBuf {
+    packages.parent().unwrap_or(Path::new(".")).join("library")
+}
+
+/// The recipes and stock in a library directory.
+pub fn load_library(library: &Path) -> Result<(BTreeMap<String, recipe::Recipe>, recipe::Stock), String> {
+    Ok((recipe::load_recipes(&library.join("recipes"))?, recipe::load_stock(&library.join("stock.json"))?))
+}
+
+/// Each recipe instance, expanded.
+pub fn expand_recipes(c: &Composition, recipes: &BTreeMap<String, recipe::Recipe>, stock: &recipe::Stock) -> Result<BTreeMap<String, recipe::Expanded>, String> {
+    let mut out = BTreeMap::new();
     for (name, inst) in &c.instances {
-        circuits.insert(name.clone(), load_circuit(packages, inst)?);
+        if let Some(r) = &inst.recipe {
+            let rec = recipes.get(r).ok_or_else(|| format!("{name}: no recipe {r} ({})", recipes.keys().cloned().collect::<Vec<_>>().join(", ")))?;
+            out.insert(name.clone(), recipe::expand(rec, &inst.params, stock).map_err(|e| format!("{name}: {e}"))?);
+        }
     }
-    Ok(compose_with(c, &circuits))
+    Ok(out)
+}
+
+/// Every instance's circuit: packages from `packages`, recipes from the library beside it.
+pub fn circuits(c: &Composition, packages: &Path) -> Result<BTreeMap<String, Circuit>, String> {
+    let (recipes, stock) = load_library(&library_dir(packages))?;
+    let mut out: BTreeMap<String, Circuit> = expand_recipes(c, &recipes, &stock)?.into_iter().map(|(k, x)| (k, x.circuit)).collect();
+    for (name, inst) in c.instances.iter().filter(|(_, i)| i.recipe.is_none()) {
+        out.insert(name.clone(), load_circuit(packages, inst)?);
+    }
+    Ok(out)
+}
+
+/// Load each instance's package (or recipe) and compose.
+pub fn compose(c: &Composition, packages: &Path) -> Result<Composed, String> {
+    Ok(compose_with(c, &circuits(c, packages)?))
 }
 
 #[cfg(test)]
