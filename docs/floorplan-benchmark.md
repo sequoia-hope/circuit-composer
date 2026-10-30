@@ -31,7 +31,13 @@ authors; overlaps there are courtyard overlaps under our rules).
 - **The earrings are rarely legal below 1 M moves** (bolt 1/5, flame 0/5 at 200 k). It's not the
   edge connector: their backs carry about 180 small reserved keep-outs (rail vias, bypass-cap
   slots), and the anneal leaves overlaps of 0.04–0.6 mm² against them that `legalise` and
-  `repair` don't clear. `build.sh` gets a legal one from eight seeds at 400 k. A better
-  legalizer is the first thing these boards need, and the analytical placer depends on one too.
+  `repair` don't clear. `build.sh` gets a legal one from eight seeds at 400 k.
+
+  I tried a nearest-first repair (rings about the part, every quarter turn), and it found no
+  clear spot anywhere for those parts (flame earring, seed 1: six parts). Those backs are full
+  once their reservations count: the reservations were planned around one placement. That's
+  not something a repair can fix. What would: a legalizer that pushes neighbours as well (a
+  shove, or a small exact solve over the crowded patch), or reserving vias with the placement
+  instead of before it. The ring search was reverted.
 - **small-1** was missing from this run because of a stale download (fixed in the harness).
 

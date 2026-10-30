@@ -130,7 +130,11 @@ def write_doc(sizes, results, a):
                     cells.append(f"0/{len(rs)}")
             lines.append(f"| {n} | {sz['parts']} ({sz['movable']}) | {sz['nets']} | {own_s} | " + " | ".join(cells) + " |")
         lines.append("")
-    open(os.path.join(ROOT, "docs/floorplan-benchmark.md"), "w").write("\n".join(lines) + "\n")
+    # Findings are written by hand under "## Findings": kept across runs.
+    doc = os.path.join(ROOT, "docs/floorplan-benchmark.md")
+    old = open(doc).read() if os.path.exists(doc) else ""
+    kept = old[old.index("## Findings"):] if "## Findings" in old else ""
+    open(doc, "w").write("\n".join(lines) + "\n" + kept)
     print("wrote docs/floorplan-benchmark.md")
 
 
