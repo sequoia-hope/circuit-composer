@@ -254,6 +254,13 @@ impl Session {
         floorplan::evaluate(&self.pr, &self.placement())
     }
 
+    /// How a placement from scratch starts: `sa` (a random spread) or `analytic` (gradient
+    /// descent). Refining always starts from the current placement.
+    pub fn set_placer(&mut self, placer: &str) -> Result<(), String> {
+        self.pr.options.placer = serde_json::from_value(serde_json::Value::String(placer.into())).map_err(|_| format!("no placer {placer}: sa or analytic"))?;
+        Ok(())
+    }
+
     /// Anneal: from a random spread, or (`warm`) refining the current placement. `on` sees a
     /// snapshot every `every` moves and stops the anneal by returning false. The result's poses
     /// become the session's.
@@ -428,6 +435,11 @@ mod wasm {
             self.s.set_locked(i, locked);
         }
 
+        /// `sa` or `analytic`: how `anneal` starts a placement from scratch.
+        pub fn set_placer(&mut self, placer: &str) -> Result<(), JsValue> {
+            self.s.set_placer(placer).map_err(err)
+        }
+
         /// Runs to the end (or until `on` returns false), calling `on(posesFloat64Array,
         /// metricsJson, done, total)` every `every` moves. Returns the placement's JSON.
         pub fn anneal(&mut self, seed: u32, moves: u32, warm: bool, every: u32, on: &js_sys::Function) -> String {
@@ -563,6 +575,16 @@ mod tests {
         // Refining never hands back a worse board than it was given.
         let before = battery().evaluate().unwrap().wire_mm;
         assert!(p.metrics.wire_mm <= before + 1e-6, "{} > {before}", p.metrics.wire_mm);
+    }
+
+    #[test]
+    fn the_analytic_start_places_the_battery_board_legally() {
+        let mut s = battery();
+        assert!(s.set_placer("anything").is_err());
+        s.set_placer("analytic").unwrap();
+        let p = s.anneal(1, 20_000, false, 0, &mut |_| true);
+        assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
+        assert_eq!(s.evaluate().unwrap().overlaps, 0);
     }
 
     #[test]

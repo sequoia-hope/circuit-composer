@@ -41,6 +41,7 @@
   let anneal = $state.raw(null); // {done, total, warm} while running
   let seed = $state(1);
   let moves = $state(200000);
+  let placer = $state('analytic'); // how Place starts: gradient descent, or a random spread
   let lastRun = $state('');
   let history = [];
 
@@ -77,7 +78,7 @@
         margin: problem.options?.margin ?? 0.5,
         parts: [], rats: new Float64Array(0),
       };
-      // The floorplanner recomputes every part's cost on each move: big boards get fewer moves.
+      // Big boards start with fewer moves: the analytic start does most of the work.
       moves = problem.parts.length > 150 ? 50000 : 200000;
       shapeDoc = data.shape || shapeFromProblem(problem);
       shapeApplied = false;
@@ -225,7 +226,7 @@
         metrics = JSON.parse(m.metrics);
       } else {
         metrics = JSON.parse(m.placement).metrics;
-        lastRun = `${warm ? 'Refined' : 'Placed'} with seed ${seed}, ${moves.toLocaleString()} moves, in ${m.seconds.toFixed(1)} s.`;
+        lastRun = `${warm ? 'Refined' : placer === 'analytic' ? 'Placed analytically' : 'Placed'} with seed ${seed}, ${moves.toLocaleString()} moves, in ${m.seconds.toFixed(1)} s.`;
         worker.terminate();
         worker = null;
         anneal = null;
@@ -235,7 +236,7 @@
       error = `Anneal failed: ${e.message}`;
       stop();
     };
-    worker.postMessage({ problem: doc.board.problem(), poses: doc.board.poses(), seed, moves, warm, every: Math.max(1000, Math.round(moves / 120)) });
+    worker.postMessage({ problem: doc.board.problem(), poses: doc.board.poses(), seed, moves, warm, placer, every: Math.max(1000, Math.round(moves / 120)) });
     void started;
   }
 
@@ -326,6 +327,12 @@
             <span class="stat">{anneal.warm ? 'Refining' : 'Placing'}… {Math.round((100 * anneal.done) / anneal.total)} %</span>
             <button onclick={stop}>Stop</button>
           {:else}
+            <label class="small" title="How Place starts: gradient descent then a cool anneal, or an anneal from a random spread">start
+              <select bind:value={placer}>
+                <option value="analytic">analytic</option>
+                <option value="sa">random</option>
+              </select>
+            </label>
             <label class="small">seed <input type="number" min="1" bind:value={seed} /></label>
             <label class="small">moves
               <select bind:value={moves}>

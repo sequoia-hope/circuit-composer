@@ -292,14 +292,16 @@ fn gradient(st: &State, gamma: f64, w_ov: f64, board: Option<[f64; 4]>) -> Vec<P
         }
         let (ex, ey) = ((a[0] + a[2] - b[0] - b[2]) / 2.0, (a[1] + a[3] - b[1] - b[3]) / 2.0);
         let l = (ex * ex + ey * ey + 0.01).sqrt();
+        // A hard rule, like overlap: it grows as overlap's weight does, with the shortfall.
+        let w = o.w_sep * (1.0 + w_ov) * (s.min_mm - gap(&a, &b));
         for (i, p) in pr.parts.iter().enumerate() {
             let k = match p.block.as_deref() {
                 Some(x) if x == s.a => -1.0,
                 Some(x) if x == s.b => 1.0,
                 _ => continue,
             };
-            g[i].0 += k * o.w_sep * ex / l;
-            g[i].1 += k * o.w_sep * ey / l;
+            g[i].0 += k * w * ex / l;
+            g[i].1 += k * w * ey / l;
         }
     }
 
