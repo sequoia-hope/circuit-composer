@@ -81,6 +81,8 @@ a { color: var(--accent); }
 .feature img { width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--line); background: #101318; }
 .feature .go { display: inline-block; margin-top: .6rem; padding: .55rem 1rem; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; }
 @media (max-width: 640px) { .feature { grid-template-columns: 1fr; } }
+.quick { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .8rem; }
+.quick a { padding: .3rem .7rem; border: 1px solid var(--accent); border-radius: 999px; font-size: .85rem; font-weight: 600; text-decoration: none; }
 footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
 @media (max-width: 480px) { .entry { grid-template-columns: 1fr; gap: .1rem; } }
 </style>
@@ -95,6 +97,11 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <p class="lede">Board design as composition: chips ingested once into verified packages, boards
   built by combining them. Sits between <a href="../easy_pcb">easy_pcb</a> (schematic) and
   <a href="../ultraroute">ultraroute</a> (routing).</p>
+  <nav class="quick">
+    <a href="app/dist/index.html">▦ Circuit Composer app (prototype)</a>
+    <a href="boards/bolt-earring/shaper/index.html">⚡ Bolt outline shaper</a>
+    <a href="boards/bolt-earring/viewer/index.html">Bolt earring viewer</a>
+  </nav>
 </header>
 
 <main>
@@ -109,6 +116,8 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
       back under a 10 × 30 mm cell. <strong>Fully routed:</strong> 0 DRC errors, 0 unconnected.
       Every copper layer, the parts and a 3D view.</p>
       <a class="go" href="boards/bolt-earring/viewer/index.html">Open the bolt earring viewer →</a>
+      <p style="margin-top:.6rem;font-size:.85rem"><a href="boards/bolt-earring/shaper/index.html">Bolt outline shaper</a>: the outline's
+      parameters from <code>geometry.py</code> on sliders, with LED ring overlay and Python/SVG export.</p>
       <p style="margin-top:.6rem;font-size:.85rem">Earlier: <a href="boards/flame-earring/viewer/index.html">the flame earring</a> (superseded).</p>
     </div>
   </section>

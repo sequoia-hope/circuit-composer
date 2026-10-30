@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bolt Outline Shaper</title>
+<script src="https://cdn.jsdelivr.net/npm/clipper-lib@6.4.2/clipper.js"></script>
+<style>
+:root {
+  --bg: #f6f5f1; --panel: #ffffff; --ink: #1d1d1f; --muted: #6b6b70; --line: #dddad2;
+  --grid: #e9e6de; --grid-major: #d6d2c6; --board: #2f7d4f; --board-fill: rgba(47,125,79,.14);
+  --ring: #c48a12; --ghost: #b03a5b; --tab: #3a6fb0; --accent: #2f7d4f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141517; --panel: #1d1f22; --ink: #e9e8e4; --muted: #9a9aa0; --line: #2e3034;
+    --grid: #202226; --grid-major: #2c2f34; --board: #5fcf8d; --board-fill: rgba(95,207,141,.12);
+    --ring: #e5b44a; --ghost: #ee7a9b; --tab: #7aa8e8; --accent: #5fcf8d;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141517; --panel: #1d1f22; --ink: #e9e8e4; --muted: #9a9aa0; --line: #2e3034;
+  --grid: #202226; --grid-major: #2c2f34; --board: #5fcf8d; --board-fill: rgba(95,207,141,.12);
+  --ring: #e5b44a; --ghost: #ee7a9b; --tab: #7aa8e8; --accent: #5fcf8d;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 13px/1.4 system-ui, sans-serif; display: flex; }
+#panel { width: 330px; flex: none; overflow-y: auto; background: var(--panel); border-right: 1px solid var(--line); padding: 14px 16px 24px; }
+h1 { font-size: 15px; margin: 0 0 2px; }
+.sub { color: var(--muted); margin: 0 0 12px; }
+h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 6px; }
+.row { display: grid; grid-template-columns: 1fr 64px; gap: 2px 8px; align-items: center; margin-bottom: 6px; }
+.row label { font-family: ui-monospace, monospace; font-size: 11.5px; }
+.row label small { font-family: system-ui, sans-serif; color: var(--muted); font-size: 11px; display: block; }
+.row input[type=number] { width: 64px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; font: 12px ui-monospace, monospace; }
+.row input[type=range] { grid-column: 1 / 3; width: 100%; accent-color: var(--accent); margin: 0; }
+.checks label { display: block; margin: 3px 0; }
+.buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+button { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; padding: 5px 9px; font: inherit; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+#stats { font: 12px ui-monospace, monospace; white-space: pre; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 8px; }
+#warn { color: var(--ghost); margin-top: 6px; }
+#stage { flex: 1; position: relative; min-width: 0; }
+svg { width: 100%; height: 100%; display: block; }
+#cursor { position: absolute; right: 12px; bottom: 10px; font: 12px ui-monospace, monospace; color: var(--muted); }
+#toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); padding: 6px 12px; border-radius: 6px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+textarea { width: 100%; height: 150px; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 5px; font: 11.5px ui-monospace, monospace; margin-top: 6px; }
+@media (max-width: 760px) {
+  body { flex-direction: column; }
+  #panel { width: 100%; border-right: 0; border-bottom: 1px solid var(--line); max-height: 50vh; padding: 12px 16px; }
+  #stage { height: 50vh; }
+}
+</style>
+</head>
+<body>
+<div id="panel">
+  <h1>Bolt outline shaper</h1>
+  <p class="sub">The bolt earring's outline, as <code>scripts/geometry.py</code> builds it. mm, KiCad axes (y down).</p>
+  <div id="controls"></div>
+  <h2>Overlays</h2>
+  <div class="checks">
+    <label><input type="checkbox" id="showRings" checked> LED ring lines</label>
+    <label><input type="checkbox" id="showGhost"> Half-turn ghost (body symmetry check)</label>
+    <label><input type="checkbox" id="showAxis" checked> Axis and centre</label>
+    <label><input type="checkbox" id="showRaw"> Unrounded body polygon</label>
+  </div>
+  <h2>Shape</h2>
+  <div id="stats"></div>
+  <div id="warn"></div>
+  <div class="buttons">
+    <button id="copyPy">Copy Python constants</button>
+    <button id="dlSvg">Download SVG</button>
+    <button id="dlJson">Download outline JSON</button>
+    <button id="reset">Reset to board</button>
+  </div>
+  <textarea id="pyOut" readonly></textarea>
+</div>
+<div id="stage">
+  <svg id="svg"></svg>
+  <div id="cursor"></div>
+  <div id="toast"></div>
+</div>
+<script>
+// Parameters: names and defaults are geometry.py's, so the Python block pastes straight back in.
+const PARAMS = [
+  ["Body", [
+    ["BODY_LEN", 68.0, 20, 120, 0.5, "end point to end point, along the axis"],
+    ["AXIS_DEG", 14.0, -45, 45, 0.5, "lean of the axis from vertical, top to the right"],
+    ["HALF_W", 10.2, 2, 25, 0.1, "band half-width in the middle"],
+    ["TAPER", 21.0, 1, 60, 0.5, "length over which each end narrows to its point"],
+    ["TAPER_EXP", 0.85, 0.2, 2.5, 0.05, "taper profile exponent: <1 fuller, >1 sharper point"],
+    ["CENTRE_Y", 40.0, 10, 80, 0.5, "y of the body's centre of symmetry (x = 0)"],
+  ]],
+  ["Zigzag", [
+    ["STEP", 3.8, -15, 15, 0.1, "centreline's sideways step either side of the centre"],
+    ["STEP_SHARP", 1.1, 0.05, 20, 0.05, "length of the step's rise: smaller is a crisper notch"],
+  ]],
+  ["Tab and corners", [
+    ["TAB", 5.3, 2, 12, 0.05, "half-width of the USB-C tab"],
+    ["TAB_LEN", 7.0, 0, 20, 0.25, "tab's straight part, from the top edge down"],
+    ["FLARE", 9.0, 0, 30, 0.25, "how much of the body's top end the tab flare takes in"],
+    ["CORNER_R", 0.6, 0, 5, 0.05, "corner rounding radius"],
+  ]],
+  ["LED rings (overlay)", [
+    ["EDGE_MARGIN", 1.25, 0, 5, 0.05, "ring 0's line to the board edge"],
+    ["RING_SPACING", 2.55, 0.5, 8, 0.05, "between ring lines"],
+    ["LED_PITCH", 2.35, 0.5, 8, 0.05, "along a ring (for the LED count estimate)"],
+  ]],
+];
+const DEFAULTS = {};
+PARAMS.forEach(([, ps]) => ps.forEach(([k, v]) => DEFAULTS[k] = v));
+let P = { ...DEFAULTS };
+try { Object.assign(P, JSON.parse(decodeURIComponent(location.hash.slice(1)) || "{}")); } catch (e) {}
+
+// ---- controls
+const controls = document.getElementById("controls");
+const inputs = {};
+PARAMS.forEach(([group, ps]) => {
+  const h = document.createElement("h2"); h.textContent = group; controls.appendChild(h);
+  ps.forEach(([k, , lo, hi, step, help]) => {
+    const row = document.createElement("div"); row.className = "row";
+    row.innerHTML = `<label>${k}<small>${help}</small></label><input type="number" step="${step}"><input type="range" min="${lo}" max="${hi}" step="${step}">`;
+    const [num, rng] = row.querySelectorAll("input");
+    const set = v => { P[k] = +v; num.value = +(+v).toFixed(4); rng.value = v; schedule(); };
+    num.addEventListener("input", () => num.value !== "" && set(num.value));
+    rng.addEventListener("input", () => set(rng.value));
+    inputs[k] = { num, rng };
+    controls.appendChild(row);
+  });
+});
+function syncInputs() { for (const k in inputs) { inputs[k].num.value = +P[k].toFixed(4); inputs[k].rng.value = P[k]; } }
+syncInputs();
+["showRings", "showGhost", "showAxis", "showRaw"].forEach(id => document.getElementById(id).addEventListener("change", schedule));
+
+// ---- geometry (Clipper works in integers: 1 unit = 1 um)
+const S = 1000;
+const toC = pts => pts.map(([x, y]) => ({ X: Math.round(x * S), Y: Math.round(y * S) }));
+const fromC = path => path.map(p => [p.X / S, p.Y / S]);
+const area = path => Math.abs(ClipperLib.Clipper.Area(path));
+function offset(paths, d) {
+  if (!paths.length) return [];
+  const co = new ClipperLib.ClipperOffset(2, 0.01 * S);
+  co.AddPaths(paths, ClipperLib.JoinType.jtRound, ClipperLib.EndType.etClosedPolygon);
+  const out = new ClipperLib.Paths();
+  co.Execute(out, d * S);
+  return out;
+}
+function boolOp(type, a, b) {
+  const c = new ClipperLib.Clipper();
+  c.AddPaths(a, ClipperLib.PolyType.ptSubject, true);
+  c.AddPaths(b, ClipperLib.PolyType.ptClip, true);
+  const out = new ClipperLib.Paths();
+  c.Execute(type, out, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
+  return out;
+}
+const union = (a, b) => boolOp(ClipperLib.ClipType.ctUnion, a, b);
+const intersect = (a, b) => boolOp(ClipperLib.ClipType.ctIntersection, a, b);
+const outers = paths => paths.filter(p => ClipperLib.Clipper.Orientation(p)).sort((a, b) => area(b) - area(a));
+function hull(pts) {
+  pts = pts.slice().sort((a, b) => a.X - b.X || a.Y - b.Y);
+  const cross = (o, a, b) => (a.X - o.X) * (b.Y - o.Y) - (a.Y - o.Y) * (b.X - o.X);
+  const lo = [], hi = [];
+  for (const p of pts) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], p) <= 0) lo.pop(); lo.push(p); }
+  for (const p of pts.reverse()) { while (hi.length >= 2 && cross(hi[hi.length - 2], hi[hi.length - 1], p) <= 0) hi.pop(); hi.push(p); }
+  return lo.slice(0, -1).concat(hi.slice(0, -1));
+}
+function circle(cx, cy, r, n = 96) {
+  const pts = [];
+  for (let i = 0; i < n; i++) pts.push([cx + r * Math.cos(2 * Math.PI * i / n), cy + r * Math.sin(2 * Math.PI * i / n)]);
+  return toC(pts);
+}
+
+function bodyRaw() {
+  const a = P.AXIS_DEG * Math.PI / 180;
+  const u = [Math.sin(a), -Math.cos(a)], n = [Math.cos(a), Math.sin(a)];
+  const cx = 0, cy = P.CENTRE_Y, steps = 400;
+  const left = [], right = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = -P.BODY_LEN / 2 + P.BODY_LEN * i / steps;
+    const off = P.STEP * Math.tanh(t / P.STEP_SHARP);
+    const end = P.BODY_LEN / 2 - Math.abs(t);
+    const w = P.HALF_W * Math.pow(Math.min(1, end / P.TAPER), P.TAPER_EXP);
+    const px = cx + t * u[0] + off * n[0], py = cy + t * u[1] + off * n[1];
+    left.push([px - w * n[0], py - w * n[1]]);
+    right.push([px + w * n[0], py + w * n[1]]);
+  }
+  return right.concat(left.reverse());
+}
+function build() {
+  const raw = bodyRaw();
+  // buffer(0): resolve any self-overlap of the band (a sharp, large step folds it)
+  let body = ClipperLib.Clipper.SimplifyPolygon(toC(raw), ClipperLib.PolyFillType.pftNonZero);
+  if (P.CORNER_R > 0) body = offset(offset(body, -P.CORNER_R), P.CORNER_R);
+  body = outers(body);
+  if (!body.length) return { raw, parts: [], body: [] };
+  let top = null;
+  for (const p of body[0]) if (!top || p.Y < top.Y) top = p;
+  const tx = top.X / S, ty = top.Y / S;
+  const tab = toC([[tx - P.TAB, 0], [tx + P.TAB, 0], [tx + P.TAB, P.TAB_LEN], [tx - P.TAB, P.TAB_LEN]]);
+  const cap = P.FLARE > 0 ? intersect(body, [circle(tx, ty, P.FLARE)]) : [];
+  const flare = [hull(tab.concat(...cap))];
+  let g = union(union(body, [tab]), flare);
+  const r = P.CORNER_R;
+  if (r > 0) g = offset(offset(offset(g, r), -2 * r), r);
+  const parts = outers(g);
+  return { raw, parts, body, tabX: tx };
+}
+
+// ---- drawing
+const svg = document.getElementById("svg");
+const NS = "http://www.w3.org/2000/svg";
+const ptsAttr = pts => pts.map(([x, y]) => `${x.toFixed(3)},${y.toFixed(3)}`).join(" ");
+const el = (tag, attrs, parent = svg) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+const perim = pts => pts.reduce((s, p, i) => s + Math.hypot(p[0] - pts[(i + 1) % pts.length][0], p[1] - pts[(i + 1) % pts.length][1]), 0);
+let last = null, pending = false;
+function schedule() { if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; render(); }); } }
+
+function render() {
+  history.replaceState(null, "", "#" + encodeURIComponent(JSON.stringify(changed())));
+  const g = build();
+  last = g;
+  const parts = g.parts.map(fromC);
+  const all = parts.length ? parts.flat() : g.raw;
+  let x0 = Math.min(...all.map(p => p[0])), x1 = Math.max(...all.map(p => p[0]));
+  let y0 = Math.min(0, ...all.map(p => p[1])), y1 = Math.max(...all.map(p => p[1]));
+  const pad = 6;
+  svg.setAttribute("viewBox", `${x0 - pad} ${y0 - pad} ${x1 - x0 + 2 * pad} ${y1 - y0 + 2 * pad}`);
+  svg.innerHTML = "";
+  const css = getComputedStyle(document.documentElement);
+  const c = k => css.getPropertyValue(k).trim();
+  // grid: 1 mm minor, 10 mm major
+  const gx0 = Math.floor(x0 - pad - 10), gx1 = Math.ceil(x1 + pad + 10), gy0 = Math.floor(y0 - pad - 10), gy1 = Math.ceil(y1 + pad + 10);
+  for (let x = gx0; x <= gx1; x++) el("line", { x1: x, y1: gy0, x2: x, y2: gy1, stroke: x % 10 ? c("--grid") : c("--grid-major"), "stroke-width": x % 10 ? 0.05 : 0.1 });
+  for (let y = gy0; y <= gy1; y++) el("line", { x1: gx0, y1: y, x2: gx1, y2: y, stroke: y % 10 ? c("--grid") : c("--grid-major"), "stroke-width": y % 10 ? 0.05 : 0.1 });
+  el("line", { x1: gx0, y1: 0, x2: gx1, y2: 0, stroke: c("--tab"), "stroke-width": 0.12, "stroke-dasharray": "0.6 0.4" });
+
+  if (document.getElementById("showRaw").checked)
+    el("polygon", { points: ptsAttr(g.raw), fill: "none", stroke: c("--muted"), "stroke-width": 0.1, "stroke-dasharray": "0.5 0.3" });
+  for (const p of parts) el("polygon", { points: ptsAttr(p), fill: c("--board-fill"), stroke: c("--board"), "stroke-width": 0.22, "stroke-linejoin": "round" });
+
+  let rings = 0, leds = 0;
+  if (document.getElementById("showRings").checked && g.parts.length) {
+    for (let k = 0; k < 40; k++) {
+      const rs = outers(offset([g.parts[0]], -(P.EDGE_MARGIN + k * P.RING_SPACING))).map(fromC);
+      if (!rs.length) break;
+      rings++;
+      for (const r of rs) {
+        leds += Math.floor(perim(r) / P.LED_PITCH);
+        el("polygon", { points: ptsAttr(r), fill: "none", stroke: c("--ring"), "stroke-width": 0.12, opacity: 0.85 });
+      }
+    }
+  }
+  if (document.getElementById("showGhost").checked && g.body.length) {
+    const cy = P.CENTRE_Y;
+    const b = fromC(g.body[0]).map(([x, y]) => [-x, 2 * cy - y]);
+    el("polygon", { points: ptsAttr(b), fill: "none", stroke: c("--ghost"), "stroke-width": 0.14, "stroke-dasharray": "0.8 0.5" });
+  }
+  if (document.getElementById("showAxis").checked) {
+    const a = P.AXIS_DEG * Math.PI / 180, L = P.BODY_LEN / 2;
+    const u = [Math.sin(a), -Math.cos(a)];
+    el("line", { x1: -L * u[0], y1: P.CENTRE_Y - L * u[1], x2: L * u[0], y2: P.CENTRE_Y + L * u[1], stroke: c("--muted"), "stroke-width": 0.08, "stroke-dasharray": "1 0.6" });
+    el("circle", { cx: 0, cy: P.CENTRE_Y, r: 0.4, fill: c("--ghost") });
+  }
+
+  // stats
+  const ox = parts.length ? Math.min(...parts.flat().map(p => p[0])) : 0;
+  const w = x1 - x0, h = y1 - Math.min(...all.map(p => p[1]));
+  const A = g.parts.reduce((s, p) => s + area(p), 0) / (S * S);
+  document.getElementById("stats").textContent =
+    `extent    ${w.toFixed(2)} x ${h.toFixed(2)} mm\n` +
+    `x range   ${x0.toFixed(2)} .. ${x1.toFixed(2)}\n` +
+    `y range   ${Math.min(...all.map(p => p[1])).toFixed(2)} .. ${y1.toFixed(2)}\n` +
+    `area      ${A.toFixed(1)} mm²\n` +
+    `perimeter ${parts.length ? perim(parts[0]).toFixed(1) : "-"} mm\n` +
+    `tab x     ${g.tabX !== undefined ? g.tabX.toFixed(2) : "-"}\n` +
+    (document.getElementById("showRings").checked ? `rings     ${rings}  (~${leds} LEDs, before seams)` : "");
+  const warn = [];
+  if (parts.length > 1) warn.push(`Outline is in ${parts.length} pieces: the tab no longer reaches the body (lengthen TAB_LEN or FLARE, or move CENTRE_Y up).`);
+  if (!parts.length) warn.push("Nothing left after rounding.");
+  if (P.STEP_SHARP < 0.3 && Math.abs(P.STEP) > P.HALF_W * 0.6) warn.push("Step is sharp and large: the band may fold.");
+  document.getElementById("warn").textContent = warn.join(" ");
+  document.getElementById("pyOut").value = pyBlock();
+}
+
+function changed() { const o = {}; for (const k in P) if (P[k] !== DEFAULTS[k]) o[k] = P[k]; return o; }
+function pyBlock() {
+  const f = v => (+v.toFixed(4)).toString().replace(/^(-?\d+)$/, "$1.0");
+  return [
+    `BODY_CENTRE = (0.0, ${f(P.CENTRE_Y)})`,
+    `BODY_LEN = ${f(P.BODY_LEN)}`, `AXIS_DEG = ${f(P.AXIS_DEG)}`, `HALF_W = ${f(P.HALF_W)}`,
+    `TAPER = ${f(P.TAPER)}`, `STEP = ${f(P.STEP)}`, `STEP_SHARP = ${f(P.STEP_SHARP)}`,
+    `CORNER_R = ${f(P.CORNER_R)}`, `FLARE = ${f(P.FLARE)}`, `TAB_LEN = ${f(P.TAB_LEN)}`, `TAB = ${f(P.TAB)}`,
+    `EDGE_MARGIN = ${f(P.EDGE_MARGIN)}`, `RING_SPACING = ${f(P.RING_SPACING)}`, `LED_PITCH = ${f(P.LED_PITCH)}`,
+    P.TAPER_EXP !== DEFAULTS.TAPER_EXP ? `# taper exponent in body_polygon(): ** ${f(P.TAPER_EXP)}  (was 0.85)` : null,
+  ].filter(Boolean).join("\n");
+}
+
+// ---- export
+function toast(msg) { const t = document.getElementById("toast"); t.textContent = msg; t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 1400); }
+function download(name, text, type) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+document.getElementById("copyPy").onclick = () => {
+  const t = pyBlock();
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast("Copied"), () => {
+    const ta = document.getElementById("pyOut"); ta.select(); document.execCommand("copy"); toast("Copied");
+  });
+};
+document.getElementById("dlSvg").onclick = () => {
+  const parts = last.parts.map(fromC), all = parts.flat();
+  const x0 = Math.min(...all.map(p => p[0])), x1 = Math.max(...all.map(p => p[0]));
+  const y0 = Math.min(...all.map(p => p[1])), y1 = Math.max(...all.map(p => p[1]));
+  const body = parts.map(p => `<polygon points="${ptsAttr(p)}" fill="none" stroke="black" stroke-width="0.1"/>`).join("\n");
+  download("bolt-outline.svg", `<svg xmlns="http://www.w3.org/2000/svg" width="${(x1 - x0).toFixed(3)}mm" height="${(y1 - y0).toFixed(3)}mm" viewBox="${x0} ${y0} ${x1 - x0} ${y1 - y0}">\n${body}\n</svg>\n`, "image/svg+xml");
+};
+document.getElementById("dlJson").onclick = () => {
+  download("bolt-outline.json", JSON.stringify({ params: P, outline: last.parts.map(fromC) }, null, 1), "application/json");
+};
+document.getElementById("reset").onclick = () => { P = { ...DEFAULTS }; syncInputs(); schedule(); };
+
+// cursor readout in mm
+svg.addEventListener("mousemove", e => {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const m = pt.matrixTransform(svg.getScreenCTM().inverse());
+  document.getElementById("cursor").textContent = `x ${m.x.toFixed(2)}  y ${m.y.toFixed(2)} mm`;
+});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", schedule);
+render();
+</script>
+</body>
+</html>

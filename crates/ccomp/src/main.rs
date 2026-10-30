@@ -139,6 +139,10 @@ enum Cmd {
         /// Score this board's own placement instead of solving (the parts as placed there).
         #[arg(long)]
         evaluate: Option<PathBuf>,
+        /// Print the problem the floorplanner would solve (parts, nets, groups, outline) and stop:
+        /// what the app's in-browser annealer runs on.
+        #[arg(long, conflicts_with = "evaluate")]
+        problem: bool,
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
@@ -539,7 +543,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             Ok((value, r.ok))
         }
-        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, evaluate, output } => {
+        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, evaluate, problem, output } => {
             let board = ctx.or_board(board, "a board", |b| b.pcb.clone())?;
             let composed = ctx.or_board(composed, "--composed", |b| b.composed.clone())?;
             let spec = match spec {
@@ -563,6 +567,13 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             if let Some(m) = moves {
                 pr.options.moves = m;
+            }
+            if problem {
+                let value = serde_json::to_value(&pr).unwrap();
+                if let Some(o) = output {
+                    write_json(&o, &value)?;
+                }
+                return Ok((value, true));
             }
             if let Some(placed) = evaluate {
                 let b = pcb::Board::load(&placed)?;

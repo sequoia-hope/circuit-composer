@@ -1,0 +1,4 @@
+# Built by app/build.sh (and on GitHub Pages by .github/workflows/pages.yml).
+dist/
+web/node_modules/
+web/src/core/

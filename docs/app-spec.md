@@ -338,7 +338,11 @@ every `ccomp` command accepts a project path (milestone 3 in easy_pcb's spec).
 - **B. Board workspace.** Drag, lock and anneal live in a worker. Save `placement.json` and
   apply it to the KiCad board through the server.
 - **C. Shape workspace.** Primitives, operations and the bolt generator built in. A drawn
-  outline feeds the floorplanner.
+  outline feeds the floorplanner. The prototype's Shape tab embeds the bolt earring's
+  standalone shaper page (`boards/bolt-earring/shaper/`), an experiment. Milestone C replaces it
+  with the app's own shape tools, with the bolt as a built-in generator, and removes the
+  embedded page.
+
 - **D. Circuit workspace.** The block diagram of `compose.json`, editable. Compose and check run
   on save.
 - **E. Open fields and AI fill.** One open block filled by easy_pcb's backend, reviewed and

@@ -490,6 +490,24 @@ impl<'a> State<'a> {
 }
 
 pub fn solve(pr: &Problem) -> Placement {
+    solve_with(pr, None, 0, &mut |_| true)
+}
+
+/// Where an anneal is: what `solve_with` hands its callback.
+#[derive(Debug, Clone, Serialize)]
+pub struct Snapshot {
+    pub done: usize,
+    pub total: usize,
+    /// Every part's pose, in `Problem::parts` order.
+    pub poses: Vec<Pose>,
+    pub metrics: Metrics,
+}
+
+/// `solve`, watched: every `every` moves (never when 0) `on` sees a snapshot, and returning
+/// false stops the anneal there (what it has is still legalised and returned). With `start`
+/// (every part's pose, in `Problem::parts` order) the anneal refines that placement: it starts
+/// there, cooler and with shorter moves, instead of from a random spread.
+pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut dyn FnMut(&Snapshot) -> bool) -> Placement {
     let n = pr.parts.len();
     let o = &pr.options;
     let mut in_group = vec![None; n];
@@ -530,7 +548,22 @@ pub fn solve(pr: &Problem) -> Placement {
         Some(o) => ((o[0] + o[2]) / 2.0, (o[1] + o[3]) / 2.0, (o[2] - o[0]) * 0.5, (o[3] - o[1]) * 0.5),
         None => (0.0, 0.0, span, span),
     };
-    let mv: Vec<Pose> = movables.iter().map(|m| fixed(m).unwrap_or(Pose { x: cx + (rng.f() - 0.5) * sx, y: cy + (rng.f() - 0.5) * sy, rotation: 0.0 })).collect();
+    let mut mv: Vec<Pose> = movables.iter().map(|m| fixed(m).unwrap_or(Pose { x: cx + (rng.f() - 0.5) * sx, y: cy + (rng.f() - 0.5) * sy, rotation: 0.0 })).collect();
+    if let Some(start) = start {
+        for (m, mov) in movables.iter().enumerate() {
+            let i = match mov {
+                Movable::Part(i) => *i,
+                Movable::Group(g) => pr.groups[*g].anchor,
+            };
+            if fixed(mov).is_none() {
+                if let Some(p) = start.get(i) {
+                    mv[m] = *p;
+                }
+            }
+        }
+    }
+    // A warm start keeps what it was given: a cooler anneal with shorter moves.
+    let (heat, reach) = if start.is_some() { (0.03, 0.2) } else { (1.0, 1.0) };
     let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
     let mut st = State { pr, sdf, mv, movables, of_part, in_group };
     let free: Vec<usize> = (0..st.movables.len()).filter(|&m| fixed(&st.movables[m]).is_none()).collect();
@@ -566,6 +599,9 @@ pub fn solve(pr: &Problem) -> Placement {
         }
     }
 
+    // A warm start is kept if nothing better is found: what refining began from, scored as the
+    // end is.
+    let kept = start.map(|_| (st.cost(o.w_overlap * 201.0).0, st.mv.clone()));
     // Temperature from the spread of costs of random moves at the start.
     let (mut cur, _) = st.cost(o.w_overlap);
     let mut deltas = Vec::new();
@@ -583,8 +619,14 @@ pub fn solve(pr: &Problem) -> Placement {
     if !free.is_empty() {
         for k in 0..o.moves {
             let prog = k as f64 / o.moves as f64;
-            let t = t0 * (1e-4f64).powf(prog);
-            let w_ov = o.w_overlap * (1.0 + 200.0 * prog * prog);
+            let t = t0 * heat * (1e-4f64).powf(prog);
+            if every > 0 && k % every == 0 {
+                let snap = Snapshot { done: k, total: o.moves, poses: (0..n).map(|i| st.part_pose(i)).collect(), metrics: st.cost(w_ov_at(o, prog)).1 };
+                if !on(&snap) {
+                    break;
+                }
+            }
+            let w_ov = w_ov_at(o, prog);
             if k % 2000 == 0 {
                 cur = st.cost(w_ov).0;
                 best.0 = f64::INFINITY;
@@ -594,7 +636,7 @@ pub fn solve(pr: &Problem) -> Placement {
             let r = rng.f();
             if let Some(&along_x) = slides.get(&m) {
                 saved = vec![(m, st.mv[m])];
-                let step = (span * 0.3 * (1.0 - prog) + 0.05).max(0.05) * rng.normal();
+                let step = (span * 0.3 * reach * (1.0 - prog) + 0.05).max(0.05) * rng.normal();
                 if along_x {
                     st.mv[m].x += step;
                 } else {
@@ -613,7 +655,7 @@ pub fn solve(pr: &Problem) -> Placement {
                 st.mv[m2].y = a.y;
             } else {
                 saved = vec![(m, st.mv[m])];
-                let step = (span * 0.3 * (1.0 - prog) + 0.05).max(0.05);
+                let step = (span * 0.3 * reach * (1.0 - prog) + 0.05).max(0.05);
                 st.mv[m].x += rng.normal() * step;
                 st.mv[m].y += rng.normal() * step;
             }
@@ -637,6 +679,11 @@ pub fn solve(pr: &Problem) -> Placement {
     let pushable: Vec<usize> = free.iter().copied().filter(|m| !slides.contains_key(m)).collect();
     legalise(&mut st, &pushable);
     repair(&mut st, &pushable, &mut rng);
+    if let Some((was, mv)) = kept {
+        if was <= st.cost(o.w_overlap * 201.0).0 {
+            st.mv = mv;
+        }
+    }
 
     let (cost, metrics) = st.cost(o.w_overlap * 201.0);
     let poses: Vec<Pose> = (0..n).map(|i| st.part_pose(i)).collect();
@@ -671,6 +718,11 @@ pub fn solve(pr: &Problem) -> Placement {
     metrics.board_mm = [outline[2] - outline[0], outline[3] - outline[1]];
     metrics.area_mm2 = metrics.board_mm[0] * metrics.board_mm[1];
     Placement { parts, outline, blocks, metrics, cost }
+}
+
+/// The overlap weight at a point in the anneal: it rises so the end is legal.
+fn w_ov_at(o: &Options, prog: f64) -> f64 {
+    o.w_overlap * (1.0 + 200.0 * prog * prog)
 }
 
 /// The metrics of a given placement (a person's, to compare with), every part where `poses`

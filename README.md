@@ -64,6 +64,28 @@ It sits between two sibling projects:
   them against an rp2350 rule. Every quote is checked against its document
   (`library/README.md`).
 
+## The app (prototype)
+
+`app/` is Circuit Composer's own UI, specified in [`docs/app-spec.md`](docs/app-spec.md): a Rust
+core compiled to WASM (`app/core`, the floorplanner and the board document) and a Svelte page
+(`app/web`). It opens a board's floorplan; you drag, rotate and lock parts, and the floorplanner
+anneals live in a worker in the page, from scratch or refining what is there. The Circuit
+workspace shows the board as blocks and the nets between them, and Shape embeds the bolt
+earring's outline shaper. It runs with no server: it opens the example boards that
+`app/examples.sh` exports from `boards/` into the site. That is also how it runs on GitHub Pages.
+Boards are drawn through a placeholder until `board-draw`, the renderer shared with UltraRoute
+Studio, lands. AI fills, the terminal and the handoff to UltraRoute need the app's server, which
+is next.
+
+```sh
+app/examples.sh     # export boards/ as the app's example boards (committed)
+app/build.sh        # core to WASM, page to app/dist/
+./serve.sh          # then open /app/dist/ on the project's registered port
+```
+
+URL parameters: `board=NAME`, `ws=circuit|board|shape|copper|rules`, `embed=1` (no header, for
+Boardroom's single-window mode; selection is posted to the parent window).
+
 ## Build and run
 
 ```sh
