@@ -19,6 +19,8 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+mod inc;
+
 pub type P = (f64, f64);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -616,6 +618,8 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     }
     let t0 = if deltas.is_empty() { 1.0 } else { deltas.iter().sum::<f64>() / deltas.len() as f64 };
     let mut best = (cur, st.mv.clone());
+    // The cost is kept move by move (inc.rs); State::cost stays the reference and re-syncs it.
+    let mut inc = inc::Inc::new(&st);
     if !free.is_empty() {
         for k in 0..o.moves {
             let prog = k as f64 / o.moves as f64;
@@ -628,7 +632,8 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
             }
             let w_ov = w_ov_at(o, prog);
             if k % 2000 == 0 {
-                cur = st.cost(w_ov).0;
+                inc.sync(&st);
+                cur = inc.cost(&st, w_ov);
                 best.0 = f64::INFINITY;
             }
             let m = free[(rng.next() as usize) % free.len()];
@@ -659,7 +664,9 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
                 st.mv[m].x += rng.normal() * step;
                 st.mv[m].y += rng.normal() * step;
             }
-            let (c, _) = st.cost(w_ov);
+            let moved: Vec<usize> = saved.iter().map(|s| s.0).collect();
+            inc.apply(&st, &moved);
+            let c = inc.cost(&st, w_ov);
             if c <= cur || rng.f() < (-(c - cur) / t).exp() {
                 cur = c;
                 if prog > 0.9 && c < best.0 {
@@ -669,6 +676,7 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
                 for (i, p) in saved {
                     st.mv[i] = p;
                 }
+                inc.undo();
             }
         }
         if best.0.is_finite() {
@@ -718,6 +726,66 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     metrics.board_mm = [outline[2] - outline[0], outline[3] - outline[1]];
     metrics.area_mm2 = metrics.board_mm[0] * metrics.board_mm[1];
     Placement { parts, outline, blocks, metrics, cost }
+}
+
+#[cfg(test)]
+mod inc_tests {
+    use super::*;
+
+    /// The cached cost equals the full one after thousands of random moves, kept or undone.
+    #[test]
+    fn the_cached_cost_is_the_full_cost() {
+        for board in ["rp2350-battery", "easy2350", "bolt-earring"] {
+            let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../app/web/public/examples/{board}/problem.json"));
+            let pr: Problem = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+            let n = pr.parts.len();
+            let mut in_group = vec![None; n];
+            let mut movables = Vec::new();
+            let mut of_part = vec![(usize::MAX, (0.0, 0.0), 0.0); n];
+            for (g, r) in pr.groups.iter().enumerate() {
+                let m = movables.len();
+                movables.push(Movable::Group(g));
+                in_group[r.anchor] = Some(g);
+                of_part[r.anchor] = (m, (0.0, 0.0), 0.0);
+                for (i, off, rr) in &r.members {
+                    in_group[*i] = Some(g);
+                    of_part[*i] = (m, *off, *rr);
+                }
+            }
+            for i in 0..n {
+                if in_group[i].is_none() {
+                    of_part[i] = (movables.len(), (0.0, 0.0), 0.0);
+                    movables.push(Movable::Part(i));
+                }
+            }
+            let mut rng = Rng(7);
+            let mv: Vec<Pose> = movables.iter().map(|_| Pose { x: rng.f() * 30.0, y: rng.f() * 30.0, rotation: 0.0 }).collect();
+            let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
+            let mut st = State { pr: &pr, sdf, mv, movables, of_part, in_group };
+            let mut inc = inc::Inc::new(&st);
+            for k in 0..3000 {
+                let a = (rng.next() as usize) % st.mv.len();
+                let b = (rng.next() as usize) % st.mv.len();
+                let saved = if a == b { vec![(a, st.mv[a])] } else { vec![(a, st.mv[a]), (b, st.mv[b])] };
+                st.mv[a].x += rng.normal() * 3.0;
+                st.mv[a].rotation = (st.mv[a].rotation + 90.0 * (rng.next() % 4) as f64).rem_euclid(360.0);
+                st.mv[b].y += rng.normal() * 3.0;
+                let moved: Vec<usize> = saved.iter().map(|s| s.0).collect();
+                inc.apply(&st, &moved);
+                if k % 3 == 0 {
+                    for (i, p) in saved {
+                        st.mv[i] = p;
+                    }
+                    inc.undo();
+                }
+                if k % 250 == 0 {
+                    let (full, _) = st.cost(37.0);
+                    let cached = inc.cost(&st, 37.0);
+                    assert!((full - cached).abs() <= 1e-6 * full.abs().max(1.0), "{board} move {k}: full {full}, cached {cached}");
+                }
+            }
+        }
+    }
 }
 
 /// The overlap weight at a point in the anneal: it rises so the end is legal.

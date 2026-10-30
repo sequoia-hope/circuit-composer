@@ -70,9 +70,14 @@ It sits between two sibling projects:
 core compiled to WASM (`app/core`, the floorplanner and the board document) and a Svelte page
 (`app/web`). It opens a board's floorplan; you drag, rotate and lock parts, and the floorplanner
 anneals live in a worker in the page, from scratch or refining what is there. The Circuit
-workspace shows the board as blocks and the nets between them, and Shape embeds the bolt
-earring's outline shaper. It runs with no server: it opens the example boards that
-`app/examples.sh` exports from `boards/` into the site. That is also how it runs on GitHub Pages.
+workspace shows the board as blocks and the nets between them. Shape builds the board's
+outline: rectangles, circles, slots, polygons and generators (the bolt earring's is the first),
+each added or cut away, with corner rounding, symmetry, holes, keep-outs and SVG/DXF import;
+"Use as board outline" hands it to the floorplanner. The geometry is `crates/shape`, also behind
+`ccomp shape`, and a board's `shape.json` reaches `ccomp floorplan` when its spec sets no
+outline. It runs with no server: it opens the example boards that
+`app/examples.sh` exports from `boards/` into the site. That is also how it runs on GitHub Pages,
+where the site is the app alone: <https://sequoia-hope.github.io/circuit-composer/>.
 Boards are drawn through a placeholder until `board-draw`, the renderer shared with UltraRoute
 Studio, lands. AI fills, the terminal and the handoff to UltraRoute need the app's server, which
 is next.
