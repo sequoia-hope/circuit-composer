@@ -1,6 +1,6 @@
 # easy2350, compiled
 
-Made by `ccomp compile boards/easy2350/intent.json --board <easy_pcb>/examples/easy2350/hw/easy2350/a/easy2350.kicad_pcb -o routing.json --dru easy2350.kicad_dru --dru-base <that board's .kicad_dru>`.
+Made by `ccomp compile boards/easy2350/intent.json --pcb <easy_pcb>/examples/easy2350/hw/easy2350/a/easy2350.kicad_pcb -o routing.json --dru easy2350.kicad_dru --dru-base <that board's .kicad_dru>`.
 
 - `routing.json`: for `ultraroute route ... --regions routing.json` (format agreed with ultraroute
   on 2026-10-27). It holds 3 regions with 12 rules, and 17 hard length limits. Weights: router =

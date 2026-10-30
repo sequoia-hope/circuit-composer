@@ -131,7 +131,7 @@ recorded on both claims, including a package's `rules.json`.
 
 ## Compile for the router
 
-`ccomp compile INTENT --board BOARD -o routing.json --dru OUT.kicad_dru --dru-base BOARD.kicad_dru`
+`ccomp compile INTENT --pcb BOARD -o routing.json --dru OUT.kicad_dru --dru-base BOARD.kicad_dru`
 writes ultraroute's regions file and KiCad length rules, keeping the board's own rules.
 `ccomp check regions BOARD --routing routing.json` lists copper that breaks a region rule. Run it
 on a router's output before accepting it.

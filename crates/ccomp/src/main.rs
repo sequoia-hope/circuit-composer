@@ -15,10 +15,19 @@ use intent::{presets, validate};
 
 mod floorplan_cmd;
 mod package_check;
+mod project;
 
 #[derive(Parser)]
 #[command(name = "ccomp", version, about = "Circuit Composer: intent, packages and composition for KiCad boards")]
 struct Cli {
+    /// The project: an easy_pcb project (boards under `compose/`) or this repository (boards
+    /// under `boards/`). Inputs a command is not given come from the board's files.
+    #[arg(short = 'C', long, global = true)]
+    project: Option<PathBuf>,
+    /// The board: a name in the project, or a board directory. Needed when the project has more
+    /// than one.
+    #[arg(short = 'b', long = "board", global = true)]
+    board_name: Option<String>,
     #[command(subcommand)]
     cmd: Cmd,
 }
@@ -32,11 +41,15 @@ enum Cmd {
     },
     /// List the net class presets and block types.
     Classes,
+    /// A project's boards, or with `--board` (or a project of one) that board's files: where each
+    /// is and whether it exists.
+    Boards,
     /// Read a KiCad netlist (`.net`, or a `.kicad_sch` exported with kicad-cli) as JSON.
     Netlist { path: PathBuf },
     /// Validate an intent file against its board's netlist.
     Validate {
-        intent: PathBuf,
+        /// The intent file; the board's with `--project` / `--board`.
+        intent: Option<PathBuf>,
         /// The netlist or schematic; defaults to `board.kicad_project` in the intent file.
         #[arg(long)]
         netlist: Option<PathBuf>,
@@ -45,7 +58,7 @@ enum Cmd {
         output: Option<PathBuf>,
     },
     /// Print the nets with their class presets' soft defaults filled in.
-    Resolve { intent: PathBuf },
+    Resolve { intent: Option<PathBuf> },
     /// Fast-tier verifier checks on a block of a KiCad board.
     Check {
         #[command(subcommand)]
@@ -69,10 +82,10 @@ enum Cmd {
     },
     /// Compile intent to router regions (`routing.json`) and KiCad custom rules.
     Compile {
-        intent: PathBuf,
-        /// The board the intent is for (anchored regions are placed on it).
+        intent: Option<PathBuf>,
+        /// The KiCad board the intent is for (anchored regions are placed on it).
         #[arg(long)]
-        board: PathBuf,
+        pcb: Option<PathBuf>,
         /// Write routing.json here.
         #[arg(short, long)]
         output: PathBuf,
@@ -91,10 +104,11 @@ enum Cmd {
     /// A board from package instances, its own parts and the nets joining them: one flat
     /// circuit (parts by designator, nets by pin) and a binding per instance.
     Compose {
-        composition: PathBuf,
-        /// Where packages are found, as `DIR/NAME/manifest.toml`.
-        #[arg(long, default_value = "packages")]
-        packages: PathBuf,
+        composition: Option<PathBuf>,
+        /// Where packages are found, as `DIR/NAME/manifest.toml` (default `packages`, or the
+        /// board's with `--project` / `--board`).
+        #[arg(long)]
+        packages: Option<PathBuf>,
         #[arg(short, long)]
         output: Option<PathBuf>,
         /// Also write each instance's binding here, as `INSTANCE.binding.json`.
@@ -106,16 +120,17 @@ enum Cmd {
     /// edge connectors and block separation. Prints the placement and the outline it needs.
     Floorplan {
         /// The composed board (`compose_kicad.py`), footprints anywhere.
-        board: PathBuf,
+        pcb: Option<PathBuf>,
         /// `ccomp compose -o` output.
         #[arg(long)]
-        composed: PathBuf,
+        composed: Option<PathBuf>,
         /// Edges, rigid layouts, separations, options (`floorplan.json`).
         #[arg(long)]
         spec: Option<PathBuf>,
-        /// Paths in the spec are relative to this.
-        #[arg(long, default_value = ".")]
-        root: PathBuf,
+        /// Paths in the spec are relative to this (default `.`, or the packages directory's
+        /// parent with `--project` / `--board`).
+        #[arg(long)]
+        root: Option<PathBuf>,
         #[arg(long)]
         seed: Option<u64>,
         /// Annealing moves (the spec's or 400 000 otherwise).
@@ -175,9 +190,9 @@ enum Check {
     /// A board's copper against a routing.json's region rules (`never` copper inside, `must`
     /// copper outside); `avoid`/`prefer` are reported with the length that pays them.
     Regions {
-        board: PathBuf,
+        pcb: Option<PathBuf>,
         #[arg(long)]
-        routing: PathBuf,
+        routing: Option<PathBuf>,
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
@@ -244,11 +259,9 @@ enum Gen {
 
 #[derive(Subcommand)]
 enum Import {
-    /// From an easy_pcb project's `design/nets.csv`.
+    /// From an easy_pcb project's `design/nets.csv`, for the board named by `--board`.
     EasyPcb {
         nets_csv: PathBuf,
-        #[arg(long)]
-        board: String,
         /// The board's netlist or schematic, to key nets by their KiCad names.
         #[arg(long)]
         netlist: Option<PathBuf>,
@@ -259,7 +272,8 @@ enum Import {
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    match run(cli.cmd) {
+    let ctx = Ctx { project: cli.project, board: cli.board_name, resolved: None };
+    match run(cli.cmd, ctx) {
         Ok((value, ok)) => {
             println!("{}", serde_json::to_string_pretty(&value).unwrap());
             if ok {
@@ -275,8 +289,53 @@ fn main() -> ExitCode {
     }
 }
 
-fn run(cmd: Cmd) -> Result<(Value, bool), String> {
+/// `--project` / `--board`, resolved on first use: a command that was given all its inputs never
+/// needs a board.
+struct Ctx {
+    project: Option<PathBuf>,
+    board: Option<String>,
+    resolved: Option<project::Board>,
+}
+
+impl Ctx {
+    /// Given `--project` or `--board`, or run inside a project with its boards under `compose/`.
+    fn active(&self) -> bool {
+        self.project.is_some() || self.board.is_some() || Path::new("compose").is_dir()
+    }
+
+    fn board(&mut self) -> Result<&project::Board, String> {
+        if self.resolved.is_none() {
+            self.resolved = Some(project::resolve(self.project.as_deref(), self.board.as_deref())?);
+        }
+        Ok(self.resolved.as_ref().unwrap())
+    }
+
+    /// An input as given, else the board's: `what` names it in the error when there is no board.
+    fn or_board(&mut self, given: Option<PathBuf>, what: &str, pick: impl Fn(&project::Board) -> PathBuf) -> Result<PathBuf, String> {
+        match given {
+            Some(p) => Ok(p),
+            None if self.active() => Ok(pick(self.board()?)),
+            None => Err(format!("give {what}, or --project / --board")),
+        }
+    }
+}
+
+fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
     match cmd {
+        Cmd::Boards => {
+            if ctx.board.is_none() {
+                let project = ctx.project.clone().unwrap_or_else(|| PathBuf::from("."));
+                let names = project::list(&project)?;
+                if names.len() != 1 {
+                    return Ok((json!({ "ok": true, "project": project, "root": project::boards_root(&project), "boards": names }), true));
+                }
+            }
+            let b = ctx.board()?;
+            let mut value = serde_json::to_value(b).unwrap();
+            value["ok"] = true.into();
+            value["exists"] = b.present();
+            Ok((value, true))
+        }
         Cmd::Schema { output } => {
             let schema = intent::json_schema();
             match output {
@@ -311,6 +370,7 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             Ok((serde_json::to_value(n).unwrap(), true))
         }
         Cmd::Validate { intent: path, netlist, output } => {
+            let path = ctx.or_board(path, "an intent file", |b| b.intent.clone())?;
             let file = intent::load(&path)?;
             let netlist_path = netlist.or_else(|| file.board.kicad_project.as_ref().map(|p| beside(&path, p)));
             let netlist = match &netlist_path {
@@ -325,6 +385,7 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             Ok((value, report.ok))
         }
         Cmd::Resolve { intent: path } => {
+            let path = ctx.or_board(path, "an intent file", |b| b.intent.clone())?;
             let file = intent::load(&path)?;
             let nets: serde_json::Map<String, Value> =
                 file.nets.iter().map(|(k, n)| (k.clone(), serde_json::to_value(presets::resolve(n)).unwrap())).collect();
@@ -358,7 +419,9 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             }
             Ok((value, errors.is_empty()))
         }
-        Cmd::Check { kind: Check::Regions { board, routing, output } } => {
+        Cmd::Check { kind: Check::Regions { pcb: board, routing, output } } => {
+            let board = ctx.or_board(board, "a board", |b| b.pcb.clone())?;
+            let routing = ctx.or_board(routing, "--routing", |b| b.routing.clone())?;
             let b = pcb::Board::load(&board)?;
             let text = std::fs::read_to_string(&routing).map_err(|e| format!("{}: {e}", routing.display()))?;
             let r: compile::Routing = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", routing.display()))?;
@@ -427,7 +490,9 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             }
             Ok((value, true))
         }
-        Cmd::Compile { intent: path, board, output, dru, dru_base } => {
+        Cmd::Compile { intent: path, pcb: board, output, dru, dru_base } => {
+            let path = ctx.or_board(path, "an intent file", |b| b.intent.clone())?;
+            let board = ctx.or_board(board, "--pcb", |b| b.pcb.clone())?;
             let file = intent::load(&path)?;
             let b = pcb::Board::load(&board)?;
             let (routing, notes) = compile::compile(&file, &b)?;
@@ -453,6 +518,12 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             ))
         }
         Cmd::Compose { composition, packages, output, bindings } => {
+            let composition = ctx.or_board(composition, "a composition", |b| b.composition.clone())?;
+            let packages = match packages {
+                Some(p) => p,
+                None if ctx.active() => ctx.board()?.packages.clone(),
+                None => PathBuf::from("packages"),
+            };
             let text = std::fs::read_to_string(&composition).map_err(|e| format!("{}: {e}", composition.display()))?;
             let c: compose::Composition = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", composition.display()))?;
             let r = compose::compose(&c, &packages)?;
@@ -468,7 +539,19 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             }
             Ok((value, r.ok))
         }
-        Cmd::Floorplan { board, composed, spec, root, seed, moves, evaluate, output } => {
+        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, evaluate, output } => {
+            let board = ctx.or_board(board, "a board", |b| b.pcb.clone())?;
+            let composed = ctx.or_board(composed, "--composed", |b| b.composed.clone())?;
+            let spec = match spec {
+                Some(p) => Some(p),
+                None if ctx.active() => Some(ctx.board()?.floorplan.clone()).filter(|p| p.exists()),
+                None => None,
+            };
+            let root = match root {
+                Some(r) => r,
+                None if ctx.active() => ctx.board()?.spec_root(),
+                None => PathBuf::from("."),
+            };
             let comp: Value = read_json_value(&composed)?;
             let spec: floorplan_cmd::Spec = match spec {
                 Some(p) => serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?,
@@ -509,7 +592,8 @@ fn run(cmd: Cmd) -> Result<(Value, bool), String> {
             let hits = lib.query(&library::Query { set, status, attribute, scope, id, text });
             Ok((json!({ "count": hits.len(), "claims": hits }), true))
         }
-        Cmd::Import { from: Import::EasyPcb { nets_csv, board, netlist, output } } => {
+        Cmd::Import { from: Import::EasyPcb { nets_csv, netlist, output } } => {
+            let board = ctx.board.clone().ok_or("give the board's name with --board")?;
             let text = std::fs::read_to_string(&nets_csv).map_err(|e| format!("{}: {e}", nets_csv.display()))?;
             let netlist = match &netlist {
                 Some(p) => Some(Netlist::load(p).map_err(|e| e.to_string())?),
@@ -616,4 +700,14 @@ fn write_json(path: &Path, value: &Value) -> Result<(), String> {
 fn read_json_value(p: &Path) -> Result<Value, String> {
     let text = std::fs::read_to_string(p).map_err(|e| format!("{}: {e}", p.display()))?;
     serde_json::from_str(&text).map_err(|e| format!("{}: {e}", p.display()))
+}
+
+#[cfg(test)]
+mod tests {
+    /// Every subcommand's arguments are consistent with the global `--project` / `--board`.
+    #[test]
+    fn cli_is_consistent() {
+        use clap::CommandFactory;
+        super::Cli::command().debug_assert();
+    }
 }

@@ -1,0 +1,5 @@
+{
+ "note": "The battery demo board. Composed and floorplanned here; compose_kicad.py's board is composed.kicad_pcb (kicad/ is the schematic project).",
+ "composed": "composed.json",
+ "pcb": "composed.kicad_pcb"
+}

@@ -80,6 +80,19 @@ $ccomp import easy-pcb ../easy_pcb/examples/easy2350/design/nets.csv \
     -o draft.json                                      # draft intent from easy_pcb
 ```
 
+Any command can work on a board in a project instead of being given every path:
+`--project DIR` (`-C`) and `--board NAME` (`-b`) fill in the inputs it was not given from the
+board's files. Boards live under `compose/<board>/` in an easy_pcb project and under
+`boards/<board>/` here, each optionally with a `board.json` naming where its files are
+(`crates/ccomp/src/project.rs`). Outputs are still written only with `-o`.
+
+```sh
+$ccomp boards                                          # this repository's boards
+$ccomp -b rp2350-battery boards                        # one board's files, and which exist
+$ccomp -b rp2350-battery compose                       # = compose boards/rp2350-battery/compose.json
+$ccomp -C ../my-project floorplan --seed 2             # a project's only board
+```
+
 Milestone 2's tools:
 
 ```sh

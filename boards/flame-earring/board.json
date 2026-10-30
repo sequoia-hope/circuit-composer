@@ -1,0 +1,7 @@
+{
+ "note": "Built by build.sh from scripts/: the circuit is circuit.json (scripts/circuit.py), not a composition.",
+ "composed": "floorplan/composed.json",
+ "floorplan": "floorplan/spec.json",
+ "placement": "floorplan/placement.json",
+ "pcb": "build/flame.kicad_pcb"
+}

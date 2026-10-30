@@ -1,0 +1,9 @@
+{
+ "note": "easy_pcb's worked example, annotated by hand. input/ is the person's board; floorplan/ holds the recomposed one.",
+ "composed": "floorplan/composed.json",
+ "floorplan": "floorplan/spec.json",
+ "placement": "floorplan/placement.json",
+ "pcb": "floorplan/composed.kicad_pcb",
+ "routing": "compiled/routing.json",
+ "dru": "compiled/easy2350.kicad_dru"
+}
