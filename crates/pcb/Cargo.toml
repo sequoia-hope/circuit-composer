@@ -9,5 +9,5 @@ license.workspace = true
 # ultraroute's `kicad-pcb` crate (MIT), pinned to a commit.
 
 [dependencies]
-kicad-pcb = { git = "https://github.com/sequoia-hope/ultraroute", rev = "8c691ec359d36b83de95323e321a17ee2bf3dafe" }
+kicad-pcb = { git = "https://github.com/sequoia-hope/ultraroute", rev = "9114263c8d647d1959b11214e4c123b971b4e464" }
 serde = { version = "1", features = ["derive"] }

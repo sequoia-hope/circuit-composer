@@ -40,8 +40,13 @@ fn project_mode_runs_what_explicit_paths_run() {
     assert_eq!(ccomp(&r, &["-C", ".", "-b", "easy2350", "validate"]), explicit);
 
     let base = ["floorplan", "--seed", "2", "--moves", "20000"];
+    // Everything but how long it took.
+    let timeless = |mut v: Value| {
+        v.as_object_mut().unwrap().remove("seconds");
+        v
+    };
     let explicit = ccomp(&r, &[&base[..], &["boards/rp2350-battery/composed.kicad_pcb", "--composed", "boards/rp2350-battery/composed.json", "--spec", "boards/rp2350-battery/floorplan.json"]].concat());
-    assert_eq!(ccomp(&r, &[&["-b", "rp2350-battery"], &base[..]].concat()), explicit);
+    assert_eq!(timeless(ccomp(&r, &[&["-b", "rp2350-battery"], &base[..]].concat())), timeless(explicit));
 }
 
 #[test]

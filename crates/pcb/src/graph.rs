@@ -244,6 +244,7 @@ mod tests {
             vias: vec![],
             fills: vec![],
             rules: None,
+            outline: None,
         };
         let p = copper_path(&board, "N", "P.1", "B.1").expect("P joins the track");
         assert!((p.length - 6.0).abs() < 1e-9, "{}", p.length);
@@ -272,6 +273,7 @@ mod tests {
             vias: vec![via(0.0), via(5.0)],
             fills: vec![],
             rules: None,
+            outline: None,
         };
         let p = copper_path(&board, "N", "A.1", "B.1").expect("the vias join the pads");
         assert!((p.length - 5.2).abs() < 1e-9, "{}", p.length);

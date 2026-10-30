@@ -23,6 +23,10 @@ pub struct Board {
     /// Net classes and clearances from the `.kicad_pro` (and `.kicad_dru`) beside the board.
     #[serde(skip)]
     pub rules: Option<kicad_pcb::Rules>,
+    /// The board's outer Edge.Cuts loop, arcs as chords within 5 um; none when it has no
+    /// closed outline.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub outline: Option<Vec<P>>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -179,7 +183,8 @@ impl Board {
             })
             .collect();
 
-        Ok(Board { layers, parts, pads, tracks, vias, fills, rules: None })
+        let outline = pcb.outline_loops().ok().map(|l| l.outer.points(5e-6).into_iter().map(mm).collect());
+        Ok(Board { layers, parts, pads, tracks, vias, fills, rules: None, outline })
     }
 
     /// The pad `REF.PIN`. Footprints with several pads of one number (exposed pads, connector

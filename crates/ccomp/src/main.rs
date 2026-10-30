@@ -143,6 +143,17 @@ enum Cmd {
         /// what the app's in-browser annealer runs on.
         #[arg(long, conflicts_with = "evaluate")]
         problem: bool,
+        /// Take every part and net from the board itself (its pads' nets) instead of a
+        /// composition: any KiCad board becomes a floorplan problem (benchmarks, others' boards).
+        #[arg(long, conflicts_with = "composed")]
+        nets_from_board: bool,
+        /// The board's own Edge.Cuts outline is the one to place inside (unless the spec sets one);
+        /// with no Edge.Cuts, the box its parts' courtyards fill as placed.
+        #[arg(long)]
+        outline_from_board: bool,
+        /// Solve this saved problem (`--problem` output) instead of building one.
+        #[arg(long, conflicts_with_all = ["pcb", "composed", "spec", "nets_from_board", "outline_from_board", "evaluate"])]
+        input_problem: Option<PathBuf>,
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
@@ -557,9 +568,18 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             Ok((value, r.ok))
         }
-        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, evaluate, problem, output } => {
+        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
+            if let Some(p) = input_problem {
+                let mut pr: floorplan::Problem = serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?;
+                if let Some(s) = seed {
+                    pr.options.seed = s;
+                }
+                if let Some(m) = moves {
+                    pr.options.moves = m;
+                }
+                return Ok(solve_and_report(&pr, output.as_deref())?);
+            }
             let board = ctx.or_board(board, "a board", |b| b.pcb.clone())?;
-            let composed = ctx.or_board(composed, "--composed", |b| b.composed.clone())?;
             let spec = match spec {
                 Some(p) => Some(p),
                 None if ctx.active() => Some(ctx.board()?.floorplan.clone()).filter(|p| p.exists()),
@@ -570,7 +590,11 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 None if ctx.active() => ctx.board()?.spec_root(),
                 None => PathBuf::from("."),
             };
-            let comp: Value = read_json_value(&composed)?;
+            let comp: Value = if nets_from_board {
+                composed_from_board(&pcb::Board::load(&board)?)
+            } else {
+                read_json_value(&ctx.or_board(composed, "--composed", |b| b.composed.clone())?)?
+            };
             let mut spec: floorplan_cmd::Spec = match spec {
                 Some(p) => serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?,
                 None => serde_json::from_value(json!({})).unwrap(),
@@ -580,6 +604,30 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 if shape_path.exists() {
                     shape_into_spec(&shape_path, &mut spec)?;
                 }
+            }
+            if outline_from_board && spec.outline.is_none() && spec.outline_polygon.is_none() {
+                let b = pcb::Board::load(&board)?;
+                spec.outline_polygon = Some(match b.outline {
+                    Some(o) => o.into_iter().map(|p| (p[0], p[1])).collect(),
+                    None => {
+                        // No Edge.Cuts (benchmark boards): the box the parts' courtyards (or pads)
+                        // fill where they are now, the space the board's own placement used.
+                        let mut bb = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
+                        for part in b.parts.values() {
+                            let pts: Vec<pcb::geom::P> = match &part.courtyard {
+                                Some(c) if !c.is_empty() => c.clone(),
+                                _ => part.pads.iter().flat_map(|&k| b.pads[k].shape.iter().flatten().copied()).collect(),
+                            };
+                            for q in pts {
+                                bb = [bb[0].min(q[0]), bb[1].min(q[1]), bb[2].max(q[0]), bb[3].max(q[1])];
+                            }
+                        }
+                        if !bb[0].is_finite() {
+                            return Err(format!("{}: no outline and no parts", board.display()));
+                        }
+                        vec![(bb[0], bb[1]), (bb[2], bb[1]), (bb[2], bb[3]), (bb[0], bb[3])]
+                    }
+                });
             }
             let mut pr = floorplan_cmd::problem(&board, &comp, &spec, &root)?;
             if let Some(s) = seed {
@@ -604,15 +652,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 let m = floorplan::evaluate(&pr, &poses)?;
                 return Ok((json!({ "evaluated": placed, "metrics": m, "nets_scored": pr.nets.len() }), true));
             }
-            let placement = floorplan::solve(&pr);
-            let ok = placement.metrics.overlaps == 0 && placement.metrics.edge_misses.is_empty() && placement.metrics.separation_misses.is_empty();
-            let mut value = serde_json::to_value(&placement).unwrap();
-            value["ok"] = ok.into();
-            value["nets_scored"] = pr.nets.len().into();
-            if let Some(o) = output {
-                write_json(&o, &value)?;
-            }
-            Ok((value, ok))
+            solve_and_report(&pr, output.as_deref())
         }
         Cmd::Shape { shape: path, generators, import, output } => {
             let value = if generators {
@@ -665,6 +705,39 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
     }
+}
+
+/// Solve a floorplan problem and say whether the result is legal; with the time it took.
+fn solve_and_report(pr: &floorplan::Problem, output: Option<&Path>) -> Result<(Value, bool), String> {
+    let started = std::time::Instant::now();
+    let placement = floorplan::solve(pr);
+    let ok = placement.metrics.overlaps == 0 && placement.metrics.edge_misses.is_empty() && placement.metrics.separation_misses.is_empty();
+    let mut value = serde_json::to_value(&placement).unwrap();
+    value["ok"] = ok.into();
+    value["nets_scored"] = pr.nets.len().into();
+    value["seconds"] = started.elapsed().as_secs_f64().into();
+    if let Some(o) = output {
+        write_json(o, &value)?;
+    }
+    Ok((value, ok))
+}
+
+/// A composition made from a board itself: every part, and every net its pads are on (not the
+/// unconnected ones KiCad names per pad).
+fn composed_from_board(b: &pcb::Board) -> Value {
+    let parts: serde_json::Map<String, Value> = b.parts.keys().map(|r| (r.clone(), json!({}))).collect();
+    let mut nets: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for pad in &b.pads {
+        if pad.net.is_empty() || pad.net.starts_with("unconnected-") || pad.part.is_empty() {
+            continue;
+        }
+        let e = nets.entry(pad.net.clone()).or_default();
+        let id = format!("{}.{}", pad.part, pad.pin);
+        if !e.contains(&id) {
+            e.push(id);
+        }
+    }
+    json!({ "parts": parts, "nets": nets })
 }
 
 /// A board's shape into its floorplan spec: the outline, unless the spec sets one, and every

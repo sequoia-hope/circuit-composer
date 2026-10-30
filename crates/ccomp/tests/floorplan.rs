@@ -36,3 +36,22 @@ fn the_battery_board_keeps_its_rules() {
     assert!(b["metrics"]["separation_misses"].as_array().unwrap().is_empty());
     assert!(b["metrics"]["area_mm2"].as_f64().unwrap() < 2000.0, "{:#}", b["metrics"]);
 }
+
+/// Any KiCad board is a floorplan problem with its own nets and outline, and a saved problem
+/// solves to the same placement as one built in place.
+#[test]
+fn a_board_by_itself_is_a_problem_and_a_saved_problem_solves_the_same() {
+    let board = "boards/easy2350/input/easy2350.kicad_pcb";
+    let pr = ccomp(&["floorplan", board, "--nets-from-board", "--outline-from-board", "--problem"]);
+    assert!(pr["parts"].as_array().unwrap().len() >= 56, "{}", pr["parts"].as_array().unwrap().len());
+    assert!(pr["nets"].as_array().unwrap().len() >= 40);
+    let xs: Vec<f64> = pr["outline_polygon"].as_array().expect("its Edge.Cuts").iter().map(|p| p[0].as_f64().unwrap()).collect();
+    let w = xs.iter().cloned().fold(f64::NEG_INFINITY, f64::max) - xs.iter().cloned().fold(f64::INFINITY, f64::min);
+    assert!((w - 21.05).abs() < 0.1, "board width {w}");
+
+    let tmp = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("saved-problem.json");
+    std::fs::write(&tmp, pr.to_string()).unwrap();
+    let saved = ccomp(&["floorplan", "--input-problem", tmp.to_str().unwrap(), "--seed", "4", "--moves", "20000"]);
+    let built = ccomp(&["floorplan", board, "--nets-from-board", "--outline-from-board", "--seed", "4", "--moves", "20000"]);
+    assert_eq!(saved["parts"], built["parts"]);
+}

@@ -58,6 +58,33 @@ The pin solver is a small constraint problem: interfaces to controller instances
 pins, with conflicts, domains and preferences. Preferences include pins on the side facing the
 peripheral, which ties it to the floorplan. Exact search is fine at these sizes.
 
+## The parts browser
+
+The database grows through a **parts browser** in the app (owner, 2026-10-30): search for parts,
+see what the database already knows about each, and pull more in.
+
+- **Supplier plug-ins.** Each supplier is a plug-in behind one interface: search, part details
+  (parameters, package, stock and price, datasheet link), and the supplier's own part number.
+  JLC/LCSC comes first, through their APIs, because that's where these boards are made.
+  DigiKey, Farnell, Mouser and others follow as plug-ins, so a person can use the supplier they
+  prefer. API keys stay on the person's machine (the local server, or Boardroom's settings),
+  never in the page or the repository.
+- **KiCad's libraries.** Symbols and footprints come from the KiCad libraries installed on the
+  machine, and from a library's repository. A part needs both before it can be placed.
+- **A board from GitHub.** Point it at a repository: it finds the KiCad boards and schematics,
+  lists their parts, and ingests all of them or the ones the person picks. That's the vendor
+  eval-board miner from the system spec, with a front end.
+- **What ingesting means.** A supplier listing gives parameters and a datasheet. It doesn't give
+  the interfaces, pin-mux tables, support parts and rules composition needs (see above).
+  - **Structured data** (supplier parameters, footprints, pin tables in KiCad symbols) is taken
+    directly.
+  - **What has to be read from a datasheet** is the LLM's ingest job: its results go into a
+    package with citations, and are checked the way existing packages are. Until they are,
+    the browser shows the part as *listed, not composable*, and why.
+- **Offline first.** Everything ingested is in the local database. On GitHub Pages the browser
+  searches only what the site carries; supplier search needs the local server, because of keys
+  and the browser's cross-origin rules.
+
 ## What the app produces
 
 For one board in an easy_pcb project, the app produces everything up to routing:
@@ -427,6 +454,8 @@ Separate from the app's milestones A–F, in this order:
    floorplans and passes `ccomp check package`. It runs in `ccomp` and in the app's WASM core.
 4. **Interface rules and recipes**: I2C pull-ups, USB-C sink, LiPo power path, LED chain. With
    those, the bolt earring composes from its blocks in the browser.
+5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
+   suppliers as plug-ins.
 
 ## Open questions
 
