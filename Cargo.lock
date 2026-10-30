@@ -188,6 +188,7 @@ dependencies = [
  "floorplan",
  "interfaces",
  "js-sys",
+ "kicad-pcb",
  "pinsolve",
  "serde",
  "serde_json",
@@ -314,7 +315,7 @@ dependencies = [
 [[package]]
 name = "kicad-pcb"
 version = "0.1.0"
-source = "git+https://github.com/sequoia-hope/ultraroute?rev=9114263c8d647d1959b11214e4c123b971b4e464#9114263c8d647d1959b11214e4c123b971b4e464"
+source = "git+https://github.com/sequoia-hope/ultraroute?rev=0e581c467fd43013b60c1c2ddab490e671851bee#0e581c467fd43013b60c1c2ddab490e671851bee"
 dependencies = [
  "serde",
  "serde_json",

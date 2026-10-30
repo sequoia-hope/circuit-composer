@@ -20,6 +20,9 @@ interfaces = { path = "../../crates/interfaces" }
 # The board renderer shared with UltraRoute Studio; the JS half is pinned at the same commit in
 # app/web/package.json.
 board-draw = { git = "https://github.com/sequoia-hope/board-draw", rev = "b45cc3f689dc7b5086be9dada3dd64381a3d010e" }
+# ultraroute's `kicad-pcb` (MIT), for writing the placement into the `.kicad_pcb` in the browser;
+# the same commit crates/pcb reads boards with.
+kicad-pcb = { git = "https://github.com/sequoia-hope/ultraroute", rev = "0e581c467fd43013b60c1c2ddab490e671851bee" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 wasm-bindgen = { version = "=0.2.129", optional = true }

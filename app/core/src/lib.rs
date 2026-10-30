@@ -121,6 +121,27 @@ impl Session {
         }
     }
 
+    /// `text`, the board's `.kicad_pcb`, with every part where it is here: moved, turned and on its
+    /// side, written as pcbnew would save it (`kicad_pcb::place`). Every other byte of the board
+    /// is kept: its outline, tracks and zones too. The shape's keep-outs (references with a `:`)
+    /// are not parts on the board; a part the board does not have is an error.
+    pub fn write_kicad_pcb(&self, text: &str) -> Result<String, String> {
+        let placements: Vec<kicad_pcb::place::Placement> = self
+            .pr
+            .parts
+            .iter()
+            .zip(&self.poses)
+            .filter(|(p, _)| !p.reference.contains(':'))
+            .map(|(p, q)| kicad_pcb::place::Placement {
+                reference: p.reference.clone(),
+                at: [q.x * 1e-3, q.y * 1e-3],
+                rotation_deg: q.rotation,
+                side: if p.back { kicad_pcb::Side::Back } else { kicad_pcb::Side::Front },
+            })
+            .collect();
+        kicad_pcb::place::apply(text, &placements).map_err(|e| e.to_string())
+    }
+
     pub fn locked(&self, i: usize) -> bool {
         let anchor = self.group_of[i].map(|(g, _, _)| self.pr.groups[g].anchor).unwrap_or(i);
         self.pr.parts[anchor].fixed.is_some()
@@ -393,6 +414,11 @@ mod wasm {
             Ok(())
         }
 
+        /// The board's `.kicad_pcb` text with this placement written into it, as pcbnew would save it.
+        pub fn write_kicad_pcb(&self, text: &str) -> Result<String, JsValue> {
+            self.s.write_kicad_pcb(text).map_err(err)
+        }
+
         pub fn placement(&self) -> String {
             serde_json::to_string(&serde_json::json!({ "parts": self.s.placement() })).unwrap()
         }
@@ -565,6 +591,48 @@ mod tests {
         let p: P = serde_json::from_str(&std::fs::read_to_string(root.join("placement.json")).unwrap()).unwrap();
         s.set_placement(&p.parts);
         s
+    }
+
+    /// The board's footprints, from `(footprint` to its closing paren, in file order.
+    fn footprints(text: &str) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut cur: Option<Vec<&str>> = None;
+        for line in text.lines() {
+            if line.starts_with("\t(footprint ") {
+                cur = Some(vec![line]);
+            } else if let Some(c) = cur.as_mut() {
+                c.push(line);
+                if line == "\t)" {
+                    out.push(cur.take().unwrap().join("\n"));
+                }
+            }
+        }
+        out
+    }
+
+    #[test]
+    fn the_placement_is_written_into_the_board_as_pcbnew_writes_it() {
+        // boards/easy2350/floorplan: the composed board, and the same placement put on it by
+        // pcbnew (tools/apply_placement.py, J2 and J3 on the back). The app's example is that
+        // placement.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let ex = root.join("app/web/public/examples/easy2350");
+        let pr: Problem = serde_json::from_str(&std::fs::read_to_string(ex.join("problem.json")).unwrap()).unwrap();
+        let mut s = Session::new(pr);
+        #[derive(serde::Deserialize)]
+        struct P {
+            parts: BTreeMap<String, Pose>,
+        }
+        let p: P = serde_json::from_str(&std::fs::read_to_string(ex.join("placement.json")).unwrap()).unwrap();
+        s.set_placement(&p.parts);
+        let fp = root.join("boards/easy2350/floorplan");
+        let out = s.write_kicad_pcb(&std::fs::read_to_string(fp.join("composed.kicad_pcb")).unwrap()).unwrap();
+        let pcbnew = std::fs::read_to_string(fp.join("placed.kicad_pcb")).unwrap();
+        let (ours, theirs) = (footprints(&out), footprints(&pcbnew));
+        assert_eq!(ours.len(), 58);
+        for (a, b) in ours.iter().zip(&theirs) {
+            assert_eq!(a, b);
+        }
     }
 
     #[test]
