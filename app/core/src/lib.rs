@@ -12,6 +12,8 @@ use std::collections::BTreeMap;
 use floorplan::{rot, Placement, Pose, Problem, Snapshot};
 use serde::Serialize;
 
+pub mod draw;
+
 pub struct Session {
     pr: Problem,
     poses: Vec<Pose>,
@@ -280,8 +282,24 @@ mod wasm {
     }
 
     /// The page's handle on one board.
+    /// One board: the floorplan session, and the scene board-draw draws it from.
     #[wasm_bindgen]
-    pub struct Board(Session);
+    pub struct Board {
+        s: Session,
+        scene: board_draw::Scene,
+        drawing: Option<board_draw::Drawing>,
+        outline: Option<Vec<[f64; 2]>>,
+    }
+
+    impl Board {
+        fn rebuild(&mut self) {
+            self.scene = crate::draw::build(&self.s, self.outline.as_deref());
+            self.drawing = None;
+        }
+        fn moved(&mut self) {
+            crate::draw::sync_poses(&mut self.scene, &self.s);
+        }
+    }
 
     /// A `shape.json` document, evaluated (`shape::Shape` as JSON).
     #[wasm_bindgen]
@@ -313,7 +331,11 @@ mod wasm {
         /// From `ccomp floorplan --problem` output.
         #[wasm_bindgen(constructor)]
         pub fn new(problem_json: &str) -> Result<Board, JsValue> {
-            Ok(Board(Session::new(serde_json::from_str(problem_json).map_err(err)?)))
+            let pr: Problem = serde_json::from_str(problem_json).map_err(err)?;
+            let outline = pr.outline_polygon.as_ref().map(|p| p.iter().map(|q| [q.0, q.1]).collect()).or(pr.outline.map(|o| vec![[o[0], o[1]], [o[2], o[1]], [o[2], o[3]], [o[0], o[3]]]));
+            let mut b = Board { s: Session::new(pr), scene: board_draw::Scene::new(), drawing: None, outline };
+            b.rebuild();
+            Ok(b)
         }
 
         /// `{parts: {REF: {x, y, rotation}}}`, as `ccomp floorplan` writes it.
@@ -323,36 +345,39 @@ mod wasm {
                 parts: BTreeMap<String, Pose>,
             }
             let p: P = serde_json::from_str(json).map_err(err)?;
-            self.0.set_placement(&p.parts);
+            self.s.set_placement(&p.parts);
+            self.moved();
             Ok(())
         }
 
         pub fn placement(&self) -> String {
-            serde_json::to_string(&serde_json::json!({ "parts": self.0.placement() })).unwrap()
+            serde_json::to_string(&serde_json::json!({ "parts": self.s.placement() })).unwrap()
         }
 
         /// The problem as given, with locks as they are now.
         pub fn problem(&self) -> String {
-            serde_json::to_string(self.0.problem()).unwrap()
+            serde_json::to_string(self.s.problem()).unwrap()
         }
 
         pub fn parts(&self) -> String {
-            serde_json::to_string(&self.0.parts()).unwrap()
+            serde_json::to_string(&self.s.parts()).unwrap()
         }
 
         pub fn index(&self, reference: &str) -> i32 {
-            self.0.index(reference).map(|i| i as i32).unwrap_or(-1)
+            self.s.index(reference).map(|i| i as i32).unwrap_or(-1)
         }
 
         /// Every part's x, y, rotation, in problem order: cheap to call every frame.
         pub fn poses(&self) -> Vec<f64> {
-            self.0.poses().iter().flat_map(|p| [p.x, p.y, p.rotation]).collect()
+            self.s.poses().iter().flat_map(|p| [p.x, p.y, p.rotation]).collect()
         }
 
         /// The outline as `[[x, y], ...]` JSON, or an empty string for none.
         pub fn set_outline(&mut self, json: &str) -> Result<(), JsValue> {
             let p = if json.trim().is_empty() { None } else { Some(serde_json::from_str(json).map_err(err)?) };
-            self.0.set_outline(p);
+            self.outline = p.clone();
+            self.s.set_outline(p);
+            self.rebuild();
             Ok(())
         }
 
@@ -365,38 +390,42 @@ mod wasm {
                 side: String,
             }
             let ks: Vec<K> = serde_json::from_str(json).map_err(err)?;
-            self.0.set_keepouts(&ks.into_iter().map(|k| (k.name, k.rect, k.side)).collect::<Vec<_>>());
+            self.s.set_keepouts(&ks.into_iter().map(|k| (k.name, k.rect, k.side)).collect::<Vec<_>>());
+            self.rebuild();
             Ok(())
         }
 
         /// `poses()` back: x, y, rotation per part, in problem order.
         pub fn set_poses(&mut self, flat: &[f64]) {
             let poses: Vec<Pose> = flat.chunks_exact(3).map(|c| Pose { x: c[0], y: c[1], rotation: c[2] }).collect();
-            self.0.set_poses(&poses);
+            self.s.set_poses(&poses);
+            self.moved();
         }
 
         pub fn ratsnest(&self) -> Vec<f64> {
-            self.0.ratsnest().0
+            self.s.ratsnest().0
         }
 
         pub fn ratsnest_nets(&self) -> Vec<u32> {
-            self.0.ratsnest().1
+            self.s.ratsnest().1
         }
 
         pub fn metrics(&self) -> Result<String, JsValue> {
-            Ok(serde_json::to_string(&self.0.evaluate().map_err(err)?).unwrap())
+            Ok(serde_json::to_string(&self.s.evaluate().map_err(err)?).unwrap())
         }
 
         pub fn move_to(&mut self, i: usize, x: f64, y: f64) {
-            self.0.move_to(i, x, y);
+            self.s.move_to(i, x, y);
+            self.moved();
         }
 
         pub fn rotate(&mut self, i: usize) {
-            self.0.rotate(i);
+            self.s.rotate(i);
+            self.moved();
         }
 
         pub fn set_locked(&mut self, i: usize, locked: bool) {
-            self.0.set_locked(i, locked);
+            self.s.set_locked(i, locked);
         }
 
         /// Runs to the end (or until `on` returns false), calling `on(posesFloat64Array,
@@ -413,8 +442,62 @@ mod wasm {
                 );
                 !matches!(r, Ok(v) if v == JsValue::FALSE)
             };
-            let p = self.0.anneal(seed as u64, moves as usize, warm, every as usize, &mut cb);
+            let p = self.s.anneal(seed as u64, moves as usize, warm, every as usize, &mut cb);
+            self.moved();
             serde_json::to_string(&p).unwrap()
+        }
+
+        // ---- drawing, through board-draw
+
+        /// The board's mesh for board-draw's renderer at `px` mm per screen pixel: rebuilt when
+        /// anything but poses changed, otherwise only the moved parts' vertices are rewritten.
+        pub fn mesh(&mut self, px: f32, mask: u32) -> Vec<f32> {
+            let mask = mask as u64;
+            match &mut self.drawing {
+                Some(d) => {
+                    self.scene.redraw(d, px, mask);
+                }
+                None => self.drawing = Some(self.scene.draw(px, mask)),
+            }
+            self.drawing.as_ref().unwrap().vertices.clone()
+        }
+
+        /// Composer's overlay (block colours, ratsnest, locks, selection, a dashed box) as a mesh;
+        /// `opts` is `draw::OverlayOpts` as JSON.
+        pub fn overlay(&self, px: f32, opts: &str) -> Result<Vec<f32>, JsValue> {
+            let o: crate::draw::OverlayOpts = serde_json::from_str(opts).map_err(err)?;
+            Ok(crate::draw::overlay(&self.s, px, &o))
+        }
+
+        pub fn grid(&self, px: f32, x0: f32, y0: f32, x1: f32, y1: f32, dark: bool) -> Vec<f32> {
+            crate::draw::grid(px, x0, y0, x1, y1, dark)
+        }
+
+        /// The part a click at (x, y) means, as a problem index, or -1: front before back,
+        /// smallest first (board-draw's picking order).
+        pub fn pick(&self, x: f32, y: f32) -> i32 {
+            self.scene.part_at(x, y).map(|id| id - 1).unwrap_or(-1)
+        }
+
+        /// A side turned off: its parts are neither picked nor labelled.
+        pub fn set_side_hidden(&mut self, back: bool, hidden: bool) {
+            if back {
+                self.scene.style.hide_back = hidden;
+            } else {
+                self.scene.style.hide_front = hidden;
+            }
+        }
+
+        /// Labels to write for this view: `[{i, name, x, y, size}]`, `i` a problem index.
+        pub fn labels(&self, px_per_mm: f32, min_px: f32, selected: &[i32]) -> String {
+            let ids: Vec<i32> = selected.iter().map(|&i| i + 1).collect();
+            let l: Vec<_> = self
+                .scene
+                .labels(px_per_mm, min_px, &ids)
+                .into_iter()
+                .map(|l| serde_json::json!({ "i": l.part - 1, "name": l.name, "x": l.at[0], "y": l.at[1], "size": l.size }))
+                .collect();
+            serde_json::to_string(&l).unwrap()
         }
     }
 }
@@ -494,6 +577,32 @@ mod tests {
         let p = s.anneal(2, 20_000, false, 0, &mut |_| true);
         let u = p.parts["shape:hole 1"];
         assert_eq!((u.x, u.y), (2.0, 2.0));
+    }
+
+    /// board-draw puts every pad where the floorplan does, turned and on either side.
+    #[test]
+    fn board_draw_poses_are_the_floorplans() {
+        for board in ["rp2350-battery", "bolt-earring", "easy2350"] {
+            let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../web/public/examples/{board}/problem.json"));
+            let pr: Problem = serde_json::from_str(&std::fs::read_to_string(root).unwrap()).unwrap();
+            let mut s = Session::new(pr);
+            let poses: Vec<Pose> = (0..s.problem().parts.len()).map(|i| Pose { x: i as f64 * 1.5, y: -(i as f64), rotation: 90.0 * (i % 4) as f64 }).collect();
+            s.set_poses(&poses);
+            let sc = draw::build(&s, None);
+            let mut sides = [0, 0];
+            for (i, p) in s.problem().parts.iter().enumerate() {
+                sides[p.back as usize] += 1;
+                let xf = sc.part(draw::part_id(i)).unwrap().pose.transform();
+                for q in p.pins.values() {
+                    let want = draw::floorplan_point(&s, i, *q);
+                    let got = xf.apply([q.0 as f32, q.1 as f32]);
+                    assert!((got[0] as f64 - want[0]).abs() < 1e-3 && (got[1] as f64 - want[1]).abs() < 1e-3, "{board} {} at {}: {got:?} vs {want:?}", p.reference, poses[i].rotation);
+                }
+            }
+            if board == "bolt-earring" {
+                assert!(sides[0] > 0 && sides[1] > 0, "both sides checked");
+            }
+        }
     }
 
     #[test]

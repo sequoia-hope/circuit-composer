@@ -30,7 +30,7 @@
   let version = $state(0);
   let selection = $state.raw([]);
   let metrics = $state.raw(null);
-  let layers = $state({ front: true, back: true, ratsnest: true, pins: true, labels: true, blocks: true });
+  let layers = $state({ front: true, back: true, ratsnest: true, labels: true, blocks: true });
   let dockOpen = $state('checks');
   let boardView = $state(null);
   let shapeDoc = $state(null);
@@ -310,7 +310,7 @@
         <div class="empty">Loading…</div>
       {:else if workspace === 'board'}
         <div class="toolbar">
-          {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['pins', 'Pads'], ['labels', 'Labels'], ['blocks', 'Block colours']] as [k, label]}
+          {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['labels', 'Labels'], ['blocks', 'Block colours']] as [k, label]}
             <label><input type="checkbox" bind:checked={layers[k]} /> {label}</label>
           {/each}
         </div>

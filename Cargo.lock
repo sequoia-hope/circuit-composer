@@ -70,6 +70,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "board-draw"
+version = "0.1.0"
+source = "git+https://github.com/sequoia-hope/board-draw?rev=b45cc3f689dc7b5086be9dada3dd64381a3d010e#b45cc3f689dc7b5086be9dada3dd64381a3d010e"
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -176,6 +181,7 @@ dependencies = [
 name = "composer-core"
 version = "0.1.0"
 dependencies = [
+ "board-draw",
  "floorplan",
  "js-sys",
  "serde",
@@ -295,7 +301,7 @@ dependencies = [
 [[package]]
 name = "kicad-pcb"
 version = "0.1.0"
-source = "git+https://github.com/sequoia-hope/ultraroute?rev=8c691ec359d36b83de95323e321a17ee2bf3dafe#8c691ec359d36b83de95323e321a17ee2bf3dafe"
+source = "git+https://github.com/sequoia-hope/ultraroute?rev=9114263c8d647d1959b11214e4c123b971b4e464#9114263c8d647d1959b11214e4c123b971b4e464"
 dependencies = [
  "serde",
  "serde_json",
