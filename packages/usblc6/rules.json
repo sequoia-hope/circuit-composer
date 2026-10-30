@@ -1,0 +1,359 @@
+{
+ "package": "usblc6",
+ "version": "0.1.0",
+ "note": "Claims scoped to the USBLC6-2P6 (variant USBLC6-2P6, SOT-666) as LCSC C2827693 supplies it: TECH PUBLIC's second source of ST's part. Electrical values cite TECH PUBLIC's datasheet (usblc6_tp_ds, page images without a text layer, so `figure` transcriptions rather than searchable quotes); the application and layout guidance, which that datasheet lacks, cites ST's original (usblc6_st_ds, Doc ID 11265 Rev 5) and is applied on the strength of the identical pinout and topology. Page numbers are printed pages (both equal PDF pages).",
+ "claims": [
+  {
+   "id": "usblc6.part.second_source",
+   "statement": "LCSC C2827693 is TECH PUBLIC's USBLC6-2P6, not ST's: same SOT-666 pinout (1 and 6 I/O1, 2 GND, 3 and 4 I/O2, 5 VBUS) and the same rail-to-rail topology (two steering-diode pairs to a VBUS node with a TVS to GND), but its own ratings: VRWM 5 V, Cj 0.5 pF max, clamp 14 V max at 5.5 A, +/-30 kV contact ESD, Tj -55 to +125 C.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "sourcing",
+    "pinout"
+   ],
+   "requirement": {
+    "maker": "TECH PUBLIC",
+    "original": "STMicroelectronics USBLC6-2P6 (LCSC C15999)",
+    "pins": {
+     "1": "I/O1",
+     "2": "GND",
+     "3": "I/O2",
+     "4": "I/O2",
+     "5": "VBUS",
+     "6": "I/O1"
+    }
+   },
+   "citations": [
+    {
+     "source": "usblc6_tp_ds",
+     "locator": "Dimensions and Pin Configuration p.1",
+     "figure": "Top-view pin diagram: 6 I/O1, 5 VBUS, 4 I/O2 along the top; 1 I/O1, 2 GND, 3 I/O2 along the bottom, pin-1 dot at lower left. Inside: a diode pair from each I/O node to the VBUS rail and to the GND rail, and a Zener from VBUS to GND."
+    },
+    {
+     "source": "usblc6_st_ds",
+     "locator": "Figure 1 p.1; Table 5 p.13",
+     "quote": "The USBLC6-2SC6 and USBLC6-2P6 are monolithic application specific devices dedicated to ESD protection of high speed interfaces"
+    }
+   ],
+   "status": "asserted",
+   "note": "Where the two datasheets differ, this package takes TECH PUBLIC's figures for the fitted part. ST rates the original at IEC 61000-4-2 level 4 (8 kV contact, 15 kV air), 3.5 pF max I/O-GND, 17 V max clamp at 5 A. ST's application and layout guidance is used because the second source's datasheet has none; it is a claim about ST's part, assumed to carry over to a pin-compatible clone of the same topology. ST's own C15999 is in stock (24106 at JLC on 2026-10-30) if a board wants the documented part.",
+   "enforced_by": []
+  },
+  {
+   "id": "usblc6.io.flow_through",
+   "statement": "Each protected line passes over a pin pair: the connector side enters on pin 1 (I/O1) or pin 3 (I/O2) and the device side leaves from pin 6 or pin 4, so the line runs straight across the package and the clamp sits on the line, not on a branch; both pins of a pair are on one net.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement_order",
+    "trace_length",
+    "stub"
+   ],
+   "requirement": {
+    "connector_side_pins": [
+     "1",
+     "3"
+    ],
+    "device_side_pins": [
+     "6",
+     "4"
+    ],
+    "stub_length_mm_max": 0
+   },
+   "citation": {
+    "source": "usblc6_st_ds",
+    "locator": "Figure 7 p.5; Figure 18 p.9",
+    "figure": "Figure 7 'Optimized layout': the data line comes in at pin 2/3 height from the left and leaves at pin 4/5 from the right, crossing under the package, against 'Unsuitable layout' where the track reaches pin 5 by a long branch. Figure 18 'USBLC6-2 PCB layout considerations': D+in on pin 1 and D+out from pin 6, D-in on pin 3 and D-out from pin 4, each a straight track across the package; VBUS from pin 5 to CBUS = 100nF."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "interface.esd.no_stub_to_tvs"
+    },
+    {
+     "supports": "signal.usb2.no_stubs_testpoints"
+    },
+    {
+     "supports": "signal.usb2.esd_at_connector"
+    }
+   ],
+   "note": "The bolt has J1's D+ pins, U5.1 and U5.6 and R6.1 on USB_C_DP (and D- on U5.3, U5.4, R7.1), which allows this order; whether the routed board keeps it (J1 -> pin 1 -> pin 6 -> R6, no T at the connector) is a layout question. ST's PSpice model (Figure 16 p.9) draws D+in and D+out as one node with LI/O 750 pH on each side.",
+   "enforced_by": [],
+   "could_enforce": "Net-topology check: on the routed DP and DM nets, U1.1 (U1.3) lies between the connector pad and U1.6 (U1.4), and U1.6 (U1.4) between U1.1 (U1.3) and every device-side pad."
+  },
+  {
+   "id": "usblc6.vbus.cbus",
+   "statement": "The VBUS pin is bypassed to GND by CBUS = 100 nF placed at the pin.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "CBUS"
+   },
+   "attributes": [
+    "capacitance",
+    "placement"
+   ],
+   "requirement": {
+    "capacitance_nf": 100
+   },
+   "checks": [
+    {
+     "part": "CBUS",
+     "quantity": "capacitance",
+     "min": 1e-07
+    }
+   ],
+   "citations": [
+    {
+     "source": "usblc6_st_ds",
+     "locator": "Figure 18 p.9",
+     "figure": "Figure 18 'USBLC6-2 PCB layout considerations': a capacitor labelled 'CBUS = 100nF' on the VBUS track immediately beside pin 5, its other end to the GND track."
+    },
+    {
+     "source": "usblc6_st_ds",
+     "locator": "Figure 15 p.8",
+     "figure": "Figure 15 T1/E1/Ethernet protection: each USBLC6-2SC6's VBUS pin to +VCC with a 100nF capacitor."
+    }
+   ],
+   "status": "asserted",
+   "note": "Only in figures; no ST sentence states it, and TECH PUBLIC's datasheet shows no application circuit at all. The capacitor gives the steering diodes a low-impedance high rail for a positive strike, so the strike is not left to the internal TVS through the VBUS track's inductance. The bolt fits it (C28, 100 nF X7R 0402, C1525). No voltage or dielectric is given; the 16 V part has ample margin over 5 V.",
+   "enforced_by": [
+    "ccomp check package (CBUS capacitance)"
+   ]
+  },
+  {
+   "id": "usblc6.layout.short_tracks",
+   "statement": "The tracks from the data lines to the I/O pins, from the supply to the VBUS pin, and from the ground plane to the GND pin are as short as possible: their inductance adds L x dI/dt to the clamping voltage.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "trace_length",
+    "inductance",
+    "return_path"
+   ],
+   "requirement": {
+    "io_vbus_gnd_tracks": "shortest"
+   },
+   "citations": [
+    {
+     "source": "usblc6_st_ds",
+     "locator": "§2.3 p.5",
+     "quote": "the track from data lines to I/O pins, from VCC to VBUS pin and from GND plane to GND pin must be as short as possible"
+    },
+    {
+     "source": "usblc6_st_ds",
+     "locator": "§2.3 p.5",
+     "quote": "While the USBLC6-2 provides high immunity to ESD surge, efficient protection depends on the layout of the board."
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "interface.esd.tvs_ground"
+    },
+    {
+     "supports": "interface.esd.no_stub_to_tvs"
+    },
+    {
+     "refines": "interface.protection.two_vias"
+    }
+   ],
+   "enforced_by": [
+    "verifier decoupling_path_mm (GND pad to nearest ground via), as for interface.esd.tvs_ground"
+   ]
+  },
+  {
+   "id": "usblc6.layout.parasitic_inductance",
+   "statement": "Layout inductance dominates the clamp: ST's worked example of 10 mm x 0.5 mm tracks (about 6 nH each) on the I/O and GND paths adds 144 V each at an 8 kV contact strike (24 A in 1 ns), taking the positive clamp from 31.2 V to 319.2 V.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "inductance",
+    "clamping_voltage"
+   ],
+   "requirement": {
+    "example_track_mm": [
+     10,
+     0.5
+    ],
+    "example_inductance_nh": 6,
+    "example_di_dt_a_per_ns": 24,
+    "example_vcl_v_ideal": 31.2,
+    "example_vcl_v_with_tracks": 319.2
+   },
+   "citation": {
+    "source": "usblc6_st_ds",
+    "locator": "§2.1-2.2 pp.4-5; Figure 6 p.5",
+    "quote": "By taking into account the effect of these parasitic inductances due to unsuitable layout, the clamping voltage will be:"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "interface.esd.tvs_ground"
+    }
+   ],
+   "note": "The 31.2 V comes from ST's own diode model (Rd 0.5 ohm, VT 1.1 V, VBR 6.1 V) at Ip = 8 kV / 330 ohm = 24 A; it is not a TECH PUBLIC figure. 6 nH x 24 A/ns = 144 V, the same order as interface.esd.tvs_ground's 0.25 nH -> 10 V at 40 A/ns: about 0.6 mm of track per 6 V at this rise time.",
+   "enforced_by": []
+  },
+  {
+   "id": "usblc6.layout.near_connector",
+   "statement": "The protector goes as close as possible to the disturbance source, generally the connector.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement",
+    "part_distance"
+   ],
+   "citation": {
+    "source": "usblc6_st_ds",
+    "locator": "§2.3 'Important' p.6",
+    "quote": "A good precaution to take is to put the protection device as close as possible to the disturbance source (generally the connector)."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "interface.esd.tvs_near_connector"
+    },
+    {
+     "supports": "signal.usb2.esd_at_connector"
+    }
+   ],
+   "note": "The bolt places U5 'where its USB pins are nearest J1's' (boards/bolt-earring/README.md), with a reserved escape via for pin 5, which sits between the pair's pins. That via is on VBUS, not on a protected line, so it does not break interface.esd.no_via_before_tvs.",
+   "enforced_by": [
+    "verifier part_distance_mm (connector pad to TVS pad), as for interface.esd.tvs_near_connector"
+   ]
+  },
+  {
+   "id": "usblc6.clamp.ratings",
+   "statement": "The fitted TECH PUBLIC part clamps any I/O at 10 V max at 1 A and 14 V max (11 V typ) at 5.5 A, 8/20 us; peak pulse 80 W / 5.5 A (8/20 us); IEC 61000-4-2 +/-30 kV air and contact; Tj -55 to +125 C, with peak power derated linearly from 100 % at 25 C to about 20 % at 125 C.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "clamping_voltage",
+    "peak_pulse_current",
+    "esd_rating"
+   ],
+   "requirement": {
+    "vcl_v_max_at_1a": 10,
+    "vcl_v_max_at_5a5": 14,
+    "vcl_v_typ_at_5a5": 11,
+    "ipp_a_8_20us": 5.5,
+    "ppk_w_8_20us": 80,
+    "vesd_kv_contact": 30,
+    "vesd_kv_air": 30,
+    "tj_c": [
+     -55,
+     125
+    ]
+   },
+   "citations": [
+    {
+     "source": "usblc6_tp_ds",
+     "locator": "Absolute Maximum Ratings p.2; Electrical Characteristics p.2",
+     "figure": "Absolute Maximum Ratings (Tamb=25 C): Peak Pulse Power (8/20us) Ppk 80 W; Peak Pulse Current (8/20us) Ipp 5.5 A; ESD per IEC 61000-4-2 (Air) / (Contact) VESD +/-30 / +/-30 kV; Operating Temperature Range TJ -55 to +125 C; Storage -55 to +150 C. Electrical Characteristics: Clamping Voltage VC max 10 V at IPP = 1A (8 x 20us pulse); Clamping Voltage VC typ 11, max 14 V at IPP = 5.5A (8 x 20us pulse)."
+    },
+    {
+     "source": "usblc6_tp_ds",
+     "locator": "Fig3 p.3",
+     "figure": "Fig3 Power Derating Curve: % of rated power 100 % from 0 to 25 C ambient, falling linearly to about 20 % at 125 C, then to 0."
+    }
+   ],
+   "status": "asserted",
+   "note": "TECH PUBLIC does not say between which pins VC is measured; ST's equivalent (12 V at 1 A, 17 V at 5 A) is 'Any I/O pin to GND' (Table 2 p.2). The +/-30 kV is TECH PUBLIC's claim, double ST's 15 kV air / 8 kV contact for the original. These are 8/20 us surge figures; an IEC ESD strike is 30 A in about 1 ns, where the layout's inductance (usblc6.layout.parasitic_inductance) decides the residual. Neither datasheet gives a residual voltage that the protected USB PHY can be checked against; on the bolt the 27 ohm series resistors (R6, R7) and the RP2350's own pad protection take the remainder.",
+   "enforced_by": []
+  },
+  {
+   "id": "usblc6.io.capacitance",
+   "statement": "The protected lines see very little capacitance: TECH PUBLIC gives Cj 0.35 pF typ, 0.5 pF max I/O to I/O at 0 V, 1 MHz; ST gives 2.5 pF typ, 3.5 pF max I/O to GND and 1.2/1.7 pF I/O to I/O at 1.65 V, matched to 0.015 pF between lines, fit for USB 2.0 up to 480 Mb/s.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "capacitance",
+    "signal_integrity"
+   ],
+   "requirement": {
+    "cj_pf_io_io_max_tp": 0.5,
+    "cj_pf_io_io_typ_tp": 0.35,
+    "c_pf_io_gnd_max_st": 3.5,
+    "delta_c_pf_io_gnd_st": 0.015
+   },
+   "citations": [
+    {
+     "source": "usblc6_tp_ds",
+     "locator": "Electrical Characteristics p.2",
+     "figure": "Junction Capacitance CJ typ 0.35, max 0.5 pF, VR = 0V, f = 1MHz IO to IO."
+    },
+    {
+     "source": "usblc6_st_ds",
+     "locator": "Features p.1; Table 2 p.2",
+     "quote": "Very low capacitance: 3.5 pF max."
+    }
+   ],
+   "status": "contested",
+   "note": "Contested between the two makers' datasheets, not with the bolt: TECH PUBLIC states only an I/O-to-I/O figure, seven times below ST's I/O-to-I/O 1.7 pF max for what it presents as the same part, and no I/O-to-GND figure. For a loading budget take ST's 3.5 pF I/O-to-GND as the bound until the clone is measured. Either is negligible for the bolt's full-speed (12 Mb/s) RP2350 USB.",
+   "enforced_by": []
+  },
+  {
+   "id": "usblc6.vbus.working_voltage",
+   "statement": "The fitted part's VBUS rating is VRWM 5 V max with IR 0.08 uA max at 5 V and VBR 6 V min at 1 mA; ST's original specifies its 150 nA leakage at VRM = 5.25 V, the USB maximum.",
+   "scope": {
+    "chip": "USBLC6-2P6",
+    "block": "usb_esd",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage",
+    "leakage"
+   ],
+   "requirement": {
+    "vrwm_v_max_tp": 5.0,
+    "ir_ua_max_at_5v_tp": 0.08,
+    "vbr_v_min": 6.0,
+    "vrm_v_st": 5.25,
+    "irm_na_max_at_5v25_st": 150
+   },
+   "citations": [
+    {
+     "source": "usblc6_tp_ds",
+     "locator": "Electrical Characteristics p.2",
+     "figure": "Reverse Working Voltage VRWM max 5 V; Breakdown Voltage VBR min 6 V at IT = 1mA; Reverse Leakage Current IR max 0.08 uA at VRWM = 5V."
+    },
+    {
+     "source": "usblc6_st_ds",
+     "locator": "Table 2 p.2; Table 6 p.13",
+     "quote": "Updated leakage current for VRM = 5.25 V as specified in USB"
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "interface.supply.tvs_selection"
+    }
+   ],
+   "note": "interface.supply.tvs_selection asks VRWM >= the line's maximum operating voltage. USB VBUS may sit at up to 5.25 V (ST tests at that), 0.25 V over the TECH PUBLIC part's stated 5 V VRWM; with VBR >= 6 V the part is still well short of conduction there, but its leakage at 5.25 V is not specified. ST's C15999 is the part rated for it. A VBUS source above 6 V (a faulty or PD-negotiated supply) puts the internal TVS into conduction.",
+   "enforced_by": []
+  }
+ ]
+}

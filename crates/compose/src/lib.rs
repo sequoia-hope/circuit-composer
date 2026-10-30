@@ -9,7 +9,9 @@
 //!
 //! Two departures from a package are allowed, and reported: a board net may name an internal
 //! net (`mcu.DVDD`, a test point on the core supply) as a tap; and an instance may join internal
-//! nets that an omitted link part separated (`join: [["QSPI_SS", "FLASH_SS"]]`).
+//! nets that an omitted link part separated (`join: [["QSPI_SS", "FLASH_SS"]]`); and a board net
+//! may name a part's pin the package leaves unconnected (`mcu.FLASH.9`, the exposed pad of a
+//! flash fitted in another footprint).
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -157,6 +159,9 @@ pub struct Composed {
     pub taps: BTreeMap<String, String>,
     /// Internal nets an instance joins, as `INSTANCE.NET` → the net they became.
     pub joined: BTreeMap<String, String>,
+    /// Pins of an instance's parts its circuit leaves off every net, put on a board net
+    /// (`mcu.FLASH.9` → `GND`).
+    pub added_pins: BTreeMap<String, String>,
     pub bindings: BTreeMap<String, Binding>,
     pub errors: Vec<String>,
 }
@@ -354,6 +359,20 @@ pub fn compose_with(c: &Composition, circuits: &BTreeMap<String, Circuit>) -> Co
                 continue;
             };
             if let Some(circ) = circuits.get(head) {
+                // `mcu.FLASH.9`: a pin of one of the instance's parts that its circuit leaves
+                // off every net, such as an exposed pad a footprint change brought.
+                if let Some((role, pinno)) = tail.split_once('.') {
+                    let inside = circ.nets.values().chain(circ.ports.values().map(|p| &p.pins)).flatten().any(|p| p == tail);
+                    match pin(head, tail) {
+                        _ if inside => out.errors.push(format!("{net}: {e} is already on one of {head}'s nets; name its port")),
+                        Some(bp) => {
+                            out.added_pins.insert(e.clone(), net.clone());
+                            ps.push(bp);
+                        }
+                        None => out.errors.push(format!("{net}: {head} has no part {role} (for pin {pinno})")),
+                    }
+                    continue;
+                }
                 match circ.ports.get(tail) {
                     Some(port) => {
                         if !used_ports.insert((head.to_string(), tail.to_string())) {
@@ -534,6 +553,18 @@ mod tests {
         assert_eq!(r.taps["a.PIN"], "TP");
         assert_eq!(r.joined["a.SEL"], "/a/PIN");
         assert_eq!(r.nets["/b/PIN"], ["R2.2", "U2.2"]);
+    }
+
+    #[test]
+    fn a_pin_the_package_leaves_open() {
+        let c = comp(json!({ "GND": ["a.GND", "b.GND", "a.U1.9"], "+3V3": ["a.VDD", "b.VDD"] }));
+        let r = compose_with(&c, &circuits());
+        assert!(r.ok, "{:?}", r.errors);
+        assert!(r.nets["GND"].contains(&"U1.9".to_string()));
+        assert_eq!(r.added_pins["a.U1.9"], "GND");
+        // A pin already on a net is named by its port, not this way.
+        let c = comp(json!({ "GND": ["a.GND", "b.GND", "a.U1.1"], "+3V3": ["a.VDD", "b.VDD"] }));
+        assert!(compose_with(&c, &circuits()).errors.iter().any(|e| e.contains("already on one of a's nets")));
     }
 
     #[test]

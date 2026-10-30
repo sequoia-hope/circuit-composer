@@ -1,0 +1,338 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. LGA-14L numbering from DocID030071 Rev 3 Table 2 (p.20) and Figure 1 (p.18). The KiCad symbol Sensor_Motion:LSM6DS3 has the same 14 numbers and functions (checked pin by pin in KiCad 9 and 10); its names differ only in case (SDX, SCX for SDx, SCx).",
+ "functions": {
+  "I2C_SDA": {
+   "kind": "i2c",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "protocol": "i2c",
+   "note": "I2C serial data (SDA); SPI SDI / 3-wire SDO when CS is low. Input without pull-up (Table 18 p.48): needs an external pull-up to Vdd_IO (§6.3 p.39). Standard or fast mode, 400 kHz max (Table 7 p.27)",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; Table 18 p.48; §6.3 p.39"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pad's maximum drive (Table 4 note 2); control pins take up to Vdd_IO + 0.3 V (Table 9, which prints the lower limit as '0.3', read as -0.3 V)",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29"
+    }
+   }
+  },
+  "I2C_SCL": {
+   "kind": "i2c",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "protocol": "i2c",
+   "note": "I2C serial clock (SCL); SPI SPC when CS is low. Input without pull-up (Table 18 p.48); needs an external pull-up to Vdd_IO",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; Table 18 p.48; §6.3 p.39"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pad's maximum drive (Table 4 note 2); control pins take up to Vdd_IO + 0.3 V (Table 9, which prints the lower limit as '0.3', read as -0.3 V)",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29"
+    }
+   }
+  },
+  "SA0": {
+   "kind": "strap",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "I2C address LSb (SA0) in I2C mode, SPI SDO otherwise. Input without pull-up by default (pull-up only with SIM = 1, Table 18 p.47): tie to GND (address 0x6A, 1101010b) or to the supply (0x6B, 1101011b), §6.3.1 p.39",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; §6.3.1 p.39; Table 18 p.47"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pad's maximum drive (Table 4 note 2); control pins take up to Vdd_IO + 0.3 V (Table 9, which prints the lower limit as '0.3', read as -0.3 V)",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29"
+    }
+   }
+  },
+  "CS": {
+   "kind": "mode_select",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "1: SPI idle / I2C enabled; 0: SPI, I2C disabled. Tie to Vdd_IO for I2C (§6.1 p.38). Input with pull-up by default (disabled by I2C_disable = 1, Table 18 p.47), but the datasheet still asks for it tied high",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; §6.1 p.38; Table 18 p.47"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pad's maximum drive (Table 4 note 2); control pins take up to Vdd_IO + 0.3 V (Table 9, which prints the lower limit as '0.3', read as -0.3 V)",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29"
+    }
+   }
+  },
+  "INT": {
+   "kind": "interrupt_out",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "Programmable interrupt outputs, push-pull and active high by default (CTRL3_C PP_OD = 0, H_LACTIVE = 0, §9.15 p.63); open drain or active low by register. Default pin state: output forced to ground (Table 18 p.47). Unlike the LSM6DSO there is no I3C and no power-on strap on INT1. INT2 is also the DEN input (Table 2 p.20)",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; Table 18 p.47; §9.15 p.63"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pad's maximum drive (Table 4 note 2); control pins take up to Vdd_IO + 0.3 V (Table 9, which prints the lower limit as '0.3', read as -0.3 V)",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29"
+    }
+   }
+  },
+  "AUX_MASTER": {
+   "kind": "aux_bus",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "SDx/SCx: I2C master (MSDA/MSCL) in Mode 2. In Mode 1 (unused): connect to VDDIO or GND (Table 2 p.20). Input without pull-up by default (PULL_UP_EN in 1Ah enables one, Table 18 p.47), so the pin must be tied",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; Table 18 p.47"
+   },
+   "levels": {
+    "vih": "0.7 * supply",
+    "vil": "0.3 * supply",
+    "voh": "supply - 0.2",
+    "vol": "0.2",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VDDIO. VOH and VOL at 4 mA, the pad's maximum drive (Table 4 note 2); control pins take up to Vdd_IO + 0.3 V (Table 9, which prints the lower limit as '0.3', read as -0.3 V)",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29"
+    }
+   }
+  },
+  "NC": {
+   "kind": "nc",
+   "class": "SIGNAL",
+   "supply": "VDDIO",
+   "note": "Pins 10, 11: 'Leave unconnected', electrically unconnected but soldered to the PCB (Table 2 note 2, p.20). Input with internal 30-50 kohm pull-up by default, which a register sequence can disable (Table 18 pp.47-48). (The LSM6DSM/LSM6DSO have OCS_Aux/SDO_Aux here; this part does not)",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; Table 18 pp.47-48"
+   }
+  },
+  "VDD": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    1.71,
+    3.6
+   ],
+   "note": "Core supply, 1.71-3.6 V (1.8 V typ); absolute max -0.3 to 4.8 V. 100 nF ceramic as near the pin as possible (C1 in Figure 15)",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§4.2 Table 4 p.24; §4.5 Table 9 p.29; §7.1 p.45"
+   }
+  },
+  "VDDIO": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    1.62,
+    3.6
+   ],
+   "note": "I/O supply, 1.62 V to Vdd + 0.1 V (so at most 3.6 + 0.1, and never more than 0.1 V above VDD); sets the logic levels (VIH 0.7*Vdd_IO, VIL 0.3*Vdd_IO) and the pull-up rail. 100 nF ceramic as near the pin as possible (C2 in Figure 15). nominal_v's 3.6 is VDD's maximum, the bound when VDDIO shares VDD's rail",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§4.2 Table 4 p.24; §7.1 p.45"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "0 V supply, pins 6 and 7; both are soldered",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20"
+   }
+  }
+ },
+ "variants": {
+  "LSM6DS3TR-C": {
+   "package": "LGA-14L 2.5x3.0x0.86 mm",
+   "pins": {
+    "1": {
+     "name": "SDO/SA0",
+     "function": "SA0"
+    },
+    "2": {
+     "name": "SDx",
+     "function": "AUX_MASTER"
+    },
+    "3": {
+     "name": "SCx",
+     "function": "AUX_MASTER"
+    },
+    "4": {
+     "name": "INT1",
+     "function": "INT"
+    },
+    "5": {
+     "name": "VDDIO",
+     "function": "VDDIO"
+    },
+    "6": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "7": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "8": {
+     "name": "VDD",
+     "function": "VDD"
+    },
+    "9": {
+     "name": "INT2",
+     "function": "INT"
+    },
+    "10": {
+     "name": "NC",
+     "function": "NC"
+    },
+    "11": {
+     "name": "NC",
+     "function": "NC"
+    },
+    "12": {
+     "name": "CS",
+     "function": "CS"
+    },
+    "13": {
+     "name": "SCL",
+     "function": "I2C_SCL"
+    },
+    "14": {
+     "name": "SDA",
+     "function": "I2C_SDA"
+    }
+   },
+   "source": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3 Figure 1 p.18; §3.1 Table 2 p.20"
+   }
+  }
+ },
+ "interfaces": {
+  "i2c": {
+   "type": "i2c",
+   "roles": [
+    "target"
+   ],
+   "pins": {
+    "SDA": "SDA",
+    "SCL": "SCL"
+   },
+   "max_khz": 400,
+   "addresses": {
+    "0x6A": "SA0 to GND",
+    "0x6B": "SA0 to VDDIO"
+   },
+   "requires": "CS tied to VDDIO",
+   "excludes": [
+    "spi"
+   ],
+   "note": "No internal pull-ups on SDA and SCL: the bus needs them, to Vdd_IO. Slave address 110101xb, x = SA0",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§6.1 p.38; §6.3 p.39; §6.3.1 p.39; Table 7 p.27; Table 18 p.48"
+   }
+  },
+  "spi": {
+   "type": "spi",
+   "roles": [
+    "target"
+   ],
+   "pins": {
+    "SCK": "SCL",
+    "SDI": "SDA",
+    "SDO": "SDO/SA0",
+    "CS": "CS"
+   },
+   "excludes": [
+    "i2c"
+   ],
+   "note": "4-wire SPI (10 MHz max, Table 6 p.26) when CS is low: SPC on SCL, SDI on SDA, SDO on SDO/SA0. Not available in this package's circuit, which ties CS to VDDIO for I2C",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; §6.1 Table 10 p.38; Table 6 p.26"
+   }
+  },
+  "int1": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "push_pull",
+   "pins": {
+    "IO": "INT1"
+   },
+   "note": "Push-pull and active high by default (open drain or active low by CTRL3_C). Forced to ground by default",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "Table 18 p.47; §9.15 p.63"
+   }
+  },
+  "int2": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "push_pull",
+   "pins": {
+    "IO": "INT2"
+   },
+   "note": "Push-pull and active high by default; forced to ground by default. Also the DEN input. May be left unconnected",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; Table 18 p.47; §9.15 p.63"
+   }
+  },
+  "aux": {
+   "type": "i2c",
+   "roles": [
+    "controller"
+   ],
+   "pins": {
+    "SDA": "SDx",
+    "SCL": "SCx"
+   },
+   "note": "Sensor hub (Mode 2): an I2C master for external sensors, fast mode only. Unused (Mode 1): SDx and SCx to VDDIO or GND",
+   "citation": {
+    "source": "lsm6ds3trc_ds",
+    "locator": "§3.1 Table 2 p.20; §4.4.2.2 p.28; §6.2 p.38"
+   }
+  }
+ }
+}

@@ -1,0 +1,28 @@
+{
+  "usblc6_tp_ds": {
+    "title": "USBLC6-2P6 Low Capacitance TVS Diode Array",
+    "publisher": "TECH PUBLIC (台舟电子)",
+    "doc": "USBLC6-2P6 (LCSC C2827693)",
+    "kind": "datasheet",
+    "revision": "no revision or date printed; PDF created 2021-08-04",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/03c1f0ea4631e836945430fdbbffbd28.pdf?productCode=C2827693",
+    "sha256": "e14ebccd48607acbacbbf74a3efd668fcf10bce82abaf5865114f59bdc6b6fef",
+    "bytes": 1938585,
+    "retrieved": "2026-10-30",
+    "note": "The datasheet of the part LCSC C2827693 actually is: TECH PUBLIC's second source of ST's USBLC6-2P6, not ST's. 4 pages; printed page numbers equal PDF pages. The PDF is page images with no text layer (pdftotext returns nothing), so its values were read from a 110 dpi rendering and claims cite it with `figure` transcriptions, not searchable quotes. It covers ratings, electrical characteristics, the pin diagram, derating and the SOT-666 outline and land pattern; it has no application circuit and no layout guidance."
+  },
+  "usblc6_st_ds": {
+    "title": "USBLC6-2 Very low capacitance ESD protection",
+    "publisher": "STMicroelectronics",
+    "doc": "Doc ID 11265",
+    "kind": "datasheet",
+    "revision": "Doc ID 11265 Rev 5 (October 2011)",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/0d3a2ab954b34651a0695e7ccf534db0.pdf?productCode=C15999",
+    "where": "The copy read and hashed is LCSC's datasheet link for C15999 (ST's own USBLC6-2P6); st.com (vendor_url) timed out. The same file (same sha256) is easy_pcb's examples/easy2350/design/datasheets/usblc6-2.pdf.",
+    "sha256": "8ba7ab4ec1781b7f6052f5999a2304bd611c0ed2b5e8f36ffa5092552932a42e",
+    "bytes": 224255,
+    "retrieved": "2026-10-30",
+    "note": "The original part's datasheet, read for what the second source's datasheet lacks: the application (CBUS on VBUS, Figure 18) and the layout guidance (§2.2-2.3). ST has published later revisions; the hash is of Rev 5, which is what was read. Page numbers are the printed 'n/14', equal to PDF pages.",
+    "vendor_url": "https://www.st.com/resource/en/datasheet/usblc6-2.pdf"
+  }
+}

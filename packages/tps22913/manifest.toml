@@ -1,0 +1,53 @@
+# Circuit Composer package: Texas Instruments TPS22913B, 2 A load switch with controlled turn-on.
+#
+# 0.1.0: the switch as the bolt earring uses it (U4/U9/U10, one per LED zone): VIN from VSYS,
+# a 10 uF output capacitor beside VOUT, and a 10 kOhm pull-down on ON so the zone is off until
+# the MCU drives it. Pin table with ON's logic levels (ports.json), cited rules (rules.json) on
+# input/output capacitance, inrush, ON, output discharge, reverse current, layout. No layout.
+
+[package]
+name = "tps22913"
+version = "0.1.0"
+family = "TPS2291xx"
+license = "MIT"
+summary = "TPS22913B 2 A load switch (DSBGA-4): bolt earring LED-zone switch with ON pull-down and 10 uF output cap, ports, ON logic levels, cited rules"
+
+[[variants]]
+name = "TPS22913BYZVR"
+package = "DSBGA-4 (YZV), 0.9 x 0.9 mm, 0.5 mm pitch"
+footprint = "Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm"
+symbol = "Power_Management:AP22913CN4"
+rise_time_us_typ_3v3 = 66
+quick_output_discharge = true
+# The B and C variants both have quick output discharge (150 ohm); they differ in rise time,
+# 66 us (B) against 660 us (C) typical at 3.3 V (SLVSB49F Device Comparison Table, p.3). The
+# bolt's LCSC C544698 is TPS22913BYZVR. KiCad has no TPS22913 symbol; AP22913CN4 (Diodes'
+# pin-compatible part) and its WLCSP-4 0.89 mm footprint have the same balls: A1 VOUT, A2 VIN,
+# B1 GND, B2 ON (checked ball by ball against p.3).
+
+[sources]
+# Document revision this package was built from; hash in sources/sources.json.
+datasheet = "TI SLVSB49F, revised January 2015 (sha256 e4a052be…)"
+
+# LCSC parts the circuit names. Stock is JLCPCB's, from
+# ~/Software/easy_pcb/.claude/skills/pcb-design/scripts/jlc_parts.py show, on the date given.
+[[sourcing]]
+role = "U1"
+part = "TI TPS22913BYZVR, DSBGA-4"
+lcsc = "C544698"
+checked = "2026-10-30"   # extended, JLC stock 298, lifecycle normal. LOW: the bolt uses 3 a board
+# (99 boards' worth). Alternatives seen the same day: TPS22913BYZVT C2866949 (stock 106);
+# TPS22913CYZVR C353028 (4), TPS22913CYZVT C544897 (12), slower rise; TECH PUBLIC
+# TPS22913CYZVR-TP C42449037 (1758), a second-source C (660 us) part, not checked here.
+
+[[sourcing]]
+role = "COUT"
+part = "Samsung CL10A106KP8NNNC, 10 uF 10 V X5R 0603"
+lcsc = "C19702"
+checked = "2026-10-30"   # basic, stock 11848858, lifecycle normal
+
+[[sourcing]]
+role = "R_ON"
+part = "UNI-ROYAL 0402WGF1002TCE, 10 kOhm 1 % 0402"
+lcsc = "C25744"
+checked = "2026-10-30"   # basic, stock 16829075, lifecycle normal

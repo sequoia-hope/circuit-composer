@@ -1,0 +1,14 @@
+{
+  "lgs4056h_ds": {
+    "title": "LGS4056H Input High Withstand Voltage 1A Linear Lithium Battery Charger",
+    "publisher": "Legend-Si (Nanjing) Semiconductor",
+    "doc": "LGS4056H Product data sheet (as linked by LCSC for C5124109)",
+    "kind": "datasheet",
+    "revision": "Rev.C V0.4 Mar,2022 (page headers); footers read 'LGS4056H - February 2024'; PDF created 2025-07-18",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/bbfa7f8e0251bd7084cce30cbcde26dc.pdf?productCode=C5124109",
+    "sha256": "2091f3fed91bac840592ff0a96817a3be18fd06ebe567c344b4b02545776d0b7",
+    "bytes": 1357993,
+    "retrieved": "2026-10-30",
+    "note": "16 pages, English. Every page carries a printed page number in its footer equal to the PDF page. The formulas are set in a math font that pdftotext garbles (e.g. 'I_BAT = 900 / R_PROG' extracts as mangled glyphs), so they are read from a rendering of p.3 and p.7 and given in `figure`, not quoted. The revision history (p.2) describes 'version B' under Rev. C; the DFN package information was added in V0.4."
+  }
+}

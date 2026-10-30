@@ -1,0 +1,65 @@
+{
+ "note": "The USBLC6-2P6 as the bolt earring uses it (U5 and C28 there): the protector across USB D+/D- and VBUS, with ST's CBUS = 100 nF on VBUS (ST Figure 18, p.9). The part is TECH PUBLIC's USBLC6-2P6 (LCSC C2827693), a second source of ST's; its own datasheet has no application circuit, so the circuit follows ST's. Each protected line is one port on both pins of its pair: the line comes in from the connector on pin 1 (pin 3) and leaves for the device from pin 6 (pin 4), crossing the package with no stub (ST Figures 7 and 18, pp.5 and 9).",
+ "variant": "USBLC6-2P6",
+ "board": "bolt-earring",
+ "source": "usblc6_st_ds",
+ "parts": {
+  "U1": {
+   "block": "usb_esd",
+   "symbol": "Power_Protection:USBLC6-2P6",
+   "value": "USBLC6-2P6",
+   "footprint": "Package_TO_SOT_SMD:SOT-666",
+   "reference_ref": "U5",
+   "lcsc": "C2827693",
+   "mpn": "USBLC6-2P6",
+   "note": "The bolt's U5: TECH PUBLIC USBLC6-2P6, SOT-666, a second source of ST's part (ST's own is LCSC C15999). Symbol pins 1 I/O1, 2 GND, 3 I/O2, 4 I/O2, 5 VBUS, 6 I/O1 match the TECH PUBLIC pin diagram (p.1) and ST Figure 1 (p.1) pin by pin. KiCad's SOT-666 footprint pads 1-6 are the same as the bolt's own parts.pretty/SOT-666 (identical apart from UUIDs) and follow the TECH PUBLIC outline (p.4): pin 1 at the dot, 1-3 along one side, 4-6 back along the other."
+  },
+  "CBUS": {
+   "block": "usb_esd",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C28",
+   "lcsc": "C1525",
+   "mpn": "CL05B104KO5NNNC",
+   "near": "U1.5",
+   "note": "The bolt's C28, Samsung 100 nF 16 V X7R 0402. ST Figure 18 (p.9) draws 'CBUS = 100nF' from VBUS to GND right at the VBUS pin; the TECH PUBLIC datasheet shows no application circuit. The bolt's circuit only shows C28 on VBUS/GND; that it is U5's CBUS (and not a decoupler of something else on VBUS) is read from its value and nets, and the bolt's README does not say."
+  }
+ },
+ "nets": {},
+ "ports": {
+  "DP": {
+   "kind": "signal",
+   "pins": [
+    "U1.1",
+    "U1.6"
+   ],
+   "note": "Protected line I/O1, the bolt's USB_C_DP: connector D+ into pin 1, out of pin 6 toward the device's series resistor. Both pins are one line passing over the package (flow-through), so both go on the one net; route connector -> pin 1 -> across -> pin 6 -> device, with no stub to the clamp (usblc6.layout.flow_through)."
+  },
+  "DM": {
+   "kind": "signal",
+   "pins": [
+    "U1.3",
+    "U1.4"
+   ],
+   "note": "Protected line I/O2, the bolt's USB_C_DN: connector D- into pin 3, out of pin 4 toward the device. Same flow-through rule as DP."
+  },
+  "VBUS": {
+   "kind": "supply",
+   "pins": [
+    "U1.5",
+    "CBUS.1"
+   ],
+   "note": "USB VBUS from the connector. The clamp's rail: the steering diodes' high side and the internal TVS cathode. Up to 5 V working (TECH PUBLIC VRWM, p.2)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.2",
+    "CBUS.2"
+   ],
+   "note": "The clamp's return. Pin 2 to the ground plane by the shortest track and a via right at the pad (usblc6.layout.short_tracks, interface.esd.tvs_ground)."
+  }
+ },
+ "chip_pins_unconnected": []
+}

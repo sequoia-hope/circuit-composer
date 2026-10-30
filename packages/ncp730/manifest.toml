@@ -1,0 +1,48 @@
+# Circuit Composer package: onsemi NCP730, 150 mA 38 V low-Iq LDO, fixed 3.3 V with power good.
+#
+# 0.1.0: the NCP730 as the bolt earring uses it (boards/bolt-earring U3, simple_earring rev 2):
+# the datasheet's fixed-output application (Figure 3, p.2) with the bolt's 1 uF input and output
+# capacitors, EN and PG brought out as ports. Pin table and EN/PG levels (ports.json), cited
+# rules (rules.json), a KiCad symbol (kicad/). No layout yet.
+
+[package]
+name = "ncp730"
+version = "0.1.0"
+family = "NCP730"
+license = "MIT"
+summary = "NCP730 3.3 V 150 mA LDO (WDFN6 2x2, with PG) as the bolt earring uses it: circuit, ports, EN/PG levels, cited rules"
+
+[[variants]]
+name = "NCP730BMT330TBG"
+mpn = "NCP730BMT330TBG"
+package = "WDFN6 2x2, 0.65P (CASE 511BR)"
+footprint = "Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm"
+symbol = "Regulator_Linear_NCP730:NCP730BMT330TBG"
+vout_v = 3.3
+power_good = true
+# Version B (PG on pin 5), fixed 3.3 V, marking MF (p.29). Pin 2 is NC on fixed versions.
+# KiCad has no NCP730 symbol; the package carries one in kicad/ (checked pin by pin, p.1, p.3).
+
+[sources]
+# Document revision this package was built from; hash in sources/sources.json.
+datasheet = "onsemi NCP730/D Rev. 7 (December 2025) (sha256 f0854f18…)"
+
+# LCSC parts the circuit names. Stock is JLCPCB's, from
+# ~/Software/easy_pcb/.claude/skills/pcb-design/scripts/jlc_parts.py show, on the date given.
+[[sourcing]]
+role = "U1"
+part = "onsemi NCP730BMT330TBG, WDFN-6-EP 2x2"
+lcsc = "C892821"
+checked = "2026-10-30"   # extended, JLC stock 8841, lifecycle normal
+
+[[sourcing]]
+role = "CIN"
+part = "Samsung CL05A105KA5NQNC, 1 uF 25 V X5R 10 % 0402"
+lcsc = "C52923"
+checked = "2026-10-30"   # basic, JLC stock 10312583, lifecycle normal
+
+[[sourcing]]
+role = "COUT"
+part = "Samsung CL05A105KA5NQNC, 1 uF 25 V X5R 10 % 0402"
+lcsc = "C52923"
+checked = "2026-10-30"   # basic, JLC stock 10312583, lifecycle normal

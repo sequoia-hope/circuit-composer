@@ -1,0 +1,80 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. SOT-666 numbering from the TECH PUBLIC pin diagram (p.1), which matches ST's Figure 1 (p.1) pin for pin: 1 and 6 I/O1, 2 GND, 3 and 4 I/O2, 5 VBUS. The KiCad symbol Power_Protection:USBLC6-2P6 has the same numbers and names (checked pin by pin). Each I/O is one line that passes over its pin pair (flow-through), so both pins of a pair go on the same net. A passive clamp: no logic levels and no interfaces (no interface type describes a pass-through protector).",
+ "functions": {
+  "IO1": {
+   "kind": "esd_io",
+   "class": "DIFF_HS",
+   "supply": "VBUS",
+   "note": "Protected line 1 (on the bolt, USB D+). Rail-to-rail steering diodes to VBUS and GND. Cj 0.35 pF typ, 0.5 pF max I/O to I/O at 0 V (TECH PUBLIC p.2); ST gives 2.5 pF typ, 3.5 pF max I/O to GND at 1.65 V (p.2). Clamps at most 10 V at 1 A and 14 V at 5.5 A, 8/20 us (TECH PUBLIC p.2). The line enters on pin 1 and leaves on pin 6",
+   "citation": {
+    "source": "usblc6_tp_ds",
+    "locator": "Pin configuration p.1; Electrical Characteristics p.2"
+   }
+  },
+  "IO2": {
+   "kind": "esd_io",
+   "class": "DIFF_HS",
+   "supply": "VBUS",
+   "note": "Protected line 2 (on the bolt, USB D-). Same cell as IO1. The line enters on pin 3 and leaves on pin 4",
+   "citation": {
+    "source": "usblc6_tp_ds",
+    "locator": "Pin configuration p.1; Electrical Characteristics p.2"
+   }
+  },
+  "VBUS": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": 5.0,
+   "note": "The steering diodes' positive rail and the cathode of the internal TVS (Zener) to GND; connect to USB VBUS. VRWM 5 V max, VBR 6 V min at 1 mA, IR 0.08 uA max at 5 V (TECH PUBLIC p.2). ST's application bypasses it with CBUS = 100 nF (Figure 18 p.9)",
+   "citation": {
+    "source": "usblc6_tp_ds",
+    "locator": "Pin configuration p.1; Electrical Characteristics p.2"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "The clamp's return: its track to the ground plane must be as short as possible, since its inductance adds directly to the clamping voltage (ST §2.2-2.3 pp.4-5)",
+   "citation": {
+    "source": "usblc6_st_ds",
+    "locator": "§2.3 p.5"
+   }
+  }
+ },
+ "variants": {
+  "USBLC6-2P6": {
+   "package": "SOT-666",
+   "source": {
+    "source": "usblc6_tp_ds",
+    "locator": "Dimensions and Pin Configuration p.1"
+   },
+   "pins": {
+    "1": {
+     "name": "I/O1",
+     "function": "IO1"
+    },
+    "2": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "3": {
+     "name": "I/O2",
+     "function": "IO2"
+    },
+    "4": {
+     "name": "I/O2",
+     "function": "IO2"
+    },
+    "5": {
+     "name": "VBUS",
+     "function": "VBUS"
+    },
+    "6": {
+     "name": "I/O1",
+     "function": "IO1"
+    }
+   }
+  }
+ },
+ "interfaces": {}
+}

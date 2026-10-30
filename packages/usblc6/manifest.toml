@@ -1,0 +1,40 @@
+# Circuit Composer package: USBLC6-2P6 two-line USB ESD protector with VBUS clamp, SOT-666.
+#
+# 0.1.0: the part as the bolt earring uses it (U5, C28): the protector across USB D+/D- and VBUS
+# with ST's CBUS = 100 nF on VBUS (ST Figure 18). The LCSC part is TECH PUBLIC's second source
+# of ST's USBLC6-2P6; its datasheet gives the ratings, ST's gives the application and layout.
+# Pin table (ports.json) and cited rules (rules.json). No layout yet.
+
+[package]
+name = "usblc6"
+version = "0.1.0"
+family = "USBLC6-2"
+license = "MIT"
+summary = "USBLC6-2P6 2-line USB ESD protector with VBUS clamp (SOT-666, TECH PUBLIC second source): circuit with CBUS, ports, cited layout rules"
+
+[[variants]]
+name = "USBLC6-2P6"
+mpn = "USBLC6-2P6"
+package = "SOT-666"
+footprint = "Package_TO_SOT_SMD:SOT-666"
+maker = "TECH PUBLIC"
+# Second source of ST's USBLC6-2P6 (ST's own: LCSC C15999). Pin-compatible: 1/6 I/O1, 2 GND,
+# 3/4 I/O2, 5 VBUS. VRWM 5 V, Cj 0.5 pF max I/O-I/O, VC 14 V max at 5.5 A 8/20 us.
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "TECH PUBLIC USBLC6-2P6 datasheet, no revision printed, PDF of 2021-08-04 (sha256 e14ebccd…)"
+original_datasheet = "ST USBLC6-2, Doc ID 11265 Rev 5 (October 2011) (sha256 8ba7ab4e…)"
+
+# LCSC parts the circuit names. Stock from jlc_parts.py show on 2026-10-30; price not snapshotted.
+[[sourcing]]
+role = "U1"
+part = "TECH PUBLIC USBLC6-2P6, SOT-666"
+lcsc = "C2827693"
+checked = "2026-10-30"   # extended, JLC stock 45609, lifecycle normal
+
+[[sourcing]]
+role = "CBUS"
+part = "Samsung CL05B104KO5NNNC, 100 nF 16 V X7R 0402"
+lcsc = "C1525"
+checked = "2026-10-30"   # basic, JLC stock 35979481, lifecycle normal

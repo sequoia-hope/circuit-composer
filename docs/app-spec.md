@@ -482,10 +482,13 @@ Separate from the app's milestones A–F, in this order:
    - `boards/rp2350-battery/loose.json` is now four packages, three recipes and two
      connectors. Pinned, it composes pin for pin to the hand-drawn `compose.json`, except the
      LED: compose.json's green C72043 is discontinued, and the recipe fits KENTO's red KT-0603R.
-   - **What the bolt earring still needs**: packages for its own chips (the LGS4056H charger,
-     NCP730 LDO, TPS22913 load switches, USBLC6 ESD, LSM6DS3TR-C, W25Q16 flash), recipes for
-     simple_earring's power latch and button, and the app wiring the solver and recipes into
-     its Circuit view.
+   - **The bolt earring's chips** have packages, each matching the bolt's wiring of its chip
+     net for net: `lgs4056h`, `ncp730`, `tps22913`, `usblc6`, `lsm6ds3trc`. Its W25Q16 flash is
+     the RP2350 package's FLASH role with a part override; a board net may name the pad that
+     footprint adds (`mcu.FLASH.9`). Still to do: map simple_earring's MCU cluster onto the
+     RP2350 package (it differs: BOOTSEL through a MOSFET, no RUN button), recipes for its
+     power latch and button, the bolt's loose composition, and the app wiring the solver and
+     recipes into its Circuit view.
 5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
    suppliers as plug-ins.
 

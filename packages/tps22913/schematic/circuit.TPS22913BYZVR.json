@@ -1,0 +1,76 @@
+{
+ "note": "The TPS22913B as the bolt earring uses it (U4, U9, U10: one switch per LED zone, VSYS in, VLED_L/R/C out, ON from an RP2350 GPIO). The datasheet's typical application (Figure 50, p.20) is the switch with CIN, CL and a GPIO on ON; the bolt adds a 10 kOhm pull-down on ON and puts a 10 uF CL beside each switch, and has no per-switch CIN (VSYS's own capacitors serve all three switches; see tps22913.vin.cin). Parts by role; reference_ref is the bolt's left-zone instance (U4, R10, C20; U9/R33/C78 for the right zone, U10/R34/C79 for the centre). The 100 nF capacitors on each VLED rail belong to the LED chain (led_chain recipe), not to this package.",
+ "variant": "TPS22913BYZVR",
+ "board": "bolt-earring",
+ "source": "tps22913_ds",
+ "parts": {
+  "U1": {
+   "block": "load_switch",
+   "symbol": "Power_Management:AP22913CN4",
+   "value": "TPS22913B",
+   "footprint": "Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm",
+   "reference_ref": "U4",
+   "lcsc": "C544698",
+   "mpn": "TPS22913BYZVR",
+   "note": "TPS22913B: 66 us typical rise at 3.3 V, quick output discharge, active-high ON (Device Comparison Table p.3). KiCad has no TPS22913 symbol; Power_Management:AP22913CN4 (Diodes' pin-compatible part) has balls A1 OUT, A2 IN, B1 GND, B2 ON, the same as SLVSB49F Table 1 / Pin Functions (p.3: A1 VOUT, A2 VIN, B1 GND, B2 ON), checked ball by ball. Its footprint Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm has pads A1/A2/B1/B2 at (-0.25,-0.25)/(0.25,-0.25)/(-0.25,0.25)/(0.25,0.25) mm, 0.235 mm round: the same positions as the bolt's own YZV0004ADAD footprint (0.23 mm pads) and TI's 0.5 mm-pitch, 0.20-0.25 mm ball drawing (4206083/C, PDF p.36)."
+  },
+  "COUT": {
+   "block": "load_switch",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C20",
+   "lcsc": "C19702",
+   "mpn": "CL10A106KP8NNNC",
+   "near": "U1.A1",
+   "note": "Figure 50 'CL'. Optional in the datasheet (§11.1.4 p.20; its design example uses 0.1-1 uF, §11.2.1 p.21); the bolt puts 10 uF 10 V X5R 0603 beside each switch as the zone rail's bulk (bolt C20/C78/C79, added with the switch in simple_earring's circuit.py). It sets the inrush (tps22913.inrush.current: about 0.5 A peak at nominal capacitance with the zone's 100 nF bypasses) and is larger than the shared VSYS capacitance feeding it, against the CIN > CL recommendation (tps22913.cap.ratio, contested)."
+  },
+  "R_ON": {
+   "block": "load_switch",
+   "symbol": "Device:R",
+   "value": "10k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R10",
+   "lcsc": "C25744",
+   "mpn": "0402WGF1002TCE",
+   "near": "U1.B2",
+   "note": "Not in Figure 50. ON must not float (§7 p.3, §11.1.2 p.20): this pull-down holds it low, so the zone is off (VOUT discharged to GND, Table 2 p.19) while the RP2350 is unpowered or booting, before firmware drives the GPIO (tps22913.on.boot_off). With ON leakage at its 1 uA maximum (p.5) it sits at 10 mV, far under VIL 0.4 V; a 3.3 V GPIO driving it high spends 0.33 mA."
+  }
+ },
+ "nets": {},
+ "ports": {
+  "VIN": {
+   "kind": "supply",
+   "pins": [
+    "U1.A2"
+   ],
+   "note": "Switch input, 1.4-5.5 V (p.4). On the bolt: VSYS (cell 3.0-4.2 V through the path FET, or VBUS less a diode, up to about 4.95 V). The datasheet asks a ceramic bypass of 1 uF or more close to VIN (§8.3 p.4, §11.1.3 p.20); this package has none and the board's VIN net must provide it (tps22913.vin.cin)."
+  },
+  "VOUT": {
+   "kind": "supply",
+   "pins": [
+    "U1.A1",
+    "COUT.1"
+   ],
+   "note": "Switched output to one LED zone (bolt VLED_L, VLED_R, VLED_C). Follows VIN less ILOAD x rON (110 mOhm max over temperature, p.5); pulled to GND through about 150 ohm when ON is low (TPS22913B/C quick output discharge)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.B1",
+    "COUT.2",
+    "R_ON.2"
+   ],
+   "note": "Ground, ball B1. The layout example (§13.2 p.30) ties the VOUT capacitor's ground and the GND ball together directly."
+  },
+  "ON": {
+   "kind": "signal",
+   "pins": [
+    "U1.B2",
+    "R_ON.1"
+   ],
+   "note": "Enable from a host GPIO, active high (bolt LED_EN_L/R/C on RP2350 GPIO). VIH 1.1 V, VIL 0.4 V (p.4): 1.8 V or 3.3 V logic. Pulled to GND inside the package, so leaving it undriven means off."
+  }
+ },
+ "chip_pins_unconnected": []
+}

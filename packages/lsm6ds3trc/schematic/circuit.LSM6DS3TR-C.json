@@ -1,0 +1,123 @@
+{
+ "note": "The LSM6DS3TR-C as the bolt earring (simple_earring rev 2, U6) uses it: the datasheet's Mode 1 connection (DocID030071 Rev 3, §7.1 Figure 15, p.45) in I2C mode. CS tied to VDDIO for I2C (§6.1 p.38), SDO/SA0 to GND for address 0x6A (§6.3.1 p.39), SDx/SCx (aux master, unused) to VDDIO, INT1 out, INT2 a port the bolt leaves open, NC pins 10 and 11 unconnected but soldered (Table 2 note 2, p.20), C1/C2 100 nF on VDD and VDDIO, pull-ups on SDA and SCL. VDDIO shares the 3.3 V rail with VDD: Table 4 (p.24) allows Vdd_IO up to Vdd + 0.1 V, which one rail always meets, and the host (RP2350 IOVDD) is at 3.3 V too. Parts by role with the bolt's values and LCSC numbers; `reference_ref` is the figure's label (C1, C2; the figure's two Rpu are not numbered, so R1/R2 are conventional). The bolt's own references: U6, C23 (VDD), C24 (VDDIO), R14 (SDA), R15 (SCL). R_SDA_PU and R_SCL_PU are optional: a board that has its own pull-ups on the bus omits both (instance omit).",
+ "variant": "LSM6DS3TR-C",
+ "board": "bolt-earring",
+ "source": "lsm6ds3trc_ds",
+ "parts": {
+  "U1": {
+   "block": "imu",
+   "symbol": "Sensor_Motion:LSM6DS3",
+   "value": "LSM6DS3TR-C",
+   "footprint": "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y",
+   "reference_ref": "U1",
+   "lcsc": "C967633",
+   "mpn": "LSM6DS3TR-C",
+   "note": "KiCad has no LSM6DS3TR-C symbol. Sensor_Motion:LSM6DS3 matches DocID030071 Table 2 (p.20) pin by pin, in KiCad 9 and 10: 1 SDO/SA0, 2 SDx, 3 SCx, 4 INT1, 5 VDDIO, 6 GND, 7 GND, 8 VDD, 9 INT2, 10 NC, 11 NC, 12 CS, 13 SCL, 14 SDA; only the case of SDX/SCX differs, and its pins 10 and 11 are no-connect pins, as on this part. (Sensor_Motion:LSM6DSM was not used: its pins 10 and 11 are OCS_Aux/SDO_Aux, which this part does not have.) Footprint checked against Figure 17 (p.111): 14 pads 0.475 x 0.25 mm at 0.5 mm pitch, 0.1 mm in from the 2.5 x 3.0 mm package edge, so pad centres at x +/-1.1625 and y +/-0.9125, as the KiCad pads are; numbering and the pin-1 corner match Figure 1 (p.18). KiCad's land is 0.625 x 0.35 mm against TN1383's 0.575 x 0.35 (pad + 0.1 mm), see lsm6ds3trc.land.pattern. The bolt itself uses EasyEDA's LGA-14_L3.0-W2.5-P0.50-TL (0.675 x 0.28 mm lands at x +/-1.26, y +/-1.01, same numbering)."
+  },
+  "C_VDD": {
+   "block": "imu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C1",
+   "lcsc": "C1525",
+   "mpn": "CL05B104KO5NNNC",
+   "near": "U1.8",
+   "note": "Figure 15 'C1 100 nF' on VDD (pin 8): 100 nF ceramic as near as possible to the supply pin (§7.1 p.45; Table 2 note 1 p.20). The bolt's C23 ('IMU VDD decap'), Samsung X7R 16 V 0402."
+  },
+  "C_VDDIO": {
+   "block": "imu",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C2",
+   "lcsc": "C1525",
+   "mpn": "CL05B104KO5NNNC",
+   "near": "U1.5",
+   "note": "Figure 15 'C2 100 nF' on VDDIO (pin 5), as near as possible to it (§7.1 p.45). The bolt's C24 ('IMU VDDIO decap'). VDDIO shares the 3.3 V rail with VDD but keeps its own capacitor at its own pin, as the figure shows."
+  },
+  "R_SDA_PU": {
+   "block": "imu",
+   "symbol": "Device:R",
+   "value": "4.7k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R1",
+   "lcsc": "C105871",
+   "mpn": "RC0402FR-074K7L",
+   "note": "Figure 15 'Rpu' (10 kohm) from SDA to Vdd_IO; both lines must have external pull-ups (§6.3 p.39). The bolt's R14, 4.7 kohm (YAGEO 1 % 0402) instead of ST's 10 kohm, so that 400 kHz fast mode meets its 300 ns rise time with up to 300e-9/(0.8473*4700) = 75 pF of bus capacitance (SLVA689A eq. 6, Table 2-1 p.3); 10 kohm allows only 35 pF. Above the minimum (3.3-0.4)/3 mA = 967 ohm (eq. 1). Optional: omit both pull-ups if the board's bus already has them."
+  },
+  "R_SCL_PU": {
+   "block": "imu",
+   "symbol": "Device:R",
+   "value": "4.7k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R2",
+   "lcsc": "C105871",
+   "mpn": "RC0402FR-074K7L",
+   "note": "Figure 15 'Rpu' from SCL to Vdd_IO; the bolt's R15. Same value and reasoning as R_SDA_PU. Optional with it."
+  }
+ },
+ "nets": {},
+ "ports": {
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.6",
+    "U1.7",
+    "U1.1",
+    "C_VDD.2",
+    "C_VDDIO.2"
+   ],
+   "note": "Both GND pins (6, 7). SDO/SA0 (pin 1) to GND sets the I2C address LSb to 0: 7-bit address 1101010b = 0x6A (§6.3.1 p.39), leaving 0x6B free for a second LSM6DSx on the same bus; the pin has no pull-up by default (Table 18 p.47), so it must be tied. Route each to the plane with its own trace, not a plane flood onto the pad (lsm6ds3trc.layout.ground_by_trace)."
+  },
+  "VDD": {
+   "kind": "supply",
+   "pins": [
+    "U1.8",
+    "U1.5",
+    "U1.12",
+    "U1.2",
+    "U1.3",
+    "C_VDD.1",
+    "C_VDDIO.1",
+    "R_SDA_PU.1",
+    "R_SCL_PU.1"
+   ],
+   "note": "3.3 V rail for VDD (pin 8, 1.71-3.6 V) and VDDIO (pin 5, 1.62 V to Vdd + 0.1 V), Table 4 p.24. CS (pin 12) is tied to Vdd_IO to select I2C (§6.1 p.38). SDx/SCx (pins 2, 3), the unused I2C-master pins, go to VDDIO as the bolt has them; Mode 1 allows VDDIO or GND (Table 2 p.20), and with no pull-up enabled by default (Table 18 p.47) either draws nothing. The pull-ups go to Vdd_IO (§6.3 p.39), the same rail."
+  },
+  "SDA": {
+   "kind": "signal",
+   "pins": [
+    "U1.14",
+    "R_SDA_PU.2"
+   ],
+   "note": "I2C data to the host (the bolt's IMU_SDA); open-drain bus, 400 kHz max (Table 7 p.27)."
+  },
+  "SCL": {
+   "kind": "signal",
+   "pins": [
+    "U1.13",
+    "R_SCL_PU.2"
+   ],
+   "note": "I2C clock from the host (the bolt's IMU_SCL)."
+  },
+  "INT1": {
+   "kind": "signal",
+   "pins": [
+    "U1.4"
+   ],
+   "note": "Interrupt 1 to a host GPIO (the bolt's IMU_INT1, wake on motion); push-pull, active high by default (CTRL3_C p.63), forced to ground by default (Table 18 p.47), so it needs no pull-up or pull-down."
+  },
+  "INT2": {
+   "kind": "signal",
+   "pins": [
+    "U1.9"
+   ],
+   "note": "Interrupt 2 (or DEN input) to a host GPIO; push-pull, forced to ground by default (Table 18 p.47). The bolt leaves it unconnected, which a driven output allows."
+  }
+ },
+ "chip_pins_unconnected": [
+  "U1.10",
+  "U1.11"
+ ]
+}

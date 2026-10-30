@@ -1,0 +1,170 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. DFN2x2-8 numbering from Table 3.2 (p.3) and the right-hand (DFN) drawing of Picture 3 (p.3); the left-hand drawing there labels VCC '3', a typo (Table 3.2 and the DFN drawing say 4). The KiCad symbol Battery_Management:TP4056-42-ESOP8 has the same nine numbers and functions (checked pin by pin); its names differ for two pins: ~{STDBY} is the LGS4056H's DONE (pin 6) and EPAD its PAD (9).",
+ "functions": {
+  "VCC": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    4.0,
+    6.5
+   ],
+   "note": "Charger input (USB VBUS). Starts charging above the 4.0 V typical rising threshold (3.9 V falling), stops above the 6.5 V typical input overvoltage protection; withstands 24 V in operation and 28 V absolute maximum (surge). 150 uA quiescent with CE high. Bypass to GND with a ceramic capacitor of at least 10 uF effective value, as close as possible",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Features p.1; Table 3.1 and Table 3.2 p.3; Table 4 p.4"
+   }
+  },
+  "BAT": {
+   "kind": "power_out",
+   "class": "POWER",
+   "nominal_v": [
+    4.2,
+    4.2
+   ],
+   "note": "Battery charge output, to the cell's positive terminal. Regulates to 4.20 V (VCV, typical at TJ = 25 C; no tolerance is printed, Figure 9.e plots 4.19-4.21 V over -50..150 C). Absolute maximum 6 V. Less than 1 uA drawn from the cell with VCC at 0 V. Ceramic capacitor of at least 10 uF effective value to GND",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.1 and Table 3.2 p.3; Table 4 p.4; Figure 9.e p.10"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Chip ground (pin 3) and the exposed pad (9), which can be joined to GND and to a large copper plane for heat",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3"
+   }
+  },
+  "PROG": {
+   "kind": "analog_in",
+   "class": "ANALOG",
+   "note": "Charge current set and monitor: a 1 % resistor RPROG to GND. I_BAT = 1000 / R_PROG above 300 mA, I_BAT = 900 / R_PROG below 300 mA (mA, kohm; i.e. (VPROG / RPROG) x 900 with VPROG 1 V in constant current). 1 k = 1 A, 2 k = 0.5 A, 9 k = 0.1 A. Floating PROG (RPROG removed) shuts the charger down. Absolute maximum 6 V. High impedance: keep the RPROG trace short",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Set Output Current p.7; CE Controlled Charging p.8; p.11"
+   }
+  },
+  "TEMP": {
+   "kind": "analog_in",
+   "class": "ANALOG",
+   "note": "Battery NTC input: charging is suspended while TEMP is below 45 % or above 80 % of VCC. Grounded or floating disables the temperature check; the datasheet asks for it grounded when the NTC is not used. With an NTC divider from VCC, keep more than 10 kohm between VCC and TEMP. Absolute maximum 6 V",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Table 4 p.4; NOTE p.5; NTC resistor selection p.8"
+   }
+  },
+  "CE": {
+   "kind": "enable",
+   "class": "SIGNAL",
+   "supply": "VCC",
+   "note": "Charge enable: high enables charging, low shuts down (40 uA from VCC, < 1 uA from the cell). Tie to VCC or drive from an MCU. Schmitt input, thresholds 1.37 V rising / 1.16 V falling (typical); absolute maximum 28 V",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.1 and Table 3.2 p.3; Table 4 p.4; CE Controlled Charging p.8"
+   },
+   "levels": {
+    "vih": "1.37",
+    "vil": "1.16",
+    "vin_max": "28",
+    "note": "Typical thresholds (Table 4 gives no min or max); they do not scale with VCC. Absolute maximum 28 V to GND",
+    "citation": {
+     "source": "lgs4056h_ds",
+     "locator": "Table 3.1 p.3; Table 4 p.4"
+    }
+   }
+  },
+  "STATUS": {
+   "kind": "status",
+   "class": "SIGNAL",
+   "note": "Open-drain charge status outputs, active low. CHRG low while charging; DONE low when charge is complete; with no battery CHRG blinks and DONE is low; both off (high impedance) in undervoltage or with the battery too hot or cold. 5 mA LED drive current (typical). Made for an LED cathode with a resistor (1 kohm or more) from VCC; a pull-up to another rail must not pulse while VCC powers up, and DONE must not see a pulse then. An unused one is grounded. Absolute maximum 28 V to GND",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.1 and Table 3.2 p.3; Table 4 p.4; NOTE p.5; Component Selection p.6; Charge Status Indicator p.7"
+   },
+   "levels": {
+    "vin_max": "28",
+    "note": "Open drain: the high level is the pull-up's. The pin takes up to 28 V (absolute maximum), so a pull-up to 3.3 V or to VCC is within it. VOL is not specified (only the 5 mA typical LED drive current), so a receiver's VIL cannot be judged against it",
+    "citation": {
+     "source": "lgs4056h_ds",
+     "locator": "Table 3.1 p.3; Table 4 p.4"
+    }
+   }
+  }
+ },
+ "variants": {
+  "LGS4056HDA": {
+   "package": "DFN2x2-8 with exposed pad",
+   "source": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Picture 3 p.3; Footprint Description (DFN8-2.0*2.0) p.13"
+   },
+   "pins": {
+    "1": {
+     "name": "TEMP",
+     "function": "TEMP"
+    },
+    "2": {
+     "name": "PROG",
+     "function": "PROG"
+    },
+    "3": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "4": {
+     "name": "VCC",
+     "function": "VCC"
+    },
+    "5": {
+     "name": "BAT",
+     "function": "BAT"
+    },
+    "6": {
+     "name": "DONE",
+     "function": "STATUS"
+    },
+    "7": {
+     "name": "CHRG",
+     "function": "STATUS"
+    },
+    "8": {
+     "name": "CE",
+     "function": "CE"
+    },
+    "9": {
+     "name": "PAD",
+     "function": "GND"
+    }
+   }
+  }
+ },
+ "interfaces": {
+  "chrg": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "open_drain",
+   "pins": {
+    "IO": "CHRG"
+   },
+   "note": "Active low: low while charging (short-circuit, trickle, constant current and constant voltage), high impedance when done, in undervoltage or out of temperature; blinks with no battery. Needs a pull-up (the RP2350's internal one will do); the pull-up rail must not pulse while VCC powers up",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; NOTE p.5; Charge Status Indicator p.7"
+   }
+  },
+  "done": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "open_drain",
+   "pins": {
+    "IO": "DONE"
+   },
+   "note": "Active low: low when charge is complete and with no battery, high impedance while charging, in undervoltage or out of temperature. Needs a pull-up. The datasheet forbids a pulse on DONE when VCC powers up",
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; NOTE p.5; Charge Status Indicator p.7"
+   }
+  }
+ }
+}

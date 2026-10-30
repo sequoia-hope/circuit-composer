@@ -1,0 +1,433 @@
+{
+ "package": "lgs4056h",
+ "version": "0.1.0",
+ "note": "Claims scoped to the LGS4056H (variant LGS4056HDA, DFN2x2-8, 4.20 V). Page numbers are the datasheet's printed pages (Rev.C V0.4, sha256 2091f3fe…), equal to the PDF pages. The datasheet is in English; its formulas are typeset in a math font that does not extract as text, so they are given in notes as read from a rendering. `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names). Values are the bolt earring's (U2, C16, C17, R8); where they fall short of the datasheet the claim's note says so.",
+ "claims": [
+  {
+   "id": "lgs4056h.vin.cin",
+   "statement": "VCC is bypassed to GND with a ceramic capacitor of at least 10 uF effective value, as close as possible to pins 4 and 3.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "CIN"
+   },
+   "attributes": [
+    "capacitance",
+    "dc_bias",
+    "placement"
+   ],
+   "requirement": {
+    "capacitance_uf_min_effective": 10,
+    "dielectric": "ceramic"
+   },
+   "checks": [
+    {
+     "part": "CIN",
+     "quantity": "capacitance",
+     "min": 1e-05
+    }
+   ],
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; NOTE p.5; Component Selection p.6",
+    "quote": "use a ceramic capacitor of at least 10uF effective value to bypass VCC and GND as close as possible."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "Bolt deviation, kept: C16 is 10 uF nominal in a 10 V X5R 0603 (CL10A106KP8NNNC). At the 5 V VBUS bias such a part keeps well under its nominal value (typically about half for a 10 V 0603 X5R; this part's own curve was not read), so the effective value is below the 10 uF asked. The nominal-value check passes; DC bias is not in a value string. A 0805 or 25 V part, or two in parallel, would meet it. p.5 also allows an optional 1 ohm in series with this capacitor against hot-plug spikes; the bolt has none."
+  },
+  {
+   "id": "lgs4056h.vbat.cbat",
+   "statement": "BAT has a ceramic capacitor of at least 10 uF effective value to GND.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "CBAT"
+   },
+   "attributes": [
+    "capacitance",
+    "dc_bias"
+   ],
+   "requirement": {
+    "capacitance_uf_min_effective": 10,
+    "dielectric": "ceramic"
+   },
+   "checks": [
+    {
+     "part": "CBAT",
+     "quantity": "capacitance",
+     "min": 1e-05
+    }
+   ],
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Component Selection p.6",
+    "quote": "place a ceramic capacitor with an effective value of at least 10uF to the ground."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "Bolt deviation, kept: C17 is the same 10 V X5R 0603 10 uF part as C16; at the 4.2 V cell voltage its effective value is below 10 uF. With the cell soldered on the bolt's BT1 pads the cell itself is the bulk; the capacitor matters most with no cell fitted, a case the bolt does support (it runs from VBUS)."
+  },
+  {
+   "id": "lgs4056h.vin.range",
+   "statement": "VCC is 4-24 V tolerant (28 V surge, absolute maximum), but charging starts only above 4.0 V (3.9 V falling) and stops above the 6.5 V input overvoltage threshold (typical values).",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vcc_v_withstand": 24,
+    "vcc_v_abs_max": 28,
+    "vcc_v_start_typ": 4.0,
+    "vcc_v_stop_typ": 3.9,
+    "vovp_v_typ": 6.5
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Features p.1; Table 3.1 p.3; Table 4 p.4",
+    "quote": "Input Voltage Range: 4V~24V"
+   },
+   "status": "asserted",
+   "note": "Table 4 gives only typical values (VCC operation 5 V; thresholds 4.0/3.9 V; VOVP 6.5 V). USB 5 V sits between the start and OVP thresholds. LCSC lists the operating voltage as 4-6 V. The 28 V rating is why a USB TVS is not this package's concern; the bolt's USB ESD part (USBLC6, C28) is board level."
+  },
+  {
+   "id": "lgs4056h.prog.equation",
+   "statement": "The constant-current charge current is set by RPROG from PROG to GND: I_BAT (mA) = 1000 / RPROG (kohm) for settings above 300 mA and 900 / RPROG (kohm) below 300 mA; RPROG = 18 kohm sets 50 mA.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "charge_current",
+    "resistance"
+   ],
+   "requirement": {
+    "ibat_ma_equals_above_300ma": "1000 / RPROG_kohm",
+    "ibat_ma_equals_below_300ma": "900 / RPROG_kohm",
+    "ibat_ma_max": 1000,
+    "rprog_ohm_min": 1000
+   },
+   "checks": [
+    {
+     "part": "RPROG",
+     "quantity": "resistance",
+     "min": 1000
+    }
+   ],
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Table 4 p.4; Set Output Current p.7",
+    "quote": "Example: 1K corresponds to 1A charging; 2K corresponds to 0.5A charging; 9K corresponds to 0.1A charging."
+   },
+   "status": "asserted",
+   "note": "The formulas are typeset as math and read from a rendering: p.3 'I_BAT = 1000 / R_PROG' above 300 mA, 'I_BAT = 900 / R_PROG' below; p.7 'IBAT = (VPROG / RPROG) x 1000 (mA)' and '... x 900 (mA)', VPROG being 1 V in constant current (block diagram p.6). The Component Selection table (p.6) quotes only the x1000 form. Bolt: 900 / 18 = 50 mA (x1000 would give 55.6 mA). The datasheet tabulates ICC only at 1, 1.2, 2 and 9 kohm (typical, VBAT 3.7 V, Table 4 p.4) and states no tolerance or maximum RPROG, so 50 mA at 18 kohm is an extrapolation of the formula. Trickle charge is 10 % (5 mA) below VTC 2.9 V, short-circuit charge 5 % (2.5 mA) below 0.6 V, termination 1/10 (5 mA)."
+  },
+  {
+   "id": "lgs4056h.prog.tolerance",
+   "statement": "RPROG is a 1 % resistor.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "tolerance"
+   ],
+   "requirement": {
+    "rprog_tolerance_pct_max": 1
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Component Selection p.6",
+    "quote": "Connect an external 1% precision resistor to ground to set the charging current."
+   },
+   "status": "asserted",
+   "note": "The bolt's R8 (UNI-ROYAL 0402WGF1802TCE, C25762) is 1 %. Tolerance is not in a value string, so no tool checks it.",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.prog.disable",
+   "statement": "Removing RPROG (PROG floating) or pulling CE low shuts the charger down: the cell then leaks 1 uA or less and VCC draws 40 uA or less; so RPROG must be fitted with a solid PROG connection.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "fitted",
+    "enable"
+   ],
+   "checks": [
+    {
+     "part": "RPROG",
+     "quantity": "fitted"
+    }
+   ],
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "CE Controlled Charging p.8",
+    "quote": "the LGS4056H can be placed in the shutdown mode by setting the CE terminal to the low potential or removing the RPROG"
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "ccomp check package (RPROG fitted)"
+   ]
+  },
+  {
+   "id": "lgs4056h.ce.enable",
+   "statement": "CE enables charging when high and shuts it down when low; it is tied to VCC or driven by an MCU. Typical thresholds are 1.37 V rising and 1.16 V falling; it takes 28 V.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "enable",
+    "logic_level"
+   ],
+   "requirement": {
+    "vce_rising_v_typ": 1.37,
+    "vce_falling_v_typ": 1.16,
+    "vce_v_abs_max": 28
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; Table 4 p.4",
+    "quote": "Connected to VCC or MCU control, high level enables charging and low level turns off charging."
+   },
+   "status": "asserted",
+   "note": "The bolt ties CE (pin 8) to VBUS, as Picture 5 (p.5) does: charging is always on while USB is present. This package puts CE on the VIN port for that reason; a board wanting MCU control would need a variant of the circuit with CE as its own port.",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.temp.grounded",
+   "statement": "Without a battery NTC, TEMP is grounded; that disables the battery temperature check and leaves the other charging functions normal.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "temperature_sense",
+    "strap"
+   ],
+   "requirement": {
+    "temp_pin_without_ntc": "GND",
+    "ntc_window_fraction_of_vcc": [
+     0.45,
+     0.8
+    ],
+    "r_vcc_to_temp_ohm_min": 10000
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Table 3.2 p.3; NOTE p.5; NTC resistor selection p.8",
+    "quote": "If the battery temperature monitoring function is not required, the TEMP pin must be grounded."
+   },
+   "status": "asserted",
+   "note": "Sanctioned: p.5 says the same ('NTC function is not used, ground the TEMP pin'), and Table 3.2 allows grounded or floating. The bolt grounds pin 1 (its net GND). Consequence: the charger does not stop for a hot or cold cell; the bolt's LPR302823 has two wires and no thermistor, so any temperature protection is the cell's own. With an NTC, the divider from VCC must keep more than 10 kohm between VCC and TEMP (p.5).",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.status.open_drain",
+   "statement": "CHRG and DONE are open-drain outputs: CHRG low and DONE high-impedance while charging, CHRG high-impedance and DONE low when done; with no battery CHRG blinks and DONE is low; both are off in undervoltage or out of the temperature window.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "interface",
+    "logic_level",
+    "drive"
+   ],
+   "requirement": {
+    "drive": "open_drain",
+    "active": "low",
+    "led_drive_ma_typ": 5,
+    "v_abs_max": 28
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Charge Status Indicator p.7; Table 4 p.4; Table 3.1 p.3",
+    "quote": "LGS4056H has two open drain output terminals: CHRG and DONE."
+   },
+   "status": "asserted",
+   "note": "The datasheet's use is an LED from VCC through a resistor of 1 kohm or more (p.5, p.6). The bolt instead reads both with RP2350 GPIOs (CHRG GPIO19, DONE GPIO28) and their internal pull-ups to 3.3 V; that is well inside the 28 V pin rating and the 5 mA drive. No VOL is specified, so a reader's VIL cannot be checked against it; at the ~66 uA an internal pull-up sinks, the low will be near 0 V. Firmware must treat a blinking CHRG as 'no battery', not as charging.",
+   "enforced_by": [
+    "pin solver (interfaces chrg and done: logic, out, open_drain)"
+   ]
+  },
+  {
+   "id": "lgs4056h.status.done_no_pulse",
+   "statement": "A pull-up on CHRG or DONE to a rail other than VCC must not pulse or fluctuate while VCC powers up; a pulse on DONE at VCC power-up stops the chip working.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "power_sequencing",
+    "interface"
+   ],
+   "requirement": {
+    "done_pulse_at_vcc_power_up": "none"
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "NOTE p.5; Charge Status Indicator p.7",
+    "quote": "The DONE pin cannot have pulses when powered on to VCC."
+   },
+   "status": "asserted",
+   "note": "p.5 adds: 'If CHRG and DONE are connected to other power supplies through resistors, it is necessary to ensure that the power supply will not have pulses or fluctuations when VCC is powered on. If there are pulses at the DONE pin when starting VCC power on, the system will not work.' What counts as a pulse, and what 'will not work' means (latched off? until VCC is cycled?), is not said. Bolt risk, not verified: plugging USB both powers VCC and (through R18) enables the 3.3 V LDO, and the RP2350's internal pull-up on DONE comes on only when firmware configures the pin, milliseconds later; so DONE sees its pull-up rail arrive during or just after VCC power-up. Bench-check that charging starts on every plug-in; if not, a fixed pull-up to VBUS (with a divider or clamp for the 3.3 V GPIO) or enabling the pull-up before the charger can power is the fix.",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.status.unused_grounded",
+   "statement": "A status output that is not used is grounded, not left open.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "unused_pin"
+   ],
+   "requirement": {
+    "unused_status_pin": "GND"
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Charge Status Indicator p.7; NOTE p.5",
+    "quote": "If the status indication function is not used, the output terminal of the unused status indication will be grounded."
+   },
+   "status": "asserted",
+   "note": "So a board that does not read CHRG or DONE should put that port on GND, not in no_connect. The bolt uses both.",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.charge.termination",
+   "statement": "Charging ends when the constant-voltage current falls to 1/10 of the set current, and restarts when the cell falls to 95.7 % of VCV; a system load on BAT above the termination current keeps the charger from ending.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "charge_current",
+    "load"
+   ],
+   "requirement": {
+    "iterm_fraction_of_icc": 0.1,
+    "vrechrg_fraction_of_vcv": 0.957
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Summary p.7; Table 4 p.4",
+    "quote": "When the charging current drops to 1 / 10 of the set value"
+   },
+   "status": "asserted",
+   "note": "At 50 mA the termination current is 5 mA and recharge starts at about 4.02 V. The bolt (rev 2) keeps the system off the cell while USB is present (D3 to VSYS from VBUS, Q2 off), so DONE can assert; on rev 1 the system load on the cell held it off.",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.thermal.pad",
+   "statement": "The exposed pad goes to a large copper area joined to the ground plane, with vias to inner or back layers, so the die does not heat up and fold the charge current back.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "U1"
+   },
+   "attributes": [
+    "copper_area",
+    "thermal_vias"
+   ],
+   "requirement": {
+    "pad": "GND, large copper",
+    "vias": "multiple"
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "NOTE p.5; Thermal Considerations p.8; p.11",
+    "quote": "a large copper-clad area should be used to connect to the PCB ground plane"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "half_bridge.thermal.direct_vias"
+    }
+   ],
+   "note": "The datasheet gives no thetaJA for the DFN2x2 and only 150 C over-temperature protection. At the bolt's 50 mA the dissipation is small: (5.0 V - 2.9 V) x 0.05 A = 0.105 W at the start of constant current, about 0.14 W at a 5.25 V port and VTC min 2.65 V, falling to 0.04 W at 4.2 V.",
+   "enforced_by": []
+  },
+  {
+   "id": "lgs4056h.layout.cin_close",
+   "statement": "CIN sits as close as possible to VCC (pin 4) and GND (pin 3); ceramic capacitors close to BAT and VCC with short traces to the pins.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "CIN|CBAT"
+   },
+   "attributes": [
+    "placement"
+   ],
+   "requirement": {
+    "cin": "next to pins 4 and 3",
+    "cbat": "next to pin 5"
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Reference Layout Example p.11",
+    "quote": "Place the input capacitor CIN as close as possible to the VCC (PIN4) and GND (PIN3) pins."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "rp2350.decoupling.close"
+    }
+   ],
+   "enforced_by": [
+    "floorplanner (near hints; not yet a check)"
+   ]
+  },
+  {
+   "id": "lgs4056h.layout.rprog_short",
+   "statement": "PROG is high impedance: the RPROG trace is as short as possible and kept away from the chip's heat, to keep noise off the current setting.",
+   "scope": {
+    "chip": "LGS4056H",
+    "block": "charger",
+    "role": "RPROG"
+   },
+   "attributes": [
+    "placement",
+    "trace_length"
+   ],
+   "requirement": {
+    "rprog": "next to pin 2"
+   },
+   "citation": {
+    "source": "lgs4056h_ds",
+    "locator": "Reference Layout Example p.11",
+    "quote": "The impedance of the RPROG pin is relatively high"
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "floorplanner (near hints; not yet a check)"
+   ],
+   "note": "The sentence goes on: 'and the lead trajectory of the RPROG should be as short as possible when away from the heat source of the chip to reduce interference with the charging current setting.' On the page it interleaves with the other column, so only its first clause is quoted."
+  }
+ ]
+}

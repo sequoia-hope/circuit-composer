@@ -1,0 +1,86 @@
+{
+ "note": "The NCP730 as the bolt earring uses it (boards/bolt-earring/circuit.json U3; simple_earring scripts/circuit.py, '3.3V LDO'): the datasheet's fixed-output application with PG (Figure 3, p.2) with the bolt's own 1 uF input and output capacitors, EN brought out as a port (the bolt drives it from its power latch, net PWR_EN) and PG brought out as an optional open-drain port (the bolt leaves it unconnected: list it in no_connect). Parts by role; `reference_ref` is the bolt's designator, `note` the datasheet's label. Values and LCSC numbers are the bolt's. Pin 2 is NC on fixed versions and is left open, as on the bolt.",
+ "variant": "NCP730BMT330TBG",
+ "board": "bolt-earring",
+ "source": "ncp730_ds",
+ "parts": {
+  "U1": {
+   "block": "ldo",
+   "symbol": "Regulator_Linear_NCP730:NCP730BMT330TBG",
+   "value": "NCP730-3.3",
+   "footprint": "Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm",
+   "reference_ref": "U3",
+   "lcsc": "C892821",
+   "mpn": "NCP730BMT330TBG",
+   "note": "Fixed 3.3 V, version B (with PG), WDFN6 2x2 CASE 511BR, marking MF (p.29). KiCad has no NCP730 symbol, so the package carries one (kicad/Regulator_Linear_NCP730.kicad_sym): pins 1 OUT, 2 NC, 3 GND, 4 EN, 5 PG, 6 IN, 7 EP (GND) match the WDFN-6 pin description (p.3) and the top-view pin assignment (p.1) pin by pin; the bolt's netlist agrees (1 3V3, 3 GND, 4 PWR_EN, 6 VSYS, EP GND, 2 and 5 open). Footprint: KiCad's WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm (pads 0.375 x 0.40 mm at +/-0.8875 mm, 0.65 mm pitch, EP 1.0 x 1.6 mm, pad 7) against onsemi's recommended mounting footprint (p.32: pads 0.45 x 0.40 mm, 2.30 mm overall, EP 1.12 x 1.72 mm): same pitch and pad width, pads 0.075 mm shorter, EP 0.12 mm smaller each way; the package's EP is 0.90-1.10 x 1.50-1.70 mm (D2, E2). The bolt used its own simple_earring footprint WDFN-6-2x2 (pads 0.45 x 0.30 mm at +/-0.975 mm, EP pad named EP)."
+  },
+  "CIN": {
+   "block": "ldo",
+   "symbol": "Device:C",
+   "value": "1u",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C18",
+   "lcsc": "C52923",
+   "mpn": "CL05A105KA5NQNC",
+   "near": "U1.6",
+   "note": "Figure 3 'CIN 1 uF' (p.2). Samsung 1 uF 25 V X5R 0402, the bolt's 'NCP730 IN decap'. IN needs 1 uF or more, X5R or X7R, as close as possible (p.14); the electrical characteristics are given at 1.0 uF effective (p.4 note 4). At the bolt's 3.0-4.95 V VSYS this 0402 has less than 1 uF left (DC bias, the derating p.14 warns of for 0402), but the bolt's VSYS also carries C29, 10 uF 0603, the power path's bulk capacitor, which stays with the board (ncp730.cin.min)."
+  },
+  "COUT": {
+   "block": "ldo",
+   "symbol": "Device:C",
+   "value": "1u",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C19",
+   "lcsc": "C52923",
+   "mpn": "CL05A105KA5NQNC",
+   "near": "U1.1",
+   "note": "Figure 3 'COUT 1 uF' (p.2). Same part as CIN. OUT is stable with 1-100 uF effective capacitance and 1 mohm-200 mohm ESR, placed as close as possible to OUT and GND (p.14). At 3.3 V DC bias this 0402 has less than its 1 uF nominal, so on its own it sits below the stated range (ncp730.cout.range, contested); on the bolt the 3V3 rail also carries the RP2350's 4.7 uF VREG input capacitor C11 and eleven 100 nF decouplers of the RP2350, flash, IMU and U8, which belong to those packages, not this one."
+  }
+ },
+ "nets": {},
+ "ports": {
+  "VIN": {
+   "kind": "supply",
+   "pins": [
+    "U1.6",
+    "CIN.1"
+   ],
+   "note": "Input. On the bolt this is VSYS: the cell through Q2 (about 3.0-4.2 V) or USB VBUS through the silicon diode D3 (about 3.7-4.95 V). Recommended 2.7-38 V, absolute maximum 40 V (p.4). In regulation only while VIN > 3.3 V + VDO (p.14): VDO is 480 mV max at 150 mA (p.5), and about 70-100 mV at 20 mA (typical curves, Figure 15-16 p.7), so the 3V3 rail follows a nearly flat cell down rather than staying at 3.3 V."
+  },
+  "VOUT": {
+   "kind": "supply",
+   "pins": [
+    "U1.1",
+    "COUT.1"
+   ],
+   "note": "3.3 V output, 150 mA rated (current limit 200-450 mA, p.5); the bolt's 3V3 rail (RP2350, flash, IMU, light sensor, level shifters). Nothing else may drive this rail: VOUT's absolute maximum is the lower of VIN + 0.3 V and 6.0 V (p.4)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.3",
+    "U1.7",
+    "CIN.2",
+    "COUT.2"
+   ],
+   "note": "GND pin 3 and the exposed pad (pin 7), which 'should be connected to the GND plane' (p.3) and carries the heat (p.25)."
+  },
+  "EN": {
+   "kind": "signal",
+   "pins": [
+    "U1.4"
+   ],
+   "note": "Enable, active high: on above 1.05 V, off below 0.5 V worst case (p.5). An internal pull-up of up to 1 uA turns the LDO on if EN floats (p.3, p.5), so a board that wants it off must pull it down (the bolt: R17 100 kohm, at most 0.1 V). Never above VIN + 0.3 V (p.4). On the bolt EN is PWR_EN, driven by the power latch (SW_ON through BAV99W D2, diode 1) and by VBUS through the R18/R17 100k/100k divider, with D2's diode 2 clamping it to VBATT + Vf; that network is the board's, not this package's."
+  },
+  "PG": {
+   "kind": "signal",
+   "pins": [
+    "U1.5"
+   ],
+   "note": "Power good, open drain, optional: the bolt leaves it unconnected, which the datasheet allows ('could be left unconnected or shorted to GND', p.3); list it in no_connect. A host that reads it adds a pull-up to a rail no higher than VIN + 0.3 V (p.4), e.g. 3V3; RPG 3.3 k-500 k is the datasheet's worked range (p.24)."
+  }
+ },
+ "chip_pins_unconnected": [
+  "U1.2"
+ ]
+}

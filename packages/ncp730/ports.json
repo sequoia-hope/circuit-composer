@@ -1,0 +1,155 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. WDFN-6 2x2 (CASE 511BR) numbering from the WDFN-6 pin description (p.3) and the pin assignment (p.1, top view). The NCP730BMT330TBG is a fixed 3.3 V 'version B' part: pin 2 is NC (all fixed versions) and pin 5 is PG (versions with power good), per the ordering table (p.29). The package's symbol (kicad/Regulator_Linear_NCP730.kicad_sym) has the same numbers and names, with the exposed pad as pin 7 to match KiCad's WSON-6 footprint (the bolt's own footprint calls it EP).",
+ "functions": {
+  "IN": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    2.7,
+    38
+   ],
+   "note": "Power supply input. Recommended 2.7-38 V (p.4), absolute maximum -0.3 to 40 V (p.4). Needs at least 1 uF (effective) of X5R/X7R ceramic as close as possible (p.14). Internal UVLO turns the output on above 1.6-2.6 V (1.95 V typ) rising, 0.05-0.3 V hysteresis (p.5). For the output to stay in regulation VIN must stay above VOUT-NOM + VDO (p.14)",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description); p.4 (maximum ratings, electrical characteristics); p.5; p.14"
+   }
+  },
+  "OUT": {
+   "kind": "power_out",
+   "class": "POWER",
+   "supply": "IN",
+   "nominal_v": [
+    3.247,
+    3.373
+   ],
+   "note": "Regulated output, 3.3 V nominal (NCP730BMT330TBG, p.29). Range is the worst-case sum of output accuracy -1 %/+2 % (TJ -40 to 125 C; +/-1 % to 85 C), line regulation 0.2 % and load regulation 0.4 % (downward with load), p.4. 150 mA rated, current limit 200-450 mA (p.5). Dropout 290 mV typ, 480 mV max at 150 mA (p.5); below VIN = 3.3 V + VDO the output follows VIN - VDO, which this range does not include. Needs 1-100 uF effective, 1 mohm-200 mohm ESR on OUT (p.14). VOUT absolute maximum is the lower of VIN + 0.3 V and 6.0 V for fixed versions up to 5 V (p.4)",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3; p.4 (maximum ratings, electrical characteristics); p.5; p.14; p.29 (ordering information)"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Ground pin 3, and the exposed pad, which 'should be connected to the GND plane' (p.3) and is the package's main heat path (RthJCb 11 C/W, p.4; Power Dissipation p.25)",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description); p.4 (thermal characteristics); p.25"
+   }
+  },
+  "EN": {
+   "kind": "enable",
+   "class": "SIGNAL",
+   "supply": "IN",
+   "note": "Enable, active high. Internal pull-up current source to an internal rail VCCEN (2.5-4.5 V, VIN dependent), 0.01-1 uA (0.3 uA typ): left unconnected the regulator is on (p.3, p.17). Rising threshold 0.7-1.05 V, hysteresis 0.01-0.2 V, so a level below 0.5 V is off in the worst case (p.5). Absolute maximum -0.3 V to VIN + 0.3 V (p.4): EN is not an independent high-voltage pin. A pull-down that holds it off must sink the pull-up current: 1 uA max into R gives 1 uA x R (p.5, p.18)",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description); p.4 (maximum ratings); p.5 (EN threshold, hysteresis, pull-up current); p.17"
+   },
+   "levels": {
+    "vih": "1.05",
+    "vil": "0.5",
+    "vin_max": "supply + 0.3",
+    "note": "supply is IN. VIH is the rising threshold's maximum (1.05 V); VIL is its minimum (0.7 V) less the largest hysteresis (0.2 V), i.e. the lowest falling threshold, 0.5 V. Over TJ -40 to 125 C. EN's maximum is VIN + 0.3 V, not a fixed voltage",
+    "citation": {
+     "source": "ncp730_ds",
+     "locator": "p.4 (maximum ratings); p.5 (electrical characteristics)"
+    }
+   }
+  },
+  "PG": {
+   "kind": "status",
+   "class": "SIGNAL",
+   "supply": "IN",
+   "note": "Power good, open drain (version B only): high (released) for power OK, low for fail. Goes low when VOUT falls below 90-96 % of nominal (93 % typ) after a 75-270 us deglitch; released 120-600 us after VOUT rises above threshold + hysteresis (p.5). Low level 0.4 V max at 1 mA; 3 mA absolute maximum; pin limit -0.3 V to VIN + 0.3 V (p.4, p.5). Needs an external pull-up. If not used, 'could be left unconnected or shorted to GND' (p.3)",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description); p.4 (maximum ratings); p.5 (PG threshold, timing, VPG-OL)"
+   },
+   "levels": {
+    "vol": "0.4",
+    "vin_max": "supply + 0.3",
+    "note": "supply is IN. Open drain: VOL 0.4 V max at IPG = 1 mA; its high is the pull-up's rail, which must stay within VIN + 0.3 V",
+    "citation": {
+     "source": "ncp730_ds",
+     "locator": "p.4 (maximum ratings); p.5 (VPG-OL)"
+    }
+   }
+  },
+  "NC": {
+   "kind": "no_connect",
+   "class": "SIGNAL",
+   "note": "Not internally connected on all fixed versions (pin 2). 'This pin can be tied to the ground plane to improve thermal dissipation' (p.3); otherwise left open",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description)"
+   }
+  }
+ },
+ "variants": {
+  "NCP730BMT330TBG": {
+   "package": "WDFN6 2x2, 0.65P (CASE 511BR)",
+   "source": {
+    "source": "ncp730_ds",
+    "locator": "p.1 (pin assignments, WDFN6 top view); p.3 (pin description, WDFN-6); p.29 (ordering information: NCP730BMT330TBG, marking MF, 3.3 V, with PG)"
+   },
+   "pins": {
+    "1": {
+     "name": "OUT",
+     "function": "OUT"
+    },
+    "2": {
+     "name": "NC",
+     "function": "NC"
+    },
+    "3": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "4": {
+     "name": "EN",
+     "function": "EN"
+    },
+    "5": {
+     "name": "PG",
+     "function": "PG"
+    },
+    "6": {
+     "name": "IN",
+     "function": "IN"
+    },
+    "7": {
+     "name": "EP",
+     "function": "GND"
+    }
+   }
+  }
+ },
+ "interfaces": {
+  "en": {
+   "type": "logic",
+   "dir": "in",
+   "pins": {
+    "IO": "EN"
+   },
+   "note": "Active high: on above 1.05 V, off below 0.5 V (worst case). Internal pull-up (up to 1 uA) turns the regulator on if EN floats, so 'off' needs a driven low or a pull-down of at most a few hundred kohm. Never above VIN + 0.3 V: a driver from a rail higher than IN (USB 5 V when IN is a battery) needs a clamp or divider",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3; p.4 (maximum ratings); p.5; p.17"
+   }
+  },
+  "pg": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "open_drain",
+   "pins": {
+    "IO": "PG"
+   },
+   "note": "Power good: released when VOUT is in regulation, pulled low (0.4 V max at 1 mA) below 93 % typ of nominal. Needs a pull-up to a rail no higher than VIN + 0.3 V",
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3; p.4; p.5"
+   }
+  }
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "lsm6ds3trc_ds": {
+  "title": "LSM6DS3TR-C iNEMO inertial module: always-on 3D accelerometer and 3D gyroscope",
+  "publisher": "STMicroelectronics",
+  "doc": "DocID030071",
+  "kind": "datasheet",
+  "revision": "DocID030071 Rev 3 (May 2017)",
+  "url": "https://datasheet.lcsc.com/datasheet/pdf/176463bae17f4a667a4792d02c6297f0.pdf?productCode=C967633",
+  "where": "The copy read and hashed is LCSC's datasheet link for C967633 (url); the vendor's current copy is vendor_url.",
+  "sha256": "352f35643f90772781540cf625ee574eb41d8249707440ac200632294b3b773c",
+  "bytes": 1552311,
+  "retrieved": "2026-10-30",
+  "note": "Page numbers are the printed 'N/115'. LCSC's PDF has 114 pages: printed pages 1-114 are PDF pages 1-114 (page 115, ST's legal notice, is missing). ST may have published later revisions; the hash is of Rev 3, which is what was read.",
+  "vendor_url": "https://www.st.com/resource/en/datasheet/lsm6ds3tr-c.pdf"
+ }
+}

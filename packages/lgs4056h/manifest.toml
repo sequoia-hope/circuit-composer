@@ -1,0 +1,52 @@
+# Circuit Composer package: Legend-Si LGS4056H 1S Li-ion linear charger (1 A, 24 V input withstand).
+#
+# 0.1.0: the chip as the bolt earring uses it (U2): the datasheet's typical application
+# (Picture 5, p.5) with TEMP grounded (no NTC), CE tied to VCC, RPROG 18 kohm (50 mA), and the
+# CHRG and DONE open-drain status outputs as signal ports with logic interfaces for a host's
+# pulled-up inputs. Pin table (ports.json) and cited rules (rules.json). No layout yet.
+
+[package]
+name = "lgs4056h"
+version = "0.1.0"
+family = "LGS4056H"
+license = "MIT"
+summary = "LGS4056H 1S Li-ion linear charger (DFN2x2-8) as the bolt earring uses it: 50 mA, no NTC, CHRG/DONE open-drain to a host; ports, interfaces, cited rules"
+
+[[variants]]
+name = "LGS4056HDA"
+mpn = "LGS4056HDA"
+package = "DFN2x2-8 with exposed pad"
+footprint = "Package_DFN_QFN:DFN-8-1EP_2x2mm_P0.5mm_EP0.9x1.5mm"
+symbol = "Battery_Management:TP4056-42-ESOP8"
+vreg_v = 4.20
+# Suffix DA = DFN2x2-8, 4.20 V (no '4.35' suffix); top mark 4056H (p.1). KiCad has no LGS4056H
+# symbol: the TP4056 one has the same nine pins (its ~STDBY is DONE, EPAD is PAD).
+
+[sources]
+# Document revision this package was built from; hash in sources/sources.json.
+datasheet = "LGS4056H Product data sheet Rev.C V0.4 Mar,2022, as linked by LCSC for C5124109 (sha256 2091f3fe…)"
+
+# LCSC parts the circuit names (the bolt earring's). Stock from jlc_parts.py show on 2026-10-30.
+[[sourcing]]
+role = "U1"
+part = "Legend-Si LGS4056HDA, DFN-8 2x2"
+lcsc = "C5124109"
+checked = "2026-10-30"   # extended, JLC stock 9098, LCSC stock 6830, lifecycle normal
+
+[[sourcing]]
+role = "CIN"
+part = "Samsung CL10A106KP8NNNC, 10 uF 10 V X5R 0603"
+lcsc = "C19702"
+checked = "2026-10-30"   # basic, JLC stock 11848858, lifecycle normal
+
+[[sourcing]]
+role = "CBAT"
+part = "Samsung CL10A106KP8NNNC, 10 uF 10 V X5R 0603"
+lcsc = "C19702"
+checked = "2026-10-30"   # basic, JLC stock 11848858, lifecycle normal
+
+[[sourcing]]
+role = "RPROG"
+part = "UNI-ROYAL 0402WGF1802TCE, 18 kohm 1 % 0402"
+lcsc = "C25762"
+checked = "2026-10-30"   # preferred, JLC stock 566313, lifecycle normal

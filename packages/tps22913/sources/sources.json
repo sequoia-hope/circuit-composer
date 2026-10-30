@@ -1,0 +1,15 @@
+{
+ "tps22913_ds": {
+  "title": "TPS2291xx Ultra-small, Low On Resistance Load Switch With Controlled Turn-on (TPS22910A, TPS22912C, TPS22913B, TPS22913C)",
+  "publisher": "Texas Instruments",
+  "doc": "SLVSB49F",
+  "kind": "datasheet",
+  "revision": "SLVSB49F - November 2011 - Revised January 2015",
+  "url": "https://www.ti.com/lit/pdf/slvsb49",
+  "where": "Fetched from ti.com's lit/pdf link with wget (jlc_parts.py fetch); the lit/ds/symlink URL returned an HTML page. LCSC's link for C544698 serves TI's Chinese translation (ZHCS487F), not used.",
+  "sha256": "e4a052bec3b3c2fee243b3a9182a8711efc31b331b0bb325f8b36cd15d958c7f",
+  "bytes": 1093963,
+  "retrieved": "2026-10-30",
+  "note": "37 PDF pages. Printed page numbers 1-31 equal the PDF page numbers; then the package option addendum (Addendum-Page 1-2, PDF 32-33), packaging materials (PDF 34-35) and the YZV mechanical drawing 4206083/C (PDF 36, an image: no searchable text but the D/E limits). The addendum is dated 10-Nov-2025 and lists TPS22913BYZVR as Active."
+ }
+}

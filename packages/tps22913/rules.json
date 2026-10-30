@@ -1,0 +1,457 @@
+{
+ "package": "tps22913",
+ "version": "0.1.0",
+ "note": "Claims scoped to the TPS22913B (variant TPS22913BYZVR, DSBGA-4 YZV) as the bolt earring uses it: one switch per LED zone, VSYS in, ON from an RP2350 GPIO with a 10 kOhm pull-down, 10 uF on each output. Page numbers are SLVSB49F's printed pages (Revision F, January 2015, sha256 e4a052be…), which equal the PDF pages up to p.31. `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names; `ccomp check package` reads them). Where the bolt departs from the datasheet the claim is `contested` and its note says how.",
+ "claims": [
+  {
+   "id": "tps22913.vin.range",
+   "statement": "VIN is 1.4-5.5 V in operation, 6 V absolute maximum; below the UVLO threshold (1.2 V max rising, 0.5 V typ falling) the switch stays off, and when VIN rises past it with ON high the switch turns on at its controlled slew rate.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vin_v": [
+     1.4,
+     5.5
+    ],
+    "vin_v_abs_max": 6.0,
+    "uvlo_v_rising_max": 1.2
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§12 p.30; §8.1, §8.3 p.4; §8.5 p.5; §10.3.2 p.18",
+    "quote": "The device is designed to operate with a VIN range of 1.4 V to 5.5 V."
+   },
+   "status": "asserted",
+   "note": "The bolt's VIN is VSYS: the cell (3.0-4.2 V) through the path P-FET, or VBUS less a 1N4007WS diode, about 4.95 V from a 5.25 V port (simple_earring bom/parts.yaml). That leaves 0.55 V to the 5.5 V recommended maximum and about 1 V to absolute maximum; a VBUS spike passes the diode to VSYS, so the board's VBUS protection is what keeps VSYS in range.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.vin.cin",
+   "statement": "VIN is bypassed to GND with a ceramic capacitor, 1 uF or more, placed close to the pins, to limit the dip of the input supply when the switch turns on into a discharged load capacitor; larger values reduce the dip further.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "capacitance",
+    "placement"
+   ],
+   "requirement": {
+    "cin_uf_min": 1.0,
+    "cin_dielectric": "ceramic",
+    "cin_placement": "close to VIN (A2) and GND (B1)"
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.1.3 p.20; §8.3 p.4; §7 Pin Functions p.3",
+    "quote": "A 1-µF ceramic capacitor, CIN, placed close to the pins, is usually sufficient."
+   },
+   "status": "contested",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "The section is titled 'Input Capacitor (Optional)', but the recommended operating conditions list CIN 1 uF (min) and the pin table says to use a ceramic bypass on VIN. The bolt has no capacitor per switch: its three switches share VSYS with the NCP730 LDO, and VSYS carries C29 (10 uF 0603) and C18 (1 uF, the LDO's input capacitor). The package keeps the bolt's choice and has no CIN role; a board using it must put at least 1 uF of ceramic on its VIN net, within a short trace of each switch. Whether C29/C18 sit close enough to U4, U9 and U10 is the bolt's placement question, not checked here.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.cap.ratio",
+   "statement": "CIN should be larger than CL, 10:1 recommended: a CL larger than CIN can drive VOUT above VIN when the supply is removed (current back through the body diode), and a smaller ratio gives a larger VIN dip on turn-on; 10:1 is not required for the device to function.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "COUT"
+   },
+   "attributes": [
+    "capacitance",
+    "inrush"
+   ],
+   "requirement": {
+    "cin_over_cl_min": 1,
+    "cin_over_cl_recommended": 10
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.1.4 p.20; §11.1.3 p.20",
+    "quote": "Due to the integrated body diode in the PMOS switch, a CIN greater than CL is highly recommended."
+   },
+   "status": "contested",
+   "note": "The bolt departs from this. Each zone's CL is its 10 uF COUT plus the LED chain's 100 nF bypasses: 11.0 uF on VLED_L (ten), 10.7 uF on VLED_R (seven), 10.6 uF on VLED_C (six). The CIN available is VSYS's shared 11 uF (C29 10 uF + C18 1 uF), so the ratio is about 1:1 for one zone and about 1:3 with all three zones on. The datasheet's two consequences, as they apply here: (1) back-flow when VSYS is removed is stopped by the full-time reverse-current protection (tps22913.vout.reverse_current), which disengages the body diode; (2) a larger VSYS dip at turn-on, which the datasheet says a slower-rising part mitigates (the TPS22913C rises in 660 us against the B's 66 us). Enabling the three zones a few hundred microseconds apart, not together, keeps each step to one zone's inrush. Kept as the bolt has it; not checked, since CIN is not a part of this package.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.vout.cout",
+   "statement": "The output capacitor is optional; the datasheet's design example uses 0.1-1 uF. The bolt fits 10 uF beside each switch as its LED zone's bulk capacitance, which the inrush and CIN:CL claims then account for.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "COUT"
+   },
+   "attributes": [
+    "capacitance"
+   ],
+   "requirement": {
+    "cl_uf_example": [
+     0.1,
+     1.0
+    ]
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.1.4 p.20; §11.2.1 p.21",
+    "quote": "Output Capacitor (Optional)"
+   },
+   "status": "asserted",
+   "note": "The quote is the section's title. The 100 nF capacitors along each zone are the LED chain's own bypasses (the led_chain recipe puts one per cap_every LEDs) and stay out of this package; the 10 uF is the bolt's per-zone bulk, added in the same loop as the switch in simple_earring's circuit.py. 10 uF 10 V X5R 0603 (CL10A106KP8NNNC) keeps well under its nominal value at 4-5 V of bias (buck.cap.dc_bias_effective); that lowers the inrush below the estimate in tps22913.inrush.current.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.inrush.rise_time",
+   "statement": "The TPS22913B turns on with a controlled VOUT rise: typically 66 us at 3.3 V (comparison table), and in the switching table (RL 10 ohm, CL 0.1 uF, 25 C, 10-90 %) tR 82 us at VIN 5 V, 97 us at 3.3 V, 244 us at 1.5 V, with turn-on (ON 50 % to VOUT 50 %) 76, 102 and 234 us. The TPS22913C rises ten times slower (660 us typical at 3.3 V).",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "rise_time",
+    "inrush"
+   ],
+   "requirement": {
+    "tr_us_typ_vin5": 82,
+    "tr_us_typ_vin3v3": 97,
+    "ton_us_typ_vin5": 76,
+    "ton_us_typ_vin3v3": 102,
+    "toff_us_typ_vin5": 6.6,
+    "tf_us_typ_vin5": 3
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.2.2.1 p.21; §6 p.3; §8.6 p.6",
+    "quote": "The TPS22913B has a typical rise time of 66 µs at 3.3 V."
+   },
+   "status": "asserted",
+   "note": "All typical: the datasheet gives no minimum rise time, so the fastest slew is not bounded. The comparison table's 66 us and the switching table's 97 us at 3.3 V differ; the switching table is the 10-90 % measurement with a stated load, and the inrush estimate uses its fastest value (82 us at 5 V).",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.inrush.current",
+   "statement": "Turn-on inrush is the output capacitance times the output slew rate, I = C x dV/dt. For a bolt zone (about 11 uF nominal: COUT plus the chain's 100 nF bypasses) at VSYS 4.95 V and the B's 82 us 10-90 % rise, dV/dt is about 48 mV/us and the inrush about 0.53 A peak (0.45 A from a 4.2 V cell), under the 2 A continuous and 2.5 A pulsed ratings; at that slew, total load capacitance up to about 40 uF stays under 2 A.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "COUT"
+   },
+   "attributes": [
+    "inrush",
+    "capacitance"
+   ],
+   "requirement": {
+    "i_inrush_a_max": 2.0,
+    "i_pulsed_a_max": 2.5,
+    "slew_v_per_us_at_4v95": 0.048,
+    "cl_total_uf_max_for_2a": 41
+   },
+   "checks": [
+    {
+     "part": "COUT",
+     "quantity": "capacitance",
+     "max": 3.3e-05
+    }
+   ],
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.2.2.1 p.21; §8.1 p.4; §8.6 p.6",
+    "quote": "When the switch is enabled, the output capacitors must be charged up from 0-V to VIN voltage. This charge arrives in the form of inrush current."
+   },
+   "status": "asserted",
+   "note": "Arithmetic: 0.8 x 4.95 V / 82 us = 48.3 mV/us; x 11.0 uF = 0.53 A. From the cell: 0.8 x 4.2 / 82 = 41 mV/us -> 0.45 A. The datasheet's own method (66 us at 3.3 V, 50 mV/us, p.21) gives 0.55 A for 11 uF. Nominal capacitance overstates it: the 10 uF X5R at 4-5 V bias keeps much less (tps22913.vout.cout). The LEDs' idle draw (WS2816C, 0.7-1.0 mA each by simple_earring's circuit.py: 39-56 mA for the 56-LED zone) adds to it. The COUT ceiling of 33 uF is this package's choice: 2 A / 48.3 mV/us = 41 uF in all, less 8 uF left for the load's own capacitance. Three zones enabled at once draw up to about 1.6 A from VSYS together, which is the VSYS dip tps22913.cap.ratio is about.",
+   "enforced_by": [
+    "ccomp check package (COUT ceiling)"
+   ]
+  },
+  {
+   "id": "tps22913.on.no_float",
+   "statement": "ON must not be left floating; it must be driven high or low. Its input leakage is 1 uA max, so a pull-down of up to 100 kOhm holds it within 0.1 V of GND.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "R_ON"
+   },
+   "attributes": [
+    "enable",
+    "resistance",
+    "fitted"
+   ],
+   "requirement": {
+    "ion_leak_ua_max": 1,
+    "r_on_ohm": [
+     1000,
+     100000
+    ]
+   },
+   "checks": [
+    {
+     "part": "R_ON",
+     "quantity": "fitted"
+    },
+    {
+     "part": "R_ON",
+     "quantity": "resistance",
+     "min": 1000,
+     "max": 100000
+    }
+   ],
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.1.2 p.20; §7 Pin Functions p.3; §8.5 p.5",
+    "quote": "This pin cannot be left floating and must be driven either high or low for proper functionality."
+   },
+   "status": "asserted",
+   "note": "The resistor range is this package's: 100 kOhm x 1 uA = 0.1 V, a quarter of VIL (0.4 V); 1 kOhm keeps the current a 3.3 V GPIO spends holding the switch on to 3.3 mA. The bolt's 10 kOhm: 10 mV at worst-case leakage, 0.33 mA while on.",
+   "enforced_by": [
+    "ccomp check package (R_ON fitted, value range)"
+   ]
+  },
+  {
+   "id": "tps22913.on.levels",
+   "statement": "ON has fixed low thresholds: VIH 1.1 V min over VIN 1.4-5.5 V, VIL 0.4 V max for VIN 1.4-3.6 V and 0.6 V max for VIN 3.61-5.5 V; VON is 0-5.5 V recommended, 6 V absolute maximum. Any GPIO of 1.2 V or more drives it, whatever VIN is.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic_level",
+    "enable"
+   ],
+   "requirement": {
+    "vih_v_min": 1.1,
+    "vil_v_max": 0.4,
+    "vil_v_max_vin_above_3v61": 0.6,
+    "von_v_max": 5.5,
+    "von_v_abs_max": 6.0
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.1.2 p.20; §10.3.1 p.18; §8.3, §8.1 p.4",
+    "quote": "It can be used with any microcontroller with 1.2 V or higher GPIO voltage."
+   },
+   "status": "asserted",
+   "note": "In ports.json the ON function's levels are vih 1.1, vil '0.4 + 0.2 * (supply >= 3.61)' (supply is VIN: 0.6 V only when the whole VIN rail is at or above 3.61 V, else 0.4 V, and 0.4 V when the rail is unknown) and vin_max 5.5, so the pin solver can judge a driver. Against the RP2350 at IOVDD 3.3 V (packages/rp2350: VOH 2.62 V min, VOL 0.5 V max) the high has 1.5 V of margin, but the low passes only when VIN is known to stay at or above 3.61 V: RP2350 Table 1683 states VOL 0.5 V at IOL = 2-12 mA (the selected drive strength), and with VIN below 3.61 V or not given the solver refuses (0.50 V above 0.40 V). Electrically the ON pin sinks 1 uA at most and the 10 kOhm pull-down pulls the same way, so a GPIO driving low sits within millivolts of 0 V; the refusal is the worst-case VOL at full drive current meeting a near-zero load. The bolt's VSYS goes down to the cell's 3.0 V. Resolving it belongs to the RP2350 levels or the solver (a VOL at light load), not to this datasheet's VIL, which is kept as printed.",
+   "enforced_by": [
+    "pin solver (levels in ports.json)"
+   ]
+  },
+  {
+   "id": "tps22913.on.boot_off",
+   "statement": "With ON pulled to GND by R_ON, the switch is off and its output discharged (TPS22913B/C: VOUT to GND with ON low) whenever the host's GPIO is not driving it: while the host is unpowered, while it boots, and after reset; RP2350 GPIOs come out of power-up high-impedance with their pad isolation latched until software releases them.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "R_ON"
+   },
+   "attributes": [
+    "enable",
+    "power_sequencing"
+   ],
+   "requirement": {
+    "on_default": "low (off)",
+    "vout_when_off": "GND through the quick-output-discharge resistor"
+   },
+   "checks": [
+    {
+     "part": "R_ON",
+     "quantity": "fitted"
+    }
+   ],
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§10.4 Table 2 p.19; §11.1.2 p.20",
+    "figure": "Table 2, VOUT Function Table: ON = L gives VOUT = GND on the TPS22913B/C (Open on the TPS22912C, VIN on the active-low TPS22910A); ON = H gives VOUT = VIN."
+   },
+   "citations": [
+    {
+     "source": "rp2350/rp2350_ds",
+     "locator": "§9.3 p.539",
+     "quote": "Isolation latches are set to latched"
+    }
+   ],
+   "status": "asserted",
+   "note": "On the bolt (simple_earring circuit.py: R10/R33/R34 'off at boot') VSYS powers the switches whenever a cell or USB is present, while the RP2350's 3V3 comes from the NCP730 LDO; an RP2350 with IOVDD off has no pad pull at all, and one that is booting has its pads isolated, so without R_ON the ON pin would float and a zone could light (or half-light) before firmware runs. The RP2350's own reset pull-down (§9.3 'Pulled low') only exists while IOVDD is up. The off zone is also discharged to GND, so its LEDs' data inputs are not back-fed from a charged rail.",
+   "enforced_by": [
+    "ccomp check package (R_ON fitted)"
+   ]
+  },
+  {
+   "id": "tps22913.vout.qod",
+   "statement": "The TPS22913B/C have a 150 ohm on-chip load (153 ohm typ, 200 ohm max at VIN 3.3 V) that discharges the output quickly when the switch is turned off; the TPS22910A and TPS22912C do not. TPS22913B and TPS22913C differ in rise time (66 us against 660 us typical at 3.3 V), not in output discharge.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "output_discharge",
+    "variant"
+   ],
+   "requirement": {
+    "r_pd_ohm_typ": 153,
+    "r_pd_ohm_max": 200
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§3 p.1; §6 p.3; §8.5 p.5",
+    "quote": "The TPS22913B/C contains a 150-Ω on-chip load resistor for quick output discharge when the switch is turned off."
+   },
+   "status": "asserted",
+   "note": "For a bolt zone (about 11 uF nominal) the discharge time constant is 153 ohm x 11 uF = 1.7 ms, about 8 ms to under 1 % of VSYS, faster still with the LEDs' own idle draw. The discharge resistor dissipates only while the capacitor empties. The bolt's part (LCSC C544698) is TPS22913BYZVR, the 66 us part; the C variant (C353028, 4 in stock) would cut the inrush tenfold.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.vout.reverse_current",
+   "statement": "Reverse-current protection is active whether the switch is on or off: when VOUT exceeds VIN by VRCP (44 mV typ) the switch opens within 10 us typ and the body diode is disengaged; the peak reverse current before it acts is VRCP / rON, and about 0.3 uA leaks afterwards.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "reverse_current",
+    "protection"
+   ],
+   "requirement": {
+    "vrcp_mv_typ": 44,
+    "t_delay_us_typ": 10,
+    "ircp_leak_ua_typ": 0.3
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§10.3.3 p.19; §3 p.1; §8.5 p.5",
+    "quote": "When the reverse current voltage threshold (VRCP) is exceeded, the switch is disabled (within 10μs typ). Additionally, the body diode is disengaged so as to prevent any reverse current flow to VIN."
+   },
+   "status": "asserted",
+   "note": "The datasheet's description (p.1) adds that reverse-current protection is always active, even with the switch disabled. This is what makes the bolt's CL > CIN (tps22913.cap.ratio) tolerable when VSYS collapses: a zone's 11 uF cannot drain back into VSYS through the switch beyond the first VRCP / rON (about 0.7 A for 60 mOhm) for 10 us.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.thermal.drop",
+   "statement": "The VIN-to-VOUT drop is ILOAD x rON, with rON 60 mOhm typ, 80 mOhm max at 25 C and 110 mOhm max over -40 to 85 C (VIN 4.2-5.25 V); load current is limited to 2 A continuous, and the junction to 125 C with RthJA 189.1 C/W (layout dependent).",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "on_resistance",
+    "current",
+    "power_dissipation"
+   ],
+   "requirement": {
+    "ron_mohm_max": 110,
+    "imax_a": 2.0,
+    "tj_c_max": 125,
+    "theta_ja_c_per_w": 189.1
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§11.1.1 p.20; §8.5 p.5; §8.1, §8.4 p.4; §13.3 p.30",
+    "quote": "The VIN to VOUT voltage drop in the device is determined by the RON of the device and the load current."
+   },
+   "status": "asserted",
+   "note": "At 1 A a zone loses 110 mV and 0.11 W in the switch at worst, a 21 C rise at 189.1 C/W; at 2 A, 0.22 V and 0.44 W, 83 C (85 C ambient would then exceed 125 C junction). The zones' peak current depends on the LEDs' brightness and is the LED field's to state; it is not given here.",
+   "enforced_by": []
+  },
+  {
+   "id": "tps22913.layout.caps_close",
+   "statement": "Traces are as short as possible; the input and output capacitors sit close to the device; VIN, VOUT and GND traces are wide, which also lowers the case-to-ambient thermal impedance.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "COUT"
+   },
+   "attributes": [
+    "placement",
+    "trace_width"
+   ],
+   "requirement": {
+    "cin": "close to VIN (A2)",
+    "cout": "close to VOUT (A1)",
+    "traces": "short and wide for VIN, VOUT, GND"
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§13.1 p.30",
+    "quote": "To be most effective, the input and output capacitors should be placed close to the device to minimize the effects that parasitic trace inductances may have on normal operation."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "rp2350.decoupling.close"
+    }
+   ],
+   "note": "COUT carries `near: U1.A1` in the circuit. A 0.5 mm-pitch CSP limits the trace width at the ball itself; widen as soon as the trace leaves the package outline.",
+   "enforced_by": [
+    "floorplanner (near hint; not yet a check)"
+   ]
+  },
+  {
+   "id": "tps22913.layout.gnd_barrier",
+   "statement": "In TI's layout example the VOUT bypass capacitor's ground connects to the GND ball (B1) directly, which forms a ground barrier that reduces the ground noise the device sees; ON (B2) runs off to the GPIO, VIN (A2) has its bypass capacitor and a via to the power plane.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "COUT"
+   },
+   "attributes": [
+    "placement",
+    "grounding"
+   ],
+   "requirement": {
+    "cout_gnd": "to B1 directly"
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§13.2 p.30",
+    "quote": "Notice the connection to system ground between the VOUT Bypass Capacitor ground and the GND pin of the load switch, this creates a ground barrier which helps to reduce the ground noise seen by the device."
+   },
+   "status": "asserted",
+   "enforced_by": [
+    "generator (block layout from this figure; not yet written)"
+   ]
+  },
+  {
+   "id": "tps22913.off_current",
+   "statement": "Off, the switch draws from VIN 0.2 uA typ and 7 uA max at VIN 4.2 V (1.2 uA typ, 10 uA max at 5.25 V); on with no load, 2 uA typ and 7 uA max at 4.2 V.",
+   "scope": {
+    "chip": "TPS22913",
+    "block": "load_switch",
+    "role": "U1"
+   },
+   "attributes": [
+    "quiescent_current"
+   ],
+   "requirement": {
+    "iin_off_ua_max_4v2": 7,
+    "iin_off_ua_typ_4v2": 0.2,
+    "iin_q_ua_max_4v2": 7
+   },
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§8.5 p.5",
+    "figure": "Electrical Characteristics: IIN (quiescent, IOUT = 0, ON enabled) 2 typ / 7.0 max uA at VIN 4.2 V, 2 / 10 at 5.25 V; IIN(off) (RL = 1 MOhm, ON disabled) 0.2 / 7.0 uA at 4.2 V, 1.2 / 10 at 5.25 V; TA -40 to 85 C."
+   },
+   "status": "asserted",
+   "note": "The bolt has three switches on VSYS, which is live from the cell whenever the slide switch is on: 0.6 uA typical, 21 uA worst case with all zones off, beside the 10 kOhm pull-downs, which draw nothing while ON is low.",
+   "enforced_by": []
+  }
+ ]
+}

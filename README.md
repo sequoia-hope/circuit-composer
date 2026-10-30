@@ -38,7 +38,9 @@ It sits between two sibling projects:
     Recomposing the RP2350A minimal board (55 nets) and easy2350 (65) reproduces their netlists
     exactly.
   - **Packages:** three more, each ingested from its datasheet with cited rules: `mcp73831`
-    (LiPo charger), `tlv62569` (2 A buck, with a buck intent block) and `lsm6dso` (IMU).
+    (LiPo charger), `tlv62569` (2 A buck, with a buck intent block) and `lsm6dso` (IMU); and
+    the bolt earring's chips, as that board wires them: `lgs4056h` (charger), `ncp730` (3.3 V
+    LDO), `tps22913` (load switch), `usblc6` (USB ESD) and `lsm6ds3trc` (IMU).
   - **KiCad output:** `tools/compose_kicad.py` writes the schematic (a box per block, a net
     label per pin) and the board through easy_pcb's writer. ERC is clean, and the board's pad
     nets equal the composed nets.

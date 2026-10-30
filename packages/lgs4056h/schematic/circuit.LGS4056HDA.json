@@ -1,0 +1,100 @@
+{
+ "note": "The LGS4056H as the bolt earring uses it (boards/bolt-earring/circuit.json U2; simple_earring scripts/circuit.py, 'charger'), which is the datasheet's typical application (Picture 5, p.5) without the NTC divider and without the status LEDs: TEMP grounded (NTC check off, as p.5 and p.8 ask when no NTC is used), CE tied to VCC (always enabled), CHRG and DONE brought out as open-drain signal ports for a host's pulled-up inputs. Parts by role; `reference_ref` is the bolt's designator, `note` the datasheet's label. Values and LCSC numbers are the bolt's. RPROG 18 kohm sets 50 mA, for the bolt's small LPR302823 cell.",
+ "variant": "LGS4056HDA",
+ "board": "bolt-earring",
+ "source": "lgs4056h_ds",
+ "parts": {
+  "U1": {
+   "block": "charger",
+   "symbol": "Battery_Management:TP4056-42-ESOP8",
+   "value": "LGS4056HDA",
+   "footprint": "Package_DFN_QFN:DFN-8-1EP_2x2mm_P0.5mm_EP0.9x1.5mm",
+   "reference_ref": "U2",
+   "lcsc": "C5124109",
+   "mpn": "LGS4056HDA",
+   "note": "4.20 V, DFN2x2-8 (suffix DA, top mark 4056H, p.1). KiCad has no LGS4056H symbol; TP4056-42-ESOP8 has the same pinout: its pins 1 TEMP, 2 PROG, 3 GND, 4 VCC, 5 BAT, 6 ~STDBY (= DONE), 7 ~CHRG, 8 CE, 9 EPAD (= PAD) match Table 3.2 (p.3) pin by pin. The footprint is KiCad's own; the bolt's parts.pretty copy of the same name differs only in its 3D model. Its pads (0.25 x 0.7 mm at 0.5 mm pitch, EP 0.9 x 1.5 mm, pad 9) sit inside the p.13 drawing (leads 0.18-0.32 mm wide, EP 0.9 +/-0.1 x 1.6 +/-0.1 mm), checked pad by pad: pads 1-4 down the left, 5-8 up the right, as Picture 3 (p.3)."
+  },
+  "CIN": {
+   "block": "charger",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C16",
+   "lcsc": "C19702",
+   "mpn": "CL10A106KP8NNNC",
+   "note": "CVCC (Component Selection p.6): 10 uF effective value, ceramic, close to VCC (pin 4) and GND (pin 3), p.3 and p.11. The bolt's part is 10 uF 10 V X5R 0603; at the 5 V bias it keeps well under 10 uF (lgs4056h.vin.cin, bolt deviation kept). It is also the bolt's only VBUS bulk capacitor."
+  },
+  "CBAT": {
+   "block": "charger",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C17",
+   "lcsc": "C19702",
+   "mpn": "CL10A106KP8NNNC",
+   "note": "CBAT (Component Selection p.6): 10 uF effective value, ceramic, BAT to GND (Table 3.2 p.3). Same 10 V X5R 0603 part as CIN; at 4.2 V bias it too keeps less than 10 uF (lgs4056h.vbat.cbat, bolt deviation kept)."
+  },
+  "RPROG": {
+   "block": "charger",
+   "symbol": "Device:R",
+   "value": "18k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "reference_ref": "R8",
+   "lcsc": "C25762",
+   "mpn": "0402WGF1802TCE",
+   "note": "RPROG (Picture 5 p.5; Component Selection p.6): 1 % to GND as Table 3.2 asks. Below 300 mA, I_BAT = 900 / R_PROG (mA, kohm; p.3, p.7) = 900 / 18 = 50 mA: the bolt's choice, 0.36C and under its LPR302823 cell's 70 mA maximum charge current (the bolt's design/parts/r8-rprog.md, not vendored here). The datasheet tabulates only 1, 1.2, 2 and 9 kohm (Table 4 p.4) and gives no tolerance on ICC; 18 kohm is the 900-constant formula extrapolated."
+  }
+ },
+ "nets": {
+  "PROG": [
+   "U1.2",
+   "RPROG.1"
+  ]
+ },
+ "ports": {
+  "VIN": {
+   "kind": "supply",
+   "pins": [
+    "U1.4",
+    "U1.8",
+    "CIN.1"
+   ],
+   "note": "Charger input, the USB 5 V (VBUS): VCC (pin 4) and CE (pin 8, tied high: charging always enabled, as Table 3.2 allows). 4.0 V start, 6.5 V overvoltage stop (typical), 24 V withstand, 28 V absolute maximum (p.1, p.3, p.4)."
+  },
+  "VBAT": {
+   "kind": "supply",
+   "pins": [
+    "U1.5",
+    "CBAT.1"
+   ],
+   "note": "The cell's positive terminal (the bolt's VBATT). 4.20 V regulation. On the bolt this node carries only the cell (BT1) and its power-path FET: the system runs from VBUS while a cable is in, so the charge current reaches the cell and the 1/10 termination can happen."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.1",
+    "U1.3",
+    "U1.9",
+    "CIN.2",
+    "CBAT.2",
+    "RPROG.2"
+   ],
+   "note": "Chip ground (pin 3), the exposed pad (9) to a large copper area with vias (p.3, p.5, p.11), and TEMP (pin 1) grounded: no NTC, the battery temperature check is off (p.5: 'NTC function is not used, ground the TEMP pin')."
+  },
+  "CHRG": {
+   "kind": "signal",
+   "pins": [
+    "U1.7"
+   ],
+   "note": "Open drain, low while charging (Charge Status Indicator p.7). The bolt's net CHRG, to RP2350 GPIO19 with its internal pull-up. The datasheet's own use is an LED cathode with 1 kohm or more from VCC (p.5, p.6); an unused status pin is to be grounded, not left open (p.5, p.7)."
+  },
+  "DONE": {
+   "kind": "signal",
+   "pins": [
+    "U1.6"
+   ],
+   "note": "Open drain, low when charge is complete (Charge Status Indicator p.7). The bolt's net CHRG_DONE, to RP2350 GPIO28 with its internal pull-up. The datasheet forbids a pulse on DONE while VCC powers up (p.5, p.7): lgs4056h.status.done_no_pulse."
+  }
+ },
+ "chip_pins_unconnected": []
+}

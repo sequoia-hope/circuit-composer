@@ -1,0 +1,97 @@
+{
+ "note": "Pins by ball; what each function means, its supply and default net class. YZV (DSBGA-4) ball map from SLVSB49F Table 1 and Pin Functions (p.3): A1 VOUT, A2 VIN, B1 GND, B2 ON. The KiCad symbol Power_Management:AP22913CN4 (Diodes' pin-compatible AP22913) has the same four ball numbers with names OUT, IN, GND, ON (checked ball by ball), and its footprint Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm puts A1 top-left, A2 top-right, B1 bottom-left, B2 bottom-right at 0.5 mm pitch: the datasheet's laser-marking (top) view turned 180 degrees, not mirrored.",
+ "functions": {
+  "VIN": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    1.4,
+    5.5
+   ],
+   "note": "Switch input (the P-MOSFET's source). 1.4-5.5 V recommended, 6 V absolute maximum. Bypass with a ceramic capacitor to GND, 1 uF minimum in the recommended operating conditions, placed close to the pins. UVLO keeps the switch off below 1.2 V (max, rising). Quiescent current 2 uA typ, 7 uA max at 4.2 V while on; off-state supply current 0.2 uA typ, 7 uA max at 4.2 V",
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§7 Pin Functions p.3; §8.1, §8.3 p.4; §8.5 p.5; §11.1.3 p.20"
+   }
+  },
+  "VOUT": {
+   "kind": "power_out",
+   "class": "POWER",
+   "note": "Switch output. Not a regulated rail: it follows VIN less ILOAD x rON (60 mOhm typ, 80 mOhm max at 25 C, 110 mOhm max over temperature, VIN 4.2-5.25 V), so it has no fixed nominal_v; a board gives the rail its voltage. With ON low the TPS22913B/C pull it to GND through the 150 ohm quick-output-discharge resistor (153 ohm typ, 200 ohm max). 2 A continuous, 2.5 A pulsed (< 300 us, 2 % duty). Full-time reverse-current protection opens the switch when VOUT exceeds VIN by VRCP (44 mV typ), within 10 us",
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§7 Pin Functions p.3; §8.1 p.4; §8.5 p.5; §10.3.3, §10.4 Table 2 p.19"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Ground, ball B1; also the return of the quick-output-discharge resistor",
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§7 Pin Functions p.3; §10.2 p.18"
+   }
+  },
+  "ON": {
+   "kind": "enable",
+   "class": "SIGNAL",
+   "supply": "VIN",
+   "note": "Switch control, active high on the TPS22913B/C (high: VOUT = VIN; low: VOUT pulled to GND). Do not leave floating. Low-threshold input meant for 1.2-5.5 V GPIO: VIH 1.1 V, VIL 0.4 V (0.6 V when VIN is 3.61-5.5 V). Input leakage 1 uA max",
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§7 Pin Functions p.3; §8.3 p.4; §8.5 p.5; §10.3.1, §10.4 Table 2 pp.18-19; §11.1.2 p.20"
+   },
+   "levels": {
+    "vih": "1.1",
+    "vil": "0.4 + 0.2 * (supply >= 3.61)",
+    "vin_max": "5.5",
+    "note": "supply is VIN. VIH 1.1 V min over the whole VIN range 1.4-5.5 V; VIL 0.4 V max for VIN 1.4-3.6 V and 0.6 V for VIN 3.61-5.5 V (the expression; with VIN unknown it evaluates to the worse 0.4 V); VON recommended 0-5.5 V, absolute maximum 6 V. VIH does not scale with VIN, so a 1.8 V or 3.3 V GPIO drives ON at any VIN",
+    "citation": {
+     "source": "tps22913_ds",
+     "locator": "§8.1, §8.3 p.4"
+    }
+   }
+  }
+ },
+ "variants": {
+  "TPS22913BYZVR": {
+   "package": "DSBGA-4 (YZV), 0.90 x 0.90 mm nominal (p.1; 0.858-0.918 mm on the drawing), 0.5 mm pitch, 0.5 mm max height",
+   "source": {
+    "source": "tps22913_ds",
+    "locator": "§7 Table 1 and Pin Functions p.3; YZV mechanical drawing 4206083/C (PDF p.36)"
+   },
+   "pins": {
+    "A1": {
+     "name": "VOUT",
+     "function": "VOUT"
+    },
+    "A2": {
+     "name": "VIN",
+     "function": "VIN"
+    },
+    "B1": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "B2": {
+     "name": "ON",
+     "function": "ON"
+    }
+   }
+  }
+ },
+ "interfaces": {
+  "on": {
+   "type": "logic",
+   "dir": "in",
+   "pins": {
+    "IO": "ON"
+   },
+   "note": "Active high, VIH 1.1 V, VIL 0.4 V: a 1.8 V or 3.3 V GPIO drives it directly. Must not float: the package's R_ON (10 kOhm to GND) holds it low, so the switch is off until the host drives the pin high",
+   "citation": {
+    "source": "tps22913_ds",
+    "locator": "§7 Pin Functions p.3; §8.3 p.4; §11.1.2 p.20"
+   }
+  }
+ }
+}

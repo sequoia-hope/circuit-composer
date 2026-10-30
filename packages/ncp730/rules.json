@@ -1,0 +1,493 @@
+{
+ "package": "ncp730",
+ "version": "0.1.0",
+ "note": "Claims scoped to the NCP730 (variant NCP730BMT330TBG: fixed 3.3 V, version B with PG, WDFN6 2x2). Page numbers are NCP730/D Rev. 7 (December 2025) printed pages, equal to the PDF page for pp.1-30; the WDFN6 package drawing is PDF page 32 (sha256 f0854f18…). The text layer renders the micro sign as 'm', so quotes elide those units with '...'. `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names). Arithmetic for the bolt earring's values is in each claim's note.",
+ "claims": [
+  {
+   "id": "ncp730.cin.min",
+   "statement": "IN is bypassed to GND with at least 1 uF of X5R or X7R ceramic, as close to the pins as possible; there is no upper limit and no ESR requirement.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "CIN"
+   },
+   "attributes": [
+    "capacitance",
+    "dielectric",
+    "placement"
+   ],
+   "requirement": {
+    "capacitance_uf_min": 1.0,
+    "dielectric": [
+     "X5R",
+     "X7R"
+    ]
+   },
+   "checks": [
+    {
+     "part": "CIN",
+     "quantity": "capacitance",
+     "min": 1e-06
+    }
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.14 (Input Capacitor Selection)",
+    "quote": "Input capacitor connected as close as possible is necessary to ensure device stability. The X7R or X5R capacitor should be used for reliable performance over temperature range. The value of the input capacitor should be 1 ... or greater (max. value is not limited)."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "The bolt's CIN (C18) is 1 uF 25 V X5R 0402 (CL05A105KA5NQNC): it meets the minimum nominally. The electrical characteristics are measured at 1.0 uF effective (p.4 note 4), and a 0402 loses capacitance at the bolt's 3.0-4.95 V VSYS bias (p.14 says so for 0402 outputs; the capacitor maker's bias curve was not read), so C18 alone is likely below 1 uF effective. VSYS also carries the board's 10 uF 0603 bulk capacitor C29 a few millimetres away, which is not part of this package.",
+   "enforced_by": [
+    "ccomp check package (nominal value; DC-bias derating is not in a value string)"
+   ]
+  },
+  {
+   "id": "ncp730.cout.range",
+   "statement": "The output is stable with 1 uF to 100 uF of effective capacitance on OUT, with ESR from 1 mohm to 200 mohm; X5R or X7R ceramic recommended, placed as close as possible to OUT and GND.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "COUT"
+   },
+   "attributes": [
+    "capacitance",
+    "esr",
+    "stability"
+   ],
+   "requirement": {
+    "effective_capacitance_uf": [
+     1.0,
+     100.0
+    ],
+    "esr_ohm": [
+     0.001,
+     0.2
+    ]
+   },
+   "checks": [
+    {
+     "part": "COUT",
+     "quantity": "capacitance",
+     "min": 1e-06,
+     "max": 0.0001
+    }
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.14 (Output Capacitor Selection)",
+    "quote": "The LDO is designed to remain stable with output capacitor’s effective capacitance in range from 1 ... to 100 ... and ESR from 1 ... to 200"
+   },
+   "status": "contested",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "Contested for the bolt's value, which the package keeps: COUT (C19) is 1 uF nominal 0402 X5R 25 V, exactly the minimum before tolerance (+/-10 %, K) and DC-bias loss at 3.3 V, so its effective capacitance is below 1 uF on its own (not quantified: the bias curve was not read). The bolt's 3V3 rail also carries the RP2350's 4.7 uF 0402 VREG input capacitor (C11) and eleven 100 nF decouplers (RP2350, flash, IMU, Schmitt buffer U8), which together put several uF on the rail, but not 'as close as possible' to OUT and not in this package. A board composing this package without that rail capacitance should use a larger COUT (2.2-4.7 uF 0402/0603) to be inside the stated range.",
+   "enforced_by": [
+    "ccomp check package (nominal value only)"
+   ]
+  },
+  {
+   "id": "ncp730.cap.dc_bias_0402",
+   "statement": "Capacitor values for IN and OUT are effective values: with 0402 or smaller capacitors the capacitance drops rapidly with DC bias, which must be accounted for when choosing them.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "COUT"
+   },
+   "attributes": [
+    "capacitance",
+    "dc_bias"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.14 (Output Capacitor Selection); p.4 note 4",
+    "quote": "Especially for small package size capacitors such as 0402 or smaller the effective capacitance drops rapidly with the applied DC bias voltage"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "buck.cap.dc_bias_effective"
+    }
+   ],
+   "note": "Both of the bolt's LDO capacitors are 0402 (C18, C19). See ncp730.cin.min and ncp730.cout.range.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.layout.caps_close",
+   "statement": "CIN and COUT sit as close as possible to the IN, OUT and GND pins, on the same layer as the LDO (no vias between them), with short wide traces; the same holds between COUT and the load.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo"
+   },
+   "attributes": [
+    "placement",
+    "layout"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.26 (PCB Layout Recommendations)",
+    "quote": "place CIN and COUT capacitors as close as possible to the device pins and make the PCB traces wide, short and place capacitors to the same layer as the LDO is (to avoid connection through vias)"
+   },
+   "status": "asserted",
+   "note": "The circuit gives CIN `near` U1.6 (IN) and COUT `near` U1.1 (OUT) as placement hints. Whether the bolt's layout has them on U3's layer was not checked.",
+   "enforced_by": [
+    "ccomp floorplan (near hints)"
+   ]
+  },
+  {
+   "id": "ncp730.vin.range",
+   "statement": "The input operates from 2.7 V to 38 V (recommended), with an absolute maximum of 40 V; an internal UVLO holds the output off below 1.6-2.6 V (1.95 V typical) rising.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vin_v": [
+     2.7,
+     38
+    ],
+    "vin_v_abs_max": 40,
+    "uvlo_rising_v": [
+     1.6,
+     2.6
+    ]
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.1 (Features); p.4 (maximum ratings, recommended input voltage); p.5 (internal UVLO)",
+    "quote": "Operating Input Voltage Range: 2.7 V to 38 V"
+   },
+   "status": "asserted",
+   "note": "The bolt's VSYS is 3.0-4.2 V from the cell through Q2, or about 3.7-4.95 V from USB through the silicon diode D3 (simple_earring circuit.py comments): inside the range with 33 V to spare, as the bolt's own notes say ('a 38V-input part, so the 4.7V USB rail is a non-event').",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.vin.headroom",
+   "statement": "The output stays in regulation only while VIN >= VOUT-NOM + VDO, including during load transients; below that the LDO is in dropout and VOUT follows VIN - VDO.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "dropout",
+    "supply_voltage"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.14 (Input Capacitor Selection)",
+    "quote": "the input voltage must not go below the level defined by this equation: VIN = VOUT-NOM + VDO otherwise the output voltage drop will be significantly higher (because LDO will enter the dropout state)"
+   },
+   "status": "asserted",
+   "note": "On the bolt, VSYS from the cell is VBATT less Q2's drop. With VDO about 70-100 mV at a 20 mA load (Figure 15-16 typical, 25-125 C; the bolt's notes put the MCU at about 17 mA), the 3V3 rail leaves regulation once the cell falls below roughly 3.4 V and then tracks it down (about 3.0 V at a 3.1 V cell). The RP2350 and the other 3V3 loads run there, but anything that assumes exactly 3.3 V (an ADC reading scaled to 3.3 V, for instance) sees the lower rail. This is the board's design choice, not an error.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.vout.dropout",
+   "statement": "Dropout (VOUT 100 mV below nominal) is 290 mV typical and 480 mV maximum at 150 mA over TJ -40 to 125 C; it falls roughly with load current, to about 40-100 mV typical between 1 mA and 20 mA.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "dropout"
+   ],
+   "requirement": {
+    "vdo_mv_max_at_150ma": 480,
+    "vdo_mv_typ_at_150ma": 290
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.1 (Features); p.5 (Dropout Voltage, note 6); p.7 (Figures 14-16)",
+    "quote": "Low Dropout: 290 mV typ. at 150 mA, 3.3 V Version"
+   },
+   "status": "asserted",
+   "note": "Only the 150 mA point is a guaranteed limit; the low-current figures are read off the typical curves of Figure 15 and 16 (p.7), so they are not maxima.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.vout.accuracy",
+   "statement": "The fixed output is accurate to +/-1 % over TJ -40 to 85 C and -1 %/+2 % over TJ -40 to 125 C, with up to 0.2 % line regulation and 0.4 % load regulation (0.1-150 mA) on top: 3.247-3.373 V worst case for the 3.3 V version in regulation.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "output_voltage"
+   ],
+   "requirement": {
+    "vout_v": [
+     3.247,
+     3.373
+    ]
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.1 (Features); p.4 (Output Voltage Accuracy, Line Regulation, Load Regulation)",
+    "quote": "Output Voltage Accuracy ±1%"
+   },
+   "status": "asserted",
+   "note": "3.3 V x (1 - 0.01 - 0.002 - 0.004) = 3.247 V; 3.3 V x (1 + 0.02 + 0.002) = 3.373 V (load regulation only lowers the output). ports.json gives OUT this range as nominal_v, which the pin solver reads as the 3V3 rail. It does not cover dropout (ncp730.vin.headroom).",
+   "enforced_by": [
+    "ccomp pins (rail voltage from OUT's nominal_v)"
+   ]
+  },
+  {
+   "id": "ncp730.vout.abs_max",
+   "statement": "OUT must not be pulled above the lower of VIN + 0.3 V and 6.0 V (fixed versions up to 5 V): nothing on the output rail may back-drive the LDO above its input.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "absolute_maximum",
+    "reverse_current"
+   ],
+   "requirement": {
+    "vout_v_abs_max": "min(VIN + 0.3, 6.0)"
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.4 (Maximum Ratings)",
+    "quote": "FIX versions VOUT-NOM ≤ 5.0 V: −0.3 to [(VIN + 0.3) or 6.0 V; whichever is lower]"
+   },
+   "status": "asserted",
+   "note": "On the bolt nothing else drives 3V3. When VSYS is removed the 3V3 rail's capacitance (several uF) discharges through its loads while VSYS keeps 11 uF; whether VSYS can fall faster than 3V3 by more than 0.3 V (e.g. a cell disconnected with the LED switches on) was not checked.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.en.threshold",
+   "statement": "EN turns the regulator on above its rising threshold (0.7-1.05 V) and off below the rising threshold less the hysteresis (0.01-0.2 V): a logic high must be at least 1.05 V and a logic low at most 0.5 V.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic_level",
+    "enable"
+   ],
+   "requirement": {
+    "vih_v_min": 1.05,
+    "vil_v_max": 0.5
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.17 (Startup by EN Pin Voltage); p.5 (EN Threshold, EN Hysteresis)",
+    "quote": "the level higher than VEN-TH enables the LDO and the level lower than (VEN-TH – VEN-HY) disables it."
+   },
+   "status": "asserted",
+   "note": "0.5 V = 0.7 V (rising threshold minimum) - 0.2 V (hysteresis maximum). On the bolt, the latch drives PWR_EN to about VBATT - 0.6 V through D2 (at least 2.4 V at a 3.0 V cell) and USB to VBUS/2 through R18/R17 (2.2-2.6 V): both well above 1.05 V. Off, R17 holds EN at most 0.1 V (ncp730.en.pulldown).",
+   "enforced_by": [
+    "ccomp pins (EN levels in ports.json)"
+   ]
+  },
+  {
+   "id": "ncp730.en.abs_max",
+   "statement": "EN's absolute maximum is VIN + 0.3 V, not a fixed rating: a driver from a rail above IN (USB VBUS when IN is a battery) must be clamped or divided to stay within it.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "absolute_maximum",
+    "logic_level"
+   ],
+   "requirement": {
+    "ven_v_abs_max": "VIN + 0.3"
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.4 (Maximum Ratings)",
+    "quote": "EN Voltage VEN −0.3 to (VIN + 0.3)"
+   },
+   "status": "asserted",
+   "note": "The bolt meets this by design: USB feeds EN only through the R18/R17 100k/100k divider (about VBUS/2) and BAV99W D2's second diode clamps PWR_EN to VBATT + Vf; since VSYS >= VBATT in every state, clamping to VBATT is conservative (simple_earring circuit.py, 'D2'). ports.json gives EN `vin_max: supply + 0.3` so the pin solver checks any logic driver against IN.",
+   "enforced_by": [
+    "ccomp pins (EN vin_max in ports.json)"
+   ]
+  },
+  {
+   "id": "ncp730.en.floating_on",
+   "statement": "EN has an internal pull-up current source: left unconnected (or tied to IN) the regulator is enabled, so no pull-up resistor is needed for always-on use.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "enable",
+    "default_state"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description, EN); p.17 (Startup by IN Pin Voltage)",
+    "quote": "If this pin is connected to IN pin or if it is left unconnected (pull-up resistor is not required) the device is enabled."
+   },
+   "status": "asserted",
+   "note": "So a board that switches the LDO off, as the bolt does, must actively hold EN low: see ncp730.en.pulldown.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.en.pulldown",
+   "statement": "A pull-down that holds EN off must keep it below 0.5 V against the internal pull-up current of up to 1 uA: R_pulldown <= 0.5 V / 1 uA = 500 kohm, less any leakage into EN from the driving network.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "enable",
+    "resistance",
+    "leakage"
+   ],
+   "requirement": {
+    "ien_pu_ua": [
+     0.01,
+     1.0
+    ],
+    "r_pulldown_ohm_max": 500000
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.5 (EN Internal Pull-up Current; Figure 12 p.7)",
+    "quote": "EN Internal Pull-up Current VEN = 1 V, VIN = 5.5 V IEN-PU 0.01 0.3 1"
+   },
+   "status": "asserted",
+   "note": "Units are uA (the text layer prints 'mA'; Figure 12 p.7 is in uA with the 1.0 uA high limit). The bolt's pull-down is R17, 100 kohm, on its latch network rather than in this package: 1 uA x 100 kohm = 0.1 V, leaving 0.4 V for the off-state leakage of D2, D3, Q4 and the TVS, which the bolt's own design/sim/button studies budget. The bolt's notes chose 100 k over 1 M for exactly this reason.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.pg.unused",
+   "statement": "PG (version B) is an open-drain power-good output; if it is not used it may be left unconnected or shorted to GND.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "unused_pin",
+    "open_drain"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description, WDFN-6 pin 5)",
+    "quote": "Power good output pin. High level for power ok, low level for fail. If not used, could be left unconnected or shorted to GND."
+   },
+   "status": "asserted",
+   "note": "The bolt leaves pin 5 unconnected. The package brings PG out as an optional signal port; a board that does not read it lists it in no_connect. A host that does read it needs a pull-up to a rail no higher than VIN + 0.3 V (PG's own maximum, p.4); VPG-OL is 0.4 V max at 1 mA (p.5).",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.nc.ground_optional",
+   "statement": "On fixed-output versions pin 2 is not internally connected; it may be tied to the ground plane to help dissipate heat, or left open.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "unused_pin",
+    "thermal"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description, WDFN-6 pin 2); p.25 (Power Dissipation)",
+    "quote": "Not internally connected. This pin can be tied to the ground plane to improve thermal dissipation."
+   },
+   "status": "asserted",
+   "note": "The bolt leaves pin 2 open (chip_pins_unconnected). At its dissipation (ncp730.thermal.pd) the extra copper is not needed.",
+   "enforced_by": [
+    "circuit_check (chip_pins_unconnected)"
+   ]
+  },
+  {
+   "id": "ncp730.ep.gnd",
+   "statement": "The exposed pad is connected to the GND plane; it is the package's main heat path.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "thermal",
+    "ground"
+   ],
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.3 (pin description, EP); p.4 (thermal characteristics); p.25",
+    "quote": "Exposed pad pin. Should be connected to the GND plane."
+   },
+   "status": "asserted",
+   "note": "The circuit puts the pad (pin 7) on the GND port with pin 3, as the bolt does (U3.EP on GND).",
+   "enforced_by": [
+    "circuit_check (U1.7 on the GND port)"
+   ]
+  },
+  {
+   "id": "ncp730.thermal.pd",
+   "statement": "Dissipation is PD = VIN x IGND + (VIN - VOUT) x IOUT, and the junction should stay below 125 C; the WDFN6's RthJA is 67 C/W on the JEDEC 1S2P board.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "thermal",
+    "power_dissipation"
+   ],
+   "requirement": {
+    "tj_c_max": 125,
+    "rthja_c_per_w_jedec": 67
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.25 (Power Dissipation, eq. 27-28); p.4 (thermal characteristics)",
+    "quote": "For reliable operation junction temperature should be less than +125"
+   },
+   "status": "asserted",
+   "note": "Bolt worst case: VSYS 4.95 V from a 5.25 V port, 3V3 load 50 mA (an assumption: the bolt's notes give about 17 mA for the MCU and cap the whole system at 140 mA, most of it LEDs on VSYS, not 3V3): (4.95 - 3.3) x 0.05 = 83 mW, about 6 C rise at 67 C/W. The earring's small two-layer board will have a higher RthJA than JEDEC's 650 mm2 of copper, but even doubled the rise stays near 11 C.",
+   "enforced_by": []
+  },
+  {
+   "id": "ncp730.iq.version_b",
+   "statement": "The version-B (PG) part draws 1.8 uA typical, 3.0 uA maximum quiescent current at no load, more than version A's 1.3/2.5 uA; shutdown current is 0.35 uA typical, 1.5 uA maximum at 38 V, including the EN pull-up.",
+   "scope": {
+    "chip": "NCP730",
+    "block": "ldo",
+    "role": "U1"
+   },
+   "attributes": [
+    "quiescent_current",
+    "battery_life"
+   ],
+   "requirement": {
+    "iq_ua_max": 3.0,
+    "ishdn_ua_max": 1.5
+   },
+   "citation": {
+    "source": "ncp730_ds",
+    "locator": "p.4 (Quiescent Current, Shutdown Current, note 9)",
+    "quote": "Quiescent Current (version B) VIN = VOUT-NOM + 1 V to 38 V, IOUT = 0 mA − 1.8 3.0"
+   },
+   "status": "asserted",
+   "note": "Units are uA (the text layer prints 'mA'). The bolt's parts.yaml says '~1uA Iq', the headline figure of p.1; the fitted NCP730BMT330TBG is version B, 1.8 uA typical. Off, the bolt's floor is set by its latch network (R17 sinks the up-to-1 uA EN pull-up, which ISHDN already includes), not by the LDO's 1.5 uA maximum.",
+   "enforced_by": []
+  }
+ ]
+}

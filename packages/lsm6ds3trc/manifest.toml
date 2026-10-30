@@ -1,0 +1,65 @@
+# Circuit Composer package: ST LSM6DS3TR-C 6-axis IMU (3D accelerometer + 3D gyroscope).
+#
+# 0.1.0: the IMU as the bolt earring (simple_earring rev 2, U6) uses it: the datasheet's Mode 1
+# connection (Figure 15, I2C to a host, I2C master unused) as a circuit with ports VDD, GND,
+# SDA, SCL, INT1, INT2; pin table (ports.json); cited rules for supplies, decoupling, I2C
+# pull-ups, the land pattern and ST's MEMS layout and placement guidance (TN1383). No layout is
+# generated: the block is two capacitors and two optional pull-ups.
+
+[package]
+name = "lsm6ds3trc"
+version = "0.1.0"
+family = "LSM6DS3TR-C"
+license = "MIT"
+summary = "LSM6DS3TR-C IMU in I2C mode as the bolt earring uses it: circuit, ports, pin table, cited supply/decoupling/pull-up/land-pattern/placement rules"
+
+[[variants]]
+name = "LSM6DS3TR-C"
+package = "LGA-14L 2.5x3.0x0.86 mm, 0.5 mm pitch"
+footprint = "Package_LGA:LGA-14_3x2.5mm_P0.5mm_LayoutBorder3x4y"
+symbol = "Sensor_Motion:LSM6DS3"
+# KiCad has no LSM6DS3TR-C symbol; LSM6DS3 has the same pin numbers and functions, NC on 10
+# and 11 included (checked pin by pin against DocID030071 Table 2, p.20, in KiCad 9 and 10).
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "DocID030071 Rev 3, May 2017 (sha256 352f3564…)"
+layout_note = "ST TN1383 Rev 1, PCB design guidelines for MEMS sensors (August 2023), via lsm6dso/st_tn1383"
+pullup_note = "TI SLVA689A, I2C Bus Pullup Resistor Calculation (library ti_slva689)"
+
+# LCSC parts the circuit names (the bolt earring's). Stock read with jlc_parts.py show on the
+# date given.
+[[sourcing]]
+role = "U1"
+part = "ST LSM6DS3TR-C, LGA-14"
+lcsc = "C967633"
+checked = "2026-10-30"
+# extended part, JLC stock 20813, LCSC stock 17920, lifecycle normal
+
+[[sourcing]]
+role = "C_VDD"
+part = "Samsung CL05B104KO5NNNC, 100 nF 16 V X7R 0402"
+lcsc = "C1525"
+checked = "2026-10-30"
+# basic part, JLC stock 35979481, lifecycle normal
+
+[[sourcing]]
+role = "C_VDDIO"
+part = "Samsung CL05B104KO5NNNC, 100 nF 16 V X7R 0402"
+lcsc = "C1525"
+checked = "2026-10-30"
+# basic part, JLC stock 35979481, lifecycle normal
+
+[[sourcing]]
+role = "R_SDA_PU"
+part = "YAGEO RC0402FR-074K7L, 4.7 kohm 1 % 0402"
+lcsc = "C105871"
+checked = "2026-10-30"
+# extended part, JLC stock 8991690, lifecycle normal
+
+[[sourcing]]
+role = "R_SCL_PU"
+part = "YAGEO RC0402FR-074K7L, 4.7 kohm 1 % 0402"
+lcsc = "C105871"
+checked = "2026-10-30"
+# extended part, JLC stock 8991690, lifecycle normal
