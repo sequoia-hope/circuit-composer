@@ -175,6 +175,20 @@ enum Cmd {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// A package's typed interfaces (I2C0, SPI1, the IMU's i2c target) and the pins each signal
+    /// can take on a variant: through the pin-mux table or fixed.
+    Interfaces {
+        /// A package name under `ROOT/packages`, or a package directory.
+        package: PathBuf,
+        /// The variant (the first in `ports.json` otherwise).
+        #[arg(long)]
+        variant: Option<String>,
+        /// One interface, with every pin each signal can take; without, a summary of all.
+        #[arg(long)]
+        interface: Option<String>,
+        #[arg(long, default_value = ".")]
+        root: PathBuf,
+    },
     /// The research library: cited claims from `library/` and every package's `rules.json`.
     Library {
         #[command(subcommand)]
@@ -690,8 +704,14 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
         }
         Cmd::Library { op: LibraryOp::Check { root } } => {
             let report = library::Library::load(&root)?.check();
-            Ok((serde_json::to_value(&report).unwrap(), report.ok))
+            let ifaces = interfaces::check_all(&root)?;
+            let ok = report.ok && ifaces.ok;
+            let mut value = serde_json::to_value(&report).unwrap();
+            value["ok"] = ok.into();
+            value["interfaces"] = serde_json::to_value(&ifaces).unwrap();
+            Ok((value, ok))
         }
+        Cmd::Interfaces { package, variant, interface, root } => interfaces_cmd(&root, &package, variant.as_deref(), interface.as_deref()),
         Cmd::Library { op: LibraryOp::Query { root, set, id, scope, attribute, status, text } } => {
             let lib = library::Library::load(&root)?;
             let hits = lib.query(&library::Query { set, status, attribute, scope, id, text });
@@ -711,6 +731,56 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
     }
+}
+
+/// `ccomp interfaces`: one interface's pins, or every interface in brief.
+fn interfaces_cmd(root: &Path, package: &Path, variant: Option<&str>, interface: Option<&str>) -> Result<(Value, bool), String> {
+    let dir = if package.is_dir() { package.to_path_buf() } else { root.join("packages").join(package) };
+    let types = interfaces::load_types(&root.join("library/interfaces.json"))?;
+    let ports = interfaces::load_ports(&dir.join("ports.json"))?;
+    let variant = match variant {
+        Some(v) => v.to_string(),
+        None => ports.variants.keys().next().cloned().ok_or("ports.json has no variants")?,
+    };
+    let names: Vec<String> = match interface {
+        Some(i) => vec![i.to_string()],
+        None => ports.interfaces.keys().cloned().collect(),
+    };
+    let mut out = serde_json::Map::new();
+    for name in names {
+        let i = ports.interfaces.get(&name).ok_or_else(|| format!("no interface {name}: {}", ports.interfaces.keys().cloned().collect::<Vec<_>>().join(", ")))?;
+        let opts = ports.options(&variant, &name)?;
+        let signals: serde_json::Map<String, Value> = opts
+            .iter()
+            .map(|(own, pins)| {
+                let pins: Vec<String> = pins.iter().map(|c| format!("{} {}{}", c.number, c.name, c.function.as_ref().map(|f| format!(" ({f})")).unwrap_or_default())).collect();
+                let v = if interface.is_some() { json!({ "is": i.type_signal(own), "pins": pins }) } else { json!({ "is": i.type_signal(own), "pins": pins.len() }) };
+                (own.clone(), v)
+            })
+            .collect();
+        let mut v = json!({ "type": i.kind, "signals": signals });
+        for (k, x) in [("roles", json!(i.roles)), ("excludes", json!(i.excludes)), ("implements", json!(i.implements))] {
+            if x.as_array().is_some_and(|a| !a.is_empty()) {
+                v[k] = x;
+            }
+        }
+        if i.per_pin {
+            v["per_pin"] = true.into();
+        }
+        if opts.is_empty() {
+            v["absent"] = format!("no pins on {variant}").into();
+        }
+        if interface.is_some() {
+            v["note"] = json!(i.note);
+            v["citation"] = json!(i.citation);
+            v["type_note"] = json!(types.types.get(&i.kind).and_then(|t| t.note.clone()));
+            for (k, x) in &i.extra {
+                v[k] = x.clone();
+            }
+        }
+        out.insert(name, v);
+    }
+    Ok((json!({ "package": dir.file_name().map(|n| n.to_string_lossy().to_string()), "variant": variant, "interfaces": out }), true))
 }
 
 fn set_placer(pr: &mut floorplan::Problem, placer: Option<&str>) {

@@ -86,5 +86,20 @@
     }
    }
   }
+ },
+ "interfaces": {
+  "stat": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "tristate",
+   "pins": {
+    "IO": "STAT"
+   },
+   "note": "L while charging, H at charge complete, Hi-Z in shutdown or with no battery. Its high is VDD (the charger's input, up to 6 V), not a 3.3 V logic level",
+   "citation": {
+    "source": "mcp73831_ds",
+    "locator": "§3.3 p.11; §5.2.1 Table 5-1 p.15; §1.0 p.4"
+   }
+  }
  }
 }

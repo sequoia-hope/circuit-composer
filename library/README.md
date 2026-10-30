@@ -13,6 +13,10 @@ Disagreements are kept. Both claims stay, linked as contradicting from both side
 `library/` holds claims about circuit classes. Each package's `rules.json` holds claims about one
 chip. Together they are one database: links run between them, and `ccomp library` reads both.
 
+`interfaces.json` is not claims: it defines the interface types (`i2c`, `spi`, `uart`, `pwm`,
+`logic`, `analog`, `pio`, `usb`, `swd`, `qspi`) that each package's `ports.json` declares
+instances of. `ccomp library check` checks those too.
+
 | Topic | Claims | Contested | Sources |
 |---|---|---|---|
 | `buck` | 30 | 11 | TI SNVA021C (AN-1149), SLYT614, SNVA803, SNVA638A (AN-2155), SLVA477C, SLTA055; ROHM 60AN066E; Murata SimSurfing MLCC measuring conditions |

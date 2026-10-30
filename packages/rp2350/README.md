@@ -9,7 +9,7 @@ and with measurements taken from Raspberry Pi's two minimal boards.
 |---|---|
 | `manifest.toml` | Family, variants and their layouts, source revisions, LCSC parts |
 | `intent.json` | The blocks in the intent schema: roles, nets, objectives, constraints, ports. Part names are roles; pins are QFN-60 numbers |
-| `ports.json` | Every pin of both variants by number and name, and each function's supply domain, default net class and notes (datasheet §1.2) |
+| `ports.json` | Every pin of both variants by number and name, and each function's supply domain, default net class and notes (datasheet §1.2). Its interfaces (I2C0-1, SPI0-1, UART0-1, PWM0-11, SIO, PIO0-2, ADC, USB, SWD, QSPI) and the GPIO function table they reach pins through (`mux`, §1.2.3 Table 3, written by `tools/rp2350_mux.py` from the datasheet) |
 | `rules.json` | 27 claims from the datasheet and design guide, each cited, with what enforces it; disputes kept as `contested` |
 | `schematic/support.json` | The support parts by block and role as fitted on both minimal boards: value, footprint, designator; decoupling per pin |
 | `schematic/circuit.RP2350A.json` | The package's circuit for composing it: 31 parts by role with symbol, value and footprint; 17 internal nets; 37 ports (GND and +3V3 must be connected). Read from the minimal board by `tools/package_circuit.py` |

@@ -1,0 +1,13 @@
+[package]
+name = "interfaces"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# Typed interfaces: the types (`library/interfaces.json`), each package's instances of them and
+# its pin-mux table (`ports.json`), which pins each instance's signals can take on a variant, and
+# a check that the data agrees with itself. The pin solver works from these.
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

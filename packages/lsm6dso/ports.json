@@ -175,5 +175,92 @@
     "locator": "§3 Figure 3 p.6; §3.1 Table 1 pp.7-8"
    }
   }
+ },
+ "interfaces": {
+  "i2c": {
+   "type": "i2c",
+   "roles": [
+    "target"
+   ],
+   "pins": {
+    "SDA": "SDA",
+    "SCL": "SCL"
+   },
+   "max_khz": 400,
+   "addresses": {
+    "0x6A": "SA0 to GND",
+    "0x6B": "SA0 to VDDIO"
+   },
+   "requires": "CS tied to VDDIO",
+   "excludes": [
+    "spi"
+   ],
+   "note": "No internal pull-ups on SDA and SCL: the bus needs them, to VDDIO",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§5.1 p.17; §5.1.1 pp.17-18; Table 6 p.14; Table 19 p.38"
+   }
+  },
+  "spi": {
+   "type": "spi",
+   "roles": [
+    "target"
+   ],
+   "pins": {
+    "SCK": "SCL",
+    "SDI": "SDA",
+    "SDO": "SDO/SA0",
+    "CS": "CS"
+   },
+   "excludes": [
+    "i2c"
+   ],
+   "note": "4-wire SPI when CS is low: SPC on SCL, SDI on SDA, SDO on SDO/SA0",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8"
+   }
+  },
+  "int1": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "push_pull",
+   "pins": {
+    "IO": "INT1"
+   },
+   "note": "Push-pull and active high by default (open drain or active low by CTRL3_C). Must be low or unconnected at power-up when I2C or SPI is used: high selects I3C only",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "Table 19 p.38; §5.3 p.24; §9.14 p.51"
+   }
+  },
+  "int2": {
+   "type": "logic",
+   "dir": "out",
+   "drive": "push_pull",
+   "pins": {
+    "IO": "INT2"
+   },
+   "note": "Push-pull and active high by default; driven low at reset. Also the DEN input",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "Table 19 p.38; §9.14 p.51"
+   }
+  },
+  "aux": {
+   "type": "i2c",
+   "roles": [
+    "controller"
+   ],
+   "pins": {
+    "SDA": "SDx",
+    "SCL": "SCx"
+   },
+   "note": "Sensor hub (Mode 2): an I2C controller for up to four external sensors. Unused (Mode 1): SDx and SCx to VDDIO or GND",
+   "citation": {
+    "source": "lsm6dso_ds",
+    "locator": "§3.1 Table 1 pp.7-8; Table 19 p.38"
+   }
+  }
  }
 }

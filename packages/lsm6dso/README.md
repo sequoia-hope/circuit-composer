@@ -9,7 +9,7 @@ host, and its auxiliary interface is unused. Variant LSM6DSOTR, LCSC C2655100 (e
 |---|---|
 | `manifest.toml` | variant, sources, LCSC sourcing with stock |
 | `sources/sources.json` | datasheet, ST TN1383 (MEMS PCB guidelines), TI SLVA689A (I2C pull-ups), with hashes |
-| `ports.json` | the 14 pins by number, with functions, supplies and net classes |
+| `ports.json` | the 14 pins by number, with functions, supplies and net classes; its interfaces: an I2C target at 0x6A or 0x6B, an SPI target (one or the other), INT1, INT2 and the sensor hub's I2C controller |
 | `rules.json` | 18 cited claims: supplies, decoupling, I2C, unused pins, land pattern, layout, placement |
 | `schematic/circuit.LSM6DSOTR.json` | the circuit: parts by role, ports VDD, GND, SDA, SCL, INT1, INT2 |
 

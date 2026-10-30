@@ -450,7 +450,10 @@ Separate from the app's milestones A–F, in this order:
    - edge connectors on shaped outlines;
    - diffusion as a starting-point generator.
 2. **Interfaces and the pin-mux table** for the four packages (rp2350, lsm6dso, mcp73831,
-   tlv62569), ingested from their datasheets and cited, as everything in a package is.
+   tlv62569), ingested from their datasheets and cited, as everything in a package is. Done:
+   the types are in `library/interfaces.json`, each package's instances and the RP2350's mux
+   table in its `ports.json`; `ccomp interfaces PACKAGE [--interface I2C0]` shows the pins each
+   signal can take, and `ccomp library check` checks them.
 3. **The pin solver.** The battery demo board written as loose connections ("imu.i2c to mcu",
    "imu irqs to mcu", "a LED to mcu"), solved into a pin-level composition that composes,
    floorplans and passes `ccomp check package`. It runs in `ccomp` and in the app's WASM core.

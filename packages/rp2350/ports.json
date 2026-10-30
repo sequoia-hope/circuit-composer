@@ -790,5 +790,921 @@
     "locator": "schematic netlist (kicad-cli), U1/U203; checked against the datasheet's \u00a71.2.1 pinout figures"
    }
   }
+ },
+ "interfaces": {
+  "I2C0": {
+   "type": "i2c",
+   "roles": ["controller", "target"],
+   "mux": true,
+   "max_khz": 1000,
+   "note": "Standard, Fast and Fast-mode Plus; controller (master) by default, target (slave) mode off at reset; 7- or 10-bit addressing as controller",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a712.2.1 p.892"
+   }
+  },
+  "I2C1": {
+   "type": "i2c",
+   "roles": ["controller", "target"],
+   "mux": true,
+   "max_khz": 1000,
+   "note": "Standard, Fast and Fast-mode Plus; controller (master) by default, target (slave) mode off at reset; 7- or 10-bit addressing as controller",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a712.2.1 p.892"
+   }
+  },
+  "SPI0": {
+   "type": "spi",
+   "roles": ["controller", "target"],
+   "mux": true,
+   "signals": {
+    "SCK": "SCK",
+    "TX": "SDO",
+    "RX": "SDI",
+    "CSn": "CS"
+   },
+   "note": "PL022: controller (master) or target (slave); Motorola SPI, TI synchronous serial or Microwire framing",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a712.3 p.943"
+   }
+  },
+  "SPI1": {
+   "type": "spi",
+   "roles": ["controller", "target"],
+   "mux": true,
+   "signals": {
+    "SCK": "SCK",
+    "TX": "SDO",
+    "RX": "SDI",
+    "CSn": "CS"
+   },
+   "note": "PL022: controller (master) or target (slave); Motorola SPI, TI synchronous serial or Microwire framing",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a712.3 p.943"
+   }
+  },
+  "UART0": {
+   "type": "uart",
+   "mux": true,
+   "note": "PL011, with optional hardware flow control (nUARTRTS out, nUARTCTS in). TX and RX also appear on F11, the UART auxiliary function, on other pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a712.1 p.871; \u00a712.1.4 p.875"
+   }
+  },
+  "UART1": {
+   "type": "uart",
+   "mux": true,
+   "note": "PL011, with optional hardware flow control (nUARTRTS out, nUARTCTS in). TX and RX also appear on F11, the UART auxiliary function, on other pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a712.1 p.871; \u00a712.1.4 p.875"
+   }
+  },
+  "PWM0": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM1": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM2": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM3": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM4": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM5": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM6": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM7": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM8": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM9": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM10": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PWM11": {
+   "type": "pwm",
+   "mux": true,
+   "note": "One slice, channels A and B; B can also be an input for frequency or duty-cycle measurement. Slices 8-11 reach only QFN-80 pins",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "SIO": {
+   "type": "logic",
+   "dir": "bidir",
+   "drive": "push_pull",
+   "mux": true,
+   "per_pin": true,
+   "note": "Software control of any GPIO: one logic line per pin",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PIO0": {
+   "type": "pio",
+   "mux": true,
+   "per_pin": true,
+   "implements": [
+    "logic",
+    "i2c",
+    "spi",
+    "uart",
+    "pwm"
+   ],
+   "note": "Four state machines and 32 instruction words per block; reaches every GPIO. Use when no hardware block fits",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PIO1": {
+   "type": "pio",
+   "mux": true,
+   "per_pin": true,
+   "implements": [
+    "logic",
+    "i2c",
+    "spi",
+    "uart",
+    "pwm"
+   ],
+   "note": "Four state machines and 32 instruction words per block; reaches every GPIO. Use when no hardware block fits",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "PIO2": {
+   "type": "pio",
+   "mux": true,
+   "per_pin": true,
+   "implements": [
+    "logic",
+    "i2c",
+    "spi",
+    "uart",
+    "pwm"
+   ],
+   "note": "Four state machines and 32 instruction words per block; reaches every GPIO. Use when no hardware block fits",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 Table 4 p.19"
+   }
+  },
+  "ADC": {
+   "type": "analog",
+   "per_pin": true,
+   "signals": {
+    "ADC0": "IN",
+    "ADC1": "IN",
+    "ADC2": "IN",
+    "ADC3": "IN",
+    "ADC4": "IN",
+    "ADC5": "IN",
+    "ADC6": "IN",
+    "ADC7": "IN"
+   },
+   "pins_by_variant": {
+    "RP2350A": {
+     "ADC0": "GPIO26_ADC0",
+     "ADC1": "GPIO27_ADC1",
+     "ADC2": "GPIO28_ADC2",
+     "ADC3": "GPIO29_ADC3"
+    },
+    "RP2350B": {
+     "ADC0": "GPIO40_ADC0",
+     "ADC1": "GPIO41_ADC1",
+     "ADC2": "GPIO42_ADC2",
+     "ADC3": "GPIO43_ADC3",
+     "ADC4": "GPIO44_ADC4",
+     "ADC5": "GPIO45_ADC5",
+     "ADC6": "GPIO46_ADC6",
+     "ADC7": "GPIO47_ADC7"
+    }
+   },
+   "note": "12-bit SAR, 500 kS/s; inputs on GPIO26-29 (QFN-60) or GPIO40-47 (QFN-80), referenced to ADC_AVDD. A pin used as an input loses its digital functions",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.3 p.20; \u00a712.4 p.964"
+   }
+  },
+  "USB": {
+   "type": "usb",
+   "roles": ["device", "host"],
+   "pins": {
+    "DP": "USB_DP",
+    "DM": "USB_DM"
+   },
+   "note": "Full speed. 27 ohm series resistor on each line (see the USB function)",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "SWD": {
+   "type": "swd",
+   "roles": [
+    "target"
+   ],
+   "pins": {
+    "SWCLK": "SWCLK",
+    "SWDIO": "SWDIO"
+   },
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  },
+  "QSPI": {
+   "type": "qspi",
+   "roles": [
+    "controller"
+   ],
+   "pins": {
+    "SCK": "QSPI_SCLK",
+    "CS": "QSPI_SS",
+    "IO0": "QSPI_SD0",
+    "IO1": "QSPI_SD1",
+    "IO2": "QSPI_SD2",
+    "IO3": "QSPI_SD3"
+   },
+   "note": "Flash or PSRAM with execute-in-place; QSPI_SS also selects BOOTSEL at reset",
+   "citation": {
+    "source": "rp2350_ds",
+    "locator": "\u00a71.2.2 Table 2, pp.16-17"
+   }
+  }
+ },
+ "mux": {
+  "note": "Each GPIO's function selects (FUNCSEL), by GPIO number: [function, instance, signal] in the datasheet's words. A pin named GPIOn or GPIOn_ADCm is GPIOn. GPIO30-47 are QFN-80 (RP2350B) only. SIO and PIO0-2 reach every GPIO.",
+  "citation": {
+   "source": "rp2350_ds",
+   "locator": "\u00a71.2.3 Table 3, pp.17-19"
+  },
+  "pins": {
+   "GPIO0": [
+    ["F1", "SPI0", "RX"],
+    ["F2", "UART0", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM0", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "QMI", "CS1n"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO1": [
+    ["F1", "SPI0", "CSn"],
+    ["F2", "UART0", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM0", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "TRACE", "TRACECLK"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO2": [
+    ["F1", "SPI0", "SCK"],
+    ["F2", "UART0", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM1", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "TRACE", "TRACEDATA0"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART0", "TX"]
+   ],
+   "GPIO3": [
+    ["F1", "SPI0", "TX"],
+    ["F2", "UART0", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM1", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "TRACE", "TRACEDATA1"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART0", "RX"]
+   ],
+   "GPIO4": [
+    ["F1", "SPI0", "RX"],
+    ["F2", "UART1", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM2", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "TRACE", "TRACEDATA2"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO5": [
+    ["F1", "SPI0", "CSn"],
+    ["F2", "UART1", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM2", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "TRACE", "TRACEDATA3"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO6": [
+    ["F1", "SPI0", "SCK"],
+    ["F2", "UART1", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM3", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART1", "TX"]
+   ],
+   "GPIO7": [
+    ["F1", "SPI0", "TX"],
+    ["F2", "UART1", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM3", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART1", "RX"]
+   ],
+   "GPIO8": [
+    ["F1", "SPI1", "RX"],
+    ["F2", "UART1", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM4", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "QMI", "CS1n"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO9": [
+    ["F1", "SPI1", "CSn"],
+    ["F2", "UART1", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM4", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO10": [
+    ["F1", "SPI1", "SCK"],
+    ["F2", "UART1", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM5", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART1", "TX"]
+   ],
+   "GPIO11": [
+    ["F1", "SPI1", "TX"],
+    ["F2", "UART1", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM5", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART1", "RX"]
+   ],
+   "GPIO12": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI1", "RX"],
+    ["F2", "UART0", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM6", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPIN0"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO13": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI1", "CSn"],
+    ["F2", "UART0", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM6", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPOUT0"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO14": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI1", "SCK"],
+    ["F2", "UART0", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM7", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPIN1"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART0", "TX"]
+   ],
+   "GPIO15": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI1", "TX"],
+    ["F2", "UART0", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM7", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPOUT1"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART0", "RX"]
+   ],
+   "GPIO16": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI0", "RX"],
+    ["F2", "UART0", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM0", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO17": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI0", "CSn"],
+    ["F2", "UART0", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM0", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO18": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI0", "SCK"],
+    ["F2", "UART0", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM1", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART0", "TX"]
+   ],
+   "GPIO19": [
+    ["F0", "HSTX", "IO"],
+    ["F1", "SPI0", "TX"],
+    ["F2", "UART0", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM1", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "QMI", "CS1n"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART0", "RX"]
+   ],
+   "GPIO20": [
+    ["F1", "SPI0", "RX"],
+    ["F2", "UART1", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM2", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPIN0"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO21": [
+    ["F1", "SPI0", "CSn"],
+    ["F2", "UART1", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM2", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPOUT0"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO22": [
+    ["F1", "SPI0", "SCK"],
+    ["F2", "UART1", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM3", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPIN1"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART1", "TX"]
+   ],
+   "GPIO23": [
+    ["F1", "SPI0", "TX"],
+    ["F2", "UART1", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM3", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPOUT1"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART1", "RX"]
+   ],
+   "GPIO24": [
+    ["F1", "SPI1", "RX"],
+    ["F2", "UART1", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM4", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPOUT2"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO25": [
+    ["F1", "SPI1", "CSn"],
+    ["F2", "UART1", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM4", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "CLOCK", "GPOUT3"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO26": [
+    ["F1", "SPI1", "SCK"],
+    ["F2", "UART1", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM5", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART1", "TX"]
+   ],
+   "GPIO27": [
+    ["F1", "SPI1", "TX"],
+    ["F2", "UART1", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM5", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART1", "RX"]
+   ],
+   "GPIO28": [
+    ["F1", "SPI1", "RX"],
+    ["F2", "UART0", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM6", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO29": [
+    ["F1", "SPI1", "CSn"],
+    ["F2", "UART0", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM6", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO30": [
+    ["F1", "SPI1", "SCK"],
+    ["F2", "UART0", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM7", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART0", "TX"]
+   ],
+   "GPIO31": [
+    ["F1", "SPI1", "TX"],
+    ["F2", "UART0", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM7", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART0", "RX"]
+   ],
+   "GPIO32": [
+    ["F1", "SPI0", "RX"],
+    ["F2", "UART0", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM8", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO33": [
+    ["F1", "SPI0", "CSn"],
+    ["F2", "UART0", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM8", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO34": [
+    ["F1", "SPI0", "SCK"],
+    ["F2", "UART0", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM9", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART0", "TX"]
+   ],
+   "GPIO35": [
+    ["F1", "SPI0", "TX"],
+    ["F2", "UART0", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM9", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART0", "RX"]
+   ],
+   "GPIO36": [
+    ["F1", "SPI0", "RX"],
+    ["F2", "UART1", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM10", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO37": [
+    ["F1", "SPI0", "CSn"],
+    ["F2", "UART1", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM10", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO38": [
+    ["F1", "SPI0", "SCK"],
+    ["F2", "UART1", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM11", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART1", "TX"]
+   ],
+   "GPIO39": [
+    ["F1", "SPI0", "TX"],
+    ["F2", "UART1", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM11", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART1", "RX"]
+   ],
+   "GPIO40": [
+    ["F1", "SPI1", "RX"],
+    ["F2", "UART1", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM8", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"]
+   ],
+   "GPIO41": [
+    ["F1", "SPI1", "CSn"],
+    ["F2", "UART1", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM8", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO42": [
+    ["F1", "SPI1", "SCK"],
+    ["F2", "UART1", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM9", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"],
+    ["F11", "UART1", "TX"]
+   ],
+   "GPIO43": [
+    ["F1", "SPI1", "TX"],
+    ["F2", "UART1", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM9", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART1", "RX"]
+   ],
+   "GPIO44": [
+    ["F1", "SPI1", "RX"],
+    ["F2", "UART0", "TX"],
+    ["F3", "I2C0", "SDA"],
+    ["F4", "PWM10", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_EN"]
+   ],
+   "GPIO45": [
+    ["F1", "SPI1", "CSn"],
+    ["F2", "UART0", "RX"],
+    ["F3", "I2C0", "SCL"],
+    ["F4", "PWM10", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "OVCUR_DET"]
+   ],
+   "GPIO46": [
+    ["F1", "SPI1", "SCK"],
+    ["F2", "UART0", "CTS"],
+    ["F3", "I2C1", "SDA"],
+    ["F4", "PWM11", "A"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F10", "USB", "VBUS_DET"],
+    ["F11", "UART0", "TX"]
+   ],
+   "GPIO47": [
+    ["F1", "SPI1", "TX"],
+    ["F2", "UART0", "RTS"],
+    ["F3", "I2C1", "SCL"],
+    ["F4", "PWM11", "B"],
+    ["F5", "SIO", "IO"],
+    ["F6", "PIO0", "IO"],
+    ["F7", "PIO1", "IO"],
+    ["F8", "PIO2", "IO"],
+    ["F9", "QMI", "CS1n"],
+    ["F10", "USB", "VBUS_EN"],
+    ["F11", "UART0", "RX"]
+   ]
+  }
  }
 }

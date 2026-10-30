@@ -14,7 +14,7 @@ Built from the datasheet DS20001984H, Revision H (June 2020). Its hash is in
 | File | What |
 |---|---|
 | `manifest.toml` | Variant, datasheet revision, LCSC parts with stock on 2026-10-27 |
-| `ports.json` | The five SOT-23-5 pins (Table 3-1, p.11): their functions, classes and limits |
+| `ports.json` | The five SOT-23-5 pins (Table 3-1, p.11): their functions, classes and limits; its one interface, the STAT output (high at VDD, not logic level) |
 | `schematic/circuit.MCP73831T-2ACI-OT.json` | The typical application (Figure 6-1, p.17; values from p.1) by role |
 | `rules.json` | 17 cited claims: capacitors, PROG, charge rate, thermal, layout, STAT, input protection |
 | `sources/sources.json` | The datasheet: URL, SHA-256, size, date retrieved |

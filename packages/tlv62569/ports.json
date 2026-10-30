@@ -80,5 +80,19 @@
         }
       }
     }
+  },
+  "interfaces": {
+    "en": {
+      "type": "logic",
+      "dir": "in",
+      "pins": {
+        "IO": "EN"
+      },
+      "note": "Active high, VIH 1.2 V max and VIL 0.4 V min: 1.8 V or 3.3 V logic drives it. Must not float",
+      "citation": {
+        "source": "tlv62569_ds",
+        "locator": "§5 Pin Functions p.3; §6.5 p.4; §7.4.1 p.7"
+      }
+    }
   }
 }

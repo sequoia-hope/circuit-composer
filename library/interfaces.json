@@ -1,0 +1,94 @@
+{
+ "note": "Interface types: the bundles of signals a package's interfaces are instances of (each package's ports.json, under \"interfaces\"). Signals are named from the device's own side, so two devices connect by the type's joins: one's SDO to the other's SDI. Where a signal has a direction, it is the controller's; a target's is the reverse. Whether a connection needs more than wires (pull-ups, a level shifter) is for interface rules, not these types.",
+ "types": {
+  "i2c": {
+   "roles": ["controller", "target"],
+   "bus": true,
+   "signals": {
+    "SDA": { "dir": "bidir", "drive": "open_drain" },
+    "SCL": { "dir": "out", "drive": "open_drain" }
+   },
+   "joins": [["SDA", "SDA"], ["SCL", "SCL"]],
+   "note": "A bus: any number of targets on one controller's two lines, each at its own address."
+  },
+  "spi": {
+   "roles": ["controller", "target"],
+   "bus": true,
+   "signals": {
+    "SCK": { "dir": "out" },
+    "SDO": { "dir": "out" },
+    "SDI": { "dir": "in" },
+    "CS": { "dir": "out" }
+   },
+   "optional": ["SDO", "SDI"],
+   "per_target": ["CS"],
+   "joins": [["SCK", "SCK"], ["SDO", "SDI"], ["SDI", "SDO"], ["CS", "CS"]],
+   "note": "A bus: targets share SCK, SDO and SDI, and each has its own CS. A device that only listens or only talks needs one data line."
+  },
+  "uart": {
+   "signals": {
+    "TX": { "dir": "out" },
+    "RX": { "dir": "in" },
+    "RTS": { "dir": "out" },
+    "CTS": { "dir": "in" }
+   },
+   "optional": ["TX", "RX", "RTS", "CTS"],
+   "joins": [["TX", "RX"], ["RX", "TX"], ["RTS", "CTS"], ["CTS", "RTS"]],
+   "note": "Point to point. Flow control (RTS, CTS) is optional, as is either direction."
+  },
+  "pwm": {
+   "signals": {
+    "A": { "dir": "out" },
+    "B": { "dir": "bidir" }
+   },
+   "optional": ["A", "B"],
+   "note": "One PWM slice: two channels at one frequency. Either channel alone will do."
+  },
+  "logic": {
+   "signals": {
+    "IO": {}
+   },
+   "note": "One digital line. An instance says which way it goes (dir: in, out, bidir) and how it drives (push_pull, open_drain, tristate)."
+  },
+  "analog": {
+   "signals": {
+    "IN": { "dir": "in" }
+   },
+   "note": "One analog input."
+  },
+  "pio": {
+   "signals": {
+    "IO": {}
+   },
+   "note": "A programmable I/O block: on any pins it reaches, software state machines can act as any digital interface (it lists them under implements). Use one only when no hardware block fits: it costs state machines and firmware."
+  },
+  "usb": {
+   "roles": ["device", "host"],
+   "signals": {
+    "DP": { "dir": "bidir" },
+    "DM": { "dir": "bidir" }
+   },
+   "joins": [["DP", "DP"], ["DM", "DM"]]
+  },
+  "swd": {
+   "roles": ["debugger", "target"],
+   "signals": {
+    "SWCLK": { "dir": "out" },
+    "SWDIO": { "dir": "bidir" }
+   },
+   "joins": [["SWCLK", "SWCLK"], ["SWDIO", "SWDIO"]]
+  },
+  "qspi": {
+   "roles": ["controller", "target"],
+   "signals": {
+    "SCK": { "dir": "out" },
+    "CS": { "dir": "out" },
+    "IO0": { "dir": "bidir" },
+    "IO1": { "dir": "bidir" },
+    "IO2": { "dir": "bidir" },
+    "IO3": { "dir": "bidir" }
+   },
+   "joins": [["SCK", "SCK"], ["CS", "CS"], ["IO0", "IO0"], ["IO1", "IO1"], ["IO2", "IO2"], ["IO3", "IO3"]]
+  }
+ }
+}

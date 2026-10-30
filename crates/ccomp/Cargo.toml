@@ -13,6 +13,7 @@ verify = { path = "../verify" }
 blockgen = { path = "../blockgen" }
 compile = { path = "../compile" }
 library = { path = "../library" }
+interfaces = { path = "../interfaces" }
 compose = { path = "../compose" }
 floorplan = { path = "../floorplan" }
 shape = { path = "../shape" }

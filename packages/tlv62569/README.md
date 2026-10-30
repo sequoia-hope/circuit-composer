@@ -8,7 +8,7 @@ converter. It packages the TLV62569DBV (SOT-23-5) in the datasheet's typical app
 | File | What |
 |---|---|
 | `manifest.toml` | Variant, source revisions, LCSC parts with stock on 2026-10-27 |
-| `ports.json` | The five DBV pins by number, and each function's class, supply and limits (§5 p.3) |
+| `ports.json` | The five DBV pins by number, and each function's class, supply and limits (§5 p.3); its one interface, the EN input |
 | `rules.json` | 18 claims: 17 from the datasheet, 1 from the inductor's catalogue. 7 of them carry part-value `checks`, and 11 link to 12 claims in `library/claims/buck.json` |
 | `schematic/circuit.TLV62569DBV.json` | The circuit: 8 parts by role, nets SW and FB, ports VIN, VOUT, GND (must be connected) and EN |
 | `intent.json` | One `buck` block, `reg`, in the shape of rp2350's `core_reg`: roles, nets, objectives, a constraint, ports |
