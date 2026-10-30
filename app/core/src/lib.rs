@@ -76,6 +76,42 @@ impl Session {
         &self.poses
     }
 
+    /// The board outline the floorplanner keeps parts inside: a closed polygon, or none (the
+    /// floorplanner then sizes the board itself).
+    pub fn set_outline(&mut self, polygon: Option<Vec<[f64; 2]>>) {
+        self.pr.outline = None;
+        self.pr.outline_polygon = polygon.map(|p| p.into_iter().map(|q| (q[0], q[1])).collect());
+    }
+
+    /// The board shape's keep-outs (name, x0, y0, x1, y1, side: "front", "back" or "both"), as
+    /// `ccomp floorplan` makes them: fixed parts with no pads, named `shape:NAME`, after every
+    /// other part. Replaces the shape's earlier ones.
+    pub fn set_keepouts(&mut self, keepouts: &[(String, [f64; 4], String)]) {
+        let keep = self.pr.parts.iter().position(|p| p.reference.starts_with("shape:")).unwrap_or(self.pr.parts.len());
+        self.pr.parts.truncate(keep);
+        self.poses.truncate(keep);
+        self.group_of.truncate(keep);
+        for (name, [x0, y0, x1, y1], side) in keepouts {
+            let (cx, cy) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0);
+            let local = [x0 - cx, y0 - cy, x1 - cx, y1 - cy];
+            let pose = Pose { x: cx, y: cy, rotation: 0.0 };
+            self.pr.parts.push(floorplan::PartGeom {
+                reference: format!("shape:{name}"),
+                bbox: local,
+                pins: BTreeMap::new(),
+                block: None,
+                near: None,
+                edge: None,
+                fixed: Some(pose),
+                back: side == "back",
+                through: if side == "both" { vec![local] } else { vec![] },
+            });
+            self.poses.push(pose);
+            self.group_of.push(None);
+        }
+        self.index = self.pr.parts.iter().enumerate().map(|(i, p)| (p.reference.clone(), i)).collect();
+    }
+
     /// Every part's pose at once, in problem order (an anneal's snapshot).
     pub fn set_poses(&mut self, poses: &[Pose]) {
         for (i, p) in poses.iter().enumerate().take(self.poses.len()) {
@@ -247,6 +283,31 @@ mod wasm {
     #[wasm_bindgen]
     pub struct Board(Session);
 
+    /// A `shape.json` document, evaluated (`shape::Shape` as JSON).
+    #[wasm_bindgen]
+    pub fn shape_evaluate(doc_json: &str) -> Result<String, JsValue> {
+        let doc: shape::ShapeDoc = serde_json::from_str(doc_json).map_err(err)?;
+        Ok(serde_json::to_string(&shape::evaluate(&doc)).unwrap())
+    }
+
+    /// The parametric generators and their parameters.
+    #[wasm_bindgen]
+    pub fn shape_generators() -> String {
+        serde_json::to_string(shape::generators::GENERATORS).unwrap()
+    }
+
+    /// Features from a drawing: `kind` is "svg" or "dxf".
+    #[wasm_bindgen]
+    pub fn shape_import(text: &str, kind: &str) -> Result<String, JsValue> {
+        let f = match kind {
+            "svg" => shape::import::svg(text),
+            "dxf" => shape::import::dxf(text),
+            _ => Err(format!("unknown drawing kind `{kind}`")),
+        }
+        .map_err(err)?;
+        Ok(serde_json::to_string(&f).unwrap())
+    }
+
     #[wasm_bindgen]
     impl Board {
         /// From `ccomp floorplan --problem` output.
@@ -286,6 +347,26 @@ mod wasm {
         /// Every part's x, y, rotation, in problem order: cheap to call every frame.
         pub fn poses(&self) -> Vec<f64> {
             self.0.poses().iter().flat_map(|p| [p.x, p.y, p.rotation]).collect()
+        }
+
+        /// The outline as `[[x, y], ...]` JSON, or an empty string for none.
+        pub fn set_outline(&mut self, json: &str) -> Result<(), JsValue> {
+            let p = if json.trim().is_empty() { None } else { Some(serde_json::from_str(json).map_err(err)?) };
+            self.0.set_outline(p);
+            Ok(())
+        }
+
+        /// `[{name, rect: [x0, y0, x1, y1], side}]` JSON: the shape's keep-outs, holes and cut-outs.
+        pub fn set_keepouts(&mut self, json: &str) -> Result<(), JsValue> {
+            #[derive(serde::Deserialize)]
+            struct K {
+                name: String,
+                rect: [f64; 4],
+                side: String,
+            }
+            let ks: Vec<K> = serde_json::from_str(json).map_err(err)?;
+            self.0.set_keepouts(&ks.into_iter().map(|k| (k.name, k.rect, k.side)).collect::<Vec<_>>());
+            Ok(())
         }
 
         /// `poses()` back: x, y, rotation per part, in problem order.
@@ -399,6 +480,20 @@ mod tests {
         // Refining never hands back a worse board than it was given.
         let before = battery().evaluate().unwrap().wire_mm;
         assert!(p.metrics.wire_mm <= before + 1e-6, "{} > {before}", p.metrics.wire_mm);
+    }
+
+    #[test]
+    fn shape_keepouts_are_fixed_parts_that_replace_each_other() {
+        let mut s = battery();
+        let n = s.problem().parts.len();
+        s.set_keepouts(&[("hole 1".into(), [0.0, 0.0, 4.0, 4.0], "both".into()), ("cut".into(), [10.0, 10.0, 12.0, 12.0], "front".into())]);
+        assert_eq!(s.problem().parts.len(), n + 2);
+        assert!(s.locked(n) && s.index("shape:cut") == Some(n + 1));
+        s.set_keepouts(&[("hole 1".into(), [0.0, 0.0, 4.0, 4.0], "both".into())]);
+        assert_eq!(s.problem().parts.len(), n + 1);
+        let p = s.anneal(2, 20_000, false, 0, &mut |_| true);
+        let u = p.parts["shape:hole 1"];
+        assert_eq!((u.x, u.y), (2.0, 2.0));
     }
 
     #[test]

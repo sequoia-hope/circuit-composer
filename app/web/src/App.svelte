@@ -6,6 +6,7 @@
   import CircuitView from './lib/CircuitView.svelte';
   import Inspector from './lib/Inspector.svelte';
   import Dock from './lib/Dock.svelte';
+  import ShapeView from './lib/ShapeView.svelte';
 
   const params = new URLSearchParams(location.search);
   const embed = params.get('embed') === '1';
@@ -32,6 +33,8 @@
   let layers = $state({ front: true, back: true, ratsnest: true, pins: true, labels: true, blocks: true });
   let dockOpen = $state('checks');
   let boardView = $state(null);
+  let shapeDoc = $state(null);
+  let shapeApplied = $state(false);
 
   // Annealing.
   let worker = null;
@@ -76,6 +79,8 @@
       };
       // The floorplanner recomputes every part's cost on each move: big boards get fewer moves.
       moves = problem.parts.length > 150 ? 50000 : 200000;
+      shapeDoc = data.shape || shapeFromProblem(problem);
+      shapeApplied = false;
       selection = [];
       history = [];
       lastRun = '';
@@ -86,6 +91,38 @@
     } catch (e) {
       error = `${name}: ${e.message || e}`;
     }
+  }
+
+  /** A board with no shape.json: its shape is the outline its floorplan sets, if any. */
+  function shapeFromProblem(problem) {
+    if (problem.outline_polygon) {
+      return { note: "From the floorplan's outline.", features: [{ name: 'outline', op: 'add', geom: { type: 'polygon', points: problem.outline_polygon } }] };
+    }
+    if (problem.outline) {
+      const [x0, y0, x1, y1] = problem.outline;
+      return { note: "From the floorplan's outline.", features: [{ name: 'board', op: 'add', geom: { type: 'rect', x: (x0 + x1) / 2, y: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, r: 0, angle: 0 } }] };
+    }
+    return { note: 'No outline: the floorplanner sizes the board.', features: [] };
+  }
+
+  /** The shape's outline becomes the floorplanner's. */
+  function applyShape(result) {
+    doc.board.set_outline(JSON.stringify(result.outline[0]));
+    // Keep-outs, holes and cut-outs keep parts away: their bounding boxes, as ccomp does.
+    const box = (pts) => pts.reduce((b, p) => [Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1])], [Infinity, Infinity, -Infinity, -Infinity]);
+    const ks = [
+      ...result.keepouts.map((k) => ({ name: k.name, rect: box(k.polygon.flat()), side: k.side })),
+      ...result.cutouts.map((c, i) => ({ name: `cut-out ${i + 1}`, rect: box(c), side: 'both' })),
+      ...result.holes.map((h, i) => { const r = h.d / 2 + (h.clearance || 0); return { name: `hole ${i + 1}`, rect: [h.x - r, h.y - r, h.x + r, h.y + r], side: 'both' }; }),
+    ];
+    doc.board.set_keepouts(JSON.stringify(ks));
+    const list = JSON.parse(doc.board.problem()).parts.map((p) => p.reference);
+    refIndex = { list, of: new Map(list.map((r, i) => [r, i])) };
+    selection = [];
+    doc = { ...doc, outline: result.outline[0], box: null, boxIsSet: false };
+    refresh();
+    measure();
+    shapeApplied = true;
   }
 
   function setUrl() {
@@ -222,6 +259,11 @@
 
   function key(e) {
     if (e.target.closest('input, textarea, select') || !doc) return;
+    if (workspace === 'shape') {
+      // The Shape workspace handles its own keys; only the workspace numbers pass.
+      if (!e.ctrlKey && !e.metaKey && e.key >= '1' && e.key <= '5') { workspace = WORKSPACES[+e.key - 1][0]; setUrl(); }
+      return;
+    }
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'r' || e.key === 'R') rotate();
@@ -238,7 +280,7 @@
 
 <svelte:window onkeydown={key} />
 
-<div class="app" class:embed>
+<div class="app" class:embed class:wide={workspace === 'shape'}>
   {#if !embed}
     <header>
       <div class="brand"><span class="logo"></span>Circuit Composer</div>
@@ -297,17 +339,9 @@
       {:else if workspace === 'circuit'}
         <CircuitView {circuit} parts={doc.parts} {refIndex} {selection} onselect={select} />
       {:else if workspace === 'shape'}
-        {#if current === 'bolt-earring'}
-          <iframe title="Bolt outline shaper" src="../../boards/bolt-earring/shaper/index.html"></iframe>
-        {:else}
-          <div class="later">
-            <h2>Shape</h2>
-            <p>The board outline and mechanical features: rectangles, rounded rectangles, circles, polygons and slots; union,
-              difference, offset and corner rounding; SVG and DXF import; holes and keep-outs; mirror and half-turn symmetry; and
-              parametric generators with sliders. The first generator is the bolt earring's outline: open that board to try it.</p>
-            <p class="muted">Milestone C. {doc.outline ? 'This board has a shaped outline.' : doc.boxIsSet ? 'This board has a rectangular outline.' : "This board's outline is left to the floorplanner."}</p>
-          </div>
-        {/if}
+        {#key current}
+          <ShapeView bind:doc={shapeDoc} applied={shapeApplied} onapply={applyShape} onchange={() => (shapeApplied = false)} />
+        {/key}
       {:else if workspace === 'copper'}
         <div class="later">
           <h2>Copper</h2>
@@ -383,7 +417,8 @@
   th { color: var(--muted); font-weight: 600; }
   td { color: var(--ink); }
   .pins { font: 11px var(--mono); color: var(--muted); }
-  iframe { flex: 1; border: 0; width: 100%; }
+  .wide main { grid-template-columns: minmax(0, 1fr); }
+  .wide aside { display: none; }
   .embed main { grid-template-rows: minmax(0, 1fr) 140px; }
   @media (max-width: 820px) {
     main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 220px 150px; }

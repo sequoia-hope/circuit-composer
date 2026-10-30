@@ -139,8 +139,8 @@ Board outline and mechanical features:
 - **Import** from SVG or DXF.
 - **Holes,** with keep-outs per side and layer.
 - **Symmetry as a constraint** (mirror or half turn), which pattern generators read.
-- **Parametric generators with sliders.** `boards/bolt-earring/shaper/` is the prototype and
-  becomes the first built-in one.
+- **Parametric generators with sliders.** The bolt earring's outline is the first built-in
+  one (`crates/shape/src/generators.rs`).
 
 ### 4. Copper
 
@@ -337,11 +337,16 @@ every `ccomp` command accepts a project path (milestone 3 in easy_pcb's spec).
   and port the bolt shaper's operations to it.
 - **B. Board workspace.** Drag, lock and anneal live in a worker. Save `placement.json` and
   apply it to the KiCad board through the server.
-- **C. Shape workspace.** Primitives, operations and the bolt generator built in. A drawn
-  outline feeds the floorplanner. The prototype's Shape tab embeds the bolt earring's
-  standalone shaper page (`boards/bolt-earring/shaper/`), an experiment. Milestone C replaces it
-  with the app's own shape tools, with the bolt as a built-in generator, and removes the
-  embedded page.
+- **C. Shape workspace.** Done 2026-10-30. `crates/shape` evaluates `shape.json`: features
+  (rectangle, circle, slot, polygon, generator) added or cut in order, corner rounding,
+  symmetry, holes and keep-outs, and SVG/DXF import. The bolt generator matches
+  `geometry.py` to 0.05 mm. The same code is behind `ccomp shape` and, compiled to WASM, the
+  Shape tab: a feature list, handles for each kind, and sliders for generators. "Use as board
+  outline" gives the floorplanner the outline, with keep-outs, holes and cut-outs as fixed
+  keep-out parts, as `ccomp floorplan` does with a board's `shape.json`. The standalone shaper
+  page is gone. Still to do: edge connectors on a shaped outline. The floorplanner slides
+  connectors along a side only on a rectangle; on any other outline they miss their edge. That
+  belongs to the floorplanner work.
 
 - **D. Circuit workspace.** The block diagram of `compose.json`, editable. Compose and check run
   on save.

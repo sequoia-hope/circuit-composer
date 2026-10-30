@@ -99,7 +99,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <a href="../ultraroute">ultraroute</a> (routing).</p>
   <nav class="quick">
     <a href="app/dist/index.html">▦ Circuit Composer app (prototype)</a>
-    <a href="boards/bolt-earring/shaper/index.html">⚡ Bolt outline shaper</a>
+    <a href="app/dist/index.html?board=bolt-earring&amp;ws=shape">⚡ Bolt outline (Shape tools)</a>
     <a href="boards/bolt-earring/viewer/index.html">Bolt earring viewer</a>
   </nav>
 </header>
@@ -116,8 +116,8 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
       back under a 10 × 30 mm cell. <strong>Fully routed:</strong> 0 DRC errors, 0 unconnected.
       Every copper layer, the parts and a 3D view.</p>
       <a class="go" href="boards/bolt-earring/viewer/index.html">Open the bolt earring viewer →</a>
-      <p style="margin-top:.6rem;font-size:.85rem"><a href="boards/bolt-earring/shaper/index.html">Bolt outline shaper</a>: the outline's
-      parameters from <code>geometry.py</code> on sliders, with LED ring overlay and Python/SVG export.</p>
+      <p style="margin-top:.6rem;font-size:.85rem"><a href="app/dist/index.html?board=bolt-earring&amp;ws=shape">The bolt's outline in the app's Shape tools</a>:
+      its generator's parameters on sliders, from <code>crates/shape</code>.</p>
       <p style="margin-top:.6rem;font-size:.85rem">Earlier: <a href="boards/flame-earring/viewer/index.html">the flame earring</a> (superseded).</p>
     </div>
   </section>

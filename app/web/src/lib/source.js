@@ -24,6 +24,9 @@ export async function loadBoard(name) {
     if (!r.ok) throw new Error(`${name}/${f}: ${r.status}`);
     return r.text();
   });
-  const [problem, placement, circuit] = await Promise.all([get('problem.json'), get('placement.json'), get('circuit.json')]);
-  return { problem, placement, circuit: JSON.parse(circuit) };
+  const [problem, placement, circuit, shape] = await Promise.all([
+    get('problem.json'), get('placement.json'), get('circuit.json'),
+    get('shape.json').then(JSON.parse, () => null),
+  ]);
+  return { problem, placement, circuit: JSON.parse(circuit), shape };
 }

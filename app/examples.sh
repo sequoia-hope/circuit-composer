@@ -46,10 +46,14 @@ for b in sorted(os.listdir(out)):
             parts[ref] = {"value": p.get("value", ""), "footprint": p.get("footprint", ""), "block": p.get("part")}
         nets = circuit["nets"]
     json.dump({"parts": parts, "nets": nets, "instances": instances}, open(os.path.join(d, "circuit.json"), "w"), separators=(",", ":"))
+    # The board's shape document, when it has one; the app makes one from the outline otherwise.
+    if os.path.exists(files["shape"]):
+        json.dump(json.load(open(files["shape"])), open(os.path.join(d, "shape.json"), "w"), indent=1)
     pr = json.load(open(os.path.join(d, "problem.json")))
     json.dump(pr, open(os.path.join(d, "problem.json"), "w"), separators=(",", ":"))
     index.append({"name": b, "note": files.get("note", ""), "parts": len(pr["parts"]), "nets": len(pr["nets"]),
-                  "fixed": sum(1 for p in pr["parts"] if p.get("fixed")), "shaped": pr.get("outline_polygon") is not None})
+                  "fixed": sum(1 for p in pr["parts"] if p.get("fixed")), "shaped": pr.get("outline_polygon") is not None,
+                  "shape": os.path.exists(files["shape"])})
 json.dump({"boards": index}, open(os.path.join(out, "index.json"), "w"), indent=1)
 print(json.dumps(index, indent=1))
 PY

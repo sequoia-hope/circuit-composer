@@ -1,0 +1,14 @@
+{
+ "note": "The bolt earring's outline as the shape tools build it: the bolt generator at scripts/geometry.py's defaults. floorplan/spec.json still sets the outline itself, so this one is read by the app and `ccomp shape`; the floorplanner uses it only where a spec sets none.",
+ "features": [
+  {
+   "name": "bolt",
+   "op": "add",
+   "geom": {
+    "type": "generator",
+    "name": "bolt",
+    "params": {}
+   }
+  }
+ ]
+}

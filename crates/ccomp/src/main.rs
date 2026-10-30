@@ -146,6 +146,20 @@ enum Cmd {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// A board's shape (`shape.json`): its outline, holes and keep-outs, evaluated to polygons.
+    Shape {
+        /// The shape document; the board's with `--project` / `--board`.
+        shape: Option<PathBuf>,
+        /// List the parametric generators and their parameters instead.
+        #[arg(long, conflicts_with = "import")]
+        generators: bool,
+        /// Make a shape document from a drawing (`.svg` or `.dxf`) instead: each closed shape
+        /// becomes a polygon feature.
+        #[arg(long)]
+        import: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
     /// The research library: cited claims from `library/` and every package's `rules.json`.
     Library {
         #[command(subcommand)]
@@ -557,10 +571,16 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 None => PathBuf::from("."),
             };
             let comp: Value = read_json_value(&composed)?;
-            let spec: floorplan_cmd::Spec = match spec {
+            let mut spec: floorplan_cmd::Spec = match spec {
                 Some(p) => serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?,
                 None => serde_json::from_value(json!({})).unwrap(),
             };
+            if ctx.active() {
+                let shape_path = ctx.board()?.shape.clone();
+                if shape_path.exists() {
+                    shape_into_spec(&shape_path, &mut spec)?;
+                }
+            }
             let mut pr = floorplan_cmd::problem(&board, &comp, &spec, &root)?;
             if let Some(s) = seed {
                 pr.options.seed = s;
@@ -594,6 +614,34 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             Ok((value, ok))
         }
+        Cmd::Shape { shape: path, generators, import, output } => {
+            let value = if generators {
+                serde_json::to_value(shape::generators::GENERATORS).unwrap()
+            } else if let Some(drawing) = import {
+                let text = std::fs::read_to_string(&drawing).map_err(|e| format!("{}: {e}", drawing.display()))?;
+                let ext = drawing.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase();
+                let features = match ext.as_str() {
+                    "svg" => shape::import::svg(&text),
+                    "dxf" => shape::import::dxf(&text),
+                    _ => Err("give an .svg or a .dxf".into()),
+                }
+                .map_err(|e| format!("{}: {e}", drawing.display()))?;
+                let doc = shape::ShapeDoc { note: Some(format!("Imported from {}", drawing.display())), features, ..Default::default() };
+                serde_json::to_value(&doc).unwrap()
+            } else {
+                let path = ctx.or_board(path, "a shape file", |b| b.shape.clone())?;
+                let doc: shape::ShapeDoc = serde_json::from_value(read_json_value(&path)?).map_err(|e| format!("{}: {e}", path.display()))?;
+                let s = shape::evaluate(&doc);
+                let mut v = serde_json::to_value(&s).unwrap();
+                v["ok"] = (s.warnings.is_empty() && s.outline.len() == 1).into();
+                v
+            };
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            let ok = value.get("ok").and_then(Value::as_bool).unwrap_or(true);
+            Ok((value, ok))
+        }
         Cmd::Library { op: LibraryOp::Check { root } } => {
             let report = library::Library::load(&root)?.check();
             Ok((serde_json::to_value(&report).unwrap(), report.ok))
@@ -617,6 +665,38 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
     }
+}
+
+/// A board's shape into its floorplan spec: the outline, unless the spec sets one, and every
+/// keep-out, hole and cut-out as a keep-out rectangle (their bounding boxes, to be safe).
+fn shape_into_spec(path: &Path, spec: &mut floorplan_cmd::Spec) -> Result<(), String> {
+    let doc: shape::ShapeDoc = serde_json::from_value(read_json_value(path)?).map_err(|e| format!("{}: {e}", path.display()))?;
+    let s = shape::evaluate(&doc);
+    if s.outline.len() != 1 {
+        return Err(format!("{}: the outline is in {} pieces; the floorplanner needs one", path.display(), s.outline.len()));
+    }
+    if spec.outline.is_none() && spec.outline_polygon.is_none() {
+        spec.outline_polygon = Some(s.outline[0].iter().map(|p| (p[0], p[1])).collect());
+    }
+    let bbox = |pts: &mut dyn Iterator<Item = &shape::P>| {
+        pts.fold([f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY], |b, p| [b[0].min(p[0]), b[1].min(p[1]), b[2].max(p[0]), b[3].max(p[1])])
+    };
+    let side = |s: shape::Side| match s {
+        shape::Side::Both => "both",
+        shape::Side::Front => "front",
+        shape::Side::Back => "back",
+    };
+    for k in &s.keepouts {
+        spec.keepouts.push(floorplan_cmd::Keepout { name: k.name.clone(), rect: bbox(&mut k.polygon.iter().flatten()), side: side(k.side).into() });
+    }
+    for (i, c) in s.cutouts.iter().enumerate() {
+        spec.keepouts.push(floorplan_cmd::Keepout { name: format!("cut-out {}", i + 1), rect: bbox(&mut c.iter()), side: "both".into() });
+    }
+    for (i, h) in s.holes.iter().enumerate() {
+        let r = h.d / 2.0 + h.clearance;
+        spec.keepouts.push(floorplan_cmd::Keepout { name: format!("hole {}", i + 1), rect: [h.x - r, h.y - r, h.x + r, h.y + r], side: "both".into() });
+    }
+    Ok(())
 }
 
 /// A block's name, its roles, and the limits on its checks.

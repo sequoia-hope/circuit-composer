@@ -51,7 +51,7 @@ pub struct Spec {
     pub keepouts: Vec<Keepout>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Keepout {
     pub name: String,
     pub rect: [f64; 4],

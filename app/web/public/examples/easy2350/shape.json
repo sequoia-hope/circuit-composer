@@ -1,0 +1,16 @@
+{
+ "note": "easy2350's outline: the rectangle its floorplan spec (floorplan/spec.json) sets, which wins for the floorplanner.",
+ "features": [
+  {
+   "name": "board",
+   "op": "add",
+   "geom": {
+    "type": "rect",
+    "x": 110.5,
+    "y": 125.5,
+    "w": 21.05,
+    "h": 51.05
+   }
+  }
+ ]
+}

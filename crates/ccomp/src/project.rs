@@ -21,6 +21,7 @@ struct Manifest {
     intent: Option<String>,
     floorplan: Option<String>,
     placement: Option<String>,
+    shape: Option<String>,
     pcb: Option<String>,
     routing: Option<String>,
     dru: Option<String>,
@@ -42,6 +43,8 @@ pub struct Board {
     pub intent: PathBuf,
     pub floorplan: PathBuf,
     pub placement: PathBuf,
+    /// The board's shape (`shape.json`): outline, holes, keep-outs.
+    pub shape: PathBuf,
     /// The KiCad board the floorplanner and the compiler read.
     pub pcb: PathBuf,
     pub routing: PathBuf,
@@ -65,6 +68,7 @@ impl Board {
             ("intent", &self.intent),
             ("floorplan", &self.floorplan),
             ("placement", &self.placement),
+            ("shape", &self.shape),
             ("pcb", &self.pcb),
             ("routing", &self.routing),
             ("packages", &self.packages),
@@ -138,6 +142,7 @@ pub fn resolve(project: Option<&Path>, board: Option<&str>) -> Result<Board, Str
         intent: at(&m.intent, dir.join("intent.json")),
         floorplan: at(&m.floorplan, dir.join("floorplan.json")),
         placement: at(&m.placement, dir.join("placement.json")),
+        shape: at(&m.shape, dir.join("shape.json")),
         pcb: at(&m.pcb, project.join("hw").join(&name).join("a").join(format!("{name}.kicad_pcb"))),
         routing: at(&m.routing, dir.join("out/routing.json")),
         dru: m.dru.as_ref().map(|p| dir.join(p)),
