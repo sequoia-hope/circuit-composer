@@ -19,6 +19,7 @@ use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};
 
+mod analytic;
 mod inc;
 
 pub type P = (f64, f64);
@@ -111,11 +112,23 @@ pub struct Options {
     pub w_edge: f64,
     pub w_sep: f64,
     pub w_overlap: f64,
+    /// How the placement starts: annealed from a random spread, or from the analytical placer's
+    /// (then annealed cool, as a warm start is).
+    #[serde(default)]
+    pub placer: Placer,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Placer {
+    #[default]
+    Sa,
+    Analytic,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0 }
+        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, placer: Placer::Sa }
     }
 }
 
@@ -510,41 +523,17 @@ pub struct Snapshot {
 /// (every part's pose, in `Problem::parts` order) the anneal refines that placement: it starts
 /// there, cooler and with shorter moves, instead of from a random spread.
 pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut dyn FnMut(&Snapshot) -> bool) -> Placement {
+    if pr.options.placer == Placer::Analytic && start.is_none() {
+        let begun = analytic::global(pr);
+        return solve_with(pr, Some(&begun), every, on);
+    }
     let n = pr.parts.len();
     let o = &pr.options;
-    let mut in_group = vec![None; n];
-    let mut movables = Vec::new();
-    let mut of_part = vec![(usize::MAX, (0.0, 0.0), 0.0); n];
-    for (g, r) in pr.groups.iter().enumerate() {
-        let m = movables.len();
-        movables.push(Movable::Group(g));
-        in_group[r.anchor] = Some(g);
-        of_part[r.anchor] = (m, (0.0, 0.0), 0.0);
-        for (i, off, rr) in &r.members {
-            in_group[*i] = Some(g);
-            of_part[*i] = (m, *off, *rr);
-        }
-    }
-    for i in 0..n {
-        if in_group[i].is_none() {
-            of_part[i] = (movables.len(), (0.0, 0.0), 0.0);
-            movables.push(Movable::Part(i));
-        }
-    }
-    let fixed = |m: &Movable| -> Option<Pose> {
-        match m {
-            Movable::Part(i) => pr.parts[*i].fixed,
-            Movable::Group(g) => pr.parts[pr.groups[*g].anchor].fixed,
-        }
-    };
-    let total: f64 = pr.parts.iter().map(|p| (p.bbox[2] - p.bbox[0] + o.clearance) * (p.bbox[3] - p.bbox[1] + o.clearance)).sum();
-    let span = (total * 2.0).sqrt();
+    let (movables, of_part, in_group) = layout(pr);
+    let fixed = |m: &Movable| fixed_pose(pr, m);
+    let span = span_of(pr);
     let mut rng = Rng(o.seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
-    let poly_box = pr.outline_polygon.as_ref().map(|p| {
-        let xs = p.iter().map(|q| q.0);
-        let ys = p.iter().map(|q| q.1);
-        [xs.clone().fold(f64::INFINITY, f64::min), ys.clone().fold(f64::INFINITY, f64::min), xs.fold(f64::NEG_INFINITY, f64::max), ys.fold(f64::NEG_INFINITY, f64::max)]
-    });
+    let poly_box = poly_box(pr);
     let (cx, cy, sx, sy) = match pr.outline.or(poly_box) {
         // Start inside the middle half, so parts begin on the board.
         Some(o) => ((o[0] + o[2]) / 2.0, (o[1] + o[3]) / 2.0, (o[2] - o[0]) * 0.5, (o[3] - o[1]) * 0.5),
@@ -569,41 +558,17 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
     let mut st = State { pr, sdf, mv, movables, of_part, in_group };
     let free: Vec<usize> = (0..st.movables.len()).filter(|&m| fixed(&st.movables[m]).is_none()).collect();
-    // An edge part with its side named, on a set outline, starts flush on that side facing out
-    // and only slides along it: true for x on top and bottom, for y on left and right.
-    let mut slides: BTreeMap<usize, bool> = BTreeMap::new();
-    if let Some(ol) = pr.outline {
-        for &m in &free {
-            let Movable::Part(i) = st.movables[m] else { continue };
-            let Some(e) = &pr.parts[i].edge else { continue };
-            let Some(side) = e.side else { continue };
-            let out = match side {
-                Side::Left => (-1.0, 0.0),
-                Side::Right => (1.0, 0.0),
-                Side::Top => (0.0, -1.0),
-                Side::Bottom => (0.0, 1.0),
-            };
-            let r = (0..4).map(|q| 90.0 * q as f64).find(|&r| {
-                let f = rot(e.facing, r);
-                (f.0 - out.0).abs() < 1e-6 && (f.1 - out.1).abs() < 1e-6
-            });
-            let Some(r) = r else { continue };
-            let mut pose = Pose { x: (ol[0] + ol[2]) / 2.0, y: (ol[1] + ol[3]) / 2.0, rotation: r };
-            let b = bbox_at(&pr.parts[i].bbox, &pose, pr.parts[i].back);
-            match side {
-                Side::Left => pose.x += ol[0] - b[0],
-                Side::Right => pose.x += ol[2] - b[2],
-                Side::Top => pose.y += ol[1] - b[1],
-                Side::Bottom => pose.y += ol[3] - b[3],
-            }
-            st.mv[m] = pose;
-            slides.insert(m, matches!(side, Side::Top | Side::Bottom));
-        }
-    }
+    let slides = edge_slides(&mut st, &free, start.is_some());
 
-    // A warm start is kept if nothing better is found: what refining began from, scored as the
-    // end is.
-    let kept = start.map(|_| (st.cost(o.w_overlap * 201.0).0, st.mv.clone()));
+    // A part on its edge stays there; what overlaps it moves.
+    let pushable: Vec<usize> = free.iter().copied().filter(|m| !slides.contains_key(m)).collect();
+    // A warm start is legalised, then kept if nothing better is found: what refining began from,
+    // scored as the end is.
+    let kept = start.map(|_| {
+        legalise(&mut st, &pushable);
+        repair(&mut st, &pushable, &mut rng);
+        (st.cost(o.w_overlap * 201.0).0, st.mv.clone())
+    });
     // Temperature from the spread of costs of random moves at the start.
     let (mut cur, _) = st.cost(o.w_overlap);
     let mut deltas = Vec::new();
@@ -683,8 +648,6 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
             st.mv = best.1.clone();
         }
     }
-    // A part on its edge stays there; what overlaps it moves.
-    let pushable: Vec<usize> = free.iter().copied().filter(|m| !slides.contains_key(m)).collect();
     legalise(&mut st, &pushable);
     repair(&mut st, &pushable, &mut rng);
     if let Some((was, mv)) = kept {
@@ -728,6 +691,99 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     Placement { parts, outline, blocks, metrics, cost }
 }
 
+/// What moves, and how each part follows: movables (rigid groups first), each part's (movable,
+/// offset in its frame, rotation in its frame), and each part's group.
+fn layout(pr: &Problem) -> (Vec<Movable>, Vec<(usize, P, f64)>, Vec<Option<usize>>) {
+    let n = pr.parts.len();
+    let mut in_group = vec![None; n];
+    let mut movables = Vec::new();
+    let mut of_part = vec![(usize::MAX, (0.0, 0.0), 0.0); n];
+    for (g, r) in pr.groups.iter().enumerate() {
+        let m = movables.len();
+        movables.push(Movable::Group(g));
+        in_group[r.anchor] = Some(g);
+        of_part[r.anchor] = (m, (0.0, 0.0), 0.0);
+        for (i, off, rr) in &r.members {
+            in_group[*i] = Some(g);
+            of_part[*i] = (m, *off, *rr);
+        }
+    }
+    for i in 0..n {
+        if in_group[i].is_none() {
+            of_part[i] = (movables.len(), (0.0, 0.0), 0.0);
+            movables.push(Movable::Part(i));
+        }
+    }
+    (movables, of_part, in_group)
+}
+
+fn fixed_pose(pr: &Problem, m: &Movable) -> Option<Pose> {
+    match m {
+        Movable::Part(i) => pr.parts[*i].fixed,
+        Movable::Group(g) => pr.parts[pr.groups[*g].anchor].fixed,
+    }
+}
+
+/// A length the size of the board the parts need: the side of a square twice their area.
+fn span_of(pr: &Problem) -> f64 {
+    let o = &pr.options;
+    let total: f64 = pr.parts.iter().map(|p| (p.bbox[2] - p.bbox[0] + o.clearance) * (p.bbox[3] - p.bbox[1] + o.clearance)).sum();
+    (total * 2.0).sqrt()
+}
+
+fn poly_box(pr: &Problem) -> Option<[f64; 4]> {
+    pr.outline_polygon.as_ref().map(|p| {
+        let xs = p.iter().map(|q| q.0);
+        let ys = p.iter().map(|q| q.1);
+        [xs.clone().fold(f64::INFINITY, f64::min), ys.clone().fold(f64::INFINITY, f64::min), xs.fold(f64::NEG_INFINITY, f64::max), ys.fold(f64::NEG_INFINITY, f64::max)]
+    })
+}
+
+/// An edge part with its side named, on a set outline, starts flush on that side facing out
+/// and only slides along it: true for x on top and bottom, for y on left and right. With
+/// `keep_along`, it keeps where along its side it already is.
+fn edge_slides(st: &mut State, free: &[usize], keep_along: bool) -> BTreeMap<usize, bool> {
+    let pr = st.pr;
+    let mut slides = BTreeMap::new();
+    let Some(ol) = pr.outline else { return slides };
+    for &m in free {
+        let Movable::Part(i) = st.movables[m] else { continue };
+        let Some(e) = &pr.parts[i].edge else { continue };
+        let Some(side) = e.side else { continue };
+        let out = match side {
+            Side::Left => (-1.0, 0.0),
+            Side::Right => (1.0, 0.0),
+            Side::Top => (0.0, -1.0),
+            Side::Bottom => (0.0, 1.0),
+        };
+        let r = (0..4).map(|q| 90.0 * q as f64).find(|&r| {
+            let f = rot(e.facing, r);
+            (f.0 - out.0).abs() < 1e-6 && (f.1 - out.1).abs() < 1e-6
+        });
+        let Some(r) = r else { continue };
+        let was = st.mv[m];
+        let along_x = matches!(side, Side::Top | Side::Bottom);
+        let mut pose = Pose { x: (ol[0] + ol[2]) / 2.0, y: (ol[1] + ol[3]) / 2.0, rotation: r };
+        if keep_along {
+            if along_x {
+                pose.x = was.x;
+            } else {
+                pose.y = was.y;
+            }
+        }
+        let b = bbox_at(&pr.parts[i].bbox, &pose, pr.parts[i].back);
+        match side {
+            Side::Left => pose.x += ol[0] - b[0],
+            Side::Right => pose.x += ol[2] - b[2],
+            Side::Top => pose.y += ol[1] - b[1],
+            Side::Bottom => pose.y += ol[3] - b[3],
+        }
+        st.mv[m] = pose;
+        slides.insert(m, along_x);
+    }
+    slides
+}
+
 #[cfg(test)]
 mod inc_tests {
     use super::*;
@@ -738,26 +794,7 @@ mod inc_tests {
         for board in ["rp2350-battery", "easy2350", "bolt-earring"] {
             let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../app/web/public/examples/{board}/problem.json"));
             let pr: Problem = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
-            let n = pr.parts.len();
-            let mut in_group = vec![None; n];
-            let mut movables = Vec::new();
-            let mut of_part = vec![(usize::MAX, (0.0, 0.0), 0.0); n];
-            for (g, r) in pr.groups.iter().enumerate() {
-                let m = movables.len();
-                movables.push(Movable::Group(g));
-                in_group[r.anchor] = Some(g);
-                of_part[r.anchor] = (m, (0.0, 0.0), 0.0);
-                for (i, off, rr) in &r.members {
-                    in_group[*i] = Some(g);
-                    of_part[*i] = (m, *off, *rr);
-                }
-            }
-            for i in 0..n {
-                if in_group[i].is_none() {
-                    of_part[i] = (movables.len(), (0.0, 0.0), 0.0);
-                    movables.push(Movable::Part(i));
-                }
-            }
+            let (movables, of_part, in_group) = layout(&pr);
             let mut rng = Rng(7);
             let mv: Vec<Pose> = movables.iter().map(|_| Pose { x: rng.f() * 30.0, y: rng.f() * 30.0, rotation: 0.0 }).collect();
             let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
@@ -985,6 +1022,36 @@ mod tests {
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: Some(tri) };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
+    }
+
+    #[test]
+    fn the_analytical_placer_alone_is_legal() {
+        // No annealing at all: gradient descent, then legalising.
+        let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 0, placer: Placer::Analytic, ..Default::default() }, outline: None, outline_polygon: None };
+        let p = solve(&pr);
+        assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
+        assert!(p.metrics.area_mm2 < 70.0, "{:?}", p.metrics);
+        // And inside a triangle.
+        let tri = vec![(0.0, 0.0), (20.0, 0.0), (10.0, 15.0)];
+        let p = solve(&Problem { outline_polygon: Some(tri), ..pr });
+        assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
+    }
+
+    #[test]
+    fn the_analytical_placer_keeps_groups_and_edges() {
+        let mut parts = vec![part("U1", 3.0, 3.0), part("C1", 1.0, 0.5), part("J1", 4.0, 2.0)];
+        parts[2].edge = Some(Edge { side: None, facing: (0.0, 1.0) });
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0 }];
+        let groups = vec![Rigid { name: "core".into(), anchor: 0, members: vec![(1, (0.0, -2.5), 0.0)] }];
+        let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 20_000, placer: Placer::Analytic, ..Default::default() }, outline: None, outline_polygon: None };
+        let p = solve(&pr);
+        let (u, c) = (p.parts["U1"], p.parts["C1"]);
+        let off = rot((0.0, -2.5), u.rotation);
+        assert!((c.x - u.x - off.0).abs() < 1e-3 && (c.y - u.y - off.1).abs() < 1e-3, "{u:?} {c:?}");
+        assert!(p.metrics.edge_misses.is_empty(), "{:?}", p.metrics);
+        assert_eq!(p.metrics.overlaps, 0);
     }
 
     #[test]

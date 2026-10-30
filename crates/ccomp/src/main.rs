@@ -136,6 +136,10 @@ enum Cmd {
         /// Annealing moves (the spec's or 400 000 otherwise).
         #[arg(long)]
         moves: Option<usize>,
+        /// `sa`: anneal from a random spread; `analytic`: place by gradient descent, then anneal
+        /// that cool for `--moves` (the spec's choice, or `sa`).
+        #[arg(long, value_parser = ["sa", "analytic"])]
+        placer: Option<String>,
         /// Score this board's own placement instead of solving (the parts as placed there).
         #[arg(long)]
         evaluate: Option<PathBuf>,
@@ -568,7 +572,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             Ok((value, r.ok))
         }
-        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
+        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, placer, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
             if let Some(p) = input_problem {
                 let mut pr: floorplan::Problem = serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?;
                 if let Some(s) = seed {
@@ -577,6 +581,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 if let Some(m) = moves {
                     pr.options.moves = m;
                 }
+                set_placer(&mut pr, placer.as_deref());
                 return Ok(solve_and_report(&pr, output.as_deref())?);
             }
             let board = ctx.or_board(board, "a board", |b| b.pcb.clone())?;
@@ -636,6 +641,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             if let Some(m) = moves {
                 pr.options.moves = m;
             }
+            set_placer(&mut pr, placer.as_deref());
             if problem {
                 let value = serde_json::to_value(&pr).unwrap();
                 if let Some(o) = output {
@@ -704,6 +710,14 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             write_json(&output, &serde_json::to_value(&file).unwrap())?;
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
+    }
+}
+
+fn set_placer(pr: &mut floorplan::Problem, placer: Option<&str>) {
+    match placer {
+        Some("sa") => pr.options.placer = floorplan::Placer::Sa,
+        Some("analytic") => pr.options.placer = floorplan::Placer::Analytic,
+        _ => {}
     }
 }
 

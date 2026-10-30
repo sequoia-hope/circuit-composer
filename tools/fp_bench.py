@@ -2,7 +2,10 @@
 """Floorplanner benchmark: our example boards and Cypress's ten small PCB benchmarks (ISPD 2025,
 NVlabs/Cypress, Apache-2.0), each placed by every placer at several move budgets and seeds.
 
-    tools/fp_bench.py [--seeds N] [--moves 50000,200000,1000000] [--jobs N] [--only NAME,...]
+    tools/fp_bench.py [--seeds N] [--moves 0,50000,200000,1000000] [--jobs N] [--only NAME,...]
+
+Placers: "sa" anneals from a random spread; "analytic" places by gradient descent, then anneals
+that cool for the budget (0 moves: gradient descent and legalising only; sa skips 0).
 
 Cypress's boards are fetched at a pinned commit into bench/cypress/ (not committed) and turned
 into floorplan problems with `ccomp floorplan --nets-from-board --outline-from-board --problem`:
@@ -29,7 +32,7 @@ BENCH = os.path.join(ROOT, "bench")
 CYPRESS_SHA = "743b07c4e33dc52a00584d55d2e67f38f70957f5"
 CYPRESS = [f"small-{i}" for i in range(1, 11)]
 OURS = ["rp2350-battery", "easy2350", "bolt-earring", "flame-earring"]
-PLACERS = ["sa"]
+PLACERS = ["sa", "analytic"]
 
 
 def ccomp(*args):
@@ -69,7 +72,7 @@ def problems():
 
 def run(job):
     name, path, placer, moves, seed = job
-    r = ccomp("floorplan", "--input-problem", path, "--moves", str(moves), "--seed", str(seed))
+    r = ccomp("floorplan", "--input-problem", path, "--placer", placer, "--moves", str(moves), "--seed", str(seed))
     m = r.get("metrics", {})
     return {"board": name, "placer": placer, "moves": moves, "seed": seed, "ok": bool(r.get("ok")), "seconds": r.get("seconds"),
             "wire_mm": m.get("wire_mm"), "area_mm2": m.get("area_mm2"), "near_mm": m.get("near_mm"), "overlaps": m.get("overlaps"),
@@ -79,7 +82,8 @@ def run(job):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--seeds", type=int, default=5)
-    ap.add_argument("--moves", default="50000,200000,1000000")
+    ap.add_argument("--moves", default="0,50000,200000,1000000")
+    ap.add_argument("--placers", default=",".join(PLACERS))
     ap.add_argument("--jobs", type=int, default=int(os.environ.get("RESERVED_CORES", "4")))
     ap.add_argument("--only", default="")
     a = ap.parse_args()
@@ -88,7 +92,8 @@ def main():
     if a.only:
         keep = set(a.only.split(","))
         probs = {k: v for k, v in probs.items() if k in keep}
-    jobs = [(n, p, pl, int(m), s) for n, (p, _) in probs.items() for pl in PLACERS for m in a.moves.split(",") for s in range(1, a.seeds + 1)]
+    placers = a.placers.split(",")
+    jobs = [(n, p, pl, int(m), s) for n, (p, _) in probs.items() for pl in placers for m in a.moves.split(",") for s in range(1, a.seeds + 1) if not (pl == "sa" and int(m) == 0)]
     results = []
     with cf.ThreadPoolExecutor(a.jobs) as ex:
         for r in ex.map(run, jobs):
@@ -113,9 +118,9 @@ def write_doc(sizes, results, a):
         "authors; overlaps there are courtyard overlaps under our rules).",
         "",
     ]
-    budgets = [int(m) for m in a.moves.split(",")]
-    for placer in PLACERS:
-        head = "| Board | Parts (movable) | Nets | Board's own: wire, overlaps | " + " | ".join(f"{placer} {m // 1000} k" for m in budgets) + " |"
+    for placer in a.placers.split(","):
+        budgets = [int(m) for m in a.moves.split(",") if not (placer == "sa" and int(m) == 0)]
+        head = "| Board | Parts (movable) | Nets | Board's own: wire, overlaps | " + " | ".join((f"{placer} {m // 1000} k" if m else f"{placer} alone") for m in budgets) + " |"
         lines += [head, "|" + "---|" * (4 + len(budgets))]
         for n, sz in sizes.items():
             own = sz["own"]
