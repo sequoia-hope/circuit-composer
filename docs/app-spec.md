@@ -221,7 +221,8 @@ The same shape as UltraRoute Studio, so the two apps share habits and code.
   - watches those files and pushes changes made by another app or an AI job;
   - runs the tools that need KiCad (`kicad-cli`, the pcbnew Python scripts) through `reserve`
     when they are heavy;
-  - hands AI jobs to easy_pcb's backend.
+  - hands AI jobs to Boardroom (`POST /api/jobs`, progress on `/api/bus`);
+  - answers `api/info`, so the page knows it is not on Pages.
 
   It takes its port from `--port`, then `$PORT`, then `proj port`, and fails with none.
 - **The CLI comes first.** Every action in the app is also a `ccomp` command that takes a
@@ -231,7 +232,52 @@ The same shape as UltraRoute Studio, so the two apps share habits and code.
 **Windows.** The app runs standalone, at `/?project=<path>&board=<name>` in its own browser
 window. It can also be embedded with `&embed=1`, which hides the project chrome and reports its
 selection and status to the parent page by `postMessage`. Both modes come from one build.
-Standalone is the default, because a canvas app wants the whole screen.
+Standalone is the default, because a canvas app wants the whole screen. Boardroom (the suite's
+main app, formerly easy_pcb) opens either: a window of its own in its windows mode, or a tab
+inside its window in single-window mode. It reaches Composer through its proxy at
+`/apps/composer/`, so every URL the app uses is relative. Pages are served with
+`Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`,
+because annealing workers will share memory, and the app embeds nothing from other sites.
+
+**Three ways to run, one build:**
+
+| Mode | Served by | Files | AI, terminal | Saving |
+|---|---|---|---|---|
+| **Suite** | Composer's server, through Boardroom | the project on disk, watched | yes | to the project |
+| **Local** | Composer's server alone | the project on disk, watched | through Boardroom's daemon if it is running | to the project |
+| **Pages** | GitHub Pages, static files | example boards built into the site | no: those parts of the UI explain why | download a file |
+
+The Pages site is the public demo. The examples are this repository's boards, exported by a
+build step into static JSON. Everything that runs in the WASM core works there too: live
+annealing, locks, checks and the shape tools. What needs a server is shown, but disabled with
+a note: AI fills, the terminal, KiCad output and **Send to UltraRoute**. The app finds out which
+mode it is in by asking its server for `api/info`. If no server answers, it is in Pages mode.
+
+## Terminal
+
+Composer has a **composition terminal**: a real, interactive Claude Code session (`claude` in
+a pty) in the project folder, loading the circuit-composer skill. It docks along the bottom
+beside Checks and Jobs. Boardroom's spec covers how it runs:
+- Boardroom's server owns every pty. Each app shows a terminal panel that connects to
+  `/api/term/<id>`.
+- A terminal outlives its window, as a tmux session does.
+- Composer's and Boardroom's terminals are separate sessions, and each can hand the person to
+  the other.
+- A hook keeps a terminal out of files that an AI job is writing.
+
+Rules for Composer's side:
+- The terminal works through `ccomp` commands, so its edits land on the canvas as the
+  files change.
+- When the person says "this" or "here", Claude runs `ccomp context`. It prints the open board,
+  the workspace, the selection, and the open fields under the selection.
+- Edits made in the terminal count as the person's. Values the AI chose are still marked
+  `by: "ai"`.
+
+**The terminal itself.** In the web app it is a terminal component of our own, written in Rust
+compiled to WASM plus a thin JS layer. Radio Room's terminal is the reference for it, not a
+dependency, because it is mostly Python and JavaScript. It is shared through Boardroom's
+`suite-ui` package. A native build, if one comes (for example Tauri), uses the platform's
+native terminal instead. UltraRoute Studio has no terminal.
 
 ## Files in the project
 
@@ -283,8 +329,10 @@ output saved as files, and records it in `design/status.json`.
 Lettered, so they don't collide with the numbered system milestones. The prerequisite is that
 every `ccomp` command accepts a project path (milestone 3 in easy_pcb's spec).
 
-- **A. Skeleton.** Needs `board-draw` extracted (ultraroute's step); the server and core can
-  start before it lands. The server, core and `board-draw` open a project path and show an
+- **A. Skeleton.** Needs `board-draw` extracted (ultraroute's step). Until it lands, the page
+  draws through a placeholder scene with the same shape as `board-draw`'s (layers, capsules,
+  polygons, pads, parts with poses), not a mesh format of its own. Also the Pages build with the
+  example boards. The server, core and `board-draw` open a project path and show an
   existing floorplan read-only (`rp2350-battery`), with its metrics. Choose the polygon crate
   and port the bolt shaper's operations to it.
 - **B. Board workspace.** Drag, lock and anneal live in a worker. Save `placement.json` and
@@ -306,16 +354,13 @@ every `ccomp` command accepts a project path (milestone 3 in easy_pcb's spec).
    `compose/` in an easy_pcb project, `boards/` in this repo, where each board directory keeps
    today's layout. Milestone A opens `rp2350-battery` in place, and milestone F rebuilds the
    bolt earring in place.
-2. **The AI backend when Composer runs standalone.** Composer can either require the easy_pcb
-   shell to be running, or run `claude -p` itself with the same request file. The proposal is
-   to require the shell: one queue, one place to see jobs.
-3. **Who owns net classes?** In an easy_pcb project, `design/nets.csv` is phase 3's output, and
-   `ccomp import easy-pcb` turns it into `intent.json`. Once a project has `compose/`, the
-   proposal is that `intent.json` is the source and `nets.csv` is generated from it for the
-   skill's checks. Two hand-edited copies would drift.
-4. **Naming.** easy_pcb's `design/intent.md` holds requirements, and Composer's `intent.json`
-   holds net and block intent. Both are called "intent". Consider calling the easy_pcb file
-   *requirements* in the UI, even if the filename stays.
+2. ~~The AI backend when Composer runs standalone~~ Answered by Boardroom
+   (`easy_pcb/docs/shell-spec.md`): one queue. Composer asks Boardroom's daemon, starting it if
+   needed. Jobs name their skill and a write scope (`compose/**`, or the board folder here).
+   Composer reviews its own jobs field by field, and Boardroom's Accept opens Composer.
+3. ~~Who owns net classes~~ Agreed: with `compose/`, `intent.json` is the source and
+   `nets.csv` is generated. Boardroom shows it read-only.
+4. ~~Naming~~ Agreed: Boardroom calls its file "Requirements".
 5. **Rendering.** Decided 2026-10-29: WebGL2 through `board-draw`, shared with Studio, in its own
    repo (see Architecture). Agreed with ultraroute, which does the extraction. Creating the
    GitHub repo: the owner OK'd it on 2026-10-29.
