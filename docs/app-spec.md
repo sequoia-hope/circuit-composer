@@ -443,9 +443,11 @@ Separate from the app's milestones A–F, in this order:
 
 1. **Floorplanner work** (in progress; `docs/floorplanning-approaches.md`):
    - the incremental cost (done, about 10×);
-   - a benchmark of our boards plus Cypress's;
+   - a benchmark of our boards plus Cypress's (done, `docs/floorplan-benchmark.md`);
+   - an analytical placer (done: `--placer analytic`, the app's default start; it beats SA on
+     nine of Cypress's ten boards and on three of our four);
+   - a legaliser that shoves neighbours, for crowded backs (the flame earring);
    - edge connectors on shaped outlines;
-   - an analytical placer;
    - diffusion as a starting-point generator.
 2. **Interfaces and the pin-mux table** for the four packages (rp2350, lsm6dso, mcp73831,
    tlv62569), ingested from their datasheets and cited, as everything in a package is.
