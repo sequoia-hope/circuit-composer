@@ -457,6 +457,11 @@ Separate from the app's milestones A–F, in this order:
 3. **The pin solver.** The battery demo board written as loose connections ("imu.i2c to mcu",
    "imu irqs to mcu", "a LED to mcu"), solved into a pin-level composition that composes,
    floorplans and passes `ccomp check package`. It runs in `ccomp` and in the app's WASM core.
+   Done, but not yet wired into the app's UI: `crates/pinsolve`, `ccomp pins` (`-b rp2350-battery` solves
+   `boards/rp2350-battery/loose.json`), and `pins_solve` in the WASM core. It puts the IMU on
+   I2C0's GPIO4/5, as the hand-drawn board has it; pinned like that board, it reproduces its
+   `compose.json` net for net. Electrical domains and floorplan-side preferences are not in its
+   cost yet.
 4. **Interface rules and recipes**: I2C pull-ups, USB-C sink, LiPo power path, LED chain. With
    those, the bolt earring composes from its blocks in the browser.
 5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other

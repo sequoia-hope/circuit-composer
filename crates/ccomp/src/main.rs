@@ -175,6 +175,21 @@ enum Cmd {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// Solve a composition's loose connections (`imu.i2c` to `mcu`) into nets: each signal on a
+    /// pin the partner's interfaces and pin-mux table allow, the cheapest assignment found.
+    /// Prints the pinout (with each pin's function select) and checks that the result composes.
+    Pins {
+        /// The loose composition (with `--board`, the board's `loose.json`).
+        loose: Option<PathBuf>,
+        #[arg(long)]
+        packages: Option<PathBuf>,
+        /// The solved composition, to write.
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        /// Search nodes before settling for the best found so far.
+        #[arg(long, default_value_t = 2_000_000)]
+        nodes: usize,
+    },
     /// A package's typed interfaces (I2C0, SPI1, the IMU's i2c target) and the pins each signal
     /// can take on a variant: through the pin-mux table or fixed.
     Interfaces {
@@ -710,6 +725,33 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             value["ok"] = ok.into();
             value["interfaces"] = serde_json::to_value(&ifaces).unwrap();
             Ok((value, ok))
+        }
+        Cmd::Pins { loose, packages, output, nodes } => {
+            let loose = ctx.or_board(loose, "a loose composition", |b| b.loose.clone())?;
+            let packages = match packages {
+                Some(p) => p,
+                None if ctx.active() => ctx.board()?.packages.clone(),
+                None => PathBuf::from("packages"),
+            };
+            let value = read_json_value(&loose)?;
+            let c: compose::Composition = serde_json::from_value(value.clone()).map_err(|e| format!("{}: {e}", loose.display()))?;
+            let pkgs = pinsolve::load(&c, &packages)?;
+            let library = packages.parent().unwrap_or(Path::new(".")).join("library/interfaces.json");
+            let types = interfaces::load_types(&library)?;
+            let solved = pinsolve::solve(&value, &types, &pkgs, nodes)?;
+            let mut out = json!({ "ok": solved.ok, "cost": solved.cost, "exhaustive": solved.exhaustive, "pinout": solved.pinout, "warnings": solved.warnings, "errors": solved.errors });
+            if solved.ok {
+                let sc: compose::Composition = serde_json::from_value(solved.composition.clone()).map_err(|e| format!("solved: {e}"))?;
+                let composed = compose::compose(&sc, &packages)?;
+                out["composes"] = json!({ "ok": composed.ok, "errors": composed.errors, "unconnected_ports": composed.unconnected_ports.len() });
+                out["ok"] = composed.ok.into();
+                if let Some(o) = &output {
+                    write_json(o, &solved.composition)?;
+                    out["wrote"] = json!(o);
+                }
+            }
+            let ok = out["ok"].as_bool().unwrap_or(false);
+            Ok((out, ok))
         }
         Cmd::Interfaces { package, variant, interface, root } => interfaces_cmd(&root, &package, variant.as_deref(), interface.as_deref()),
         Cmd::Library { op: LibraryOp::Query { root, set, id, scope, attribute, status, text } } => {

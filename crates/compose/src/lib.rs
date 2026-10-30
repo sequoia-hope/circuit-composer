@@ -31,6 +31,10 @@ pub struct Composition {
     /// Signal ports deliberately left open (`mcu.GPIO7`); others are listed as unconnected.
     #[serde(default)]
     pub no_connect: Vec<String>,
+    /// Loose connections (`imu.i2c` to `mcu`) the pin solver has not yet turned into nets:
+    /// composing refuses them.
+    #[serde(default)]
+    pub connect: Vec<Value>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -143,7 +147,7 @@ pub struct Composed {
 }
 
 /// The package folder and its version, from `PACKAGES/NAME/manifest.toml`.
-fn package_dir(packages: &Path, spec: &str) -> Result<PathBuf, String> {
+pub fn package_dir(packages: &Path, spec: &str) -> Result<PathBuf, String> {
     let (name, version) = spec.split_once('@').ok_or_else(|| format!("{spec}: expected name@version"))?;
     let dir = packages.join(name);
     let manifest = std::fs::read_to_string(dir.join("manifest.toml")).map_err(|e| format!("{}: {e}", dir.display()))?;
@@ -167,6 +171,9 @@ fn prefix(r: &str) -> String {
 /// Compose with each instance's circuit already loaded (`circuits` by instance name).
 pub fn compose_with(c: &Composition, circuits: &BTreeMap<String, Circuit>) -> Composed {
     let mut out = Composed { board: c.board.clone(), ..Default::default() };
+    if !c.connect.is_empty() {
+        out.errors.push(format!("{} loose connections: solve them into nets first (ccomp pins)", c.connect.len()));
+    }
     let mut next: BTreeMap<String, u32> = BTreeMap::new();
     let mut taken: std::collections::BTreeSet<String> = c.parts.keys().cloned().collect();
     for (name, inst) in &c.instances {

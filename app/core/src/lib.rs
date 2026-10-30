@@ -315,6 +315,18 @@ mod wasm {
         Ok(serde_json::to_string(&shape::evaluate(&doc)).unwrap())
     }
 
+    /// Solve a loose composition's connections into nets (`pinsolve::Solved` as JSON): the
+    /// interface types (`library/interfaces.json`) and each instance's circuit and ports given,
+    /// as `{ instance: { circuit, ports } }`.
+    #[wasm_bindgen]
+    pub fn pins_solve(loose_json: &str, types_json: &str, packages_json: &str) -> Result<String, JsValue> {
+        let loose: serde_json::Value = serde_json::from_str(loose_json).map_err(err)?;
+        let types: interfaces::Types = serde_json::from_str(types_json).map_err(err)?;
+        let pkgs = pinsolve::from_json(&serde_json::from_str(packages_json).map_err(err)?).map_err(err)?;
+        let solved = pinsolve::solve(&loose, &types, &pkgs, 2_000_000).map_err(err)?;
+        Ok(serde_json::to_string(&solved).unwrap())
+    }
+
     /// The parametric generators and their parameters.
     #[wasm_bindgen]
     pub fn shape_generators() -> String {

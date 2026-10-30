@@ -24,7 +24,8 @@ fn this_repositorys_boards_resolve_in_place() {
     }
     let b = ccomp(&root(), &["--board", "easy2350", "boards"]);
     assert_eq!(b["manifest"], true);
-    for (k, there) in b["exists"].as_object().unwrap() {
+    // A loose composition is optional: most boards are written pin by pin.
+    for (k, there) in b["exists"].as_object().unwrap().iter().filter(|(k, _)| *k != "loose") {
         assert_eq!(there, true, "easy2350's {k} is missing: {}", b[k]);
     }
 }

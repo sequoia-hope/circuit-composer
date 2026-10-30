@@ -1,0 +1,14 @@
+[package]
+name = "pinsolve"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The pin solver: a composition's loose connections ("the IMU's I2C to the MCU") into nets pin by
+# pin, through each package's typed interfaces and pin-mux table, cheapest assignment first.
+
+[dependencies]
+compose = { path = "../compose" }
+interfaces = { path = "../interfaces" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

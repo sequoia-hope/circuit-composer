@@ -17,6 +17,8 @@ struct Manifest {
     #[serde(default)]
     note: Option<String>,
     composition: Option<String>,
+    /// The composition with loose connections, before the pin solver.
+    loose: Option<String>,
     composed: Option<String>,
     intent: Option<String>,
     floorplan: Option<String>,
@@ -39,6 +41,9 @@ pub struct Board {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
     pub composition: PathBuf,
+    /// The composition with loose connections (`imu.i2c` to `mcu`) the pin solver turns into
+    /// `composition`.
+    pub loose: PathBuf,
     pub composed: PathBuf,
     pub intent: PathBuf,
     pub floorplan: PathBuf,
@@ -64,6 +69,7 @@ impl Board {
         let mut m = serde_json::Map::new();
         for (k, p) in [
             ("composition", &self.composition),
+            ("loose", &self.loose),
             ("composed", &self.composed),
             ("intent", &self.intent),
             ("floorplan", &self.floorplan),
@@ -138,6 +144,7 @@ pub fn resolve(project: Option<&Path>, board: Option<&str>) -> Result<Board, Str
     };
     Ok(Board {
         composition: at(&m.composition, dir.join("compose.json")),
+        loose: at(&m.loose, dir.join("loose.json")),
         composed: at(&m.composed, dir.join("out/composed.json")),
         intent: at(&m.intent, dir.join("intent.json")),
         floorplan: at(&m.floorplan, dir.join("floorplan.json")),

@@ -14,6 +14,7 @@ blockgen = { path = "../blockgen" }
 compile = { path = "../compile" }
 library = { path = "../library" }
 interfaces = { path = "../interfaces" }
+pinsolve = { path = "../pinsolve" }
 compose = { path = "../compose" }
 floorplan = { path = "../floorplan" }
 shape = { path = "../shape" }
