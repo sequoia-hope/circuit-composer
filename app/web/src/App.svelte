@@ -92,7 +92,7 @@
         error = 'Boardroom opened Composer without a board.';
         return;
       }
-      await openProject(given, current, params.get('variant') || 'a');
+      await openProject(given, current, params.get('variant') || 'a', current, params.get('pcb'));
       return;
     }
     mode = (await detectMode()).mode;
@@ -116,7 +116,7 @@
 
   function choose(key) {
     const b = projectBoards.find((x) => keyOf(x) === key);
-    return b ? openProject(boardroomStore(b), b.board, b.variant, key) : open(key);
+    return b ? openProject(boardroomStore(b), b.board, b.variant, key, b.pcb) : open(key);
   }
 
   /** Back to no project: a built-in example has nothing to save to or watch. */
@@ -175,12 +175,12 @@
    * A board from a project's store: its placement problem, and its parts where the `.kicad_pcb`
    * has them. `key` is what the selector calls it (the board's name when Boardroom opened it).
    */
-  async function openProject(store, board, variant, key = board) {
+  async function openProject(store, board, variant, key = board, pcb = null) {
     stop();
     error = '';
     leaveProject();
     try {
-      const data = await loadFromStore(store, board, variant);
+      const data = await loadFromStore(store, board, variant, pcb);
       circuit = data.circuit;
       composition = null;
       live = null;
@@ -221,7 +221,7 @@
 
   function reload() {
     const p = project;
-    if (p) openProject(p.store, p.board, p.variant, current);
+    if (p) openProject(p.store, p.board, p.variant, current, p.paths.pcb);
   }
 
   /** Parts whose pose differs between two placements (`{parts: {REF: pose}}` JSON). */

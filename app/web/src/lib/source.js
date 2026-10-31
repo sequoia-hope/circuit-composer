@@ -63,10 +63,14 @@ export function loadLibrary() {
   return library;
 }
 
-/** Where a board's files are in a project: Boardroom's layout. */
-export function projectPaths(board, variant) {
+/**
+ * Where a board's files are in a project: Boardroom's layout. `pcb`, when Boardroom names it
+ * (`?pcb=`), is the board file, which needn't be named as the board (servodrive's ethernet board
+ * is `hw/ethernet/e/servodrive_E.kicad_pcb`).
+ */
+export function projectPaths(board, variant, pcb = null) {
   return {
-    pcb: `hw/${board}/${variant}/${board}.kicad_pcb`,
+    pcb: pcb || `hw/${board}/${variant}/${board}.kicad_pcb`,
     problem: `compose/${board}/problem.json`,
     placement: `compose/${board}/placement.json`,
   };
@@ -77,8 +81,8 @@ export function projectPaths(board, variant) {
  * Boardroom's snapshot makes) and the `.kicad_pcb`, which is where the parts are and what the
  * inspector shows. Needs the WASM core initialised. Refuses rather than showing another board.
  */
-export async function loadFromStore(store, board, variant) {
-  const paths = projectPaths(board, variant);
+export async function loadFromStore(store, board, variant, pcbPath = null) {
+  const paths = projectPaths(board, variant, pcbPath);
   const [problem, pcb] = await Promise.all([retrying(() => store.text(paths.problem)), retrying(() => store.read(paths.pcb))]);
   if (problem == null) throw new Error(`Composer can't open ${board} yet: its placement problem (${paths.problem}) isn't in the project`);
   if (!pcb) throw new Error(`Composer can't open ${board} / ${variant}: the project has no ${paths.pcb}`);
@@ -100,7 +104,7 @@ export async function loadFromStore(store, board, variant) {
 /**
  * Boardroom's example projects, when its Pages snapshot is on this site (github.io serves
  * Boardroom and Composer from one origin, so they share the browser's store): each board with a
- * placement problem, as `{ project, name, board, variant, snapshot }`. `?boardroom=` names
+ * placement problem, as `{ project, name, board, variant, pcb, snapshot }`. `?boardroom=` names
  * another snapshot folder. None found: [].
  */
 export async function boardroomBoards() {
@@ -114,7 +118,7 @@ export async function boardroomBoards() {
     const out = [];
     for (const p of await r.json()) {
       for (const c of p.compose ?? []) {
-        if (c.problem) out.push({ project: p.id, name: p.name ?? p.id, board: c.board, variant: c.variant, snapshot: `${root}${p.id}/` });
+        if (c.problem) out.push({ project: p.id, name: p.name ?? p.id, board: c.board, variant: c.variant, pcb: c.pcb ?? null, snapshot: `${root}${p.id}/` });
       }
     }
     return out;
