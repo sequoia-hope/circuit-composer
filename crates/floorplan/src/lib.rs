@@ -173,7 +173,8 @@ impl Sdf {
             x1 = x1.max(p.0);
             y1 = y1.max(p.1);
         }
-        let pad = 3.0;
+        // Wide enough that a connector 2 mm proud of the edge, and more, still reads true.
+        let pad = 6.0;
         let (x0, y0) = (x0 - pad, y0 - pad);
         let nx = ((x1 + pad - x0) / step) as usize + 2;
         let ny = ((y1 + pad - y0) / step) as usize + 2;
@@ -256,6 +257,153 @@ fn gap(a: &[f64; 4], b: &[f64; 4]) -> f64 {
     (dx * dx + dy * dy).sqrt()
 }
 
+/// The outward direction of a side, in KiCad's frame (y down).
+fn side_dir(s: Side) -> P {
+    match s {
+        Side::Left => (-1.0, 0.0),
+        Side::Right => (1.0, 0.0),
+        Side::Top => (0.0, -1.0),
+        Side::Bottom => (0.0, 1.0),
+    }
+}
+
+/// How far edge part `i` (at `pose`, courtyard `b`) is from its edge, facing out: 0 when it is
+/// there. On a rectangle (the outline set, or the parts' extent `all`), its side must be one of
+/// the four: flush or overhanging by up to 2 mm costs nothing, facing inward costs 10, and along
+/// that side it stays within the board. On a shaped outline it is measured against the
+/// outline's signed distance instead (see `on_shaped_edge`).
+fn edge_miss(pr: &Problem, sdf: Option<&Sdf>, all: [f64; 4], i: usize, pose: &Pose, b: [f64; 4]) -> f64 {
+    let e = pr.parts[i].edge.as_ref().expect("an edge part");
+    let face = rot(e.facing, pose.rotation);
+    if let (Some(sdf), Some(_)) = (sdf, &pr.outline_polygon) {
+        return on_shaped_edge(sdf, e, face, b);
+    }
+    let sides = [(Side::Left, b[0] - all[0], (-1.0, 0.0)), (Side::Right, all[2] - b[2], (1.0, 0.0)), (Side::Top, b[1] - all[1], (0.0, -1.0)), (Side::Bottom, all[3] - b[3], (0.0, 1.0))];
+    sides
+        .iter()
+        .enumerate()
+        .filter(|(_, (s, _, _))| e.side.is_none_or(|w| w == *s))
+        .map(|(k, (_, d, n))| {
+            let along: f64 = (0..4).filter(|&j| j != k).map(|j| (-sides[j].1).max(0.0)).sum();
+            d.max(-2.0 - d).max(0.0) + 10.0 * (1.0 - (face.0 * n.0 + face.1 * n.1)) + 2.0 * along
+        })
+        .fold(f64::INFINITY, f64::min)
+}
+
+/// An edge part against a shaped outline. Its mating face (the courtyard's side it faces) must
+/// lie on the edge: the face's middle and corners flush, or up to 2 mm proud, which a gentle curve
+/// allows. It must face the way the edge does there, within 15° (the outline's outward normal,
+/// from the signed distance's slope), and its named side's way if it has one. The rest of it stays on the
+/// board: its back corners inside the outline.
+fn on_shaped_edge(sdf: &Sdf, e: &Edge, face: P, b: [f64; 4]) -> f64 {
+    let (front, back) = if face.0 > 0.5 {
+        ([(b[2], b[1]), (b[2], b[3])], [(b[0], b[1]), (b[0], b[3])])
+    } else if face.0 < -0.5 {
+        ([(b[0], b[1]), (b[0], b[3])], [(b[2], b[1]), (b[2], b[3])])
+    } else if face.1 > 0.5 {
+        ([(b[0], b[3]), (b[2], b[3])], [(b[0], b[1]), (b[2], b[1])])
+    } else {
+        ([(b[0], b[1]), (b[2], b[1])], [(b[0], b[3]), (b[2], b[3])])
+    };
+    let mid = ((front[0].0 + front[1].0) / 2.0, (front[0].1 + front[1].1) / 2.0);
+    let flush = |p: P| {
+        let v = sdf.at(p.0, p.1);
+        v.max(0.0) + (-2.0 - v).max(0.0)
+    };
+    let mut c = flush(mid) + 0.5 * (flush(front[0]) + flush(front[1]));
+    let h = sdf.step;
+    let g = (sdf.at(mid.0 + h, mid.1) - sdf.at(mid.0 - h, mid.1), sdf.at(mid.0, mid.1 + h) - sdf.at(mid.0, mid.1 - h));
+    let l = g.0.hypot(g.1);
+    let out = if l > 1e-9 { (-g.0 / l, -g.1 / l) } else { face };
+    // Within 15° of the edge's normal is facing out: on a curve, only the part at the apex faces
+    // it exactly.
+    c += 10.0 * (0.966 - (face.0 * out.0 + face.1 * out.1)).max(0.0);
+    if let Some(s) = e.side {
+        let d = side_dir(s);
+        c += 10.0 * (1.0 - (face.0 * d.0 + face.1 * d.1));
+    }
+    for p in back {
+        c += 2.0 * (-sdf.at(p.0, p.1)).max(0.0);
+    }
+    c
+}
+
+/// Points along a shaped outline every half millimetre or so, each with the outward normal there:
+/// where the anneal may put an edge part's face.
+fn edge_spots(poly: &[P], sdf: &Sdf) -> Vec<(P, P)> {
+    let mut out = Vec::new();
+    for k in 0..poly.len() {
+        let (a, b) = (poly[k], poly[(k + 1) % poly.len()]);
+        let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+        let len = dx.hypot(dy);
+        if len < 1e-9 {
+            continue;
+        }
+        // The normal pointing off the board, whichever way the polygon winds.
+        let mut n = (dy / len, -dx / len);
+        let m = ((a.0 + b.0) / 2.0, (a.1 + b.1) / 2.0);
+        if sdf.at(m.0 + 0.3 * n.0, m.1 + 0.3 * n.1) > sdf.at(m.0 - 0.3 * n.0, m.1 - 0.3 * n.1) {
+            n = (-n.0, -n.1);
+        }
+        let steps = (len / 0.5).ceil() as usize;
+        for t in 0..steps {
+            let f = (t as f64 + 0.5) / steps as f64;
+            out.push(((a.0 + f * dx, a.1 + f * dy), n));
+        }
+    }
+    out
+}
+
+/// Edge part `part` with the middle of its face at `p`, in the quarter turn that faces most
+/// nearly along `n`.
+fn on_spot(part: &PartGeom, p: P, n: P) -> Pose {
+    let e = part.edge.as_ref().expect("an edge part");
+    let rotation = (0..4)
+        .map(|q| 90.0 * q as f64)
+        .max_by(|&a, &b| {
+            let (fa, fb) = (rot(e.facing, a), rot(e.facing, b));
+            (fa.0 * n.0 + fa.1 * n.1).total_cmp(&(fb.0 * n.0 + fb.1 * n.1))
+        })
+        .unwrap();
+    let face = rot(e.facing, rotation);
+    let b = bbox_at(&part.bbox, &Pose { x: 0.0, y: 0.0, rotation }, part.back);
+    let fm = if face.0 > 0.5 {
+        (b[2], (b[1] + b[3]) / 2.0)
+    } else if face.0 < -0.5 {
+        (b[0], (b[1] + b[3]) / 2.0)
+    } else if face.1 > 0.5 {
+        ((b[0] + b[2]) / 2.0, b[3])
+    } else {
+        ((b[0] + b[2]) / 2.0, b[1])
+    };
+    Pose { x: p.0 - fm.0, y: p.1 - fm.1, rotation }
+}
+
+/// Each edge part off its edge on a shaped outline goes to the nearest spot that puts it there.
+/// What it then overlaps is the legalisers' to move: they leave edge parts be.
+fn seat_edges(st: &mut State, snaps: &BTreeMap<usize, Vec<(P, P)>>) {
+    let pr = st.pr;
+    let Some(sdf) = st.sdf.as_ref() else { return };
+    let all = poly_box(pr).unwrap_or([0.0; 4]);
+    for (&m, spots) in snaps {
+        let Movable::Part(i) = st.movables[m] else { continue };
+        let part = &pr.parts[i];
+        let miss = |pose: &Pose| edge_miss(pr, Some(sdf), all, i, pose, bbox_at(&part.bbox, pose, part.back));
+        let here = st.mv[m];
+        if miss(&here) <= 0.05 {
+            continue;
+        }
+        let best = spots
+            .iter()
+            .map(|&(p, n)| on_spot(part, p, n))
+            .filter(|pose| miss(pose) <= 0.05)
+            .min_by(|a, b| (a.x - here.x).hypot(a.y - here.y).total_cmp(&(b.x - here.x).hypot(b.y - here.y)));
+        if let Some(pose) = best {
+            st.mv[m] = pose;
+        }
+    }
+}
+
 /// What moves: one part, or a rigid group by its anchor.
 #[derive(Debug, Clone)]
 enum Movable {
@@ -329,6 +477,14 @@ impl<'a> State<'a> {
         let p = side(part.pins.get(pin).copied().unwrap_or((0.0, 0.0)), part.back);
         let q = rot(p, poses[i].rotation);
         (poses[i].x + q.0, poses[i].y + q.1)
+    }
+
+    /// How a finished placement ranks against another: by how many rules it misses (overlaps, edge
+    /// and separation misses), then by cost. A sliver of overlap costs less than the wire it takes
+    /// to clear it, but a placement with one is worse than any without.
+    fn score(&self) -> (usize, f64) {
+        let (c, m) = self.cost(self.pr.options.w_overlap * 201.0);
+        (m.overlaps + m.edge_misses.len() + m.separation_misses.len(), c)
     }
 
     /// The cost, and the metrics behind it, with the overlap weighted `w_ov`.
@@ -455,21 +611,10 @@ impl<'a> State<'a> {
         }
         let mut edge = 0.0;
         for (i, p) in pr.parts.iter().enumerate() {
-            let Some(e) = &p.edge else { continue };
-            let face = rot(e.facing, poses[i].rotation);
-            let b = boxes[i];
-            let sides = [(Side::Left, b[0] - all[0], (-1.0, 0.0)), (Side::Right, all[2] - b[2], (1.0, 0.0)), (Side::Top, b[1] - all[1], (0.0, -1.0)), (Side::Bottom, all[3] - b[3], (0.0, 1.0))];
-            // On its side: flush, or overhanging by up to 2 mm, costs nothing; facing inward costs
-            // 10. Along that side it must stay within the board, like any other part.
-            let best = sides
-                .iter()
-                .enumerate()
-                .filter(|(_, (s, _, _))| e.side.is_none_or(|w| w == *s))
-                .map(|(k, (_, d, n))| {
-                    let along: f64 = (0..4).filter(|&j| j != k).map(|j| (-sides[j].1).max(0.0)).sum();
-                    d.max(-2.0 - d).max(0.0) + 10.0 * (1.0 - (face.0 * n.0 + face.1 * n.1)) + 2.0 * along
-                })
-                .fold(f64::INFINITY, f64::min);
+            if p.edge.is_none() {
+                continue;
+            }
+            let best = edge_miss(pr, self.sdf.as_ref(), all, i, &poses[i], boxes[i]);
             edge += best;
             if best > 0.05 {
                 m.edge_misses.push(format!("{} is {best:.2} from its edge or faces inward", p.reference));
@@ -562,13 +707,33 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     let slides = edge_slides(&mut st, &free, start.is_some());
 
     // A part on its edge stays there; what overlaps it moves.
-    let pushable: Vec<usize> = free.iter().copied().filter(|m| !slides.contains_key(m)).collect();
+    // On a shaped outline, an edge part's spots on the edge (facing its side, if it has one), for the
+    // move that puts it there; and it is not pushed off its edge either.
+    let snaps: BTreeMap<usize, Vec<(P, P)>> = match (&st.sdf, &pr.outline_polygon) {
+        (Some(sdf), Some(poly)) => {
+            let spots = edge_spots(poly, sdf);
+            free.iter()
+                .filter_map(|&m| {
+                    let Movable::Part(i) = st.movables[m] else { return None };
+                    let e = pr.parts[i].edge.as_ref()?;
+                    let mine: Vec<(P, P)> = spots.iter().copied().filter(|(_, n)| e.side.is_none_or(|s| {
+                        let d = side_dir(s);
+                        n.0 * d.0 + n.1 * d.1 > 0.7
+                    })).collect();
+                    (!mine.is_empty()).then_some((m, mine))
+                })
+                .collect()
+        }
+        _ => BTreeMap::new(),
+    };
+    let pushable: Vec<usize> = free.iter().copied().filter(|m| !slides.contains_key(m) && !snaps.contains_key(m)).collect();
     // A warm start is legalised, then kept if nothing better is found: what refining began from,
     // scored as the end is.
     let kept = start.map(|_| {
+        seat_edges(&mut st, &snaps);
         legalise(&mut st, &pushable);
         legal::negotiate(&mut st, &pushable);
-        (st.cost(o.w_overlap * 201.0).0, st.mv.clone())
+        (st.score(), st.mv.clone())
     });
     // Temperature from the spread of costs of random moves at the start.
     let (mut cur, _) = st.cost(o.w_overlap);
@@ -605,7 +770,13 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
             let m = free[(rng.next() as usize) % free.len()];
             let saved: Vec<(usize, Pose)>;
             let r = rng.f();
-            if let Some(&along_x) = slides.get(&m) {
+            if let (Some(spots), true) = (snaps.get(&m), r < 0.25) {
+                // Onto the edge: a spot on it, the quarter turn that faces out there.
+                saved = vec![(m, st.mv[m])];
+                let Movable::Part(i) = st.movables[m] else { unreachable!() };
+                let (p, n) = spots[(rng.next() as usize) % spots.len()];
+                st.mv[m] = on_spot(&pr.parts[i], p, n);
+            } else if let Some(&along_x) = slides.get(&m) {
                 saved = vec![(m, st.mv[m])];
                 let step = (span * 0.3 * reach * (1.0 - prog) + 0.05).max(0.05) * rng.normal();
                 if along_x {
@@ -649,10 +820,11 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
             st.mv = best.1.clone();
         }
     }
+    seat_edges(&mut st, &snaps);
     legalise(&mut st, &pushable);
     legal::negotiate(&mut st, &pushable);
     if let Some((was, mv)) = kept {
-        if was <= st.cost(o.w_overlap * 201.0).0 {
+        if was <= st.score() {
             st.mv = mv;
         }
     }
@@ -994,6 +1166,34 @@ mod tests {
         pr.options.moves = 20_000;
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics.overlap_pairs);
+    }
+
+    /// On an ellipse, an edge connector sits on the curve itself, not on the side of the
+    /// ellipse's bounding box (which the curve meets only at its apex), and faces out.
+    #[test]
+    fn edge_connectors_sit_on_a_shaped_outline() {
+        let mut parts: Vec<_> = (0..10).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
+        let mut j1 = part("J1", 6.0, 3.0);
+        j1.edge = Some(Edge { side: Some(Side::Top), facing: (0.0, 1.0) });
+        let mut j2 = part("J2", 4.0, 2.5);
+        j2.edge = Some(Edge { side: None, facing: (0.0, 1.0) });
+        parts.extend([j1, j2]);
+        let mut nets: Vec<Net> = (0..9).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        nets.push(Net { name: "A".into(), pins: vec![(0, "1".into()), (10, "1".into())], weight: 1.0 });
+        nets.push(Net { name: "B".into(), pins: vec![(9, "2".into()), (11, "1".into())], weight: 1.0 });
+        let ellipse: Vec<P> = (0..72).map(|k| (k as f64 * std::f64::consts::TAU / 72.0).sin_cos()).map(|(s, c)| (14.0 * c, 10.0 * s)).collect();
+        for placer in [Placer::Sa, Placer::Analytic] {
+            let pr = Problem { parts: parts.clone(), nets: nets.clone(), groups: vec![], separations: vec![], options: Options { moves: 60_000, placer, ..Default::default() }, outline: None, outline_polygon: Some(ellipse.clone()) };
+            let p = solve(&pr);
+            assert!(p.metrics.edge_misses.is_empty(), "{placer:?}: {:?}", p.metrics.edge_misses);
+            assert_eq!(p.metrics.overlaps, 0, "{placer:?}: {:?}", p.metrics.overlap_pairs);
+            // J1 faces up (rotated half a turn), its face within 2 mm of the curve.
+            let j = p.parts["J1"];
+            assert_eq!(j.rotation, 180.0);
+            let top = j.y - 1.5;
+            let curve = -10.0 * (1.0 - (j.x / 14.0).powi(2)).max(0.0).sqrt();
+            assert!(top <= curve + 0.15 && top >= curve - 2.0, "{placer:?}: J1 face at y {top:.2}, the curve at {curve:.2}");
+        }
     }
 
     #[test]

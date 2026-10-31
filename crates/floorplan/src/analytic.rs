@@ -20,7 +20,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{bbox_at, edge_slides, fixed_pose, gap, inc::Inc, layout, poly_box, rot, span_of, w_ov_at, Pose, Problem, Rng, Sdf, Side, State, P};
+use super::{bbox_at, edge_miss, edge_slides, fixed_pose, gap, inc::Inc, layout, poly_box, rot, span_of, w_ov_at, Pose, Problem, Rng, Sdf, Side, State, P};
 
 /// Gradient steps in a run.
 const ITERS: usize = 1200;
@@ -313,6 +313,14 @@ fn gradient(st: &State, gamma: f64, w_ov: f64, board: Option<[f64; 4]>) -> Vec<P
             continue;
         }
         let b = boxes[i];
+        if let (Some(sdf), Some(_)) = (&st.sdf, &pr.outline_polygon) {
+            // A shaped outline: down the slope of the anneal's own edge term.
+            let h = 0.1;
+            let at = |dx: f64, dy: f64| edge_miss(pr, Some(sdf), all, i, &poses[i], [b[0] + dx, b[1] + dy, b[2] + dx, b[3] + dy]);
+            g[i].0 += o.w_edge * (at(h, 0.0) - at(-h, 0.0)) / (2.0 * h);
+            g[i].1 += o.w_edge * (at(0.0, h) - at(0.0, -h)) / (2.0 * h);
+            continue;
+        }
         let face = rot(e.facing, poses[i].rotation);
         let sides = [(Side::Left, b[0] - all[0], (-1.0, 0.0)), (Side::Right, all[2] - b[2], (1.0, 0.0)), (Side::Top, b[1] - all[1], (0.0, -1.0)), (Side::Bottom, all[3] - b[3], (0.0, 1.0))];
         let score = |k: usize| {

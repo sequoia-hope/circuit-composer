@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use super::{bbox_at, gap, overlap, rot, side, Pose, Side, State, P};
+use super::{bbox_at, edge_miss, gap, overlap, rot, side, Pose, State, P};
 
 /// What a move changed, to undo it.
 struct Undo {
@@ -258,19 +258,7 @@ impl Inc {
         }
         let mut edge = 0.0;
         for &i in &self.edge_parts {
-            let e = pr.parts[i].edge.as_ref().unwrap();
-            let face = rot(e.facing, self.poses[i].rotation);
-            let b = self.boxes[i];
-            let sides = [(Side::Left, b[0] - all[0], (-1.0, 0.0)), (Side::Right, all[2] - b[2], (1.0, 0.0)), (Side::Top, b[1] - all[1], (0.0, -1.0)), (Side::Bottom, all[3] - b[3], (0.0, 1.0))];
-            edge += sides
-                .iter()
-                .enumerate()
-                .filter(|(_, (s, _, _))| e.side.is_none_or(|w| w == *s))
-                .map(|(k, (_, d, n))| {
-                    let along: f64 = (0..4).filter(|&j| j != k).map(|j| (-sides[j].1).max(0.0)).sum();
-                    d.max(-2.0 - d).max(0.0) + 10.0 * (1.0 - (face.0 * n.0 + face.1 * n.1)) + 2.0 * along
-                })
-                .fold(f64::INFINITY, f64::min);
+            edge += edge_miss(pr, st.sdf.as_ref(), all, i, &self.poses[i], self.boxes[i]);
         }
         let mut sep = 0.0;
         for s in &pr.separations {

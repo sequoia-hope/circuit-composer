@@ -8,37 +8,68 @@ authors; overlaps there are courtyard overlaps under our rules).
 
 | Board | Parts (movable) | Nets | Board's own: wire, overlaps | sa 50 k | sa 200 k | sa 1000 k |
 |---|---|---|---|---|---|---|
-| rp2350-battery | 60 (60) | 40 | — | 5/5: 367 mm, 0.07 s | 5/5: 311 mm, 0.27 s | 4/5: 251 mm, 1.47 s |
-| easy2350 | 58 (56) | 62 | — | 5/5: 937 mm, 0.15 s | 5/5: 898 mm, 0.50 s | 5/5: 792 mm, 2.47 s |
-| bolt-earring | 327 (75) | 186 | — | 5/5: 1666 mm, 1.03 s | 5/5: 1933 mm, 1.72 s | 5/5: 1547 mm, 5.52 s |
-| flame-earring | 297 (75) | 169 | — | 5/5: 1488 mm, 0.66 s | 5/5: 1143 mm, 1.51 s | 5/5: 890 mm, 4.69 s |
-| cypress-small-1 | 57 (57) | 34 | 177, 11 | 5/5: 52 mm, 0.06 s | 5/5: 50 mm, 0.23 s | 5/5: 48 mm, 1.14 s |
-| cypress-small-2 | 240 (240) | 85 | 482, 37 | 5/5: 316 mm, 0.19 s | 5/5: 246 mm, 0.68 s | 5/5: 257 mm, 3.46 s |
-| cypress-small-3 | 63 (63) | 24 | 137, 29 | 5/5: 78 mm, 0.08 s | 5/5: 70 mm, 0.28 s | 5/5: 65 mm, 1.38 s |
-| cypress-small-4 | 43 (43) | 39 | 274, 10 | 5/5: 50 mm, 0.06 s | 5/5: 47 mm, 0.24 s | 5/5: 45 mm, 1.21 s |
-| cypress-small-5 | 41 (41) | 29 | 172, 11 | 5/5: 57 mm, 0.06 s | 5/5: 51 mm, 0.21 s | 5/5: 49 mm, 1.08 s |
-| cypress-small-6 | 46 (46) | 21 | 79, 12 | 5/5: 68 mm, 0.06 s | 5/5: 48 mm, 0.25 s | 5/5: 37 mm, 1.26 s |
-| cypress-small-7 | 50 (50) | 44 | 206, 9 | 5/5: 105 mm, 0.10 s | 5/5: 68 mm, 0.24 s | 5/5: 82 mm, 1.01 s |
-| cypress-small-8 | 115 (115) | 84 | 902, 6 | 5/5: 262 mm, 0.11 s | 5/5: 222 mm, 0.39 s | 5/5: 218 mm, 1.87 s |
-| cypress-small-9 | 476 (476) | 252 | 15376, 35 | 5/5: 3859 mm, 0.58 s | 5/5: 2211 mm, 1.63 s | 5/5: 1762 mm, 7.41 s |
-| cypress-small-10 | 136 (136) | 92 | 1325, 5 | 5/5: 115 mm, 0.14 s | 5/5: 78 mm, 0.44 s | 5/5: 73 mm, 2.11 s |
+| rp2350-battery | 60 (60) | 40 | — | 5/5: 367 mm, 0.10 s | 5/5: 311 mm, 0.42 s | 4/5: 251 mm, 2.01 s |
+| easy2350 | 58 (56) | 62 | — | 5/5: 937 mm, 0.19 s | 5/5: 898 mm, 0.71 s | 5/5: 792 mm, 3.43 s |
+| bolt-earring | 327 (75) | 186 | — | 5/5: 1596 mm, 1.59 s | 5/5: 1250 mm, 2.77 s | 5/5: 936 mm, 8.64 s |
+| flame-earring | 297 (75) | 169 | — | 5/5: 1473 mm, 1.01 s | 5/5: 1230 mm, 1.88 s | 5/5: 946 mm, 7.07 s |
+| cypress-small-1 | 57 (57) | 34 | 177, 11 | 5/5: 52 mm, 0.10 s | 5/5: 50 mm, 0.37 s | 5/5: 48 mm, 1.74 s |
+| cypress-small-2 | 240 (240) | 85 | 482, 37 | 5/5: 316 mm, 0.34 s | 5/5: 246 mm, 1.09 s | 5/5: 257 mm, 5.24 s |
+| cypress-small-3 | 63 (63) | 24 | 137, 29 | 5/5: 78 mm, 0.10 s | 5/5: 70 mm, 0.34 s | 5/5: 65 mm, 1.79 s |
+| cypress-small-4 | 43 (43) | 39 | 274, 10 | 5/5: 50 mm, 0.08 s | 5/5: 47 mm, 0.31 s | 5/5: 45 mm, 1.47 s |
+| cypress-small-5 | 41 (41) | 29 | 172, 11 | 5/5: 57 mm, 0.08 s | 5/5: 51 mm, 0.32 s | 5/5: 49 mm, 1.55 s |
+| cypress-small-6 | 46 (46) | 21 | 79, 12 | 5/5: 68 mm, 0.09 s | 5/5: 48 mm, 0.33 s | 5/5: 37 mm, 1.50 s |
+| cypress-small-7 | 50 (50) | 44 | 206, 9 | 5/5: 105 mm, 0.09 s | 5/5: 68 mm, 0.31 s | 5/5: 82 mm, 1.49 s |
+| cypress-small-8 | 115 (115) | 84 | 902, 6 | 5/5: 262 mm, 0.17 s | 5/5: 222 mm, 0.62 s | 5/5: 218 mm, 2.90 s |
+| cypress-small-9 | 476 (476) | 252 | 15376, 35 | 5/5: 3859 mm, 0.82 s | 5/5: 2207 mm, 2.44 s | 5/5: 1764 mm, 10.91 s |
+| cypress-small-10 | 136 (136) | 92 | 1325, 5 | 5/5: 115 mm, 0.20 s | 5/5: 78 mm, 0.72 s | 5/5: 73 mm, 3.20 s |
 
 | Board | Parts (movable) | Nets | Board's own: wire, overlaps | analytic alone | analytic 50 k | analytic 200 k | analytic 1000 k |
 |---|---|---|---|---|---|---|---|
-| rp2350-battery | 60 (60) | 40 | — | 3/5: 271 mm, 0.03 s | 5/5: 267 mm, 0.10 s | 5/5: 252 mm, 0.32 s | 4/5: 256 mm, 1.42 s |
-| easy2350 | 58 (56) | 62 | — | 5/5: 1280 mm, 0.33 s | 2/5: 956 mm, 0.49 s | 4/5: 1015 mm, 0.90 s | 3/5: 770 mm, 2.76 s |
-| bolt-earring | 327 (75) | 186 | — | 5/5: 1029 mm, 2.45 s | 5/5: 1029 mm, 2.59 s | 5/5: 983 mm, 3.56 s | 5/5: 933 mm, 7.59 s |
-| flame-earring | 297 (75) | 169 | — | 5/5: 972 mm, 2.40 s | 5/5: 972 mm, 2.83 s | 5/5: 936 mm, 3.39 s | 5/5: 871 mm, 7.16 s |
-| cypress-small-1 | 57 (57) | 34 | 177, 11 | 5/5: 55 mm, 0.02 s | 5/5: 50 mm, 0.08 s | 5/5: 49 mm, 0.24 s | 5/5: 48 mm, 1.14 s |
-| cypress-small-2 | 240 (240) | 85 | 482, 37 | 5/5: 231 mm, 0.11 s | 5/5: 210 mm, 0.27 s | 5/5: 203 mm, 0.82 s | 5/5: 197 mm, 4.02 s |
-| cypress-small-3 | 63 (63) | 24 | 137, 29 | 5/5: 70 mm, 0.03 s | 5/5: 64 mm, 0.12 s | 5/5: 64 mm, 0.28 s | 5/5: 60 mm, 1.27 s |
-| cypress-small-4 | 43 (43) | 39 | 274, 10 | 5/5: 51 mm, 0.02 s | 5/5: 44 mm, 0.07 s | 5/5: 44 mm, 0.30 s | 5/5: 43 mm, 1.09 s |
-| cypress-small-5 | 41 (41) | 29 | 172, 11 | 5/5: 56 mm, 0.02 s | 5/5: 51 mm, 0.06 s | 5/5: 49 mm, 0.22 s | 5/5: 48 mm, 1.15 s |
-| cypress-small-6 | 46 (46) | 21 | 79, 12 | 5/5: 43 mm, 0.02 s | 5/5: 35 mm, 0.10 s | 5/5: 34 mm, 0.26 s | 5/5: 31 mm, 1.17 s |
-| cypress-small-7 | 50 (50) | 44 | 206, 9 | 5/5: 157 mm, 0.02 s | 5/5: 104 mm, 0.07 s | 5/5: 97 mm, 0.22 s | 5/5: 86 mm, 0.99 s |
-| cypress-small-8 | 115 (115) | 84 | 902, 6 | 5/5: 245 mm, 0.08 s | 5/5: 217 mm, 0.17 s | 5/5: 202 mm, 0.45 s | 5/5: 179 mm, 1.94 s |
-| cypress-small-9 | 476 (476) | 252 | 15376, 35 | 5/5: 1622 mm, 0.61 s | 5/5: 1622 mm, 1.02 s | 5/5: 1622 mm, 2.02 s | 5/5: 1609 mm, 7.63 s |
-| cypress-small-10 | 136 (136) | 92 | 1325, 5 | 5/5: 64 mm, 0.10 s | 5/5: 58 mm, 0.20 s | 5/5: 56 mm, 0.50 s | 5/5: 54 mm, 2.12 s |
+| rp2350-battery | 60 (60) | 40 | — | 3/5: 271 mm, 0.04 s | 5/5: 267 mm, 0.15 s | 5/5: 252 mm, 0.44 s | 4/5: 256 mm, 2.01 s |
+| easy2350 | 58 (56) | 62 | — | 5/5: 1280 mm, 0.46 s | 5/5: 1258 mm, 0.63 s | 5/5: 1091 mm, 1.20 s | 5/5: 805 mm, 3.91 s |
+| bolt-earring | 327 (75) | 186 | — | 5/5: 1003 mm, 3.72 s | 5/5: 1003 mm, 4.15 s | 5/5: 994 mm, 5.27 s | 5/5: 925 mm, 11.27 s |
+| flame-earring | 297 (75) | 169 | — | 5/5: 972 mm, 3.54 s | 5/5: 972 mm, 4.76 s | 5/5: 926 mm, 5.03 s | 5/5: 842 mm, 10.43 s |
+| cypress-small-1 | 57 (57) | 34 | 177, 11 | 5/5: 55 mm, 0.03 s | 5/5: 50 mm, 0.12 s | 5/5: 49 mm, 0.36 s | 5/5: 48 mm, 1.75 s |
+| cypress-small-2 | 240 (240) | 85 | 482, 37 | 5/5: 231 mm, 0.15 s | 5/5: 210 mm, 0.42 s | 5/5: 204 mm, 1.18 s | 5/5: 197 mm, 5.25 s |
+| cypress-small-3 | 63 (63) | 24 | 137, 29 | 5/5: 70 mm, 0.03 s | 5/5: 64 mm, 0.14 s | 5/5: 64 mm, 0.38 s | 5/5: 60 mm, 1.73 s |
+| cypress-small-4 | 43 (43) | 39 | 274, 10 | 5/5: 51 mm, 0.02 s | 5/5: 44 mm, 0.10 s | 5/5: 44 mm, 0.32 s | 5/5: 43 mm, 1.49 s |
+| cypress-small-5 | 41 (41) | 29 | 172, 11 | 5/5: 56 mm, 0.02 s | 5/5: 51 mm, 0.10 s | 5/5: 49 mm, 0.32 s | 5/5: 48 mm, 1.46 s |
+| cypress-small-6 | 46 (46) | 21 | 79, 12 | 5/5: 43 mm, 0.03 s | 5/5: 34 mm, 0.10 s | 5/5: 34 mm, 0.33 s | 5/5: 31 mm, 1.49 s |
+| cypress-small-7 | 50 (50) | 44 | 206, 9 | 5/5: 157 mm, 0.03 s | 5/5: 104 mm, 0.10 s | 5/5: 97 mm, 0.31 s | 5/5: 86 mm, 1.52 s |
+| cypress-small-8 | 115 (115) | 84 | 902, 6 | 5/5: 245 mm, 0.12 s | 5/5: 217 mm, 0.26 s | 5/5: 202 mm, 0.68 s | 5/5: 179 mm, 2.88 s |
+| cypress-small-9 | 476 (476) | 252 | 15376, 35 | 5/5: 1622 mm, 0.87 s | 5/5: 1622 mm, 1.38 s | 5/5: 1622 mm, 3.09 s | 5/5: 1616 mm, 11.06 s |
+| cypress-small-10 | 136 (136) | 92 | 1325, 5 | 5/5: 64 mm, 0.14 s | 5/5: 58 mm, 0.28 s | 5/5: 56 mm, 0.78 s | 5/5: 54 mm, 2.96 s |
+
+## Findings, 2026-10-31: edge connectors on shaped outlines
+
+The tables above are from after this change.
+
+On a shaped outline an edge part was measured against the outline's bounding box, and edge
+parts were left out of the outline check. On rp2350-battery inside an ellipse (25 × 21 mm
+semi-axes), all five SA runs at 200 k were called legal with J1's or J2's mating face 2.2–7.2 mm
+off the board. Now the edge term reads the outline's signed distance:
+- the face's middle and corners lie on the edge, up to 2 mm proud;
+- it faces within 15° of the edge's outward normal, and its named side's way;
+- its back corners are on the board.
+
+The anneal has a move that puts an edge part on a random point of the edge, turned to face
+out. Before the final legalising, an edge part still off its edge goes to the nearest spot on
+it. The legalisers don't push edge parts on a shaped outline.
+
+- **The battery board in an ellipse and in a flat-topped hexagon**, 10 seeds each, both
+  placers, 200 k: no edge misses in 40 runs, and every face within 2 mm of the curve. About
+  one run in five misses a separation (USB input or charger against the IMU, 10 mm and 5 mm).
+  That's the anneal's soft separation on a cramped outline, not the edge.
+- **The edge term's signed-distance grid is padded 6 mm** (it was 3), so a part more than 3 mm
+  off the board reads true. That alone moved the earrings, which have no edge parts. The bolt's
+  SA runs got much shorter (200 k: 1933 to 1250 mm; 1 M: 1547 to 936 mm), and the flame's a
+  little longer (200 k: 1143 to 1230 mm; 1 M: 890 to 946 mm).
+- **Legal first.** `negotiate` and the warm start's kept placement chose by cost alone. A
+  sliver of overlap (under 0.0005 mm², the flame earring, analytic 1 M, seed 3) cost less than
+  the wire to clear it, so the illegal placement was kept. Placements now rank by how many rules
+  they miss, then by cost. That made easy2350's analytic row legal at every budget, with longer
+  median wire at 50 k and 200 k (1258 and 1091 mm), where the legal start now wins over a
+  shorter end that missed a rule.
 
 ## Findings, 2026-10-31: the negotiated legaliser
 

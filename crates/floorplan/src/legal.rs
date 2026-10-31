@@ -127,7 +127,7 @@ impl Cells {
 
 /// Clear every overlap the movables in `free` are part of, moving as little as it can. Movables
 /// not in `free`, and any with an edge part, stay put: they are walls. If it can't clear them all
-/// within its budget, it keeps whichever of before and after scores better.
+/// within its budget, it keeps whichever of before and after misses fewer rules (then costs less).
 pub(crate) fn negotiate(st: &mut State, free: &[usize]) {
     let pr = st.pr;
     let n = pr.parts.len();
@@ -184,7 +184,7 @@ pub(crate) fn negotiate(st: &mut State, free: &[usize]) {
         area = [area[0] - 5.0, area[1] - 5.0, area[2] + 5.0, area[3] + 5.0];
     }
 
-    let before = (st.cost(pr.options.w_overlap * 201.0).0, st.mv.clone());
+    let before = (st.score(), st.mv.clone());
     let home: Vec<Pose> = st.mv.clone();
     let mut history = vec![0.0f64; nm];
     let budget = 60 * queue.len() + 400;
@@ -387,7 +387,7 @@ pub(crate) fn negotiate(st: &mut State, free: &[usize]) {
             }
         }
     }
-    if before.0 < st.cost(pr.options.w_overlap * 201.0).0 {
+    if before.0 < st.score() {
         st.mv = before.1;
     }
 }

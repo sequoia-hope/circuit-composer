@@ -442,9 +442,8 @@ every `ccomp` command accepts a project path (milestone 3 in easy_pcb's spec).
   Shape tab: a feature list, handles for each kind, and sliders for generators. "Use as board
   outline" gives the floorplanner the outline, with keep-outs, holes and cut-outs as fixed
   keep-out parts, as `ccomp floorplan` does with a board's `shape.json`. The standalone shaper
-  page is gone. Still to do: edge connectors on a shaped outline. The floorplanner slides
-  connectors along a side only on a rectangle; on any other outline they miss their edge. That
-  belongs to the floorplanner work.
+  page is gone. Edge connectors sit on a shaped outline's edge too (below, under floorplanner
+  work).
 
 - **D. Circuit workspace.** The block diagram of `compose.json`, editable. Compose and check run
   on save.
@@ -465,7 +464,9 @@ Separate from the app's milestones A–F, in this order:
      nine of Cypress's ten boards and on three of our four);
    - a legaliser that makes room by moving neighbours, for crowded backs (done: `negotiate`;
      both earrings are legal at every budget);
-   - edge connectors on shaped outlines;
+   - edge connectors on shaped outlines (done: the face on the outline itself, within 2 mm proud
+     and 15° of its normal, and the body on the board; before, it was measured against the
+     outline's bounding box and could hang 7 mm off a curve);
    - diffusion as a starting-point generator.
 2. **Interfaces and the pin-mux table** for the four packages (rp2350, lsm6dso, mcp73831,
    tlv62569), ingested from their datasheets and cited, as everything in a package is. Done:
