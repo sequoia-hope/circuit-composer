@@ -95,6 +95,7 @@
       error = String(e);
     }
     drawLabels(k, d);
+    if (wheelDebug && wheelLog[0] && wheelLog[0].drawn === null) wheelLog[0].drawn = performance.now() - wheelLog[0].t;
   }
 
   function drawLabels(k, d) {
@@ -302,10 +303,21 @@
     return moved;
   }
 
+  // `?debug=wheel`: the last wheel events as they arrived (time, delta, its unit, the zoom after,
+  // and when the frame showing it was drawn), to see what a mouse and browser send.
+  const wheelDebug = new URLSearchParams(location.search).get('debug') === 'wheel';
+  let wheelLog = $state([]);
+
   function wheel(e) {
     e.preventDefault();
     const [bx, by] = toBoard(e);
-    view.zoom = Math.min(400, Math.max(0.5, view.zoom * Math.exp(-e.deltaY * 0.0015)));
+    // deltaY is read before deltaMode: Firefox reports pixels then, as it does for the zoom.
+    const dy = e.deltaY;
+    view.zoom = Math.min(400, Math.max(0.5, view.zoom * Math.exp(-dy * 0.0015)));
+    if (wheelDebug) {
+      const t = performance.now();
+      wheelLog = [{ t, dt: wheelLog[0] ? t - wheelLog[0].t : 0, dy, mode: e.deltaMode, zoom: view.zoom, drawn: null }, ...wheelLog].slice(0, 14);
+    }
     auto = false;
     const r = canvas.getBoundingClientRect();
     view.cx = bx - (e.clientX - r.left - r.width / 2) / view.zoom;
@@ -332,6 +344,11 @@
   {/if}
   {#if error}<div class="err">{error}</div>{/if}
   {#if hint}<div class="say" role="status">{hint}</div>{/if}
+  {#if wheelDebug}
+    <pre class="wheel-log">wheel: +ms   deltaY  mode  zoom   drawn after
+{#each wheelLog as w}{`${w.dt.toFixed(0).padStart(5)}  ${w.dy.toFixed(1).padStart(7)}  ${w.mode}     ${w.zoom.toFixed(2).padStart(6)}  ${w.drawn === null ? '—' : `${w.drawn.toFixed(1)} ms`}`}
+{/each}</pre>
+  {/if}
   {#if !auto}<button class="fit" onclick={fit} title="Fit the board in view (F)">Fit</button>{/if}
 </div>
 
@@ -341,6 +358,7 @@
   canvas.labels { pointer-events: none; }
   .cursor { position: absolute; right: 10px; bottom: 8px; font: 11px var(--mono); color: var(--muted); pointer-events: none; }
   .say { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 2; font-size: 12.5px; padding: 5px 12px; border-radius: 7px; background: var(--panel); color: var(--ink); border: 1px solid var(--lock); box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); white-space: nowrap; }
+  .wheel-log { position: absolute; left: 10px; bottom: 30px; z-index: 3; margin: 0; padding: 6px 9px; font: 11px var(--mono); background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; pointer-events: none; }
   .fit { position: absolute; right: 10px; top: 10px; z-index: 2; padding: 4px 12px; }
   .err { position: absolute; left: 12px; bottom: 8px; color: var(--bad); font-size: 12px; }
 </style>
