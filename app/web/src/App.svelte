@@ -588,7 +588,7 @@
       {#if project}
         <div class="right">
           <span class="saved" class:unsaved title={unsaved ? `Not saved to ${project.paths.pcb} yet` : saveNote || `Saved: ${project.paths.pcb} has this placement`}>{unsaved ? 'Not saved' : saveNote === 'Saving…' ? 'Saving…' : 'Saved'}</span>
-          <button class="primary" onclick={() => save()} disabled={!unsaved || !!anneal || !!storeConflict}
+          <button class="primary" class:dot={unsaved} onclick={() => save()} disabled={!unsaved || !!anneal || !!storeConflict}
             title="Write the placement into {project.paths.pcb} (Ctrl+S), unless the board changed since Composer read it">Save</button>
         </div>
       {/if}
@@ -777,6 +777,11 @@
     /* Embedded, the bar stays one row: the workspaces scroll beside the save state. */
     header.bar { flex-wrap: nowrap; padding: 4px 8px; }
     header.bar nav { order: 0; flex: 1 1 auto; flex-basis: auto; }
+    header.bar nav button { padding: 6px 7px; }
+    /* No room for the status beside five workspaces: the Save button carries it, greyed when
+       saved and dotted while not. */
+    header.bar .saved { display: none; }
+    header.bar .dot::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: var(--lock); vertical-align: 1px; }
     header .right { gap: 6px; }
     .debug, .mode, .desk { display: none; }
     nav { order: 9; flex-basis: 100%; }
