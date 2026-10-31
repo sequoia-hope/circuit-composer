@@ -332,6 +332,18 @@
     "retrieved": "2026-10-30",
     "note": "Printed page numbers equal PDF pages (p.4 is the back cover, unnumbered). Two-terminal SPST-NO; the switches carry no terminal numbers."
   },
+  "onsemi_ncp730_ds": {
+    "title": "NCP730 LDO Regulator, 150 mA, 38 V, 1 uA IQ, with PG",
+    "publisher": "onsemi (Semiconductor Components Industries, LLC)",
+    "doc": "NCP730/D",
+    "kind": "datasheet",
+    "revision": "December, 2025 - Rev. 7",
+    "url": "https://www.onsemi.cn/PowerSolutions/document/NCP730-D.PDF",
+    "sha256": "f0854f18e8db45de2518ad907e49599ad1c0db97f067fcd4babf8587aa36fb29",
+    "bytes": 6931562,
+    "retrieved": "2026-10-30",
+    "note": "The NCP730 package's source (packages/ncp730/sources/sources.json, as ncp730_ds), listed here for recipes. 33 pages. Pages 1-30 carry a printed page number equal to the PDF page; 31-33 are the package drawings (TSOP-5 CASE 483 p.31, WDFN6 2x2 CASE 511BR with its recommended mounting footprint p.32) and the legal page. The text layer sets the micro sign in a symbol font that pdftotext extracts as 'm' (so '1 uF' reads '1 mF', '1 uA' reads '1 mA'); quotes elide those units with '...'. www.onsemi.com/download/data-sheet/pdf/ncp730-d.pdf refused scripted downloads (Access Denied); the LCSC copy for C892821 is the older Rev. 1 (March 2021), not used."
+  },
   "pesd5v0s1bl": {
     "title": "PESD5V0S1BL Bidirectional ESD protection diode",
     "publisher": "Nexperia",

@@ -20,6 +20,7 @@
   { "source": "bav99w", "locator": "p.2", "quote": "1 A1 anode (diode 1) 2 K2 cathode (diode 2) 3 K1, A2 cathode (diode 1) and anode (diode 2)", "note": "Table 2: A on pin 1, CLAMP on pin 2, EN on the midpoint pin 3. KiCad's BAV99 symbol draws the same series pair (pin 1 anode end, pin 3 midpoint, pin 2 cathode end), though it names its pins K 1, A 2, K 3." },
   { "source": "bav99w", "locator": "p.4", "quote": "VR = 25 V; Tamb = 25 °C - - 30 nA", "note": "IR max per diode: what the clamp diode leaks from CLAMP into EN and R_BOT with the board off." },
   { "source": "bav99w", "locator": "p.4", "quote": "VR = 25 V; Tj = 150 °C - - 30 µA", "note": "The same, hot; through R_BOT's 100 kohm even 1 uA is 0.1 V on EN." },
-  { "source": "bav99w", "locator": "p.4", "quote": "IF = 1 mA; Tamb = 25 °C - - 715 mV", "note": "VF max at 1 mA: EN is A less this drop (and is clamped this much above CLAMP)." }
+  { "source": "bav99w", "locator": "p.4", "quote": "IF = 1 mA; Tamb = 25 °C - - 715 mV", "note": "VF max at 1 mA: EN is A less this drop (and is clamped this much above CLAMP)." },
+  { "source": "onsemi_ncp730_ds", "locator": "Maximum ratings p.4", "quote": "EN Voltage VEN −0.3 to (VIN + 0.3) V", "note": "Why EN is clamped to the cell, and why half of VBUS is only safe while the regulator's input is at least VBUS/2 - 0.3 V." }
  ]
 }

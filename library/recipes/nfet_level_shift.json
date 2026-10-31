@@ -24,6 +24,6 @@
   { "source": "bss138w", "locator": "p.3", "quote": "Gate Threshold Voltage VGS(TH) VGS=VDS, ID=250uA 0.8 1.0 1.5 V" },
   { "source": "bss138w", "locator": "p.3", "quote": "VGS=2.5V, ID=0.1A 2.7 4.5", "note": "RDS(on) typ and max, ohms: driven from 3.3 V the drain sinks the pull-up's few mA at well under 0.1 V." },
   { "source": "bss138w", "locator": "p.2", "quote": "Gate-Source Voltage VGS ±20 V" },
-  { "source": "bss138w", "locator": "p.1", "quote": "1 Gate, 2 Source, 3 Drain" }
+  { "source": "bss138w", "locator": "p.1", "quote": "Pin Function 1 Gate 2 Source 3 Drain" }
  ]
 }
