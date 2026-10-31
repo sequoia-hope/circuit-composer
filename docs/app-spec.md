@@ -462,7 +462,8 @@ Separate from the app's milestones A–F, in this order:
    - a benchmark of our boards plus Cypress's (done, `docs/floorplan-benchmark.md`);
    - an analytical placer (done: `--placer analytic`, the app's default start; it beats SA on
      nine of Cypress's ten boards and on three of our four);
-   - a legaliser that shoves neighbours, for crowded backs (the flame earring);
+   - a legaliser that makes room by moving neighbours, for crowded backs (done: `negotiate`;
+     both earrings are legal at every budget);
    - edge connectors on shaped outlines;
    - diffusion as a starting-point generator.
 2. **Interfaces and the pin-mux table** for the four packages (rp2350, lsm6dso, mcp73831,

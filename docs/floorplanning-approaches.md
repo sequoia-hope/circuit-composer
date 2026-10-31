@@ -12,9 +12,9 @@ run, board area, `near` distance (a decoupling capacitor to its pin), block cohe
 connectors flush and facing out, block separations, and parts outside a rectangle or a polygon
 outline (a signed-distance grid). Rigid groups move and turn as one, locked parts stay, and
 through-hole pads collide with the other side. A part's side is an input, not a decision. Moves
-are shift, quarter turn and swap. After the anneal, `legalise` pushes overlaps apart and `repair`
-re-seats anything still in trouble. A warm start anneals cooler, with shorter moves, from a given
-placement.
+are shift, quarter turn and swap. After the anneal, `legalise` pushes overlaps apart and
+`negotiate` (`legal.rs`) re-seats anything still in trouble, evicting movable neighbours to make
+room where it must. A warm start anneals cooler, with shorter moves, from a given placement.
 
 The weakness is that every move calls `State::cost`, which rebuilds every pose and box and walks
 every pair of parts: O(n²) per move. The bolt earring (327 parts) takes 20 s native for 200k
@@ -91,7 +91,7 @@ its members' through the chain rule. Our sizes need no GPU: 80 movable parts and
 grid are a small FFT per iteration, so a Rust implementation should run hundreds of iterations a
 second in WASM (an estimate). It is deterministic on the CPU, needs no data, and warm-starts
 naturally (start the descent from the current placement with the density weight already high).
-It leaves overlap to the legalizer, and our parts vary 100× in size, so our `legalise`/`repair`
+It leaves overlap to the legalizer, and our parts vary 100× in size, so our `legalise`/`negotiate`
 and a short warm SA would be its detailed stage.
 
 ### Quadratic and force-directed placement

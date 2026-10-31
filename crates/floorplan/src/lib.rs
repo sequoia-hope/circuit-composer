@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 
 mod analytic;
 mod inc;
+mod legal;
 
 pub type P = (f64, f64);
 
@@ -566,7 +567,7 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     // scored as the end is.
     let kept = start.map(|_| {
         legalise(&mut st, &pushable);
-        repair(&mut st, &pushable, &mut rng);
+        legal::negotiate(&mut st, &pushable);
         (st.cost(o.w_overlap * 201.0).0, st.mv.clone())
     });
     // Temperature from the spread of costs of random moves at the start.
@@ -649,7 +650,7 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
         }
     }
     legalise(&mut st, &pushable);
-    repair(&mut st, &pushable, &mut rng);
+    legal::negotiate(&mut st, &pushable);
     if let Some((was, mv)) = kept {
         if was <= st.cost(o.w_overlap * 201.0).0 {
             st.mv = mv;
@@ -848,76 +849,6 @@ fn round_pose(p: Pose) -> Pose {
     Pose { x: r(p.x), y: r(p.y), rotation: r(p.rotation) }
 }
 
-/// What is wrong with one movable's parts where they are: overlap with any other part (and,
-/// with a shaped outline, how far they poke outside it).
-fn trouble(st: &State, m: usize) -> f64 {
-    let pr = st.pr;
-    let n = pr.parts.len();
-    let poses: Vec<Pose> = (0..n).map(|i| st.part_pose(i)).collect();
-    let boxes: Vec<[f64; 4]> = (0..n).map(|i| bbox_at(&pr.parts[i].bbox, &poses[i], pr.parts[i].back)).collect();
-    let mine: Vec<usize> = (0..n).filter(|&i| st.of_part[i].0 == m).collect();
-    let mut t = 0.0;
-    for &i in &mine {
-        for j in 0..n {
-            if st.of_part[j].0 == m {
-                continue;
-            }
-            t += if pr.parts[i].back != pr.parts[j].back {
-                let thru = |k: usize, other: usize| -> f64 { pr.parts[k].through.iter().map(|tb| overlap(&bbox_at(tb, &poses[k], pr.parts[k].back), &boxes[other], 0.0)).sum() };
-                thru(i, j) + thru(j, i)
-            } else {
-                overlap(&boxes[i], &boxes[j], pr.options.clearance)
-            };
-        }
-        if let Some(sdf) = &st.sdf {
-            let b = boxes[i];
-            let (mx, my) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
-            for p in [(b[0], b[1]), (b[2], b[1]), (b[2], b[3]), (b[0], b[3]), (mx, b[1]), (mx, b[3]), (b[0], my), (b[2], my)] {
-                t += (pr.options.margin - sdf.at(p.0, p.1)).max(0.0);
-            }
-        }
-        if let Some(ol) = pr.outline {
-            let b = boxes[i];
-            let m_ = pr.options.margin;
-            t += (ol[0] + m_ - b[0]).max(0.0) + (ol[1] + m_ - b[1]).max(0.0) + (b[2] - ol[2] + m_).max(0.0) + (b[3] - ol[3] + m_).max(0.0);
-        }
-    }
-    t
-}
-
-/// A movable still in trouble after legalising (pushed off a shaped board, or wedged) is moved to
-/// the nearest spot, in any quarter turn, where it is in none: random spots, nearest kept.
-fn repair(st: &mut State, free: &[usize], rng: &mut Rng) {
-    let span = match (&st.pr.outline_polygon, st.pr.outline) {
-        (Some(p), _) => {
-            let xs = p.iter().map(|q| q.0);
-            let ys = p.iter().map(|q| q.1);
-            [xs.clone().fold(f64::INFINITY, f64::min), ys.clone().fold(f64::INFINITY, f64::min), xs.fold(f64::NEG_INFINITY, f64::max), ys.fold(f64::NEG_INFINITY, f64::max)]
-        }
-        (None, Some(o)) => o,
-        _ => return,
-    };
-    for &m in free {
-        if trouble(st, m) <= 1e-9 {
-            continue;
-        }
-        let home = st.mv[m];
-        let mut best: Option<(f64, Pose)> = None;
-        for _ in 0..6000 {
-            let cand = Pose { x: span[0] + rng.f() * (span[2] - span[0]), y: span[1] + rng.f() * (span[3] - span[1]), rotation: 90.0 * (rng.next() % 4) as f64 };
-            let d = ((cand.x - home.x).powi(2) + (cand.y - home.y).powi(2)).sqrt();
-            if best.is_some_and(|(bd, _)| d >= bd) {
-                continue;
-            }
-            st.mv[m] = cand;
-            if trouble(st, m) <= 1e-9 {
-                best = Some((d, cand));
-            }
-        }
-        st.mv[m] = best.map(|b| b.1).unwrap_or(home);
-    }
-}
-
 /// Push overlapping movables apart along their shallower axis until none overlap.
 fn legalise(st: &mut State, free: &[usize]) {
     let pr = st.pr;
@@ -1052,6 +983,17 @@ mod tests {
         assert!((c.x - u.x - off.0).abs() < 1e-3 && (c.y - u.y - off.1).abs() < 1e-3, "{u:?} {c:?}");
         assert!(p.metrics.edge_misses.is_empty(), "{:?}", p.metrics);
         assert_eq!(p.metrics.overlaps, 0);
+    }
+
+    /// The flame earring's back is so full of reserved keep-outs that a short anneal leaves parts
+    /// with no clear spot of their own: the legaliser has to make room by moving their neighbours.
+    #[test]
+    fn a_crowded_back_is_legalised() {
+        let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../app/web/public/examples/flame-earring/problem.json");
+        let mut pr: Problem = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        pr.options.moves = 20_000;
+        let p = solve(&pr);
+        assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics.overlap_pairs);
     }
 
     #[test]
