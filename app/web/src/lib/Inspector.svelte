@@ -79,7 +79,7 @@
       <dt>Nets</dt><dd>{Object.keys(circuit.nets).length}</dd>
       <dt>Outline</dt><dd>{doc.outline ? 'shaped (set by the mechanical design)' : doc.boxIsSet ? 'rectangle (set)' : "the floorplanner's to choose"}</dd>
     </dl>
-    <p class="hint">Click a part to inspect it, shift-click to add to the selection, drag to move. Wheel zooms, drag the background to pan, <kbd>F</kbd> fits.</p>
+    <p class="hint">Click a part to select it, shift-click to add to the selection. Drag a selected part to move it (<kbd>Esc</kbd> puts it back); a locked one stays put. Wheel zooms, drag the background to pan, <kbd>F</kbd> fits.</p>
     <p class="hint">On a touchscreen: a finger pans and two pinch to zoom; tap a part to select it, then drag it to move it.</p>
   {/if}
 </div>

@@ -521,7 +521,11 @@
     if (e.key === 'r' || e.key === 'R') rotate();
     else if (e.key === 'l' || e.key === 'L') { if (selection.length) lock(!doc.parts[selection[0]].locked); }
     else if (e.key === 'f' || e.key === 'F') boardView?.fit();
-    else if (e.key === 'Escape') select([]);
+    else if (e.key === 'Escape') {
+      // During a drag Esc puts the part back; otherwise it clears the selection.
+      if (boardView?.cancelDrag()) undo();
+      else select([]);
+    }
     else if (e.key >= '1' && e.key <= '5') { workspace = WORKSPACES[+e.key - 1][0]; setUrl(); }
   }
 

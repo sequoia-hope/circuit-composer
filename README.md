@@ -100,7 +100,9 @@ app/build.sh        # core to WASM, page to app/dist/
 URL parameters: `board=NAME`, `view=circuit|board|shape|copper|rules` (`ws=` in older links),
 `embed=1` (for Boardroom's single-window mode: a slim bar of workspaces and, for a project's board,
 Save, in place of the header; selection is posted to the parent window). On a touchscreen a finger
-pans the board and two pinch to zoom; a tap selects a part, which can then be dragged.
+pans the board and two pinch to zoom. With a mouse or a finger, a press on a part selects it, and
+only a selected, unlocked part moves, once dragged past a few pixels; Esc during a drag puts it
+back.
 
 ## Build and run
 

@@ -189,22 +189,21 @@
     touched = [x, y];
     const i = e.button === 0 ? doc.board.pick(x, y) : -1;
     const touch = e.pointerType !== 'mouse';
-    if (touch && !(i >= 0 && selection.includes(i))) {
-      // A finger pans; it moves a part only once the part is selected, so panning a dense board
-      // can't drag what it starts on. A tap selects (or, on nothing, clears the selection).
-      drag = { kind: 'pan', last: [e.clientX, e.clientY], tap: i, at: [e.clientX, e.clientY] };
-      return;
-    }
-    if (i >= 0) {
-      if (e.shiftKey) {
-        const s = new Set(selection);
-        s.has(i) ? s.delete(i) : s.add(i);
-        onselect([...s]);
-      } else if (!selection.includes(i)) {
-        onselect([i]);
-      }
+    if (i >= 0 && e.shiftKey) {
+      const s = new Set(selection);
+      s.has(i) ? s.delete(i) : s.add(i);
+      onselect([...s]);
+      drag = null;
+    } else if (i >= 0 && selection.includes(i)) {
+      // Only a part already selected moves, and only once the drag has gone a few pixels: a click
+      // to select a part (to lock it, say) can't nudge it.
       const p = doc.parts[i];
-      drag = { kind: 'part', i, start: [x, y], pose: [p.pose.x, p.pose.y], moved: false, locked: p.locked };
+      drag = { kind: 'part', i, start: [x, y], at: [e.clientX, e.clientY], pose: [p.pose.x, p.pose.y], moved: false, locked: p.locked };
+    } else if (i >= 0 || touch) {
+      // A press on a part not selected selects it (a finger's, when it lifts as a tap; on nothing,
+      // a tap clears the selection) and a drag from it pans.
+      if (!touch) onselect([i]);
+      drag = { kind: 'pan', last: [e.clientX, e.clientY], tap: touch ? i : undefined, at: [e.clientX, e.clientY] };
     } else {
       if (!e.shiftKey && e.button === 0) onselect([]);
       drag = { kind: 'pan', last: [e.clientX, e.clientY] };
@@ -233,7 +232,10 @@
       return;
     }
     const [x, y] = toBoard(e);
-    if (e.pointerType === 'mouse') cursor = [x, y];
+    if (e.pointerType === 'mouse') {
+      cursor = [x, y];
+      hover(x, y);
+    }
     if (!drag) return;
     if (drag.kind === 'pan') {
       if (drag.at && Math.hypot(e.clientX - drag.at[0], e.clientY - drag.at[1]) > 8) drag.at = null;
@@ -243,10 +245,17 @@
       drag.last = [e.clientX, e.clientY];
       auto = false;
       schedule();
-    } else if (!drag.locked && !busy) {
+    } else if (drag.kind === 'part' && !busy) {
+      if (!drag.moved && Math.hypot(e.clientX - drag.at[0], e.clientY - drag.at[1]) < 5) return;
+      if (drag.locked) {
+        say(`${doc.parts[drag.i].reference} is locked: unlock it (L) to move it.`);
+        drag = null;
+        return;
+      }
       const step = e.altKey ? 0 : 0.05;
       const snap = (v) => (step ? Math.round(v / step) * step : v);
       if (!drag.moved) ondragstart();
+      canvas.style.cursor = 'grabbing';
       doc.board.move_to(drag.i, snap(drag.pose[0] + x - drag.start[0]), snap(drag.pose[1] + y - drag.start[1]));
       drag.moved = true;
       onchange();
@@ -263,8 +272,34 @@
       return;
     }
     if (drag?.kind === 'part' && drag.moved) ondragend();
-    if (drag?.kind === 'pan' && drag.at) onselect(drag.tap >= 0 ? [drag.tap] : []);
+    if (drag?.kind === 'part') canvas.style.cursor = 'grab';
+    if (drag?.kind === 'pan' && drag.at && drag.tap !== undefined) onselect(drag.tap >= 0 ? [drag.tap] : []);
     drag = null;
+  }
+
+  /** The pointer's shape over the board: a hand over a part that can be dragged (selected,
+   *  unlocked), no entry over a selected locked part. */
+  function hover(x, y) {
+    if (drag?.kind === 'part' && drag.moved) return;
+    const i = doc.board.pick(x, y);
+    const p = i >= 0 && selection.includes(i) ? doc.parts[i] : null;
+    canvas.style.cursor = !p ? '' : p.locked ? 'not-allowed' : 'grab';
+  }
+
+  // A short note over the board (a locked part not moving says why).
+  let hint = $state('');
+  let hintTimer = null;
+  function say(text) {
+    hint = text;
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => (hint = ''), 2500);
+  }
+
+  /** Esc during a drag: stop it. True when the part had moved, for the caller to undo. */
+  export function cancelDrag() {
+    const moved = drag?.kind === 'part' && drag.moved;
+    if (drag?.kind === 'part') drag = null;
+    return moved;
   }
 
   function wheel(e) {
@@ -296,6 +331,7 @@
     <div class="cursor">x {cursor[0].toFixed(2)} &nbsp;y {cursor[1].toFixed(2)} mm</div>
   {/if}
   {#if error}<div class="err">{error}</div>{/if}
+  {#if hint}<div class="say" role="status">{hint}</div>{/if}
   {#if !auto}<button class="fit" onclick={fit} title="Fit the board in view (F)">Fit</button>{/if}
 </div>
 
@@ -304,6 +340,7 @@
   canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
   canvas.labels { pointer-events: none; }
   .cursor { position: absolute; right: 10px; bottom: 8px; font: 11px var(--mono); color: var(--muted); pointer-events: none; }
+  .say { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 2; font-size: 12.5px; padding: 5px 12px; border-radius: 7px; background: var(--panel); color: var(--ink); border: 1px solid var(--lock); box-shadow: 0 4px 14px rgb(0 0 0 / 0.12); white-space: nowrap; }
   .fit { position: absolute; right: 10px; top: 10px; z-index: 2; padding: 4px 12px; }
   .err { position: absolute; left: 12px; bottom: 8px; color: var(--bad); font-size: 12px; }
 </style>
