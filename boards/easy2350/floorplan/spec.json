@@ -1,5 +1,5 @@
 {
- "note": "Floorplanning easy2350 from scratch inside its own outline, to compare with the person's placement. The mechanical design fixes the outline (21.05 x 51.05 mm, a Pico-style stick) and the two 20-pin headers on the bottom at breadboard pitch; J1, the USB-C receptacle, goes on an edge facing out (at rotation 0 its mouth faces +y). The core regulator is the package's generated qfn60-4layer layout, moved as one.",
+ "note": "Floorplanning easy2350 from scratch inside its own outline, to compare with the person's placement. The mechanical design fixes the outline (21.05 x 51.05 mm, a Pico-style stick) and the two 20-pin headers on the bottom at breadboard pitch; J1, the USB-C receptacle, goes on an edge facing out (at rotation 0 its mouth faces +y). The core regulator is the package's generated qfn60-4layer layout, moved as one. Locked where the person put them, because their place is part of the design: J1 (the USB-C mouth), J4 (SWD, where a probe clips on), U1 and with it the core regulator's 1V1 parts (C14, C15, L1, which move as one with it), SW1 and SW2 (BOOTSEL and RESET, where a finger goes), D1 (the status LED) and D3-D6 (the WS2812 row).",
  "outline": [
   99.975,
   99.975,
@@ -16,6 +16,56 @@
    "x": 119.39,
    "y": 149.63,
    "rotation": 0.0
+  },
+  "J1": {
+   "x": 110.5,
+   "y": 103.19,
+   "rotation": 180.0
+  },
+  "J4": {
+   "x": 107.96,
+   "y": 149.63,
+   "rotation": 90.0
+  },
+  "U1": {
+   "x": 110.5,
+   "y": 126.5,
+   "rotation": 0.0
+  },
+  "SW1": {
+   "x": 105.6,
+   "y": 145.6,
+   "rotation": 0.0
+  },
+  "SW2": {
+   "x": 115.4,
+   "y": 145.6,
+   "rotation": 0.0
+  },
+  "D1": {
+   "x": 117.2,
+   "y": 120.4,
+   "rotation": 90.0
+  },
+  "D3": {
+   "x": 104.6,
+   "y": 140.8,
+   "rotation": 180.0
+  },
+  "D4": {
+   "x": 108.3,
+   "y": 140.8,
+   "rotation": 180.0
+  },
+  "D5": {
+   "x": 112.7,
+   "y": 140.8,
+   "rotation": 180.0
+  },
+  "D6": {
+   "x": 116.4,
+   "y": 140.8,
+   "rotation": 180.0
   }
  },
  "back": [

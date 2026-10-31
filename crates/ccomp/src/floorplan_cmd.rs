@@ -41,6 +41,7 @@ pub struct Spec {
     #[serde(default)]
     pub outline_polygon: Option<Vec<(f64, f64)>>,
     /// Parts that stay where the board has them (side and pose), placed by a person or a script.
+    /// A footprint locked in the board stays too, listed here or not.
     #[serde(default)]
     pub keep: Vec<String>,
     /// Parts left out of the floorplan altogether (placed by a later step).
@@ -146,7 +147,9 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
             _ => None,
         });
         let near = cp["near"].as_str().and_then(|n| n.split_once('.')).and_then(|(d, pin)| index.get(d).map(|&j| (j, pin.to_string())));
-        let kept = spec.keep.contains(r).then_some(floorplan::Pose { x: p.at[0], y: p.at[1], rotation: p.rotation });
+        // Kept by the spec, or locked in the board (KiCad's lock, and Composer's when it saves):
+        // where the board has it.
+        let kept = (spec.keep.contains(r) || p.locked).then_some(floorplan::Pose { x: p.at[0], y: p.at[1], rotation: p.rotation });
         parts.push(PartGeom { reference: r.clone(), bbox, pins, block, near, edge: spec.edges.get(r).cloned(), fixed: spec.fixed.get(r).copied().or(kept), back: spec.back.contains(r) || p.back, through });
     }
     // Keep-outs: fixed parts with no pads, on the side they guard (both: a through-hole area).

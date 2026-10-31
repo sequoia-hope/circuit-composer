@@ -7,7 +7,7 @@
 //! Drawing is not done here: the page hands what this returns to a scene (a placeholder until
 //! `board-draw` lands; see `docs/app-spec.md`).
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use floorplan::{rot, Placement, Pose, Problem, Snapshot};
 use serde::Serialize;
@@ -15,11 +15,13 @@ use serde::Serialize;
 pub mod draw;
 
 /// What a `.kicad_pcb` says about its parts: where each footprint is, in the floorplan's
-/// millimetres and degrees, and the circuit the inspector shows (value, footprint, nets by pin),
-/// for a board opened from a project with no `circuit.json` of its own.
+/// millimetres and degrees, which are locked, and the circuit the inspector shows (value,
+/// footprint, nets by pin), for a board opened from a project with no `circuit.json` of its own.
 #[derive(Debug, Serialize)]
 pub struct KicadBoard {
     pub poses: BTreeMap<String, Pose>,
+    /// Footprints locked in the board (KiCad's lock): the board is where a part's lock lives.
+    pub locked: BTreeSet<String>,
     pub parts: BTreeMap<String, KicadPart>,
     /// Net name -> `REF.pin`, the board's own nets (no `unconnected-…` single pads).
     pub nets: BTreeMap<String, Vec<String>>,
@@ -33,11 +35,14 @@ pub struct KicadPart {
 
 impl KicadBoard {
     pub fn read(text: &str) -> Result<KicadBoard, String> {
-        let (pcb, _) = kicad_pcb::parse_board(text).map_err(|e| e.to_string())?;
-        let mut b = KicadBoard { poses: BTreeMap::new(), parts: BTreeMap::new(), nets: BTreeMap::new() };
-        for fp in &pcb.footprints {
+        let (pcb, copper) = kicad_pcb::parse_board(text).map_err(|e| e.to_string())?;
+        let mut b = KicadBoard { poses: BTreeMap::new(), locked: BTreeSet::new(), parts: BTreeMap::new(), nets: BTreeMap::new() };
+        for (k, fp) in pcb.footprints.iter().enumerate() {
             if fp.reference.is_empty() {
                 continue;
+            }
+            if copper.locked_footprints.get(k).copied().unwrap_or(false) {
+                b.locked.insert(fp.reference.clone());
             }
             b.poses.insert(fp.reference.clone(), Pose { x: fp.at[0] * 1e3, y: fp.at[1] * 1e3, rotation: fp.rotation_deg });
             b.parts.insert(fp.reference.clone(), KicadPart { value: fp.value.clone(), footprint: fp.library_id.clone() });
@@ -182,7 +187,21 @@ impl Session {
             })
             .collect();
         let text = unlock_moved_copper(text, &placements)?;
-        kicad_pcb::place::apply(&text, &placements).map_err(|e| e.to_string())
+        let text = kicad_pcb::place::apply(&text, &placements).map_err(|e| e.to_string())?;
+        let locks: BTreeMap<&str, bool> = (0..self.pr.parts.len()).filter(|&i| !self.pr.parts[i].reference.contains(':')).map(|i| (self.pr.parts[i].reference.as_str(), self.locked(i))).collect();
+        Ok(set_footprint_locks(&text, &locks))
+    }
+
+    /// Take each part's lock from the board, as `placement_of` takes its pose: a part in a group
+    /// follows its anchor's. Parts the board doesn't have keep theirs.
+    pub fn take_locks(&mut self, board: &KicadBoard) {
+        for i in 0..self.pr.parts.len() {
+            let anchor = self.group_of[i].map(|(g, _, _)| self.pr.groups[g].anchor).unwrap_or(i);
+            if anchor == i && board.poses.contains_key(&self.pr.parts[i].reference) {
+                let on = board.locked.contains(&self.pr.parts[i].reference);
+                self.set_locked(i, on);
+            }
+        }
     }
 
     /// Where the board puts this problem's parts: each footprint's pose, as `set_placement` takes
@@ -497,6 +516,7 @@ mod wasm {
             let b = KicadBoard::read(text).map_err(err)?;
             let parts = self.s.placement_of(&b);
             self.s.set_placement(&parts);
+            self.s.take_locks(&b);
             self.moved();
             Ok(())
         }
@@ -656,6 +676,40 @@ mod wasm {
             serde_json::to_string(&l).unwrap()
         }
     }
+}
+
+/// `text` with each footprint in `locks` locked or not as it says, KiCad's way: a `(locked yes)`
+/// line after the footprint's first line. A footprint already so is left byte for byte, and so
+/// is one `locks` doesn't name, so a board whose locks didn't change is written unchanged.
+pub fn set_footprint_locks(text: &str, locks: &BTreeMap<&str, bool>) -> String {
+    let lines: Vec<&str> = text.split('\n').collect();
+    let mut out: Vec<&str> = Vec::with_capacity(lines.len() + 8);
+    let mut k = 0;
+    while k < lines.len() {
+        if !lines[k].starts_with("\t(footprint ") {
+            out.push(lines[k]);
+            k += 1;
+            continue;
+        }
+        let end = (k..lines.len()).find(|&j| lines[j] == "\t)").unwrap_or(lines.len() - 1);
+        let block = &lines[k..=end];
+        let reference = block.iter().find_map(|l| l.trim_start().strip_prefix("(property \"Reference\" \"").and_then(|r| r.split('"').next()));
+        let has = block.get(1).is_some_and(|l| *l == "\t\t(locked yes)");
+        match reference.and_then(|r| locks.get(r)) {
+            Some(&want) if want && !has => {
+                out.push(block[0]);
+                out.push("\t\t(locked yes)");
+                out.extend(&block[1..]);
+            }
+            Some(&want) if !want && has => {
+                out.push(block[0]);
+                out.extend(&block[2..]);
+            }
+            _ => out.extend(block),
+        }
+        k = end + 1;
+    }
+    out.join("\n")
 }
 
 /// `text` with the locked copper of the parts about to move unlocked: every locked track, arc and
@@ -825,7 +879,10 @@ mod tests {
         let p: P = serde_json::from_str(&std::fs::read_to_string(ex.join("placement.json")).unwrap()).unwrap();
         s.set_placement(&p.parts);
         let fp = root.join("boards/easy2350/floorplan");
-        let out = s.write_kicad_pcb(&std::fs::read_to_string(fp.join("composed.kicad_pcb")).unwrap()).unwrap();
+        let composed = std::fs::read_to_string(fp.join("composed.kicad_pcb")).unwrap();
+        // Its locks are the board's (none), as when the app opens a board.
+        s.take_locks(&KicadBoard::read(&composed).unwrap());
+        let out = s.write_kicad_pcb(&composed).unwrap();
         let pcbnew = std::fs::read_to_string(fp.join("placed.kicad_pcb")).unwrap();
         let (ours, theirs) = (footprints(&out), footprints(&pcbnew));
         assert_eq!(ours.len(), 58);
@@ -847,6 +904,7 @@ mod tests {
         let parts = s.placement_of(&b);
         assert_eq!(parts.len(), 58);
         s.set_placement(&parts);
+        s.take_locks(&b);
         assert_eq!(s.write_kicad_pcb(&text).unwrap(), text);
         // The same poses as the placement pcbnew put there.
         #[derive(serde::Deserialize)]
@@ -863,6 +921,36 @@ mod tests {
         }
         assert!(b.nets["/+3V3"].contains(&"U1.1".to_string()));
         assert_eq!(b.parts["C1"].value, "100n");
+    }
+
+    #[test]
+    fn a_parts_lock_is_the_boards() {
+        // The person's easy2350 has every footprint locked: opened, every part is locked. Unlock
+        // U1 (and with it its group) and lock R1 nowhere else: saved, U1's footprint loses its
+        // lock line and nothing else changes; read again, U1 is free.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let ex = root.join("app/web/public/examples/easy2350");
+        let pr: Problem = serde_json::from_str(&std::fs::read_to_string(ex.join("problem.json")).unwrap()).unwrap();
+        let text = std::fs::read_to_string(root.join("boards/easy2350/floorplan/placed.kicad_pcb")).unwrap();
+        let locked_all = set_footprint_locks(&text, &KicadBoard::read(&text).unwrap().poses.keys().map(|r| (r.as_str(), true)).collect());
+        let b = KicadBoard::read(&locked_all).unwrap();
+        assert_eq!(b.locked.len(), 58);
+        let mut s = Session::new(pr);
+        s.set_placement(&s.placement_of(&b));
+        s.take_locks(&b);
+        assert!((0..s.pr.parts.len()).filter(|&i| !s.pr.parts[i].reference.contains(':')).all(|i| s.locked(i)));
+        assert_eq!(s.write_kicad_pcb(&locked_all).unwrap(), locked_all, "locks unchanged, bytes unchanged");
+        let u1 = s.index("U1").unwrap();
+        s.set_locked(u1, false);
+        let out = s.write_kicad_pcb(&locked_all).unwrap();
+        let after = KicadBoard::read(&out).unwrap();
+        assert!(!after.locked.contains("U1"));
+        // U1's group (its core regulator's parts) is unlocked with it.
+        for r in ["C14", "C15", "L1"] {
+            assert!(!after.locked.contains(r), "{r}");
+        }
+        assert_eq!(after.locked.len(), 54);
+        assert_eq!(out.lines().count(), locked_all.lines().count() - 4);
     }
 
     #[test]
@@ -900,6 +988,7 @@ mod tests {
         let mut s = Session::new(pr);
         let b = KicadBoard::read(&text).unwrap();
         s.set_placement(&s.placement_of(&b));
+        s.take_locks(&b);
         assert_eq!(s.write_kicad_pcb(&text).unwrap(), text, "nothing moved, nothing unlocked");
         let i = s.index("U1").unwrap();
         let at = s.poses()[i];

@@ -55,3 +55,16 @@ fn a_board_by_itself_is_a_problem_and_a_saved_problem_solves_the_same() {
     let built = ccomp(&["floorplan", board, "--nets-from-board", "--outline-from-board", "--seed", "4", "--moves", "20000"]);
     assert_eq!(saved["parts"], built["parts"]);
 }
+
+#[test]
+fn a_footprint_locked_in_the_board_stays_where_the_board_has_it() {
+    // The person's easy2350 has every footprint locked in KiCad: made a problem from the board by
+    // itself, every part is fixed where it is (U1 at 110.5, 126.5; TP3 on the back).
+    let pr = ccomp(&["floorplan", "boards/easy2350/input/easy2350.kicad_pcb", "--nets-from-board", "--outline-from-board", "--problem"]);
+    let parts = pr["parts"].as_array().unwrap();
+    assert!(parts.iter().all(|p| !p["fixed"].is_null()), "every part fixed");
+    let part = |r: &str| parts.iter().find(|p| p["reference"] == r).unwrap();
+    assert_eq!(part("U1")["fixed"]["x"], 110.5);
+    assert_eq!(part("U1")["fixed"]["y"], 126.5);
+    assert_eq!(part("TP3")["back"], true);
+}

@@ -55,8 +55,12 @@ It sits between two sibling projects:
     pad-to-pad wirelength, courtyard overlap, board area, block cohesion, decoupling hints,
     rigid generated layouts, connectors flush on an edge facing out, through-hole pads that
     block both sides, and separations taken from the packages' rules.
-    - In easy2350's own outline it finds a legal placement with 10 % less wirelength than the
-      person's (790 mm against 878; KiCad DRC: no courtyard, clearance or short findings).
+    - In easy2350's own outline it finds a legal placement with 13 % less wirelength than the
+      person's (763 mm against 878; KiCad DRC: no courtyard, clearance or short findings), with
+      the parts whose place is part of the design locked where the person put them: the headers,
+      USB-C, SWD, the RP2350 and its core regulator, the buttons and the LEDs.
+    - A footprint locked in the board (KiCad's lock) stays put: `ccomp floorplan` fixes it, and
+      the app reads each part's lock from the board it opens and writes it back when it saves.
     - The demo board is in `boards/rp2350-battery/`: USB-C, a charger, load sharing, a buck,
       the RP2350 and an IMU. It composes and floorplans legally at 39 × 31 mm.
   - **Not yet:** design rules and stack-up for composed boards; routing them; package

@@ -15,7 +15,7 @@
    "note": "easy_pcb's worked example, annotated by hand. input/ is the person's board; floorplan/ holds the recomposed one.",
    "parts": 58,
    "nets": 62,
-   "fixed": 2,
+   "fixed": 12,
    "shaped": false,
    "shape": true,
    "loose": false
