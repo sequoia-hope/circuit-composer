@@ -19,6 +19,8 @@
   // Pointers down, by id, for two-finger pinch and pan.
   const pts = new Map();
   let pinch = null;
+  // The board point last pressed: it stays where it is on screen when a panel opens below.
+  let touched = null;
   let cursor = $state(null);
   let error = $state('');
   let queued = false;
@@ -136,7 +138,29 @@
       error = `${e.message} Composer draws boards with WebGL2.`;
       return;
     }
-    const ro = new ResizeObserver(() => { resize(); auto ? fit() : schedule(); });
+    // A new width (a phone turning, a hidden tab shown) refits a view that follows the board. A
+    // new height alone is a panel opening or closing below: the point last pressed (a part just
+    // tapped) stays where it was on screen, so the finger is still on it, or as near as the
+    // shorter view allows; with none pressed, the top of the view stays put.
+    let size = null;
+    const ro = new ResizeObserver(() => {
+      const r = canvas.getBoundingClientRect();
+      const was = size;
+      size = [r.width, r.height];
+      resize();
+      if (!was || was[0] < 1 || was[1] < 1 || (auto && Math.abs(was[0] - r.width) > 0.5)) {
+        if (auto) return fit();
+      } else if (Math.abs(was[0] - r.width) <= 0.5) {
+        if (touched) {
+          const sy = (touched[1] - view.cy) * view.zoom + was[1] / 2;
+          const keep = Math.max(24, Math.min(r.height - 48, sy));
+          view.cy = touched[1] - (keep - r.height / 2) / view.zoom;
+        } else {
+          view.cy += (r.height - was[1]) / 2 / view.zoom;
+        }
+      }
+      schedule();
+    });
     ro.observe(canvas);
     const mq = matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener('change', schedule);
@@ -162,6 +186,7 @@
     }
     if (pts.size > 2) return;
     const [x, y] = toBoard(e);
+    touched = [x, y];
     const i = e.button === 0 ? doc.board.pick(x, y) : -1;
     const touch = e.pointerType !== 'mouse';
     if (touch && !(i >= 0 && selection.includes(i))) {

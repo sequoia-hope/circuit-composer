@@ -8,6 +8,22 @@
 import { kicad_circuit } from '../core/composer_core.js';
 import { browserStore } from './store.js';
 
+/**
+ * `fn()`, tried again after a server error (a 5xx: GitHub Pages answers 503 now and then) or a
+ * dropped connection: three tries, half a second then a second and a half apart.
+ */
+async function retrying(fn) {
+  for (const wait of [500, 1500, 0]) {
+    try {
+      return await fn();
+    } catch (e) {
+      const passing = e instanceof TypeError || /: 5\d\d\b/.test(e?.message ?? '');
+      if (!passing || !wait) throw e;
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+}
+
 export async function detectMode() {
   try {
     const r = await fetch('api/info', { cache: 'no-store' });
@@ -25,10 +41,10 @@ export async function listBoards() {
 }
 
 export async function loadBoard(name) {
-  const get = (f) => fetch(`examples/${name}/${f}`).then((r) => {
+  const get = (f) => retrying(() => fetch(`examples/${name}/${f}`).then((r) => {
     if (!r.ok) throw new Error(`${name}/${f}: ${r.status}`);
     return r.text();
-  });
+  }));
   const optional = (f) => get(f).then(JSON.parse, () => null);
   const [problem, placement, circuit, shape, loose, packages] = await Promise.all([
     get('problem.json'), get('placement.json'), get('circuit.json'),
@@ -63,7 +79,7 @@ export function projectPaths(board, variant) {
  */
 export async function loadFromStore(store, board, variant) {
   const paths = projectPaths(board, variant);
-  const [problem, pcb] = await Promise.all([store.text(paths.problem), store.read(paths.pcb)]);
+  const [problem, pcb] = await Promise.all([retrying(() => store.text(paths.problem)), retrying(() => store.read(paths.pcb))]);
   if (problem == null) throw new Error(`Composer can't open ${board} yet: its placement problem (${paths.problem}) isn't in the project`);
   if (!pcb) throw new Error(`Composer can't open ${board} / ${variant}: the project has no ${paths.pcb}`);
   const text = new TextDecoder().decode(pcb.bytes);

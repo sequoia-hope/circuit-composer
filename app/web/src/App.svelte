@@ -587,7 +587,7 @@
       {@render tabs()}
       {#if project}
         <div class="right">
-          <span class="saved" class:unsaved>{unsaved ? 'Not saved' : saveNote || 'Saved'}</span>
+          <span class="saved" class:unsaved title={unsaved ? `Not saved to ${project.paths.pcb} yet` : saveNote || `Saved: ${project.paths.pcb} has this placement`}>{unsaved ? 'Not saved' : saveNote === 'Saving…' ? 'Saving…' : 'Saved'}</span>
           <button class="primary" onclick={() => save()} disabled={!unsaved || !!anneal || !!storeConflict}
             title="Write the placement into {project.paths.pcb} (Ctrl+S), unless the board changed since Composer read it">Save</button>
         </div>
@@ -595,7 +595,9 @@
     </header>
   {/if}
 
-  {#if error}<div class="error">{error}</div>{/if}
+  {#if error}
+    <div class="error">{error}{#if !doc}<button onclick={() => location.reload()}>Try again</button>{/if}</div>
+  {/if}
   {#if storeConflict}
     <div class="error">
       {storeConflict}
@@ -618,9 +620,20 @@
                 title={live?.composed ? 'loose.json as the Circuit workspace solved it: its pins, its nets' : 'Solving in the Circuit workspace…'}>Solved</button>
             </span>
           {/if}
-          {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['labels', 'Labels'], ['blocks', 'Block colours']] as [k, label]}
-            <label><input type="checkbox" bind:checked={layers[k]} /> {label}</label>
-          {/each}
+          {#snippet layerBoxes()}
+            {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['labels', 'Labels'], ['blocks', 'Block colours']] as [k, label]}
+              <label><input type="checkbox" bind:checked={layers[k]} /> {label}</label>
+            {/each}
+          {/snippet}
+          {#if narrow}
+            <!-- A phone: the layer switches fold into one button, so the board keeps the height. -->
+            <details class="view-menu">
+              <summary>View</summary>
+              <div class="menu">{@render layerBoxes()}</div>
+            </details>
+          {:else}
+            {@render layerBoxes()}
+          {/if}
         </div>
         {#if shows === 'solved' && solvedNote}<div class="note">Solved board: {solvedNote}.</div>{/if}
         <BoardView bind:this={boardView} {doc} {version} {selection} {layers} busy={!!anneal}
@@ -771,13 +784,18 @@
     .brand { display: none; }
     main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto auto; }
     .embed main { grid-template-rows: minmax(0, 1fr) auto auto; }
-    aside { display: none; grid-row: 2; grid-column: 1; border-left: 0; border-top: 1px solid var(--line); max-height: 40dvh; overflow: auto; }
+    aside { display: none; grid-row: 2; grid-column: 1; border-left: 0; border-top: 1px solid var(--line); max-height: 32dvh; overflow: auto; }
     .parts-open aside { display: block; }
     footer { grid-row: 3; }
     .dock-open footer { max-height: min(32dvh, 220px); }
     .parts-open.dock-open aside { max-height: 26dvh; }
     .toolbar { position: static; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 10px; gap: 12px; background: var(--panel); flex: none; }
     .toolbar label { white-space: nowrap; }
+    .toolbar { overflow: visible; align-items: center; }
+    .view-menu { position: relative; }
+    .view-menu summary { cursor: pointer; list-style: none; padding: 2px 10px; border: 1px solid var(--line); border-radius: 5px; color: var(--ink); }
+    .view-menu summary::after { content: ' ▾'; color: var(--muted); }
+    .view-menu .menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 5; display: flex; flex-direction: column; gap: 10px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 7px; box-shadow: 0 6px 18px rgb(0 0 0 / 0.15); }
     .parts-btn { display: inline-block; }
     .parts-btn.on { background: var(--hover); box-shadow: inset 0 -2px 0 var(--accent); }
     .note { position: static; border-radius: 0; border: 0; border-bottom: 1px solid var(--line); }
