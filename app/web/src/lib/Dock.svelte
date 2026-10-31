@@ -1,6 +1,8 @@
 <script>
   // Along the bottom: checks, AI jobs, and the composition terminal.
-  let { metrics, mode, refIndex, onselect, open = $bindable('checks') } = $props();
+  // `collapsible` (a phone): the open tab's button closes it again, leaving only the tabs.
+  let { metrics, mode, refIndex, onselect, open = $bindable('checks'), collapsible = false } = $props();
+  const pick = (tab) => (open = collapsible && open === tab ? null : tab);
 
   // Findings from the floorplanner's metrics: each names the parts it concerns.
   const findings = $derived.by(() => {
@@ -18,11 +20,11 @@
 
 <div class="dock">
   <div class="tabs" role="tablist">
-    <button class:on={open === 'checks'} onclick={() => (open = 'checks')} role="tab">Checks {#if findings.length}<span class="n">{findings.length}</span>{:else if metrics}<span class="ok">✓</span>{/if}</button>
-    <button class:on={open === 'jobs'} onclick={() => (open = 'jobs')} role="tab">AI jobs</button>
-    <button class:on={open === 'terminal'} onclick={() => (open = 'terminal')} role="tab">Terminal</button>
+    <button class:on={open === 'checks'} onclick={() => pick('checks')} role="tab">Checks {#if findings.length}<span class="n">{findings.length}</span>{:else if metrics}<span class="ok">✓</span>{/if}</button>
+    <button class:on={open === 'jobs'} onclick={() => pick('jobs')} role="tab">AI jobs</button>
+    <button class:on={open === 'terminal'} onclick={() => pick('terminal')} role="tab">Terminal</button>
   </div>
-  <div class="body">
+  <div class="body" hidden={!open}>
     {#if open === 'checks'}
       {#if !metrics}
         <p class="muted">Checking…</p>

@@ -56,7 +56,20 @@
   let selection = $state.raw([]);
   let metrics = $state.raw(null);
   let layers = $state({ front: true, back: true, ratsnest: true, labels: true, blocks: true });
-  let dockOpen = $state('checks');
+  // A phone: the board gets the screen; the part panel shows when parts are selected (or Parts is
+  // pressed) and the dock only when one of its tabs is opened.
+  const narrowQuery = matchMedia('(max-width: 820px)');
+  let narrow = $state(narrowQuery.matches);
+  $effect(() => {
+    const on = () => (narrow = narrowQuery.matches);
+    narrowQuery.addEventListener('change', on);
+    return () => narrowQuery.removeEventListener('change', on);
+  });
+  let partsOpen = $state(false);
+  let dockOpen = $state(narrowQuery.matches ? null : 'checks');
+  $effect(() => {
+    if (narrow && dockOpen) partsOpen = false;
+  });
   let boardView = $state(null);
   let shapeDoc = $state(null);
   let shapeApplied = $state(false);
@@ -524,7 +537,7 @@
 
 <svelte:window onkeydown={key} />
 
-<div class="app" class:embed class:wide={workspace === 'shape'}>
+<div class="app" class:embed class:wide={workspace === 'shape'} class:parts-open={selection.length > 0 || partsOpen} class:dock-open={!!dockOpen}>
   {#if !embed}
     <header>
       <div class="brand"><span class="logo"></span>Circuit Composer</div>
@@ -554,9 +567,9 @@
       <div class="right">
         {#if mode !== 'pages'}<a class="debug" href="../../debug.html" title="The project's status and debug page (local only)">debug</a>{/if}
         <span class="mode" title={project ? `${project.paths.pcb} in project ${project.store.kind === 'browser' ? project.store.project : 'on this machine'}` : mode === 'local' ? 'Served by Composer on this machine' : 'No server: the example boards are built into the page'}>{modeLabel}</span>
-        <button disabled={!!serverOnly} title={serverOnly || 'Ask Claude to fill the open fields'}>Fill with AI</button>
-        <button disabled={!!serverOnly} title={serverOnly || 'Write the placed board and routing.json for UltraRoute'}>Send to UltraRoute</button>
-        <button onclick={download} disabled={!doc} title="Download this placement as JSON">Download placement</button>
+        <button class="desk" disabled={!!serverOnly} title={serverOnly || 'Ask Claude to fill the open fields'}>Fill with AI</button>
+        <button class="desk" disabled={!!serverOnly} title={serverOnly || 'Write the placed board and routing.json for UltraRoute'}>Send to UltraRoute</button>
+        <button class="desk" onclick={download} disabled={!doc} title="Download this placement as JSON">Download placement</button>
         {#if project}
           <button class="primary" onclick={() => save()} disabled={!unsaved || !!anneal || !!storeConflict}
             title="Write the placement into {project.paths.pcb} (Ctrl+S), unless the board changed since Composer read it">Save to project</button>
@@ -617,6 +630,9 @@
                 {#each [50000, 200000, 400000, 1000000] as m}<option value={m}>{m >= 1e6 ? '1 M' : `${m / 1000} k`}</option>{/each}
               </select>
             </label>
+            {#if narrow}
+              <button class="parts-btn" class:on={partsOpen} onclick={() => ((partsOpen = !partsOpen), partsOpen && (dockOpen = null))} title="Find a part, and the selected part's details">Parts</button>
+            {/if}
             <button onclick={() => run(true)} title="Anneal from the current placement, gently: locked parts stay">Refine</button>
             <button class="primary" onclick={() => run(false)} title="Place every unlocked part from scratch">Place unlocked parts</button>
             {#if project && embed}
@@ -666,7 +682,7 @@
       {/if}
     </aside>
     <footer>
-      <Dock {metrics} {mode} {refIndex} onselect={select} bind:open={dockOpen} />
+      <Dock {metrics} {mode} {refIndex} onselect={select} bind:open={dockOpen} collapsible={narrow} />
     </footer>
   </main>
 </div>
@@ -721,11 +737,31 @@
   .wide main { grid-template-columns: minmax(0, 1fr); }
   .wide aside { display: none; }
   .embed main { grid-template-rows: minmax(0, 1fr) 140px; }
+  .parts-btn { display: none; }
+  /* A phone: the header wraps (workspaces on their own row, desktop-only actions gone), the
+     board's options sit in one scrolling row above it instead of over it, and the part panel and
+     the dock open below the board only when wanted. */
   @media (max-width: 820px) {
-    main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 220px 150px; }
-    aside { grid-row: 2; grid-column: 1; border-left: 0; border-top: 1px solid var(--line); }
-    footer { grid-row: 3; }
-    nav button { padding: 6px 7px; }
+    .app { height: 100dvh; }
+    header { height: auto; flex-wrap: wrap; gap: 8px; padding: 6px 10px; }
+    header .right { gap: 6px; }
+    .debug, .mode, .desk { display: none; }
+    nav { order: 9; flex-basis: 100%; }
+    nav button { padding: 6px 9px; }
     .brand { display: none; }
+    main { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto auto; }
+    .embed main { grid-template-rows: minmax(0, 1fr) auto auto; }
+    aside { display: none; grid-row: 2; grid-column: 1; border-left: 0; border-top: 1px solid var(--line); max-height: 40dvh; overflow: auto; }
+    .parts-open aside { display: block; }
+    footer { grid-row: 3; }
+    .dock-open footer { max-height: min(32dvh, 220px); }
+    .parts-open.dock-open aside { max-height: 26dvh; }
+    .toolbar { position: static; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 10px; gap: 12px; background: var(--panel); flex: none; }
+    .toolbar label { white-space: nowrap; }
+    .parts-btn { display: inline-block; }
+    .parts-btn.on { background: var(--hover); box-shadow: inset 0 -2px 0 var(--accent); }
+    .note { position: static; border-radius: 0; border: 0; border-bottom: 1px solid var(--line); }
+    .metrics { gap: 8px 10px; padding: 6px 10px; }
+    .metrics .small, .metrics .last { display: none; }
   }
 </style>
