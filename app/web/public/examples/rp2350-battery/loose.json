@@ -1,0 +1,123 @@
+{
+ "board": "rp2350-battery",
+ "note": "The battery demo board written as blocks and loose connections: four packages, three recipes (a USB-C sink, LiPo load sharing, an indicator LED) and the battery and SWD connectors. The pin solver (ccomp pins) chooses the MCU's pins for the USB, the IMU's I2C and interrupts, and the LED, and the interface rules check what each connection implies. USB-C 5 V charges a 1S LiPo through the MCP73831; load sharing feeds the TLV62569 from USB when it is present and from the cell when not, so the charger's termination is not held off by the system load. The charger's STAT drives its own LED and is not wired to the RP2350. compose.json is the same board drawn by hand.",
+ "instances": {
+  "mcu": {
+   "package": "rp2350@0.2.0",
+   "variant": "RP2350A"
+  },
+  "chg": {
+   "package": "mcp73831@0.1.0",
+   "variant": "MCP73831T-2ACI-OT"
+  },
+  "reg": {
+   "package": "tlv62569@0.1.0",
+   "variant": "TLV62569DBV"
+  },
+  "imu": {
+   "package": "lsm6dso@0.1.0",
+   "variant": "LSM6DSOTR"
+  },
+  "usb": {
+   "recipe": "usb_c_sink"
+  },
+  "path": {
+   "recipe": "lipo_load_share"
+  },
+  "led": {
+   "recipe": "led",
+   "params": {
+    "led": "red",
+    "current_a": 0.002
+   }
+  }
+ },
+ "parts": {
+  "J2": {
+   "symbol": "Connector_Generic:Conn_01x02",
+   "value": "BATT",
+   "footprint": "Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal",
+   "lcsc": "C295747",
+   "note": "1S LiPo, pin 1 positive"
+  },
+  "J3": {
+   "symbol": "Connector_Generic:Conn_01x03",
+   "value": "SWD",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+   "note": "SWCLK, GND, SWDIO as on the Raspberry Pi Debug Probe"
+  }
+ },
+ "rails": {
+  "+3V3": 3.3
+ },
+ "nets": {
+  "GND": [
+   "mcu.GND",
+   "chg.GND",
+   "reg.GND",
+   "imu.GND",
+   "usb.GND",
+   "path.GND",
+   "led.GND",
+   "J2.2",
+   "J3.2"
+  ],
+  "VBUS": [
+   "usb.VBUS",
+   "chg.VIN",
+   "path.VIN"
+  ],
+  "VBAT": [
+   "chg.VBAT",
+   "path.BAT",
+   "J2.1"
+  ],
+  "VSYS": [
+   "path.VSYS",
+   "reg.VIN"
+  ],
+  "+3V3": [
+   "reg.VOUT",
+   "mcu.+3V3",
+   "imu.VDD"
+  ],
+  "SWCLK": [
+   "mcu.SWCLK",
+   "J3.1"
+  ],
+  "SWDIO": [
+   "mcu.SWD",
+   "J3.3"
+  ]
+ },
+ "connect": [
+  {
+   "from": "usb.usb",
+   "to": "mcu",
+   "name": "USB"
+  },
+  {
+   "from": "imu.i2c",
+   "to": "mcu"
+  },
+  {
+   "from": "imu.int1",
+   "to": "mcu",
+   "name": "IMU_INT1"
+  },
+  {
+   "from": "imu.int2",
+   "to": "mcu",
+   "name": "IMU_INT2"
+  },
+  {
+   "from": "led.in",
+   "to": "mcu",
+   "name": "LED"
+  }
+ ],
+ "no_connect": [
+  "chg.STAT",
+  "reg.EN"
+ ]
+}

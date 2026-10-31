@@ -1,0 +1,418 @@
+{
+ "board": "bolt-earring",
+ "note": "The bolt earring (compose.json) as blocks and loose connections. The pin solver picks the RP2350's pins for the IMU's I2C and interrupt, the charger's two status lines, the power latch's hold and button lines, the two dividers and the light sensor (ADC inputs), and each LED zone's switch enable and data. The rest is wired by hand: power, USB (its pins are fixed), BOOTSEL and RUN from the long-press block, the SWD test points, and each zone's rail and first data line. The zone switches' enables pass the level check because their ON input draws at most 1 uA, at which an RP2350 pin's low is far below the switch's 0.4 V VIL (the datasheet's 0.5 V VOL is at 2 mA).",
+ "instances": {
+  "mcu": {
+   "package": "rp2350@0.2.0",
+   "variant": "RP2350A",
+   "omit": [
+    "SW_BOOTSEL",
+    "SW_RUN",
+    "R_RUN",
+    "R_SS_LINK",
+    "R_SS_PULLUP",
+    "R_CS1_LINK"
+   ],
+   "join": [
+    [
+     "QSPI_SS",
+     "FLASH_SS"
+    ]
+   ],
+   "parts": {
+    "FLASH": {
+     "value": "W25Q16JVUXIQ",
+     "footprint": "parts:USON-8_L3.0-W2.0-P0.50-BL-EP",
+     "lcsc": "C2843335",
+     "mpn": "W25Q16JVUXIQ"
+    }
+   },
+   "reversed": [
+    "R_XOUT"
+   ]
+  },
+  "chg": {
+   "package": "lgs4056h@0.1.0",
+   "variant": "LGS4056HDA"
+  },
+  "ldo": {
+   "package": "ncp730@0.1.0",
+   "variant": "NCP730BMT330TBG"
+  },
+  "esd": {
+   "package": "usblc6@0.1.0",
+   "variant": "USBLC6-2P6"
+  },
+  "imu": {
+   "package": "lsm6ds3trc@0.1.0",
+   "variant": "LSM6DS3TR-C",
+   "reversed": [
+    "R_SDA_PU",
+    "R_SCL_PU"
+   ]
+  },
+  "sw_l": {
+   "package": "tps22913@0.1.0",
+   "variant": "TPS22913BYZVR"
+  },
+  "sw_r": {
+   "package": "tps22913@0.1.0",
+   "variant": "TPS22913BYZVR"
+  },
+  "sw_c": {
+   "package": "tps22913@0.1.0",
+   "variant": "TPS22913BYZVR"
+  },
+  "usb": {
+   "recipe": "usb_c_sink"
+  },
+  "path": {
+   "recipe": "lipo_load_share",
+   "params": {
+    "fet": "cj2101",
+    "diode": "1n4007ws",
+    "gate_ohm": "1M",
+    "series_ohm": "10k"
+   }
+  },
+  "latch": {
+   "recipe": "power_latch"
+  },
+  "en": {
+   "recipe": "enable_or"
+  },
+  "btn": {
+   "recipe": "button_esd"
+  },
+  "boot": {
+   "recipe": "long_press_reset"
+  },
+  "vbat_sense": {
+   "recipe": "divider",
+   "params": {
+    "top_ohm": "1M",
+    "bottom_ohm": "1M",
+    "filter": 1
+   }
+  },
+  "vbus_sense": {
+   "recipe": "divider",
+   "params": {
+    "top_ohm": "10k",
+    "bottom_ohm": "10k"
+   }
+  },
+  "light": {
+   "recipe": "light_sensor"
+  },
+  "shift_l": {
+   "recipe": "nfet_level_shift",
+   "reversed": [
+    "R_PU"
+   ]
+  },
+  "leds_l": {
+   "recipe": "led_chain",
+   "params": {
+    "n": 56,
+    "cap_every": 6,
+    "cap_first": 4
+   }
+  },
+  "shift_r": {
+   "recipe": "nfet_level_shift",
+   "reversed": [
+    "R_PU"
+   ]
+  },
+  "leds_r": {
+   "recipe": "led_chain",
+   "params": {
+    "n": 44,
+    "cap_every": 6,
+    "cap_first": 4
+   }
+  },
+  "shift_c": {
+   "recipe": "nfet_level_shift",
+   "reversed": [
+    "R_PU"
+   ]
+  },
+  "leds_c": {
+   "recipe": "led_chain",
+   "params": {
+    "n": 34,
+    "cap_every": 6,
+    "cap_first": 4
+   }
+  }
+ },
+ "parts": {
+  "BT1": {
+   "symbol": "Device:Battery_Cell",
+   "value": "LPR302823",
+   "footprint": "parts:BAT_LPR302823_PADS",
+   "note": "The 1S LiPo's tabs, soldered to pads under the cell"
+  },
+  "R2": {
+   "symbol": "Device:R",
+   "value": "10k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "lcsc": "C25744",
+   "note": "RUN's pull-up: long_press_reset pulls RUN low through an open drain"
+  },
+  "C29": {
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "lcsc": "C19702",
+   "note": "VSYS bulk"
+  },
+  "C30": {
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "lcsc": "C1525",
+   "note": "simple_earring's one remaining LED bypass, on the left zone's rail"
+  },
+  "TP1": {
+   "symbol": "Connector:TestPoint",
+   "value": "RUN",
+   "footprint": "TestPoint:TestPoint_Pad_1.5x1.5mm"
+  },
+  "TP2": {
+   "symbol": "Connector:TestPoint",
+   "value": "SWCLK",
+   "footprint": "TestPoint:TestPoint_Pad_1.5x1.5mm"
+  },
+  "TP3": {
+   "symbol": "Connector:TestPoint",
+   "value": "SWDIO",
+   "footprint": "TestPoint:TestPoint_Pad_1.5x1.5mm"
+  }
+ },
+ "rails": {
+  "3V3": 3.3
+ },
+ "nets": {
+  "GND": [
+   "mcu.GND",
+   "chg.GND",
+   "ldo.GND",
+   "esd.GND",
+   "imu.GND",
+   "sw_l.GND",
+   "sw_r.GND",
+   "sw_c.GND",
+   "usb.GND",
+   "path.GND",
+   "latch.GND",
+   "en.GND",
+   "btn.GND",
+   "boot.GND",
+   "vbat_sense.GND",
+   "vbus_sense.GND",
+   "light.GND",
+   "shift_l.GND",
+   "leds_l.GND",
+   "shift_r.GND",
+   "leds_r.GND",
+   "shift_c.GND",
+   "leds_c.GND",
+   "BT1.2",
+   "C29.2",
+   "C30.2",
+   "mcu.FLASH.9"
+  ],
+  "VBUS": [
+   "usb.VBUS",
+   "chg.VIN",
+   "esd.VBUS",
+   "path.VIN",
+   "en.B",
+   "vbus_sense.TOP"
+  ],
+  "VBATT": [
+   "chg.VBAT",
+   "path.BAT",
+   "latch.VBAT",
+   "en.CLAMP",
+   "BT1.1"
+  ],
+  "VSYS": [
+   "path.VSYS",
+   "ldo.VIN",
+   "sw_l.VIN",
+   "sw_r.VIN",
+   "sw_c.VIN",
+   "C29.1"
+  ],
+  "3V3": [
+   "ldo.VOUT",
+   "mcu.+3V3",
+   "imu.VDD",
+   "latch.VIO",
+   "boot.VDD",
+   "light.VDD",
+   "R2.2"
+  ],
+  "SW_ON": [
+   "latch.OUT",
+   "en.A",
+   "vbat_sense.TOP"
+  ],
+  "PWR_EN": [
+   "en.EN",
+   "ldo.EN"
+  ],
+  "BTN_N": [
+   "latch.BTN",
+   "btn.OUT"
+  ],
+  "BTN_SENSE": [
+   "boot.IN",
+   "latch.PRESSED"
+  ],
+  "BOOTSEL_SW": [
+   "mcu.~USB_BOOT",
+   "boot.BOOTSEL"
+  ],
+  "RUN": [
+   "mcu.RUN",
+   "boot.RUN",
+   "R2.1",
+   "TP1.1"
+  ],
+  "SWCLK": [
+   "mcu.SWCLK",
+   "TP2.1"
+  ],
+  "SWDIO": [
+   "mcu.SWD",
+   "TP3.1"
+  ],
+  "USB_C_DP": [
+   "usb.DP",
+   "esd.DP",
+   "mcu.USB_DP"
+  ],
+  "USB_C_DN": [
+   "usb.DM",
+   "esd.DM",
+   "mcu.USB_DM"
+  ],
+  "VLED_L": [
+   "sw_l.VOUT",
+   "shift_l.VOUT",
+   "leds_l.VDD",
+   "C30.1"
+  ],
+  "LEDL_D0": [
+   "shift_l.OUT",
+   "leds_l.DIN"
+  ],
+  "VLED_R": [
+   "sw_r.VOUT",
+   "shift_r.VOUT",
+   "leds_r.VDD"
+  ],
+  "LEDR_D0": [
+   "shift_r.OUT",
+   "leds_r.DIN"
+  ],
+  "VLED_C": [
+   "sw_c.VOUT",
+   "shift_c.VOUT",
+   "leds_c.VDD"
+  ],
+  "LEDC_D0": [
+   "shift_c.OUT",
+   "leds_c.DIN"
+  ]
+ },
+ "connect": [
+  {
+   "from": "imu.i2c",
+   "to": "mcu",
+   "name": "IMU"
+  },
+  {
+   "from": "imu.int1",
+   "to": "mcu",
+   "name": "IMU_INT1"
+  },
+  {
+   "from": "chg.chrg",
+   "to": "mcu",
+   "name": "CHRG"
+  },
+  {
+   "from": "chg.done",
+   "to": "mcu",
+   "name": "CHRG_DONE"
+  },
+  {
+   "from": "latch.hold",
+   "to": "mcu",
+   "name": "PWR_HOLD"
+  },
+  {
+   "from": "latch.pressed",
+   "to": "mcu",
+   "name": "BTN_SENSE"
+  },
+  {
+   "from": "vbat_sense.out",
+   "to": "mcu",
+   "name": "VBSENSE"
+  },
+  {
+   "from": "vbus_sense.out",
+   "to": "mcu",
+   "name": "VBUS_SENSE"
+  },
+  {
+   "from": "light.out",
+   "to": "mcu",
+   "name": "LIGHT"
+  },
+  {
+   "from": "sw_l.on",
+   "to": "mcu",
+   "name": "LED_EN_L"
+  },
+  {
+   "from": "shift_l.in",
+   "to": "mcu",
+   "name": "LED_DATA_L"
+  },
+  {
+   "from": "sw_r.on",
+   "to": "mcu",
+   "name": "LED_EN_R"
+  },
+  {
+   "from": "shift_r.in",
+   "to": "mcu",
+   "name": "LED_DATA_R"
+  },
+  {
+   "from": "sw_c.on",
+   "to": "mcu",
+   "name": "LED_EN_C"
+  },
+  {
+   "from": "shift_c.in",
+   "to": "mcu",
+   "name": "LED_DATA_C"
+  }
+ ],
+ "no_connect": [
+  "ldo.PG",
+  "imu.INT2",
+  "leds_l.DOUT",
+  "leds_r.DOUT",
+  "leds_c.DOUT"
+ ]
+}

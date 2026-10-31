@@ -1,8 +1,19 @@
 <script>
-  // The Circuit workspace, first cut: the board as blocks (package instances, or the board's own
-  // groups of parts) joined by the nets between them. Read-only for now: editing the composition,
-  // and open fields for the AI to fill, come in milestone D.
-  let { circuit, parts, refIndex, selection, onselect } = $props();
+  // The Circuit workspace: the board as blocks (package and recipe instances, or the board's own
+  // groups of parts) joined by the nets between them. A board with a loose composition
+  // (loose.json) is also solved and composed here, live: the Connections panel shows and edits
+  // its pins and recipes, and the graph can show the solved board instead of the drawn one. Open
+  // fields for the AI to fill come in milestone D.
+  import Connections from './Connections.svelte';
+
+  let { circuit: drawn, parts, refIndex, selection, onselect, loose = null, packages = null, library = null } = $props();
+
+  // The solved board, once the panel has one, and which of the two the graph shows.
+  let live = $state.raw(null);
+  let show = $state('solved');
+  const circuit = $derived(show === 'solved' && live
+    ? { parts: live.composed.parts, nets: live.composed.nets, instances: live.composition.instances }
+    : drawn);
 
   // A part's block: its package instance, else the floorplan's block, else the circuit's; with
   // none, its designator's letters (LEDs, capacitors...), marked as such.
@@ -33,7 +44,9 @@
     }
     const nodes = [...groups.values()];
     for (const d of nodes) {
-      d.sub = d.inst ? `${d.inst.package} · ${d.inst.variant}` : `${d.refs.length} part${d.refs.length === 1 ? '' : 's'}${d.byRef ? ', by designator' : ''}`;
+      d.sub = d.inst?.recipe ? `recipe ${d.inst.recipe} · ${d.refs.length} part${d.refs.length === 1 ? '' : 's'}`
+        : d.inst ? `${d.inst.package} · ${d.inst.variant}`
+        : `${d.refs.length} part${d.refs.length === 1 ? '' : 's'}${d.byRef ? ', by designator' : ''}`;
       d.w = Math.max(120, d.name.length * 10 + 30, d.sub.length * 7 + 28);
     }
     layout(nodes, [...edges.values()]);
@@ -97,7 +110,14 @@
   }
 </script>
 
-<div class="wrap">
+<div class="wrap" class:split={loose && library}>
+ <div class="graph">
+  {#if loose && library}
+    <div class="which" role="group" aria-label="Which board the graph shows">
+      <button class:on={show === 'drawn'} onclick={() => (show = 'drawn')} title="The board's own circuit">Drawn</button>
+      <button class:on={show === 'solved'} onclick={() => (show = 'solved')} disabled={!live} title="loose.json, solved and composed in the browser">Solved</button>
+    </div>
+  {/if}
   <svg viewBox={view} role="img" aria-label="Circuit as blocks">
     {#each graph.edges as e}
       {@const a = byName.get(e.a)}
@@ -125,10 +145,22 @@
       Click a block to select its parts; they light up in Board too.
     {/if}
   </div>
+ </div>
+  {#if loose && library}
+    <Connections {loose} {packages} {library} {drawn} onresult={(r) => (live = r)} />
+  {/if}
 </div>
 
 <style>
   .wrap { position: relative; width: 100%; height: 100%; background: var(--canvas); }
+  .wrap.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); }
+  .graph { position: relative; height: 100%; min-width: 0; }
+  .which { position: absolute; top: 8px; left: 10px; z-index: 2; display: flex; }
+  .which button { border-radius: 0; padding: 3px 10px; font-size: 12px; }
+  .which button:first-child { border-radius: 6px 0 0 6px; }
+  .which button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+  .which button.on { background: var(--hover); box-shadow: inset 0 -2px 0 var(--accent); }
+  @media (max-width: 820px) { .wrap.split { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); } }
   svg { width: 100%; height: calc(100% - 34px); display: block; }
   .edge { stroke: var(--rats); stroke-linecap: round; opacity: 0.7; }
   .edge:hover { stroke: var(--select); opacity: 1; }

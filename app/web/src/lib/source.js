@@ -24,9 +24,20 @@ export async function loadBoard(name) {
     if (!r.ok) throw new Error(`${name}/${f}: ${r.status}`);
     return r.text();
   });
-  const [problem, placement, circuit, shape] = await Promise.all([
+  const optional = (f) => get(f).then(JSON.parse, () => null);
+  const [problem, placement, circuit, shape, loose, packages] = await Promise.all([
     get('problem.json'), get('placement.json'), get('circuit.json'),
-    get('shape.json').then(JSON.parse, () => null),
+    optional('shape.json'), optional('loose.json'), optional('packages.json'),
   ]);
-  return { problem, placement, circuit: JSON.parse(circuit), shape };
+  return { problem, placement, circuit: JSON.parse(circuit), shape, loose, packages };
+}
+
+// The recipes, stock and interface types every board's composition shares: fetched once.
+let library = null;
+export function loadLibrary() {
+  library ??= fetch('examples/library.json').then((r) => {
+    if (!r.ok) throw new Error(`library.json: ${r.status}`);
+    return r.json();
+  });
+  return library;
 }

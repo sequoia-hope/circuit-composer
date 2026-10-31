@@ -1,5 +1,5 @@
 {
- "note": "Built by build.sh from scripts/: the circuit is circuit.json (scripts/circuit.py), not a composition.",
+ "note": "Built by build.sh from scripts/: the board is made from circuit.json (scripts/circuit.py). compose.json composes the same circuit from blocks, and loose.json is that with the MCU's pins left to the pin solver.",
  "composed": "floorplan/composed.json",
  "floorplan": "floorplan/spec.json",
  "placement": "floorplan/placement.json",

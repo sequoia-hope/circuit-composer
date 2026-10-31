@@ -352,6 +352,21 @@ mod wasm {
         Ok(serde_json::to_string(&solved).unwrap())
     }
 
+    /// Compose a pin-level composition (`compose::Composed` as JSON), with the packages and library
+    /// as `pins_solve` takes them: what the solver's composition becomes on the board.
+    #[wasm_bindgen]
+    pub fn compose_board(composition_json: &str, packages_json: &str, library_json: &str) -> Result<String, JsValue> {
+        let c: compose::Composition = serde_json::from_str(composition_json).map_err(err)?;
+        let pkgs = pinsolve::from_json(&serde_json::from_str(packages_json).map_err(err)?).map_err(err)?;
+        let (recipes, stock) = library(library_json)?;
+        let mut circuits: std::collections::BTreeMap<String, compose::Circuit> = compose::expand_recipes(&c, &recipes, &stock).map_err(err)?.into_iter().map(|(k, x)| (k, x.circuit)).collect();
+        for (name, inst) in c.instances.iter().filter(|(_, i)| i.recipe.is_none()) {
+            let p = pkgs.get(name).ok_or_else(|| err(format!("{name}: its package {} isn't loaded", inst.package)))?;
+            circuits.insert(name.clone(), p.circuit.clone());
+        }
+        Ok(serde_json::to_string(&compose::compose_with(&c, &circuits)).unwrap())
+    }
+
     fn library(json: &str) -> Result<(std::collections::BTreeMap<String, compose::recipe::Recipe>, compose::recipe::Stock), JsValue> {
         let v: serde_json::Value = serde_json::from_str(json).map_err(err)?;
         let recipes = serde_json::from_value(v.get("recipes").cloned().unwrap_or(serde_json::json!({}))).map_err(err)?;

@@ -2,12 +2,13 @@
  "boards": [
   {
    "name": "bolt-earring",
-   "note": "Built by build.sh from scripts/: the circuit is circuit.json (scripts/circuit.py), not a composition.",
+   "note": "Built by build.sh from scripts/: the board is made from circuit.json (scripts/circuit.py). compose.json composes the same circuit from blocks, and loose.json is that with the MCU's pins left to the pin solver.",
    "parts": 327,
    "nets": 186,
    "fixed": 252,
    "shaped": true,
-   "shape": true
+   "shape": true,
+   "loose": true
   },
   {
    "name": "easy2350",
@@ -16,7 +17,8 @@
    "nets": 62,
    "fixed": 2,
    "shaped": false,
-   "shape": true
+   "shape": true,
+   "loose": false
   },
   {
    "name": "flame-earring",
@@ -25,7 +27,8 @@
    "nets": 169,
    "fixed": 222,
    "shaped": true,
-   "shape": false
+   "shape": false,
+   "loose": false
   },
   {
    "name": "rp2350-battery",
@@ -34,7 +37,8 @@
    "nets": 40,
    "fixed": 0,
    "shaped": false,
-   "shape": false
+   "shape": false,
+   "loose": true
   }
  ]
 }

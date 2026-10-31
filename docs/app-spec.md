@@ -457,16 +457,16 @@ Separate from the app's milestones A–F, in this order:
 3. **The pin solver.** The battery demo board written as loose connections ("imu.i2c to mcu",
    "imu irqs to mcu", "a LED to mcu"), solved into a pin-level composition that composes,
    floorplans and passes `ccomp check package`. It runs in `ccomp` and in the app's WASM core.
-   Done, but not yet wired into the app's UI: `crates/pinsolve`, `ccomp pins` (`-b rp2350-battery` solves
+   Done, and in the app's Circuit workspace (below): `crates/pinsolve`, `ccomp pins` (`-b rp2350-battery` solves
    `boards/rp2350-battery/loose.json`), and `pins_solve` in the WASM core. It puts the IMU on a
    hardware I2C block's two neighbouring pins (I2C1 on GPIO2/3, which ties on cost with the
    hand-drawn board's I2C0 on GPIO4/5); pinned like that board, it reproduces its
    `compose.json` net for net. Bus connections are searched first, and costs within 0.01 are
-   ties, so the bolt's 16 connections are searched exhaustively in under a second. Electrical
+   ties, so the bolt's 15 connections (16 pins) are searched exhaustively in under a second. Electrical
    domains came with step 4; floorplan-side preferences are not in its cost yet.
 4. **Interface rules and recipes**: I2C pull-ups, USB-C sink, LiPo power path, LED chain. With
    those, the bolt earring composes from its blocks in the browser. Done in `ccomp`: the bolt
-   composes from its blocks net for net (below). Not yet in the app's Circuit view.
+   composes from its blocks net for net, and solves and composes in the app (below).
    - **Recipes** (`library/recipes/`, `ccomp recipe`): `usb_c_sink`, `lipo_load_share`, `led`,
      `led_chain`, `nfet_level_shift`, `i2c_pullups`, and from the bolt `power_latch`,
      `enable_or`, `button_esd`, `long_press_reset`, `divider` and `light_sensor`; each cited.
@@ -498,10 +498,19 @@ Separate from the app's milestones A–F, in this order:
      bolt's designators. It composes to the bolt's `circuit.json` net for net: 192 nets, 881
      pins, all 256 parts. The only differences are pad names in two of the bolt's own
      footprints. The RP2350 package is fitted without its BOOTSEL and RUN buttons, and
-     `long_press_reset` drives both. `boards/bolt-earring/loose.json` leaves 16 connections
+     `long_press_reset` drives both. `boards/bolt-earring/loose.json` leaves 15 connections
      to the solver. Pinned to the bolt's GPIOs it is `compose.json` again
      (`crates/pinsolve/tests/bolt.rs`).
-   - Still to do: the app wiring the solver and recipes into its Circuit view.
+   - **In the app:** a board with a `loose.json` is solved and composed in the browser, in the
+     Circuit workspace's Connections panel (`pins_solve` and `compose_board` in the WASM core;
+     the bolt takes about 40 ms). Each connection shows the pin the solver chose, its function
+     select, and the pin the drawn board has where they differ. A pin can be pinned from a list,
+     or every pin set to the drawn board's ("Drawn pins" reproduces it) or freed. Recipe
+     parameters are edited in place and solve again; a refusal, such as a green LED from 3.3 V,
+     says why. The graph shows the drawn board or the solved one. `app/examples.sh` bundles each
+     board's loose composition and packages, and `examples/library.json` the recipes, stock and
+     interface types. The Board workspace still places the drawn board: a solved board with other
+     pins is not yet floorplanned in the browser.
 5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
    suppliers as plug-ins.
 

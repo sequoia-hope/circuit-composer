@@ -45,7 +45,8 @@ It sits between two sibling projects:
     board from those packages, the RP2350's, and recipes for its power path, power latch,
     button, long-press BOOTSEL reset, dividers, light sensor and LED zones. It equals the
     bolt's netlist net for net (192 nets, all 256 parts). `loose.json` leaves the MCU's pins to
-    the pin solver, which places all 16 connections.
+    the pin solver, which places all 15 connections. The app's Circuit workspace solves and
+    composes it in the browser, with the pins and recipe parameters editable.
   - **KiCad output:** `tools/compose_kicad.py` writes the schematic (a box per block, a net
     label per pin) and the board through easy_pcb's writer. ERC is clean, and the board's pad
     nets equal the composed nets.

@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import init, { Board } from './core/composer_core.js';
-  import { detectMode, listBoards, loadBoard } from './lib/source.js';
+  import { detectMode, listBoards, loadBoard, loadLibrary } from './lib/source.js';
   import BoardView from './lib/BoardView.svelte';
   import CircuitView from './lib/CircuitView.svelte';
   import Inspector from './lib/Inspector.svelte';
@@ -26,6 +26,7 @@
   let error = $state('');
   let doc = $state.raw(null);
   let circuit = $state.raw(null);
+  let composition = $state.raw(null); // { loose, packages, library } for a board with loose.json
   let refIndex = $state.raw({ list: [], of: new Map() });
   let version = $state(0);
   let selection = $state.raw([]);
@@ -69,6 +70,7 @@
       const problem = JSON.parse(data.problem);
       const meta = boards.find((b) => b.name === name) || {};
       circuit = data.circuit;
+      composition = data.loose && data.packages ? { loose: data.loose, packages: data.packages, library: await loadLibrary() } : null;
       const list = problem.parts.map((p) => p.reference);
       refIndex = { list, of: new Map(list.map((r, i) => [r, i])) };
       doc = {
@@ -345,7 +347,10 @@
           {/if}
         </div>
       {:else if workspace === 'circuit'}
-        <CircuitView {circuit} parts={doc.parts} {refIndex} {selection} onselect={select} />
+        {#key current}
+          <CircuitView {circuit} parts={doc.parts} {refIndex} {selection} onselect={select}
+            loose={composition?.loose} packages={composition?.packages} library={composition?.library} />
+        {/key}
       {:else if workspace === 'shape'}
         {#key current}
           <ShapeView bind:doc={shapeDoc} applied={shapeApplied} onapply={applyShape} onchange={() => (shapeApplied = false)} />
