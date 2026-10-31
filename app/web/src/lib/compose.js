@@ -61,3 +61,65 @@ export function drawnPort(row, composed, drawn, partnerCircuit) {
 export function natural(a, b) {
   return a.localeCompare(b, undefined, { numeric: true });
 }
+
+/** The floorplan problem of a solved board, made from the drawn board's: each part keeps its
+ *  footprint geometry, block, pose and lock, and the nets are the solved board's, filtered as the
+ *  floorplan spec filters them (`drawn.floorplan`: max_net_pins, skip_nets, exclude). A part the
+ *  drawn board lacks (a longer LED chain, a pull-up the rules added) borrows the geometry of a
+ *  drawn part with the same footprint and starts beside the pin it sits near; one whose footprint
+ *  no drawn part has is left out and reported. `placement` is the poses to start from, by
+ *  reference. Returns `{ problem, placement, added, dropped, missing }`. */
+export function solvedProblem(problem, placement, composed, drawn) {
+  const fp = drawn.floorplan || {};
+  const max = fp.max_net_pins ?? 12, skip = new Set(fp.skip_nets || []), exclude = new Set(fp.exclude || []);
+  const old = new Map(problem.parts.map((p) => [p.reference, p]));
+  const byFootprint = new Map();
+  for (const p of problem.parts) {
+    const f = drawn.parts[p.reference]?.footprint;
+    if (f && !byFootprint.has(f)) byFootprint.set(f, p);
+  }
+  const blocks = problem.parts.some((p) => p.block);
+  const parts = [], added = [], missing = [];
+  for (const [ref, c] of Object.entries(composed.parts)) {
+    if (exclude.has(ref)) continue;
+    const was = old.get(ref);
+    if (was) { parts.push({ ...was }); continue; }
+    const like = byFootprint.get(c.footprint);
+    if (!like) { missing.push(`${ref} (${c.footprint || 'no footprint'})`); continue; }
+    const block = blocks && c.instance ? (c.block ? `${c.instance}/${c.block}` : c.instance) : null;
+    parts.push({ ...like, reference: ref, block, near: null, edge: null, fixed: null, _near: c.near });
+    added.push(ref);
+  }
+  // Keep-outs (the floorplan's and the shape's) are parts with no circuit behind them.
+  for (const p of problem.parts) if (p.reference.includes(':')) parts.push({ ...p });
+  const index = new Map(parts.map((p, i) => [p.reference, i]));
+  const refOf = (i) => problem.parts[i].reference;
+  for (const p of parts) {
+    const near = p._near ? p._near.split('.') : p.near ? [refOf(p.near[0]), p.near[1]] : null;
+    p.near = near && index.has(near[0]) ? [index.get(near[0]), near[1]] : null;
+    delete p._near;
+  }
+  const nets = [];
+  for (const [name, pins] of Object.entries(composed.nets)) {
+    const ps = pins.map((p) => { const k = p.indexOf('.'); return [index.get(p.slice(0, k)), p.slice(k + 1)]; }).filter(([i]) => i !== undefined);
+    if (ps.length < 2 || ps.length > max || skip.has(name)) continue;
+    nets.push({ name, pins: ps, weight: 1.0 });
+  }
+  // A rigid layout keeps only while all its parts are still on the board.
+  const groups = problem.groups.flatMap((g) => {
+    const anchor = index.get(refOf(g.anchor));
+    const members = g.members.map(([i, at, r]) => [index.get(refOf(i)), at, r]);
+    return anchor === undefined || members.some(([i]) => i === undefined) ? [] : [{ ...g, anchor, members }];
+  });
+  const dropped = problem.parts.map((p) => p.reference).filter((r) => !r.includes(':') && !index.has(r));
+  // New parts start on the part they sit near, or in the middle of the rest.
+  const start = { ...placement };
+  const placed = Object.values(placement);
+  const mid = placed.length ? { x: placed.reduce((s, q) => s + q.x, 0) / placed.length, y: placed.reduce((s, q) => s + q.y, 0) / placed.length } : { x: 0, y: 0 };
+  for (const r of added) {
+    const p = parts[index.get(r)];
+    const at = p.near ? start[parts[p.near[0]].reference] : null;
+    start[r] = { x: (at || mid).x, y: (at || mid).y, rotation: 0 };
+  }
+  return { problem: { ...problem, parts, nets, groups }, placement: start, added, dropped, missing };
+}

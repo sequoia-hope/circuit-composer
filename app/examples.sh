@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Writes the example boards the app opens with no server behind it (GitHub Pages, or a plain
 # static server): for each board in boards/, the floorplan problem (`ccomp floorplan --problem`),
-# its saved placement, and its circuit (parts and nets), into web/public/examples/. A board with
-# a loose composition (loose.json) also gets it and the packages its instances use, so the Circuit
-# workspace can solve and compose it in the browser; the recipes, stock and interface types they
-# all share go in examples/library.json. The output is committed, because the earrings' KiCad
-# inputs (build/) are not.
+# its saved placement, and its circuit (parts and nets, and what its floorplan spec filters), into
+# web/public/examples/. A board with a loose composition (loose.json) also gets it and the packages
+# its instances use, so the Circuit workspace can solve and compose it in the browser and the Board
+# workspace floorplan the result; the recipes, stock and interface types they all share go in
+# examples/library.json. The output is committed, because the earrings' KiCad inputs (build/) are
+# not.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 cargo build --release -q -p ccomp
@@ -54,7 +55,11 @@ for b in sorted(os.listdir(out)):
         for ref, p in circuit["components"].items():
             parts[ref] = {"value": p.get("value", ""), "footprint": p.get("footprint", ""), "block": p.get("part")}
         nets = circuit["nets"]
-    json.dump({"parts": parts, "nets": nets, "instances": instances}, open(os.path.join(d, "circuit.json"), "w"), separators=(",", ":"))
+    # What the floorplan spec says about nets and parts, so the browser can make a solved board's
+    # problem the way `ccomp floorplan` makes the drawn one's.
+    spec = json.load(open(files["floorplan"])) if files["exists"]["floorplan"] else {}
+    floorplan = {"max_net_pins": spec.get("max_net_pins", 12), "skip_nets": spec.get("skip_nets", []), "exclude": spec.get("exclude", [])}
+    json.dump({"parts": parts, "nets": nets, "instances": instances, "floorplan": floorplan}, open(os.path.join(d, "circuit.json"), "w"), separators=(",", ":"))
     # The board's shape document, when it has one; the app makes one from the outline otherwise.
     if os.path.exists(files["shape"]):
         json.dump(json.load(open(files["shape"])), open(os.path.join(d, "shape.json"), "w"), indent=1)

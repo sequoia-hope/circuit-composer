@@ -509,8 +509,13 @@ Separate from the app's milestones A–F, in this order:
      parameters are edited in place and solve again; a refusal, such as a green LED from 3.3 V,
      says why. The graph shows the drawn board or the solved one. `app/examples.sh` bundles each
      board's loose composition and packages, and `examples/library.json` the recipes, stock and
-     interface types. The Board workspace still places the drawn board: a solved board with other
-     pins is not yet floorplanned in the browser.
+     interface types. The Board workspace floorplans either board ("Drawn" or "Solved", `fp=solved`
+     in the URL). The solved board's problem is the drawn one's with the solved nets, filtered as
+     the floorplan spec filters them (`solvedProblem` in `compose.js`). Each part keeps its
+     footprint geometry, block, pose and lock. A part the drawn board lacks, such as a longer
+     LED chain or a pull-up the rules add, borrows a drawn part's geometry by footprint and
+     starts on the pin it sits near. With the drawn placement and the solved pins, the battery
+     board has 294 mm of wire against the drawn board's 241 mm. Refined, it has 226 mm.
 5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
    suppliers as plug-ins.
 

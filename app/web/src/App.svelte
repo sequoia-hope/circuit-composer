@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import init, { Board } from './core/composer_core.js';
   import { detectMode, listBoards, loadBoard, loadLibrary } from './lib/source.js';
+  import { solve, solvedProblem } from './lib/compose.js';
   import BoardView from './lib/BoardView.svelte';
   import CircuitView from './lib/CircuitView.svelte';
   import Inspector from './lib/Inspector.svelte';
@@ -27,6 +28,12 @@
   let doc = $state.raw(null);
   let circuit = $state.raw(null);
   let composition = $state.raw(null); // { loose, packages, library } for a board with loose.json
+  // A board with loose.json is solved in the Circuit workspace; Board can floorplan either board.
+  // `doc` is the one shown, `other` the one put aside.
+  let live = $state.raw(null); // the latest solve: { composed, composition, loose }
+  let shows = $state('drawn');
+  let other = null;
+  let solvedNote = $state('');
   let refIndex = $state.raw({ list: [], of: new Map() });
   let version = $state(0);
   let selection = $state.raw([]);
@@ -65,21 +72,16 @@
     error = '';
     try {
       const data = await loadBoard(name);
-      const board = new Board(data.problem);
-      board.set_placement(data.placement);
-      const problem = JSON.parse(data.problem);
       const meta = boards.find((b) => b.name === name) || {};
       circuit = data.circuit;
       composition = data.loose && data.packages ? { loose: data.loose, packages: data.packages, library: await loadLibrary() } : null;
-      const list = problem.parts.map((p) => p.reference);
-      refIndex = { list, of: new Map(list.map((r, i) => [r, i])) };
-      doc = {
-        name, note: meta.note || '', board, problem,
-        outline: problem.outline_polygon || null,
-        box: problem.outline || null, boxIsSet: !!problem.outline,
-        margin: problem.options?.margin ?? 0.5,
-        parts: [], rats: new Float64Array(0),
-      };
+      live = null;
+      shows = 'drawn';
+      other = null;
+      solvedNote = '';
+      doc = makeDoc(name, meta.note || '', data.problem, data.placement);
+      const problem = doc.problem;
+      indexParts();
       // Big boards start with fewer moves: the analytic start does most of the work.
       moves = problem.parts.length > 150 ? 50000 : 200000;
       shapeDoc = data.shape || shapeFromProblem(problem);
@@ -90,10 +92,86 @@
       current = name;
       refresh();
       measure();
+      if (composition) {
+        // Solved now, so Board can show it before the Circuit workspace has been opened.
+        try {
+          const r = solve(composition.loose, composition.packages, composition.library, circuit);
+          live = r.composed ? { composed: r.composed, composition: r.solved.composition, loose: composition.loose } : null;
+        } catch {
+          live = null;
+        }
+        if (new URLSearchParams(location.search).get('fp') === 'solved') show('solved');
+      }
       setUrl();
     } catch (e) {
       error = `${name}: ${e.message || e}`;
     }
+  }
+
+  function makeDoc(name, note, problemText, placementText) {
+    const board = new Board(problemText);
+    board.set_placement(placementText);
+    const problem = JSON.parse(problemText);
+    return {
+      name, note, board, problem,
+      outline: problem.outline_polygon || null,
+      box: problem.outline || null, boxIsSet: !!problem.outline,
+      margin: problem.options?.margin ?? 0.5,
+      parts: [], rats: new Float64Array(0),
+    };
+  }
+
+  function indexParts() {
+    const list = JSON.parse(doc.board.problem()).parts.map((p) => p.reference);
+    refIndex = { list, of: new Map(list.map((r, i) => [r, i])) };
+  }
+
+  /** The Circuit workspace solved the board again. A solved board on show is rebuilt when its parts
+   *  or nets changed; a refused one puts the drawn board back. */
+  function solvedAgain(r) {
+    live = r;
+    if (shows !== 'solved') return;
+    if (!r) { show('drawn'); return; }
+    if (doc.key !== solvedKey(r)) { const shown = doc; doc = other; other = shown; shows = 'drawn'; show('solved'); }
+  }
+  const solvedKey = (r) => JSON.stringify([Object.keys(r.composed.parts), r.composed.nets]);
+
+  /** Show the drawn board, or the solved one: made from the drawn board's problem (with the shape
+   *  applied to it) and the solved nets, starting where the last solved board's parts were, else
+   *  where the drawn board has them. */
+  function show(which) {
+    if (which === shows || !doc || (which === 'solved' && !live?.composed)) return;
+    stop();
+    const refs = selection.map((i) => refIndex.list[i]);
+    const shown = doc;
+    if (which === 'solved') {
+      const key = solvedKey(live);
+      let next = other?.key === key ? other : null;
+      if (!next) {
+        const start = { ...JSON.parse(shown.board.placement()).parts, ...(other ? JSON.parse(other.board.placement()).parts : {}) };
+        const s = solvedProblem(JSON.parse(shown.board.problem()), start, live.composed, circuit);
+        next = { ...makeDoc(shown.name, shown.note, JSON.stringify(s.problem), JSON.stringify({ parts: s.placement })),
+          outline: shown.outline, box: shown.box, boxIsSet: shown.boxIsSet, key };
+        const say = [];
+        if (s.added.length) say.push(`${s.added.length} new part${s.added.length === 1 ? '' : 's'} (${s.added.slice(0, 6).join(' ')}${s.added.length > 6 ? ' …' : ''}) to place`);
+        if (s.dropped.length) say.push(`${s.dropped.length} gone (${s.dropped.slice(0, 6).join(' ')}${s.dropped.length > 6 ? ' …' : ''})`);
+        if (s.missing.length) say.push(`left out, no footprint like it on the drawn board: ${s.missing.join(', ')}`);
+        next.say = say.join('; ');
+      }
+      solvedNote = next.say;
+      doc = next;
+    } else {
+      doc = other;
+    }
+    other = shown;
+    shows = which;
+    indexParts();
+    selection = refs.map((r) => refIndex.of.get(r)).filter((i) => i !== undefined);
+    history = [];
+    lastRun = '';
+    refresh();
+    measure();
+    setUrl();
   }
 
   /** A board with no shape.json: its shape is the outline its floorplan sets, if any. */
@@ -110,7 +188,6 @@
 
   /** The shape's outline becomes the floorplanner's. */
   function applyShape(result) {
-    doc.board.set_outline(JSON.stringify(result.outline[0]));
     // Keep-outs, holes and cut-outs keep parts away: their bounding boxes, as ccomp does.
     const box = (pts) => pts.reduce((b, p) => [Math.min(b[0], p[0]), Math.min(b[1], p[1]), Math.max(b[2], p[0]), Math.max(b[3], p[1])], [Infinity, Infinity, -Infinity, -Infinity]);
     const ks = [
@@ -118,9 +195,13 @@
       ...result.cutouts.map((c, i) => ({ name: `cut-out ${i + 1}`, rect: box(c), side: 'both' })),
       ...result.holes.map((h, i) => { const r = h.d / 2 + (h.clearance || 0); return { name: `hole ${i + 1}`, rect: [h.x - r, h.y - r, h.x + r, h.y + r], side: 'both' }; }),
     ];
-    doc.board.set_keepouts(JSON.stringify(ks));
-    const list = JSON.parse(doc.board.problem()).parts.map((p) => p.reference);
-    refIndex = { list, of: new Map(list.map((r, i) => [r, i])) };
+    // Both boards, drawn and solved, take the shape.
+    for (const d of [doc, other].filter(Boolean)) {
+      d.board.set_outline(JSON.stringify(result.outline[0]));
+      d.board.set_keepouts(JSON.stringify(ks));
+    }
+    if (other) other = { ...other, outline: result.outline[0], box: null, boxIsSet: false };
+    indexParts();
     selection = [];
     doc = { ...doc, outline: result.outline[0], box: null, boxIsSet: false };
     refresh();
@@ -132,6 +213,8 @@
     const p = new URLSearchParams(location.search);
     p.set('board', current);
     p.set('ws', workspace);
+    if (shows === 'solved') p.set('fp', 'solved');
+    else p.delete('fp');
     history_replace(`?${p}`);
   }
   function history_replace(q) {
@@ -276,6 +359,8 @@
     else if (e.key >= '1' && e.key <= '5') { workspace = WORKSPACES[+e.key - 1][0]; setUrl(); }
   }
 
+  // What the inspector describes: the solved board's parts and nets while it is on show.
+  const boardCircuit = $derived(shows === 'solved' && live?.composed ? { parts: live.composed.parts, nets: live.composed.nets } : circuit);
   const fmt = (v, d = 1) => (v === undefined || v === null ? '—' : Number(v).toFixed(d));
   const problems = $derived(metrics ? (metrics.overlaps || 0) + (metrics.edge_misses?.length || 0) + (metrics.separation_misses?.length || 0) : 0);
   const serverOnly = $derived(mode === 'local' ? '' : 'Needs Composer running on your machine (this page is a static demo)');
@@ -313,10 +398,18 @@
         <div class="empty">Loading…</div>
       {:else if workspace === 'board'}
         <div class="toolbar">
+          {#if composition}
+            <span class="which" role="group" aria-label="Which board to floorplan">
+              <button class:on={shows === 'drawn'} onclick={() => show('drawn')} title="The board as drawn">Drawn</button>
+              <button class:on={shows === 'solved'} onclick={() => show('solved')} disabled={!live?.composed}
+                title={live?.composed ? 'loose.json as the Circuit workspace solved it: its pins, its nets' : 'Solving in the Circuit workspace…'}>Solved</button>
+            </span>
+          {/if}
           {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['labels', 'Labels'], ['blocks', 'Block colours']] as [k, label]}
             <label><input type="checkbox" bind:checked={layers[k]} /> {label}</label>
           {/each}
         </div>
+        {#if shows === 'solved' && solvedNote}<div class="note">Solved board: {solvedNote}.</div>{/if}
         <BoardView bind:this={boardView} {doc} {version} {selection} {layers} busy={!!anneal}
           onselect={select} ondragstart={remember} onchange={changed} ondragend={dragEnd} />
         <div class="metrics">
@@ -349,7 +442,7 @@
       {:else if workspace === 'circuit'}
         {#key current}
           <CircuitView {circuit} parts={doc.parts} {refIndex} {selection} onselect={select}
-            loose={composition?.loose} packages={composition?.packages} library={composition?.library} />
+            loose={composition?.loose} start={live?.loose} packages={composition?.packages} library={composition?.library} onsolved={solvedAgain} />
         {/key}
       {:else if workspace === 'shape'}
         {#key current}
@@ -383,7 +476,7 @@
     </section>
     <aside>
       {#if doc && circuit}
-        <Inspector {doc} {selection} {circuit} onlock={lock} onrotate={rotate} onpose={pose} onselect={select} />
+        <Inspector {doc} {selection} circuit={boardCircuit} onlock={lock} onrotate={rotate} onpose={pose} onselect={select} />
       {/if}
     </aside>
     <footer>
@@ -411,6 +504,12 @@
   aside { grid-row: 1 / 3; grid-column: 2; border-left: 1px solid var(--line); background: var(--panel); min-height: 0; }
   footer { grid-column: 1; border-top: 1px solid var(--line); background: var(--panel); min-height: 0; }
   .toolbar { position: absolute; top: 8px; left: 10px; z-index: 2; display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; }
+  .toolbar .which { display: flex; }
+  .toolbar .which button { border-radius: 0; padding: 1px 8px; font-size: 12px; }
+  .toolbar .which button:first-child { border-radius: 5px 0 0 5px; }
+  .toolbar .which button:last-child { border-radius: 0 5px 5px 0; border-left: 0; }
+  .toolbar .which button.on { background: var(--hover); box-shadow: inset 0 -2px 0 var(--accent); }
+  .note { position: absolute; top: 44px; left: 10px; right: 10px; z-index: 2; font-size: 12px; color: var(--muted); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; }
   .toolbar label { display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--muted); }
   .metrics { flex: none; display: flex; align-items: center; gap: 14px; padding: 6px 12px; border-top: 1px solid var(--line); background: var(--panel); font-size: 12.5px; flex-wrap: wrap; }
   .stat { color: var(--muted); white-space: nowrap; }

@@ -46,7 +46,8 @@ It sits between two sibling projects:
     button, long-press BOOTSEL reset, dividers, light sensor and LED zones. It equals the
     bolt's netlist net for net (192 nets, all 256 parts). `loose.json` leaves the MCU's pins to
     the pin solver, which places all 15 connections. The app's Circuit workspace solves and
-    composes it in the browser, with the pins and recipe parameters editable.
+    composes it in the browser, with the pins and recipe parameters editable, and the Board
+    workspace floorplans the solved board as well as the drawn one.
   - **KiCad output:** `tools/compose_kicad.py` writes the schematic (a box per block, a net
     label per pin) and the board through easy_pcb's writer. ERC is clean, and the board's pad
     nets equal the composed nets.

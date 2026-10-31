@@ -6,11 +6,12 @@
   import { recipe_expand } from '../core/composer_core.js';
   import { solve, drawnPort, natural } from './compose.js';
 
-  let { loose: initial, packages, library, drawn, onresult } = $props();
+  // `start`: the edits the panel had when it was last open, if any; Reset goes back to `loose`.
+  let { loose: initial, start = null, packages, library, drawn, onresult } = $props();
 
   // A copy to edit: the parent mounts the panel afresh for each board.
   // svelte-ignore state_referenced_locally
-  let loose = $state.raw(structuredClone(initial));
+  let loose = $state.raw(structuredClone(start ?? initial));
   let result = $state.raw(null);
   let error = $state('');
   let busy = $state(false);
@@ -32,7 +33,7 @@
       }
       ms = performance.now() - t;
       busy = false;
-      onresult(result?.composed ? { composed: result.composed, composition: result.solved.composition } : null);
+      onresult(result?.composed ? { composed: result.composed, composition: result.solved.composition, loose } : null);
     }, 0);
   }
 

@@ -6,7 +6,7 @@
   // fields for the AI to fill come in milestone D.
   import Connections from './Connections.svelte';
 
-  let { circuit: drawn, parts, refIndex, selection, onselect, loose = null, packages = null, library = null } = $props();
+  let { circuit: drawn, parts, refIndex, selection, onselect, loose = null, start = null, packages = null, library = null, onsolved = () => {} } = $props();
 
   // The solved board, once the panel has one, and which of the two the graph shows.
   let live = $state.raw(null);
@@ -147,7 +147,7 @@
   </div>
  </div>
   {#if loose && library}
-    <Connections {loose} {packages} {library} {drawn} onresult={(r) => (live = r)} />
+    <Connections {loose} {start} {packages} {library} {drawn} onresult={(r) => { live = r; onsolved(r); }} />
   {/if}
 </div>
 
