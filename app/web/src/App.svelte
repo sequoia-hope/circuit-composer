@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import init, { Board } from './core/composer_core.js';
-  import { detectMode, listBoards, loadBoard, loadLibrary } from './lib/source.js';
+  import { boardroomBoards, boardroomStore, detectMode, listBoards, loadBoard, loadFromStore, loadLibrary } from './lib/source.js';
+  import { Conflict, fromLocation } from './lib/store.js';
   import { solve, solvedProblem } from './lib/compose.js';
   import BoardView from './lib/BoardView.svelte';
   import CircuitView from './lib/CircuitView.svelte';
@@ -20,10 +21,26 @@
     ['rules', 'Rules'],
   ];
 
+  // The workspace on show is `?view=`; `?ws=` is Boardroom's (the store's workspace in this tab),
+  // and names one of these only in links from before.
+  const viewOf = (v) => (WORKSPACES.some(([id]) => id === v) ? v : null);
+
+  // Opened by Boardroom (`?store=…&board=…&variant=…`): that project's board, read from and saved
+  // to its store, and no other. No selector, and no demo board if it can't be opened.
+  const given = fromLocation(location);
   let mode = $state('static');
   let boards = $state([]);
+  // Boardroom's example projects, opened through this tab's store when Composer stands alone.
+  let projectBoards = $state([]);
   let current = $state(params.get('board') || '');
-  let workspace = $state(params.get('ws') || 'board');
+  let workspace = $state(viewOf(params.get('view')) || viewOf(params.get('ws')) || 'board');
+  // The board as read from a project's store: { store, board, variant, paths, pcb: {text, rev},
+  // saved }, `saved` being the placement the project has. Null for a built-in example.
+  let project = $state.raw(null);
+  let saveNote = $state('');
+  let storeConflict = $state('');
+  let copiedTo = $state('');
+  let stopWatch = null;
   let error = $state('');
   let doc = $state.raw(null);
   let circuit = $state.raw(null);
@@ -55,21 +72,54 @@
 
   onMount(async () => {
     await init();
-    mode = (await detectMode()).mode;
-    try {
-      boards = await listBoards();
-    } catch (e) {
-      error = `No example boards: ${e.message}. Run app/examples.sh.`;
+    window.addEventListener('message', fromParent);
+    if (given) {
+      mode = 'project';
+      if (!current) {
+        error = 'Boardroom opened Composer without a board.';
+        return;
+      }
+      await openProject(given, current, params.get('variant') || 'a');
       return;
     }
-    if (!boards.some((b) => b.name === current)) current = (boards.find((b) => b.name === 'rp2350-battery') || boards[0]).name;
-    await open(current);
-    window.addEventListener('message', fromParent);
+    mode = (await detectMode()).mode;
+    const [own, theirs] = await Promise.all([listBoards().catch((e) => e), boardroomBoards()]);
+    projectBoards = theirs;
+    // Composer's own examples, but not a board Boardroom's projects already have: that one opens
+    // from the project, so its changes are the project's.
+    boards = own instanceof Error ? [] : own.filter((b) => !theirs.some((t) => t.board === b.name));
+    if (!boards.length && !projectBoards.length) {
+      error = `No example boards: ${own.message || 'none listed'}. Run app/examples.sh.`;
+      return;
+    }
+    if (!boards.some((b) => b.name === current) && !projectBoards.some((b) => keyOf(b) === current)) {
+      current = projectBoards[0] ? keyOf(projectBoards[0]) : (boards.find((b) => b.name === 'rp2350-battery') || boards[0]).name;
+    }
+    await choose(current);
   });
+
+  /** A Boardroom project's board in the selector. */
+  const keyOf = (b) => `${b.project}:${b.board}:${b.variant}`;
+
+  function choose(key) {
+    const b = projectBoards.find((x) => keyOf(x) === key);
+    return b ? openProject(boardroomStore(b), b.board, b.variant, key) : open(key);
+  }
+
+  /** Back to no project: a built-in example has nothing to save to or watch. */
+  function leaveProject() {
+    stopWatch?.();
+    stopWatch = null;
+    project = null;
+    saveNote = '';
+    storeConflict = '';
+    copiedTo = '';
+  }
 
   async function open(name) {
     stop();
     error = '';
+    leaveProject();
     try {
       const data = await loadBoard(name);
       const meta = boards.find((b) => b.name === name) || {};
@@ -105,6 +155,107 @@
       setUrl();
     } catch (e) {
       error = `${name}: ${e.message || e}`;
+    }
+  }
+
+  /**
+   * A board from a project's store: its placement problem, and its parts where the `.kicad_pcb`
+   * has them. `key` is what the selector calls it (the board's name when Boardroom opened it).
+   */
+  async function openProject(store, board, variant, key = board) {
+    stop();
+    error = '';
+    leaveProject();
+    try {
+      const data = await loadFromStore(store, board, variant);
+      circuit = data.circuit;
+      composition = null;
+      live = null;
+      shows = 'drawn';
+      other = null;
+      solvedNote = '';
+      doc = makeDoc(board, '', data.problem, '{"parts":{}}');
+      doc.board.set_placement_from_kicad_pcb(data.pcb.text);
+      indexParts();
+      moves = doc.problem.parts.length > 150 ? 50000 : 200000;
+      shapeDoc = shapeFromProblem(doc.problem);
+      shapeApplied = false;
+      selection = [];
+      history = [];
+      lastRun = '';
+      current = key;
+      project = { store, board, variant, paths: data.paths, pcb: data.pcb, saved: doc.board.placement() };
+      refresh();
+      measure();
+      setUrl();
+      stopWatch = store.watch(heard);
+    } catch (e) {
+      doc = null;
+      error = e.message || String(e);
+    }
+  }
+
+  /** Another app or window changed the project: take its board, unless this one has unsaved moves. */
+  async function heard({ paths }) {
+    const p = project;
+    if (!p || (paths && !paths.includes(p.paths.pcb))) return;
+    const now = await p.store.read(p.paths.pcb).catch(() => null);
+    // This tab's own save is heard too: by now the board it has is that revision.
+    if (!now || now.rev === project?.pcb.rev) return;
+    if (anneal || unsaved) storeConflict = `${p.paths.pcb} was changed elsewhere since Composer read it.`;
+    else reload();
+  }
+
+  function reload() {
+    const p = project;
+    if (p) openProject(p.store, p.board, p.variant, current);
+  }
+
+  /** Parts whose pose differs between two placements (`{parts: {REF: pose}}` JSON). */
+  function movedParts(before, after) {
+    const a = JSON.parse(before).parts, b = JSON.parse(after).parts;
+    return Object.keys(b).filter((r) => !r.includes(':') && JSON.stringify(a[r]) !== JSON.stringify(b[r]));
+  }
+
+  /**
+   * The placement into the project: the `.kicad_pcb` with every part where it is here (written as
+   * pcbnew would save it), unless the board changed since Composer read it, and
+   * `compose/<board>/placement.json`. As a copy, the board goes beside it as `<board>-2.kicad_pcb`.
+   */
+  async function save(asCopy = false) {
+    const p = project;
+    if (!p || anneal) return;
+    const placement = doc.board.placement();
+    const moved = movedParts(p.saved, placement);
+    let text;
+    try {
+      text = doc.board.write_kicad_pcb(p.pcb.text);
+    } catch (e) {
+      error = `Couldn't write the board: ${e.message || e}`;
+      return;
+    }
+    let path = p.paths.pcb;
+    if (asCopy) for (let n = 2; await p.store.read(path); n++) path = p.paths.pcb.replace(/\.kicad_pcb$/, `-${n}.kicad_pcb`);
+    const message = moved.length === 1 ? `Placement: moved ${moved[0]}` : `Placement: ${moved.length} parts moved`;
+    saveNote = 'Saving…';
+    error = '';
+    try {
+      const { rev } = await p.store.write(path, text, { app: 'composer', message, base: asCopy ? null : p.pcb.rev });
+      if (asCopy) {
+        copiedTo = path;
+        saveNote = `Saved ${path}, a copy.`;
+        return;
+      }
+      project = { ...p, pcb: { text, rev }, saved: placement };
+      storeConflict = '';
+      copiedTo = '';
+      // Composer's own record of the placement; the board is the truth, so the last save wins.
+      await p.store.write(p.paths.placement, JSON.stringify(JSON.parse(placement), null, 1) + '\n', { app: 'composer', message: `Placement of ${p.board}` });
+      saveNote = `Saved ${path}${p.store.kind === 'browser' ? " in this browser's copy of the project" : ''}.`;
+    } catch (e) {
+      saveNote = '';
+      if (e instanceof Conflict) storeConflict = `${p.paths.pcb} changed since Composer read it.`;
+      else error = `Couldn't save: ${e.message || e}`;
     }
   }
 
@@ -211,8 +362,9 @@
 
   function setUrl() {
     const p = new URLSearchParams(location.search);
-    p.set('board', current);
-    p.set('ws', workspace);
+    p.set('board', project && given ? project.board : current);
+    p.set('view', workspace);
+    if (viewOf(p.get('ws'))) p.delete('ws');
     if (shows === 'solved') p.set('fp', 'solved');
     else p.delete('fp');
     history_replace(`?${p}`);
@@ -351,6 +503,7 @@
       return;
     }
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undo(); return; }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (project && unsaved && !storeConflict) save(); return; }
     if (e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === 'r' || e.key === 'R') rotate();
     else if (e.key === 'l' || e.key === 'L') { if (selection.length) lock(!doc.parts[selection[0]].locked); }
@@ -364,6 +517,9 @@
   const fmt = (v, d = 1) => (v === undefined || v === null ? '—' : Number(v).toFixed(d));
   const problems = $derived(metrics ? (metrics.overlaps || 0) + (metrics.edge_misses?.length || 0) + (metrics.separation_misses?.length || 0) : 0);
   const serverOnly = $derived(mode === 'local' ? '' : 'Needs Composer running on your machine (this page is a static demo)');
+  // Moves not yet in the project's board (`version` changes with every edit).
+  const unsaved = $derived(!!project && !!doc && version >= 0 && doc.board.placement() !== project.saved);
+  const modeLabel = $derived(mode === 'project' || project ? (project?.store.kind === 'server' ? 'Project on this machine' : "Project · kept in this browser") : mode === 'local' ? 'Local project' : 'Demo · example boards');
 </script>
 
 <svelte:window onkeydown={key} />
@@ -372,9 +528,24 @@
   {#if !embed}
     <header>
       <div class="brand"><span class="logo"></span>Circuit Composer</div>
-      <select bind:value={current} onchange={() => open(current)} aria-label="Board">
-        {#each boards as b}<option value={b.name}>{b.name}</option>{/each}
-      </select>
+      {#if given}
+        <span class="board" title="Opened by Boardroom">{current}{params.get('variant') ? ` / ${params.get('variant')}` : ''}</span>
+      {:else}
+        <select bind:value={current} onchange={() => choose(current)} aria-label="Board">
+          {#if projectBoards.length}
+            <optgroup label="Boardroom's projects">
+              {#each projectBoards as b}<option value={keyOf(b)}>{b.board}{b.name !== b.board ? ` (${b.name})` : ''}</option>{/each}
+            </optgroup>
+            {#if boards.length}
+              <optgroup label="Composer's examples">
+                {#each boards as b}<option value={b.name}>{b.name}</option>{/each}
+              </optgroup>
+            {/if}
+          {:else}
+            {#each boards as b}<option value={b.name}>{b.name}</option>{/each}
+          {/if}
+        </select>
+      {/if}
       <nav>
         {#each WORKSPACES as [id, label], k}
           <button class:on={workspace === id} onclick={() => { workspace = id; setUrl(); }} title="{label} ({k + 1})">{label}</button>
@@ -382,20 +553,32 @@
       </nav>
       <div class="right">
         {#if mode !== 'pages'}<a class="debug" href="../../debug.html" title="The project's status and debug page (local only)">debug</a>{/if}
-        <span class="mode" title={mode === 'local' ? 'Served by Composer on this machine' : 'No server: the example boards are built into the page'}>{mode === 'local' ? 'Local project' : 'Demo · example boards'}</span>
+        <span class="mode" title={project ? `${project.paths.pcb} in project ${project.store.kind === 'browser' ? project.store.project : 'on this machine'}` : mode === 'local' ? 'Served by Composer on this machine' : 'No server: the example boards are built into the page'}>{modeLabel}</span>
         <button disabled={!!serverOnly} title={serverOnly || 'Ask Claude to fill the open fields'}>Fill with AI</button>
         <button disabled={!!serverOnly} title={serverOnly || 'Write the placed board and routing.json for UltraRoute'}>Send to UltraRoute</button>
         <button onclick={download} disabled={!doc} title="Download this placement as JSON">Download placement</button>
+        {#if project}
+          <button class="primary" onclick={() => save()} disabled={!unsaved || !!anneal || !!storeConflict}
+            title="Write the placement into {project.paths.pcb} (Ctrl+S), unless the board changed since Composer read it">Save to project</button>
+        {/if}
       </div>
     </header>
   {/if}
 
   {#if error}<div class="error">{error}</div>{/if}
+  {#if storeConflict}
+    <div class="error">
+      {storeConflict}
+      {copiedTo ? `This placement is saved beside it as ${copiedTo}; Reload opens the project's board.` : 'Reload it (these moves are dropped), or save this placement beside it as a copy.'}
+      <button onclick={reload}>Reload</button>
+      {#if !copiedTo}<button onclick={() => save(true)}>Save as a copy</button>{/if}
+    </div>
+  {/if}
 
   <main>
     <section class="centre">
       {#if !doc}
-        <div class="empty">Loading…</div>
+        <div class="empty">{error ? '' : 'Loading…'}</div>
       {:else if workspace === 'board'}
         <div class="toolbar">
           {#if composition}
@@ -436,7 +619,10 @@
             </label>
             <button onclick={() => run(true)} title="Anneal from the current placement, gently: locked parts stay">Refine</button>
             <button class="primary" onclick={() => run(false)} title="Place every unlocked part from scratch">Place unlocked parts</button>
-            <span class="last">{lastRun}</span>
+            {#if project && embed}
+              <button onclick={() => save()} disabled={!unsaved || !!storeConflict} title="Write the placement into {project.paths.pcb} (Ctrl+S)">Save to project</button>
+            {/if}
+            <span class="last">{[lastRun, project && (unsaved ? 'Not saved to the project yet.' : saveNote)].filter(Boolean).join(' ')}</span>
           {/if}
         </div>
       {:else if workspace === 'circuit'}
@@ -497,6 +683,8 @@
   nav button.on { background: var(--hover); color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent); }
   .right { margin-left: auto; display: flex; gap: 6px; align-items: center; }
   .debug { font-size: 11.5px; color: var(--muted); }
+  .board { font: 12.5px var(--mono); color: var(--ink); }
+  .error button { margin-left: 8px; }
   .mode { font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; white-space: nowrap; }
   .error { background: color-mix(in srgb, var(--bad) 15%, var(--panel)); color: var(--bad); padding: 6px 14px; font-size: 12.5px; border-bottom: 1px solid var(--line); }
   main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: minmax(0, 1fr) 170px; }

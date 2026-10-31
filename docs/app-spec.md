@@ -320,6 +320,22 @@ inside its window in single-window mode. It reaches Composer through its proxy a
 `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: require-corp`,
 because annealing workers will share memory, and the app embeds nothing from other sites.
 
+**The project's store** (built 2026-10-31, Boardroom's demo milestone 4). Boardroom opens
+Composer with `?store=…&pid=…&ws=…&board=…&variant=…`. Composer then reads and writes the
+project through Boardroom's `store.js`, copied to `app/web/src/lib/store.js`. On Pages that is
+the tab's workspace in IndexedDB. It shows no board selector. It loads
+`compose/<board>/problem.json` (which `boardroom snapshot` writes) and takes the parts' poses
+and the circuit from `hw/<board>/<variant>/<board>.kicad_pcb`. Without the problem it says it
+can't open the board, and shows no demo board. **Save to project** (Ctrl+S) writes the
+`.kicad_pcb` with the revision it read (`Board.write_kicad_pcb`) and then
+`compose/<board>/placement.json`. If the board changed since it was read, Composer offers
+**Reload** or **Save as a copy** (`<board>-2.kicad_pcb`). A change from another app reloads
+the board when there are no unsaved moves. Standalone on github.io, the selector lists
+Boardroom's example projects first (from `/boardroom/snapshot/projects.json`, or
+`?boardroom=<snapshot folder>`) and opens them through the same store. Its own examples follow,
+minus any board Boardroom already has. Because `?ws=` is the store's workspace, the open
+workspace tab is `?view=`.
+
 **Three ways to run, one build:**
 
 | Mode | Served by | Files | AI, terminal | Saving |

@@ -14,6 +14,47 @@ use serde::Serialize;
 
 pub mod draw;
 
+/// What a `.kicad_pcb` says about its parts: where each footprint is, in the floorplan's
+/// millimetres and degrees, and the circuit the inspector shows (value, footprint, nets by pin),
+/// for a board opened from a project with no `circuit.json` of its own.
+#[derive(Debug, Serialize)]
+pub struct KicadBoard {
+    pub poses: BTreeMap<String, Pose>,
+    pub parts: BTreeMap<String, KicadPart>,
+    /// Net name -> `REF.pin`, the board's own nets (no `unconnected-…` single pads).
+    pub nets: BTreeMap<String, Vec<String>>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct KicadPart {
+    pub value: String,
+    pub footprint: String,
+}
+
+impl KicadBoard {
+    pub fn read(text: &str) -> Result<KicadBoard, String> {
+        let (pcb, _) = kicad_pcb::parse_board(text).map_err(|e| e.to_string())?;
+        let mut b = KicadBoard { poses: BTreeMap::new(), parts: BTreeMap::new(), nets: BTreeMap::new() };
+        for fp in &pcb.footprints {
+            if fp.reference.is_empty() {
+                continue;
+            }
+            b.poses.insert(fp.reference.clone(), Pose { x: fp.at[0] * 1e3, y: fp.at[1] * 1e3, rotation: fp.rotation_deg });
+            b.parts.insert(fp.reference.clone(), KicadPart { value: fp.value.clone(), footprint: fp.library_id.clone() });
+            for pad in &fp.pads {
+                if let Some(n) = pad.net.as_ref().filter(|n| !n.name.is_empty() && !n.name.starts_with("unconnected-")) {
+                    let pin = format!("{}.{}", fp.reference, pad.number);
+                    let pins = b.nets.entry(n.name.clone()).or_default();
+                    if !pins.contains(&pin) {
+                        pins.push(pin);
+                    }
+                }
+            }
+        }
+        Ok(b)
+    }
+}
+
 pub struct Session {
     pr: Problem,
     poses: Vec<Pose>,
@@ -140,6 +181,13 @@ impl Session {
             })
             .collect();
         kicad_pcb::place::apply(text, &placements).map_err(|e| e.to_string())
+    }
+
+    /// Where the board puts this problem's parts: each footprint's pose, as `set_placement` takes
+    /// it. The inverse of `write_kicad_pcb`, so a board read and written back is unchanged. Parts
+    /// the problem doesn't have are left out; parts the board doesn't have keep their poses.
+    pub fn placement_of(&self, board: &KicadBoard) -> BTreeMap<String, Pose> {
+        board.poses.iter().filter(|(r, _)| self.index.contains_key(*r)).map(|(r, p)| (r.clone(), *p)).collect()
     }
 
     pub fn locked(&self, i: usize) -> bool {
@@ -329,6 +377,14 @@ mod wasm {
         }
     }
 
+    /// A `.kicad_pcb`'s parts and nets (`KicadBoard` as JSON): the circuit of a board opened from
+    /// a project's store.
+    #[wasm_bindgen]
+    pub fn kicad_circuit(text: &str) -> Result<String, JsValue> {
+        let b = KicadBoard::read(text).map_err(err)?;
+        Ok(serde_json::to_string(&serde_json::json!({ "parts": b.parts, "nets": b.nets })).unwrap())
+    }
+
     /// A `shape.json` document, evaluated (`shape::Shape` as JSON).
     #[wasm_bindgen]
     pub fn shape_evaluate(doc_json: &str) -> Result<String, JsValue> {
@@ -432,6 +488,15 @@ mod wasm {
         /// The board's `.kicad_pcb` text with this placement written into it, as pcbnew would save it.
         pub fn write_kicad_pcb(&self, text: &str) -> Result<String, JsValue> {
             self.s.write_kicad_pcb(text).map_err(err)
+        }
+
+        /// Take the placement the board's `.kicad_pcb` has (the inverse of `write_kicad_pcb`).
+        pub fn set_placement_from_kicad_pcb(&mut self, text: &str) -> Result<(), JsValue> {
+            let b = KicadBoard::read(text).map_err(err)?;
+            let parts = self.s.placement_of(&b);
+            self.s.set_placement(&parts);
+            self.moved();
+            Ok(())
         }
 
         pub fn placement(&self) -> String {
@@ -648,6 +713,37 @@ mod tests {
         for (a, b) in ours.iter().zip(&theirs) {
             assert_eq!(a, b);
         }
+    }
+
+    #[test]
+    fn a_board_read_and_written_back_is_unchanged() {
+        // Opened from a project's store, the app takes its placement from the .kicad_pcb; saving
+        // with nothing moved must give the same bytes.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let ex = root.join("app/web/public/examples/easy2350");
+        let pr: Problem = serde_json::from_str(&std::fs::read_to_string(ex.join("problem.json")).unwrap()).unwrap();
+        let mut s = Session::new(pr);
+        let text = std::fs::read_to_string(root.join("boards/easy2350/floorplan/placed.kicad_pcb")).unwrap();
+        let b = KicadBoard::read(&text).unwrap();
+        let parts = s.placement_of(&b);
+        assert_eq!(parts.len(), 58);
+        s.set_placement(&parts);
+        assert_eq!(s.write_kicad_pcb(&text).unwrap(), text);
+        // The same poses as the placement pcbnew put there.
+        #[derive(serde::Deserialize)]
+        struct P {
+            parts: BTreeMap<String, Pose>,
+        }
+        let p: P = serde_json::from_str(&std::fs::read_to_string(ex.join("placement.json")).unwrap()).unwrap();
+        for (r, q) in &p.parts {
+            let Some(got) = parts.get(r).copied() else {
+                assert!(r.contains(':'), "{r} is not on the board");
+                continue;
+            };
+            assert!((got.x - q.x).abs() < 1e-6 && (got.y - q.y).abs() < 1e-6, "{r}: {got:?} vs {q:?}");
+        }
+        assert!(b.nets["/+3V3"].contains(&"U1.1".to_string()));
+        assert_eq!(b.parts["C1"].value, "100n");
     }
 
     #[test]
