@@ -1,16 +1,17 @@
 {
  "name": "lipo_load_share",
  "summary": "Load sharing for a 1S LiPo and its charger: the system runs from the input when it is present and from the cell when not",
- "note": "Microchip AN1149's circuit. With input power present, Q1's gate is at VIN and it is off, so the system draws from VIN through D1 and the charger sees only the cell; a load on the cell would keep the charge current from ever falling to the termination value. Without input, R_GATE pulls the gate to ground and Q1 connects the cell to the system (its body diode already conducts). D1 is a Schottky for its low drop and keeps the cell from back-feeding VIN. Q1: drain at the cell, source at VSYS.",
+ "note": "Microchip AN1149's circuit. With input power present, Q1's gate is at VIN and it is off, so the system draws from VIN through D1 and the charger sees only the cell; a load on the cell would keep the charge current from ever falling to the termination value. Without input, R_GATE pulls the gate to ground and Q1 connects the cell to the system (its body diode already conducts). D1 keeps the cell from back-feeding VIN. Q1: drain at the cell, source at VSYS. Two departures the bolt earring makes (simple_earring rev 2, whose reasons are in its circuit script, vendored at boards/bolt-earring/vendor/simple_earring/scripts/circuit.py): a silicon D1 (diode = 1n4007ws), because a Schottky's reverse leakage from VSYS into a dead VBUS, hot, lifted VBUS far enough to switch the board on by itself, at the price of about 0.8 V drop instead of 0.3 V; and the gate fed through R_SERIES from VIN (series_ohm), so the gate is a divider R_SERIES : R_GATE that sits at nearly VIN with input present. Without input the gate follows the dead VIN node down, so VIN must be held low by something (the bolt's VBUS-sense divider does it): a floating VIN near the cell's voltage would leave Q1 off and the board running only from USB.",
  "parts": {
-  "Q1": { "reference_ref": "Q1", "symbol": "Transistor_FET:AO3401A", "value": "AO3401A", "footprint": "Package_TO_SOT_SMD:SOT-23", "lcsc": "C15127", "note": "P-channel: gate VIN, source VSYS, drain the cell" },
-  "R_GATE": { "reference_ref": "R1", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "mpn": "0402WGF1003TCE", "note": "RPULL: pulls Q1's gate low when the input is absent" },
-  "D1": { "reference_ref": "D1", "symbol": "Device:D_Schottky", "value": "B5819W", "footprint": "Diode_SMD:D_SOD-123", "lcsc": "C8598", "note": "VIN to VSYS while input power is present" }
+  "Q1": { "reference_ref": "Q1", "from": "fet", "note": "P-channel: gate VIN (or the divider), source VSYS, drain the cell" },
+  "R_GATE": { "reference_ref": "R1", "choose": { "stock": "resistor_0402", "target": "gate_ohm" }, "note": "RPULL: pulls Q1's gate low when the input is absent" },
+  "R_SERIES": { "if": "series_ohm > 0", "reference_ref": "R2", "choose": { "stock": "resistor_0402", "target": "series_ohm" }, "note": "VIN to the gate" },
+  "D1": { "reference_ref": "D1", "from": "diode", "note": "VIN to VSYS while input power is present" }
  },
  "ports": {
-  "VIN": { "kind": "supply", "pins": ["Q1.1", "R_GATE.1", "D1.2"], "note": "The charger's input (USB VBUS)" },
+  "VIN": { "kind": "supply", "pins": ["Q1.1 if series_ohm == 0", "R_GATE.1 if series_ohm == 0", "R_SERIES.1 if series_ohm > 0", "D1.2"], "note": "The charger's input (USB VBUS)" },
   "BAT": { "kind": "supply", "pins": ["Q1.3"], "note": "The cell's positive terminal, where the charger's output is" },
-  "VSYS": { "kind": "supply", "pins": ["Q1.2", "D1.1"], "note": "The system load: VIN less a Schottky drop, or the cell" },
+  "VSYS": { "kind": "supply", "pins": ["Q1.2", "D1.1"], "note": "The system load: VIN less D1's drop, or the cell" },
   "GND": { "kind": "ground", "pins": ["R_GATE.2"] }
  },
  "citations": [
@@ -18,6 +19,25 @@
   { "source": "mchp_an1149", "locator": "p.5", "quote": "If the system draws current from the battery, the charge current will never meet the termination value. This causes the non-termination of the charge management circuit." },
   { "source": "mchp_an1149", "locator": "p.5", "quote": "When the input sources are absent, the RPULL pulls the gate to zero allowing current to flow out of the battery." },
   { "source": "mchp_an1149", "locator": "p.5", "quote": "A 100 kΩ RPULL resistor is recommended in this design" },
-  { "source": "mchp_an1149", "locator": "p.6", "quote": "A diode, D1 in Figure 7 is required to prevent reverse current from flowing to the power source." }
- ]
+  { "source": "mchp_an1149", "locator": "p.6", "quote": "A diode, D1 in Figure 7 is required to prevent reverse current from flowing to the power source." },
+  { "source": "cj2101", "locator": "p.1", "quote": "1. GATE 2. SOURCE 3. DRAIN", "note": "fet = cj2101: the 1 gate, 2 source, 3 drain the fet parameter requires, as KiCad's BSS84 symbol." },
+  { "source": "cj2101", "locator": "p.1", "quote": "Gate-Source Voltage VGS ±8.0", "note": "Without input the gate is near 0 V and the source at the cell (up to 4.2 V): inside the rating." },
+  { "source": "cj2101", "locator": "p.2", "quote": "VGS =-1.8V, ID =-0.3A 210", "note": "RDS(on) max in mOhm at VGS -1.8 V (100 mOhm at -4.5 V)." },
+  { "source": "mdd_1n4007ws", "locator": "p.1", "quote": "Polarity : Polarity symbol marking on body", "note": "The package drawing marks the cathode with a bar ('Cathode bar'); no pin numbers. KiCad's D_SOD-323 puts the cathode on pad 1 and Device:D has K 1, A 2, so D1.1 is VSYS and D1.2 VIN." },
+  { "source": "mdd_1n4007ws", "locator": "p.2", "figure": "Fig.3 Typical Forward Characteristic: at 0.1 A, about 0.81 V at TJ 25 °C, 0.71 V at 100 °C and 0.62 V at 150 °C.", "note": "The note's ~0.8 V drop (typical)." },
+  { "source": "mdd_1n4007ws", "locator": "p.2", "figure": "Fig.2 Typical Instaneous Reverse Characteristics (1N4007W): about 0.03 uA at TJ 25 °C and 0.5-1 uA at 75 °C over 0-800 V; 'The curve above is for reference only.'", "note": "Why silicon here: about a microamp at 75 °C, where simple_earring found the B5819W Schottky leaking ~120 uA." },
+  { "source": "mdd_1n4007ws", "locator": "p.1", "quote": "Maximum DC reverse current TA=25℃ 5", "note": "uA, at rated DC blocking voltage (1000 V for the 1N4007WS); 50 uA at 125 °C." }
+ ],
+ "params": {
+  "fet": { "default": "ao3401a", "note": "Q1, a P-channel MOSFET with pins 1 gate, 2 source, 3 drain", "choices": { "ao3401a": { "symbol": "Transistor_FET:AO3401A", "value": "AO3401A", "footprint": "Package_TO_SOT_SMD:SOT-23", "lcsc": "C15127", "mpn": "AO3401A" }, "cj2101": { "symbol": "Transistor_FET:BSS84", "value": "CJ2101", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C52641", "mpn": "CJ2101" } } },
+  "diode": { "default": "b5819w", "note": "D1: a Schottky for low drop, or a silicon diode for low reverse leakage", "choices": { "b5819w": { "symbol": "Device:D_Schottky", "value": "B5819W", "footprint": "Diode_SMD:D_SOD-123", "lcsc": "C8598" }, "1n4007ws": { "symbol": "Device:D", "value": "1N4007WS", "footprint": "Diode_SMD:D_SOD-323", "lcsc": "C193404", "mpn": "1N4007WS" } } },
+  "gate_ohm": { "default": 100000, "unit": "ohm", "note": "R_GATE, the gate's pull-down (AN1149's RPULL)" },
+  "series_ohm": { "default": 0, "unit": "ohm", "note": "R_SERIES from VIN to the gate; 0 for none (the gate on VIN, as in AN1149)" }
+ },
+ "requires": [
+  { "expr": "series_ohm <= gate_ohm / 20", "message": "R_SERIES must be small next to R_GATE, or the gate sits below VIN with input present and Q1 is not fully off" }
+ ],
+ "nets": {
+  "GATE": { "if": "series_ohm > 0", "pins": ["Q1.1", "R_GATE.1", "R_SERIES.2"] }
+ }
 }

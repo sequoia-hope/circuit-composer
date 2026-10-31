@@ -45,10 +45,11 @@
     "vih": "1.1",
     "vil": "0.4 + 0.2 * (supply >= 3.61)",
     "vin_max": "5.5",
-    "note": "supply is VIN. VIH 1.1 V min over the whole VIN range 1.4-5.5 V; VIL 0.4 V max for VIN 1.4-3.6 V and 0.6 V for VIN 3.61-5.5 V (the expression; with VIN unknown it evaluates to the worse 0.4 V); VON recommended 0-5.5 V, absolute maximum 6 V. VIH does not scale with VIN, so a 1.8 V or 3.3 V GPIO drives ON at any VIN",
+    "iin_ua": "1",
+    "note": "supply is VIN. VIH 1.1 V min over the whole VIN range 1.4-5.5 V; VIL 0.4 V max for VIN 1.4-3.6 V and 0.6 V for VIN 3.61-5.5 V (the expression; with VIN unknown it evaluates to the worse 0.4 V); VON recommended 0-5.5 V, absolute maximum 6 V. VIH does not scale with VIN, so a 1.8 V or 3.3 V GPIO drives ON at any VIN; ION, the input leakage, 1 uA max at VON 1.4-5.25 V or GND",
     "citation": {
      "source": "tps22913_ds",
-     "locator": "§8.1, §8.3 p.4"
+     "locator": "§8.1, §8.3 p.4; §8.5 p.5"
     }
    }
   }

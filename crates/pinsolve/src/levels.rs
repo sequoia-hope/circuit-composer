@@ -5,6 +5,14 @@
 //! `vol` (what it drives), `vin_max` (the most it takes), and `vin_max_unpowered` with `when`
 //! where that limit holds only while the chip is powered (the RP2350's 5 V-tolerant pins).
 //! Levels given `at_supply_v` hold only for a rail within 5 % of it; elsewhere they aren't judged.
+//!
+//! A datasheet's `vol` and `voh` hold at a stated current (`iol_ma`, `ioh_ma`: the RP2350's at its
+//! drive setting, 2 mA at the weakest). A receiver that says what it draws (`iin_ua`, its input
+//! leakage), with the pull-ups and pull-downs its package puts on the pin, loads the driver far
+//! less than that: the driver's output transistor is then in its linear region, where current
+//! rises less than in proportion to the voltage across it as that voltage grows, so the drop at a
+//! smaller current is at most the stated drop scaled by the ratio of currents. A 1 uA input then
+//! sees a low of 0.25 mV from a pin rated 0.5 V at 2 mA, not 0.5 V.
 //! A rail's voltage comes from the composition's `rails`, a recipe port's `volts`, or a package
 //! pin that is a `power_out` with `nominal_v`.
 
@@ -75,6 +83,15 @@ pub struct Lv {
     pub vin_max: Option<f64>,
     pub vin_max_unpowered: Option<f64>,
     pub when: Option<String>,
+    /// The currents `vol` and `voh` are given at, amps.
+    pub iol: Option<f64>,
+    pub ioh: Option<f64>,
+    /// What the pin draws as an input, amps; None when its package doesn't say.
+    pub iin: Option<f64>,
+    /// Its package's resistors from the pin to a rail (ohms, the rail's highest volts) and to
+    /// ground (ohms).
+    pub pull_up: Vec<(f64, f64)>,
+    pub pull_down: Vec<f64>,
     /// The supply rail: its net and range.
     pub rail: Option<(String, (f64, f64))>,
     /// What the pin's function is called, for messages.
@@ -129,7 +146,13 @@ pub fn of(comp: &Composition, pkgs: &BTreeMap<String, Package>, rails: &Rails, i
             None => at(f64::NAN).filter(|x| x.is_finite()),
         }
     };
+    let (pull_up, pull_down) = pulls(comp, pk, rails, inst, port);
     Some(Lv {
+        iol: eval("iol_ma", false).map(|x| x * 1e-3),
+        ioh: eval("ioh_ma", false).map(|x| x * 1e-3),
+        iin: eval("iin_ua", true).map(|x| x * 1e-6),
+        pull_up,
+        pull_down,
         vih: eval("vih", true),
         vil: eval("vil", false),
         voh: eval("voh", false),
@@ -142,12 +165,62 @@ pub fn of(comp: &Composition, pkgs: &BTreeMap<String, Package>, rails: &Rails, i
     })
 }
 
+/// A resistor inside an instance from one of its ports to another: its role, ohms, and the far
+/// port's name and kind.
+pub fn resistors<'a>(comp: &Composition, pk: &'a Package, inst: &str, port: &str) -> Vec<(String, f64, &'a str, &'a str)> {
+    let Some(i) = comp.instances.get(inst) else { return vec![] };
+    let Some(p) = pk.circuit.ports.get(port) else { return vec![] };
+    let mut out = Vec::new();
+    for pin in &p.pins {
+        let Some((role, n)) = pin.split_once('.') else { continue };
+        let Some(part) = pk.circuit.parts.get(role) else { continue };
+        if role == "U1" || i.omit.iter().any(|o| o == role) || part.symbol != "Device:R" {
+            continue;
+        }
+        let other = format!("{role}.{}", if n == "1" { "2" } else { "1" });
+        let Some((far, q)) = pk.circuit.ports.iter().find(|(_, q)| q.pins.contains(&other)) else { continue };
+        let value = i.parts.get(role).and_then(|m| m.get("value")).and_then(Value::as_str).unwrap_or(&part.value);
+        if let Some(ohms) = compose::expr::parse_value(value) {
+            out.push((role.to_string(), ohms, far.as_str(), q.kind.as_str()));
+        }
+    }
+    out
+}
+
+/// The pull-ups (ohms, the rail's top) and pull-downs (ohms) a package puts on a port.
+fn pulls(comp: &Composition, pk: &Package, rails: &Rails, inst: &str, port: &str) -> (Vec<(f64, f64)>, Vec<f64>) {
+    let (mut up, mut down) = (Vec::new(), Vec::new());
+    for (_, ohms, far, kind) in resistors(comp, pk, inst, port) {
+        match kind {
+            "ground" => down.push(ohms),
+            "supply" => {
+                if let Some(v) = net_of(comp, &format!("{inst}.{far}")).and_then(|n| rails.get(&n)) {
+                    up.push((ohms, v.1));
+                }
+            }
+            _ => {}
+        }
+    }
+    (up, down)
+}
+
 /// Whether `d` driving `r` works: Err with the reason when it doesn't, else what to keep in mind.
 /// An open-drain driver's high is its pull-up's, judged by the bus rule, not here.
 pub fn drive(d: &Lv, r: &Lv, open_drain: bool) -> Result<Vec<String>, String> {
     let mut notes = Vec::new();
+    // What the driver sources high and sinks low, where the receiver says what it draws.
+    let load_high = r.iin.map(|i| i + d.high_max().map_or(0.0, |v| r.pull_down.iter().map(|ohms| v / ohms).sum::<f64>()));
+    let load_low = r.iin.map(|i| i + r.pull_up.iter().map(|(ohms, v)| v / ohms).sum::<f64>());
+    let voh = match (d.voh, d.ioh, load_high, &d.rail) {
+        (Some(voh), Some(ioh), Some(i), Some((_, (lo, _)))) if i <= ioh => Some(lo - (lo - voh) * i / ioh),
+        _ => d.voh,
+    };
+    let vol = match (d.vol, d.iol, load_low) {
+        (Some(vol), Some(iol), Some(i)) if i <= iol => Some(vol * i / iol),
+        _ => d.vol,
+    };
     if !open_drain {
-        if let (Some(voh), Some(vih)) = (d.voh, r.vih) {
+        if let (Some(voh), Some(vih)) = (voh, r.vih) {
             if voh < vih {
                 return Err(format!("{}'s high ({voh:.2} V) is below what {} reads as high ({vih:.2} V)", d.what, r.what));
             }
@@ -161,10 +234,41 @@ pub fn drive(d: &Lv, r: &Lv, open_drain: bool) -> Result<Vec<String>, String> {
             }
         }
     }
-    if let (Some(vol), Some(vil)) = (d.vol, r.vil) {
+    if let (Some(vol), Some(vil)) = (vol, r.vil) {
         if vol > vil {
-            return Err(format!("{}'s low ({vol:.2} V) is above what {} reads as low ({vil:.2} V)", d.what, r.what));
+            let at = load_low.filter(|_| vol != d.vol.unwrap_or(vol)).map(|i| format!(" at {:.2} mA", i * 1e3)).unwrap_or_default();
+            return Err(format!("{}'s low ({vol:.2} V{at}) is above what {} reads as low ({vil:.2} V)", d.what, r.what));
         }
     }
     Ok(notes)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn gpio() -> Lv {
+        Lv { voh: Some(2.62), vol: Some(0.5), iol: Some(2e-3), ioh: Some(2e-3), rail: Some(("+3V3".into(), (3.3, 3.3))), what: "mcu.GPIO0".into(), ..Default::default() }
+    }
+
+    fn on(iin: Option<f64>) -> Lv {
+        Lv { vih: Some(1.1), vil: Some(0.4), iin, what: "sw.ON".into(), ..Default::default() }
+    }
+
+    #[test]
+    fn a_low_scaled_to_what_the_input_draws() {
+        // 0.5 V at 2 mA is at most 0.25 mV at 1 uA: well under VIL 0.4 V.
+        assert!(drive(&gpio(), &on(Some(1e-6)), false).is_ok());
+        // An input that doesn't say what it draws is judged at the datasheet's 0.5 V.
+        let e = drive(&gpio(), &on(None), false).unwrap_err();
+        assert!(e.contains("0.50 V"), "{e}");
+        // A 1k pull-up to 3.3 V on the input's side is 3.3 mA: past the 2 mA VOL is given at, so
+        // nothing is scaled.
+        let mut r = on(Some(1e-6));
+        r.pull_up = vec![(1000.0, 3.3)];
+        assert!(drive(&gpio(), &r, false).is_err());
+        // A 4.7k one is 0.7 mA: 0.18 V.
+        r.pull_up = vec![(4700.0, 3.3)];
+        assert!(drive(&gpio(), &r, false).is_ok());
+    }
 }

@@ -1,0 +1,29 @@
+{
+ "name": "button_esd",
+ "summary": "A push button to ground behind a TVS and a series resistor, for a button on the board's edge under a finger",
+ "note": "From simple_earring rev 2 (vendored with the bolt earring: boards/bolt-earring/vendor/simple_earring/scripts/circuit.py, whose comments give the reasons and the corner simulations behind each value). The TVS clamps a discharge at the switch's pad; R_SER then limits what reaches the node behind it (at a ~14 V clamp, ~14 mA through 1 kohm), which should have a capacitor of its own (power_latch's C_DEB) so a strike does not register as a press. R_SER costs a few tens of mV on the pressed level.",
+ "parts": {
+  "SW1": { "reference_ref": "SW1", "symbol": "Switch:SW_Push", "value": "B3U-3000P", "footprint": "Button_Switch_SMD:SW_SPST_B3U-3000P", "lcsc": "C963349", "mpn": "B3U-3000P", "note": "Omron B3U, side-actuated" },
+  "D_TVS": { "reference_ref": "D1", "symbol": "Device:D_TVS", "value": "PESD5V0S1BL", "footprint": "Diode_SMD:D_SOD-882", "lcsc": "C84374", "mpn": "PESD5V0S1BL,315", "note": "Bidirectional, 5 V working" },
+  "R_SER": { "reference_ref": "R1", "symbol": "Device:R", "value": "1k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C11702", "note": "Isolates the node behind from the clamp" }
+ },
+ "nets": {
+  "PAD": ["SW1.2", "D_TVS.1", "R_SER.1"]
+ },
+ "ports": {
+  "OUT": { "kind": "signal", "pins": ["R_SER.2"], "note": "Pulled to ground while pressed: the node must be pulled up" },
+  "GND": { "kind": "ground", "pins": ["SW1.1", "D_TVS.2"] }
+ },
+ "interfaces": {},
+ "citations": [
+  { "source": "omron_b3u", "locator": "p.1", "quote": "Contact form SPST-NO" },
+  { "source": "omron_b3u", "locator": "p.3", "quote": "No terminal numbers are indicated on the Switches.", "note": "Side-actuated B3U-3000P(M): the Terminal Arrangement/Internal Connections (Top View) figure shows terminals 2 and 1 joined by one contact. SW1's two pins are interchangeable; KiCad's SW_SPST_B3U-3000P footprint has pads 1 and 2." },
+  { "source": "omron_b3u", "locator": "p.1", "quote": "10 μA at 1 VDC (resistive load)", "note": "Minimum applicable load (reference value). A press carries the pull-ups' current (in the bolt, power_latch's R_GATE and R_PRESS, about 70 uA), above it; the rating proper is 1 to 50 mA, 3 to 12 VDC." },
+  { "source": "pesd5v0s1bl", "locator": "p.2", "quote": "1 K1 cathode (diode 1)", "note": "Pin 2 is K2, cathode (diode 2): two back-to-back diodes, symmetric, so the pin order does not matter. KiCad's D_TVS (bidirectional) is A1 1, A2 2; D_SOD-882 has pads 1 and 2." },
+  { "source": "pesd5v0s1bl", "locator": "p.1", "quote": "Bidirectional ESD protection of one line" },
+  { "source": "pesd5v0s1bl", "locator": "p.4", "quote": "VRWM reverse standoff Tamb = 25 °C - - 5 V", "note": "The button node sits at up to a full cell (4.2 V), under the standoff voltage." },
+  { "source": "pesd5v0s1bl", "locator": "p.4", "quote": "IRM reverse leakage current VRWM = 5 V; Tamb = 25 °C - 5 100 nA", "note": "Typ and max: a board-off leak into the button node (power_latch's LATCH_G budget); Fig. 6 gives its rise with temperature." },
+  { "source": "pesd5v0s1bl", "locator": "p.4", "quote": "IPPM = 12 A; tp = 8/20 μs; Tamb = 25 °C [1] [2] - - 14 V", "note": "VCL max, the ~14 V clamp the note uses for R_SER's current." },
+  { "source": "pesd5v0s1bl", "locator": "p.3", "quote": "IEC 61000-4-2; contact discharge [2] [3] - 30 kV" }
+ ]
+}

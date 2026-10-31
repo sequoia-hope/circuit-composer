@@ -1,0 +1,48 @@
+{
+ "name": "power_latch",
+ "summary": "A push-on soft power latch for a battery board: a button press switches the cell through, the MCU holds it on, and the press is readable as a clean logic level",
+ "note": "From simple_earring rev 2 (vendored with the bolt earring: boards/bolt-earring/vendor/simple_earring/scripts/circuit.py, whose comments give the reasons and the corner simulations behind each value). Q_SW, a P-FET, switches the cell to OUT when its gate (LATCH_G) is pulled low; R_GATE holds it off. Pressing the button pulls BTN low, which pulls LATCH_G low through one anode of D_OR, so the board comes on; the MCU then drives HOLD high and Q_HOLD keeps LATCH_G low after the button is released. R_HOLD keeps HOLD low until firmware drives it, so the latch is off at boot and while the MCU is in reset. D_OR's other anode pulls PRESS_N low on a press; Q_SENSE, a P-FET from VIO, turns that into PRESSED, high while the button is held (a P-FET because the diode's low, about 0.45 V, is too near a Schmitt input's threshold but is plenty of gate drive). R_SENSE pulls PRESSED low: the MCU pin's own pull-up must be off. C_DEB debounces the button (R_GATE x C_DEB, 10 ms, on release) and is the second ESD stage behind button_esd. Q_SW carries only what OUT feeds (an enable line and a divider in the bolt), so a weak part with a high threshold is chosen: leakage into LATCH_G with the board off must not reach its threshold, hot.",
+ "parts": {
+  "Q_SW": { "reference_ref": "Q1", "symbol": "Transistor_FET:BSS84", "value": "LBSS84WT1G", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C383208", "mpn": "LBSS84WT1G", "note": "P-channel, |VGS(th)| 0.8-2.0 V: 1 gate, 2 source, 3 drain" },
+  "R_GATE": { "reference_ref": "R1", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "note": "Holds Q_SW off" },
+  "Q_HOLD": { "reference_ref": "Q2", "symbol": "Transistor_FET:BSS138", "value": "BSS138W", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C5224279", "mpn": "BSS138W-7-F-ES", "note": "The MCU's hold: drain on LATCH_G" },
+  "R_HOLD": { "reference_ref": "R2", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "note": "HOLD low until firmware drives it: off at boot" },
+  "D_OR": { "reference_ref": "D1", "symbol": "Diode:BAV70W", "value": "BAV70W", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C28064", "mpn": "BAV70W,115", "note": "Two diodes, common cathode (3) on BTN: anode 2 on LATCH_G, anode 1 on PRESS_N" },
+  "C_DEB": { "reference_ref": "C1", "symbol": "Device:C", "value": "100n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C1525", "note": "Debounce, and the second ESD stage" },
+  "R_PRESS": { "reference_ref": "R3", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "note": "PRESS_N's pull-up to VIO" },
+  "Q_SENSE": { "reference_ref": "Q3", "symbol": "Transistor_FET:BSS84", "value": "CJ2101", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C52641", "mpn": "CJ2101", "note": "P-channel inverter: source VIO, drain PRESSED" },
+  "R_SENSE": { "reference_ref": "R4", "symbol": "Device:R", "value": "4.7k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C105871", "note": "PRESSED's pull-down" }
+ },
+ "nets": {
+  "LATCH_G": ["Q_SW.1", "R_GATE.2", "Q_HOLD.3", "D_OR.2"],
+  "PRESS_N": ["D_OR.1", "R_PRESS.2", "Q_SENSE.1"]
+ },
+ "ports": {
+  "VBAT": { "kind": "supply", "pins": ["Q_SW.2", "R_GATE.1"], "note": "The cell" },
+  "OUT": { "kind": "supply", "pins": ["Q_SW.3"], "note": "The cell while the latch is on: an enable line and light loads, not the system current" },
+  "BTN": { "kind": "signal", "pins": ["D_OR.3", "C_DEB.1"], "note": "The button's node: pulled low (through button_esd) to press" },
+  "HOLD": { "kind": "signal", "pins": ["Q_HOLD.1", "R_HOLD.1"], "levels": { "vih": "1.5", "vin_max": "20" }, "note": "High keeps the board on" },
+  "PRESSED": { "kind": "signal", "pins": ["Q_SENSE.3", "R_SENSE.1"], "supply": "VIO", "levels": { "voh": "supply", "vol": "0" }, "note": "High while the button is held" },
+  "VIO": { "kind": "supply", "pins": ["R_PRESS.1", "Q_SENSE.2"], "note": "The MCU's I/O rail" },
+  "GND": { "kind": "ground", "pins": ["Q_HOLD.2", "R_HOLD.2", "C_DEB.2", "R_SENSE.2"] }
+ },
+ "interfaces": {
+  "hold": { "type": "logic", "dir": "in", "pins": { "IO": "HOLD" } },
+  "pressed": { "type": "logic", "dir": "out", "drive": "push_pull", "pins": { "IO": "PRESSED" } }
+ },
+ "citations": [
+  { "source": "lbss84wt1g", "locator": "p.1", "figure": "SC70(SOT-323) outline with pins 1, 2 and 3, and the P-channel symbol labelled 1 Gate, 2 Source, 3 Drain.", "note": "Q_SW. KiCad's BSS84 symbol (extends TP0610T) is G 1, S 2, D 3." },
+  { "source": "lbss84wt1g", "locator": "p.2", "quote": "(VDS = VGS, ID = -250μA) -0.8 - -2", "note": "Gate Threshold Voltage VGS(th), min / typ / max in volts. The 0.8 V minimum is what board-off leakage into LATCH_G through R_GATE must stay under; pressed, LATCH_G sits a diode drop above ground (~0.5-0.7 V), so VGS is about -2.3 V at a 3.0 V cell, past the -2 V maximum. No temperature coefficient is given." },
+  { "source": "lbss84wt1g", "locator": "p.1", "quote": "Gate–to–Source Voltage – Continuous VGS ±20 V" },
+  { "source": "bss138w", "locator": "p.1", "quote": "Pin Function 1 Gate 2 Source 3 Drain", "note": "Q_HOLD. Table-2; KiCad's BSS138 symbol (Q_NMOS_GSD) is G 1, S 2, D 3 as well." },
+  { "source": "bss138w", "locator": "p.3", "quote": "Gate Threshold Voltage VGS(TH) VGS=VDS, ID=250uA 0.8 1.0 1.5 V", "note": "HOLD's vih of 1.5 V is the maximum threshold." },
+  { "source": "bss138w", "locator": "p.2", "quote": "Gate-Source Voltage VGS ±20 V", "note": "HOLD's vin_max." },
+  { "source": "bav70w", "locator": "p.2", "quote": "1 A1 anode (diode 1) 2 A2 anode (diode 2) 3 CC common cathode", "note": "Table 2. KiCad's BAV70 symbol: A 1, A 2, K 3." },
+  { "source": "bav70w", "locator": "p.4", "quote": "VR = 25 V; Tamb = 25 °C - - 30 nA", "note": "IR max per diode. With the board off PRESS_N is at 0 V and BTN near the cell, so D_OR's PRESS_N diode is reverse-biased and its leakage flows through R_GATE: part of the LATCH_G budget. Hot it is far larger: the next row is 30 uA max at 25 V, Tj 150 °C." },
+  { "source": "bav70w", "locator": "p.4", "quote": "IF = 1 mA; tp ≤ 300 µs; δ ≤ 0.02; - - 715 mV", "note": "VF max at 1 mA: on a press LATCH_G and PRESS_N sit one diode drop above BTN, and the currents here (R_GATE's and R_PRESS's tens of uA) are well under 1 mA." },
+  { "source": "cj2101", "locator": "p.1", "quote": "1. GATE 2. SOURCE 3. DRAIN", "note": "Q_SENSE; matches KiCad's BSS84 symbol (G 1, S 2, D 3)." },
+  { "source": "cj2101", "locator": "p.2", "quote": "Gate-Source Threshold Voltage VGS(th) VDS =VGS, ID =-250µA -0.45 -0.7 V", "note": "Min and typ only: the datasheet gives no maximum. Q_SENSE's gate is driven to PRESS_N's diode low, about VIO - 0.45 V of VGS." },
+  { "source": "cj2101", "locator": "p.2", "quote": "VGS =-1.8V, ID =-0.3A 210", "note": "RDS(on) max in mOhm at VGS -1.8 V: the part is specified fully on at a VGS well inside the ~2.85 V Q_SENSE gets from a 3.3 V VIO, which stands in for the missing VGS(th) maximum." },
+  { "source": "omron_b3u", "locator": "p.1", "quote": "Bounce time 5 ms max.", "note": "The bolt's button (button_esd's B3U-3000P): C_DEB's 10 ms release time constant (R_GATE x C_DEB) is longer than the bounce." }
+ ]
+}

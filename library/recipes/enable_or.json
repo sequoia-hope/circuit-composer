@@ -1,0 +1,25 @@
+{
+ "name": "enable_or",
+ "summary": "A regulator enable that is on when either of two sources is: a latched cell (through a diode) or USB (through a divider), clamped to the cell",
+ "note": "From simple_earring rev 2 (vendored with the bolt earring: boards/bolt-earring/vendor/simple_earring/scripts/circuit.py, whose comments give the reasons and the corner simulations behind each value). D_OR is two silicon diodes in series. The first passes A (the power latch's output: the cell) to EN, a diode drop lower; the second clamps EN to CLAMP (the cell) plus a diode drop, so EN never rises far above the regulator's input. R_TOP and R_BOT make B (USB VBUS) into EN at half of VBUS, so USB turns the regulator on whatever the latch says; R_BOT also holds EN low when neither is present. Silicon, not Schottky: a Schottky's reverse leakage into R_BOT, hot, put enough volts on EN to switch the board on by itself. The NCP730's EN must stay below VIN + 0.3 V: half of VBUS meets that only while the regulator's input is at least VBUS/2 - 0.3 V.",
+ "parts": {
+  "D_OR": { "reference_ref": "D1", "symbol": "Diode:BAV99", "value": "BAV99W", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C8662", "mpn": "BAV99W,115", "note": "Two diodes in series: 1 anode of the first, 3 their midpoint, 2 cathode of the second" },
+  "R_TOP": { "reference_ref": "R1", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "note": "B to EN" },
+  "R_BOT": { "reference_ref": "R2", "symbol": "Device:R", "value": "100k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C25741", "note": "EN to ground" }
+ },
+ "nets": {},
+ "ports": {
+  "A": { "kind": "signal", "pins": ["D_OR.1"], "note": "The latched cell" },
+  "CLAMP": { "kind": "supply", "pins": ["D_OR.2"], "note": "The cell: EN is clamped a diode drop above it" },
+  "B": { "kind": "supply", "pins": ["R_TOP.1"], "note": "USB VBUS" },
+  "EN": { "kind": "signal", "pins": ["D_OR.3", "R_TOP.2", "R_BOT.1"], "note": "To the regulator's enable" },
+  "GND": { "kind": "ground", "pins": ["R_BOT.2"] }
+ },
+ "interfaces": {},
+ "citations": [
+  { "source": "bav99w", "locator": "p.2", "quote": "1 A1 anode (diode 1) 2 K2 cathode (diode 2) 3 K1, A2 cathode (diode 1) and anode (diode 2)", "note": "Table 2: A on pin 1, CLAMP on pin 2, EN on the midpoint pin 3. KiCad's BAV99 symbol draws the same series pair (pin 1 anode end, pin 3 midpoint, pin 2 cathode end), though it names its pins K 1, A 2, K 3." },
+  { "source": "bav99w", "locator": "p.4", "quote": "VR = 25 V; Tamb = 25 °C - - 30 nA", "note": "IR max per diode: what the clamp diode leaks from CLAMP into EN and R_BOT with the board off." },
+  { "source": "bav99w", "locator": "p.4", "quote": "VR = 25 V; Tj = 150 °C - - 30 µA", "note": "The same, hot; through R_BOT's 100 kohm even 1 uA is 0.1 V on EN." },
+  { "source": "bav99w", "locator": "p.4", "quote": "IF = 1 mA; Tamb = 25 °C - - 715 mV", "note": "VF max at 1 mA: EN is A less this drop (and is clamped this much above CLAMP)." }
+ ]
+}

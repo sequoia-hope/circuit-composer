@@ -1,0 +1,41 @@
+{
+ "name": "long_press_reset",
+ "summary": "Hold a button for seconds to reset an RP2350 into its USB bootloader: an RC timer, a Schmitt buffer, and two N-FETs on BOOTSEL and RUN",
+ "note": "From simple_earring rev 2 (vendored with the bolt earring: boards/bolt-earring/vendor/simple_earring/scripts/circuit.py, whose comments give the reasons and the corner simulations behind each value), where it replaced the BOOTSEL key. IN is high while the button is held (power_latch's PRESSED). R_TMR charges C_TMR (tau 6.8 s nominal; simple_earring's corners give 2-11 s) and D_DIS empties it the moment IN falls, so holds do not add up. U1, two Schmitt inverters, turns BOOT_TMR into one clean rising edge on LONG. LONG drives Q_BOOT, which pulls BOOTSEL low (through the MCU's own 1 kohm to QSPI_SS) for as long as the button is held; C_KICK and R_KICK differentiate LONG's edge into a ~10 ms pulse on Q_RUN's gate, which pulls RUN low. The chip resets and its boot ROM finds QSPI_SS strapped low. On a battery board whose MCU holds the power latch, the reset also drops the hold, so the board turns off on release: a hardware force-off. Everything runs from VDD, so the block draws nothing with the board off. R_TMR is large so U1's input leakage stays small next to the charge current; IN's source must hold IN low against it (power_latch's R_SENSE).",
+ "parts": {
+  "D_DIS": { "reference_ref": "D1", "symbol": "Diode:1N4148WS", "value": "1N4148WS", "footprint": "Diode_SMD:D_SOD-323", "lcsc": "C2128", "mpn": "1N4148WS", "note": "1 cathode on IN, 2 anode on BOOT_TMR" },
+  "R_TMR": { "reference_ref": "R1", "symbol": "Device:R", "value": "680k", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C4131", "note": "The timer's resistor" },
+  "C_TMR": { "reference_ref": "C1", "symbol": "Device:C", "value": "10u", "footprint": "Capacitor_SMD:C_0603_1608Metric", "lcsc": "C19702", "note": "The timer's capacitor; X5R, so its value moves with temperature and bias" },
+  "U1": { "reference_ref": "U1", "symbol": "74xGxx:74LVC2G14", "value": "74LVC2G14", "footprint": "Package_TO_SOT_SMD:SOT-363_SC-70-6", "lcsc": "C6085", "mpn": "74LVC2G14GW,125", "note": "1A pin 1, 1Y pin 6, 2A pin 3, 2Y pin 4, VCC 5, GND 2" },
+  "C_VCC": { "reference_ref": "C2", "symbol": "Device:C", "value": "100n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C1525", "near": "U1.5", "note": "U1's bypass" },
+  "Q_BOOT": { "reference_ref": "Q1", "symbol": "Transistor_FET:BSS138", "value": "BSS138W", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C5224279", "mpn": "BSS138W-7-F-ES", "note": "Pulls BOOTSEL low while LONG is high" },
+  "C_KICK": { "reference_ref": "C3", "symbol": "Device:C", "value": "10n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C15195", "note": "Differentiates LONG's edge" },
+  "R_KICK": { "reference_ref": "R2", "symbol": "Device:R", "value": "1M", "footprint": "Resistor_SMD:R_0402_1005Metric", "lcsc": "C26083", "note": "With C_KICK, a ~10 ms pulse" },
+  "Q_RUN": { "reference_ref": "Q2", "symbol": "Transistor_FET:BSS138", "value": "BSS138W", "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70", "lcsc": "C5224279", "mpn": "BSS138W-7-F-ES", "note": "Pulls RUN low for the pulse" }
+ },
+ "nets": {
+  "BOOT_TMR": ["D_DIS.2", "R_TMR.2", "C_TMR.1", "U1.1"],
+  "LONG_N": ["U1.6", "U1.3"],
+  "LONG": ["U1.4", "Q_BOOT.1", "C_KICK.1"],
+  "RUN_KICK": ["C_KICK.2", "R_KICK.1", "Q_RUN.1"]
+ },
+ "ports": {
+  "IN": { "kind": "signal", "pins": ["D_DIS.1", "R_TMR.1"], "note": "High while the button is held" },
+  "BOOTSEL": { "kind": "signal", "pins": ["Q_BOOT.3"], "note": "Open drain: to the RP2350's BOOTSEL resistor, the far end from QSPI_SS" },
+  "RUN": { "kind": "signal", "pins": ["Q_RUN.3"], "note": "Open drain: to the RP2350's RUN, which needs its pull-up" },
+  "VDD": { "kind": "supply", "pins": ["U1.5", "C_VCC.1"] },
+  "GND": { "kind": "ground", "pins": ["C_TMR.2", "U1.2", "C_VCC.2", "Q_BOOT.2", "R_KICK.2", "Q_RUN.2"] }
+ },
+ "interfaces": {},
+ "citations": [
+  { "source": "jscj_1n4148ws", "locator": "p.1", "figure": "SOD-323 outline with a band at one end, and the diode symbol; no pin numbers.", "note": "D_DIS's cathode is the band end. KiCad's D_SOD-323 puts the cathode on pad 1, and Diode:1N4148WS (like Device:D) has K 1, A 2." },
+  { "source": "jscj_1n4148ws", "locator": "p.1", "quote": "IR2 25 nA VR=20V", "note": "Reverse current max: D_DIS is reverse-biased while IN is high and the timer charges, and leaks two orders of magnitude less than R_TMR's ~3 uA charge current." },
+  { "source": "nexperia_74lvc2g14", "locator": "p.3", "quote": "1A 1 data input GND 2 ground (0 V) 2A 3 data input 2Y 4 data output VCC 5 supply voltage 1Y 6 data output", "note": "Table 3, the same for every package (the GW is SOT363, TSSOP6). KiCad's 74LVC2G14 symbol uses the same numbers." },
+  { "source": "nexperia_74lvc2g14", "locator": "p.1", "quote": "Unlimited rise and fall times", "note": "BOOT_TMR's seconds-long RC ramp is a legal input." },
+  { "source": "nexperia_74lvc2g14", "locator": "p.6", "quote": "VCC = 3.0 V; see Fig. 6 1.30 1.76 2.20 1.30 2.40 V", "note": "VT+ (positive-going threshold) at VCC 3.0 V, min / typ / max at -40 to +85 °C, then min / max at -40 to +125 °C. The table has no 3.3 V row: at 4.5 V VT+ is 1.90 / 2.47 / 3.10 V, so at 3.3 V it lies between the two rows." },
+  { "source": "nexperia_74lvc2g14", "locator": "p.6", "quote": "VCC = 3.0 V; see Fig. 6 0.60 1.04 1.50 0.60 1.70 V", "note": "VT- (negative-going threshold) at VCC 3.0 V, same columns." },
+  { "source": "nexperia_74lvc2g14", "locator": "p.5", "quote": "II input leakage current VI = 5.5 V or GND; VCC = 0 V to 5.5 V - ±0.1 ±1 μA", "note": "Typ and max, -40 to +85 °C: the leakage R_TMR's charge current must dwarf, and which IN's source must hold BOOT_TMR low against through R_TMR." },
+  { "source": "bss138w", "locator": "p.1", "quote": "Pin Function 1 Gate 2 Source 3 Drain", "note": "Q_BOOT and Q_RUN. Table-2; KiCad's BSS138 symbol (Q_NMOS_GSD) is G 1, S 2, D 3 as well." },
+  { "source": "bss138w", "locator": "p.3", "quote": "Gate Threshold Voltage VGS(TH) VGS=VDS, ID=250uA 0.8 1.0 1.5 V", "note": "Q_RUN's gate pulse ends when RUN_KICK decays through this threshold: C_KICK x R_KICK is 10 ms, and from a 3.3 V edge the pulse lasts RC x ln(3.3 V / VGS(th)), about 8-14 ms over 0.8-1.5 V." }
+ ]
+}

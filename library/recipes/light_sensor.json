@@ -1,0 +1,33 @@
+{
+ "name": "light_sensor",
+ "summary": "An ambient-light phototransistor (ALS-PT19) with its load resistor and filter capacitor, to an ADC input",
+ "note": "The phototransistor's collector is on VDD and its emitter drives OUT, loaded by R_LOAD and filtered by C_FILT. The output is the photocurrent times R_LOAD, until it saturates near VDD: a larger load reads dimmer light and saturates sooner. The bolt earring uses 22 kohm, from simple_earring rev 2 (vendored with the bolt earring: boards/bolt-earring/vendor/simple_earring/scripts/circuit.py): about 0.33 V at 100 lux, saturating near 900 lux. Mount it facing out, away from LEDs it would read.",
+ "params": {
+  "load_ohm": { "default": 22000, "unit": "ohm" }
+ },
+ "parts": {
+  "Q1": { "reference_ref": "Q1", "symbol": "Device:Q_Photo_NPN", "value": "ALS-PT19", "footprint": "parts:SENSOR_ALS-PT19", "lcsc": "C146233", "mpn": "ALS-PT19-315C/L177/TR8", "note": "1 collector, 2 emitter. The footprint is simple_earring's (library parts.pretty, vendored with the bolt earring)" },
+  "R_LOAD": { "reference_ref": "R1", "choose": { "stock": "resistor_0402", "target": "load_ohm" } },
+  "C_FILT": { "reference_ref": "C1", "symbol": "Device:C", "value": "100n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C1525" }
+ },
+ "nets": {},
+ "ports": {
+  "VDD": { "kind": "supply", "pins": ["Q1.1"] },
+  "OUT": { "kind": "signal", "pins": ["Q1.2", "R_LOAD.1", "C_FILT.1"] },
+  "GND": { "kind": "ground", "pins": ["R_LOAD.2", "C_FILT.2"] }
+ },
+ "interfaces": {
+  "out": { "type": "analog", "dir": "out", "pins": { "IN": "OUT" } }
+ },
+ "citations": [
+  { "source": "als_pt19_315c", "locator": "p.2", "figure": "Package Dimensions: top and bottom views with terminal 1 (bottom view 'Collector Mark') and terminal 2, the phototransistor symbol labelled 1 Collector, 2 Emitter, and the recommended soldering pads (0.8 x 0.8 mm at 1.5 mm pitch).", "note": "Device:Q_Photo_NPN is C 1, E 2; simple_earring's SENSOR_ALS-PT19 footprint has 0.8 mm square pads 1 and 2 at 1.5 mm pitch." },
+  { "source": "als_pt19_315c", "locator": "p.6", "figure": "Converting Photocurrent to Voltage: Vcc on the collector, the emitter (Iph) to Vout, loaded by RL and CL to GND.", "note": "The recipe's circuit." },
+  { "source": "als_pt19_315c", "locator": "p.6", "quote": "The output voltage (Vout) is the product of photocurrent (IPH) and loading resistor (RL)" },
+  { "source": "als_pt19_315c", "locator": "p.6", "quote": "Vout(max.) = IPH(max.) × RL ≦ Vout(saturation)＝Vcc－0.4V" },
+  { "source": "als_pt19_315c", "locator": "p.6", "quote": "RL × CL ≧ 0.5 (empirical data)", "note": "Units not given; read as kohm x uF, 22 kohm x 100 nF is 2.2." },
+  { "source": "als_pt19_315c", "locator": "p.4", "quote": "IPH1 5 15 --- uA VCE=5V, Ev= 100Lx [Note2]", "note": "Light current min / typ at 100 lux (white fluorescent): 15 uA x 22 kohm is the note's 0.33 V, typical; the minimum gives 0.11 V." },
+  { "source": "als_pt19_315c", "locator": "p.4", "quote": "IPH2 50 150 --- uA VCE=5V, Ev= 1000Lx [Note2]", "note": "Typ 150 uA at 1000 lux: with VDD 3.3 V the 22 kohm load saturates at (3.3 - 0.4) V / 22 kohm = 132 uA, near 900 lux typical." },
+  { "source": "als_pt19_315c", "locator": "p.4", "quote": "VCE(sat) --- --- 0.4 V Ev= 1000Lux" },
+  { "source": "als_pt19_315c", "locator": "p.1", "quote": "Wide supply voltage range, 2.5V to 5.5V" }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "name": "divider",
+ "summary": "A resistive divider to an ADC input, with an optional filter capacitor",
+ "note": "OUT = TOP x bottom / (top + bottom). A large pair costs little current but is slow and loads easily: filter = 1 adds 100 nF from OUT to ground, which the ADC's sampling capacitor then charges from. The bolt earring has two: its battery reading (1M : 1M with the filter, on the latched cell so it reads 0 with the latch off) and its VBUS sense (10k : 10k, stiff on purpose: it holds a dead VBUS low, which the power path's gate needs). The RP2350's ADC input is a switched capacitor of about 1 pF, at least 100 kohm effective at its full 500 kS/s: a divider whose own resistance (top and bottom in parallel) is near that wants the filter, which holds OUT while each sample is taken.",
+ "params": {
+  "top_ohm": { "default": 100000, "unit": "ohm" },
+  "bottom_ohm": { "default": 100000, "unit": "ohm" },
+  "filter": { "default": 0, "note": "1 for a 100 nF capacitor on OUT" }
+ },
+ "parts": {
+  "R_TOP": { "reference_ref": "R1", "choose": { "stock": "resistor_0402", "target": "top_ohm" } },
+  "R_BOT": { "reference_ref": "R2", "choose": { "stock": "resistor_0402", "target": "bottom_ohm" } },
+  "C_FILT": { "if": "filter", "reference_ref": "C1", "symbol": "Device:C", "value": "100n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C1525" }
+ },
+ "nets": {},
+ "ports": {
+  "TOP": { "kind": "supply", "pins": ["R_TOP.1"], "note": "The voltage to read" },
+  "OUT": { "kind": "signal", "pins": ["R_TOP.2", "R_BOT.1", "C_FILT.1 if filter"] },
+  "GND": { "kind": "ground", "pins": ["R_BOT.2", "C_FILT.2 if filter"] }
+ },
+ "interfaces": {
+  "out": { "type": "analog", "dir": "out", "pins": { "IN": "OUT" } }
+ },
+ "citations": [
+  { "source": "rpi_rp2350_ds", "locator": "§12.4.3 p.967", "quote": "The ADC input is capacitive. When sampling, the ADC places about 1pF across the input. Packaging, PCB routing, and other external factors introduce additional capacitance. The effective impedance, even when sampling at 500 kS/s, is over 100 kΩ. DC measurements have no need to buffer." },
+  { "source": "rpi_rp2350_ds", "locator": "Table 1685 p.1338", "quote": "ADC Input RIN_ADC 100 kΩ", "note": "Minimum ADC input impedance." }
+ ]
+}

@@ -21,6 +21,42 @@
     "bytes": 1184408,
     "retrieved": "2026-10-27"
   },
+  "als_pt19_315c": {
+    "title": "ALS-PT19-315C/L177/TR8 Ambient Light Sensor, Surface-Mount",
+    "publisher": "Everlight",
+    "doc": "ALS-PT19-315C/L177/TR8 (LCSC C146233)",
+    "kind": "datasheet",
+    "revision": "Rev.8 (Issue No. DLS-0000039, release date 02.07.2018)",
+    "url": "https://en.everlight.com/wp-content/plugins/ItemRelationship/product_files/pdf/ALS-PT19-315C-L177-TR8_V8.pdf",
+    "sha256": "448c33a1c3ca58d344ad5636a1d1b8654ef80bec69a215a7c7f4bb5e77389bed",
+    "bytes": 1291847,
+    "retrieved": "2026-10-30",
+    "note": "LCSC's record for C146233 links to Everlight's own PDF. Printed page numbers equal PDF pages."
+  },
+  "bav70w": {
+    "title": "BAV70W High-speed switching double diode",
+    "publisher": "Nexperia",
+    "doc": "BAV70W (LCSC C28064)",
+    "kind": "datasheet",
+    "revision": "Product data sheet BAV70W v.9, 1 July 2022",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a277936c2bc59cb9203cfa6fb8854486.pdf?productCode=C28064",
+    "sha256": "e5efbc5e333e093ed6630adbd54d73ee156ebba4e580dbe390fa0e6ff52680fd",
+    "bytes": 203059,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers (n / 10) equal PDF pages."
+  },
+  "bav99w": {
+    "title": "BAV99W High-speed switching diode",
+    "publisher": "Nexperia",
+    "doc": "BAV99W (LCSC C8662)",
+    "kind": "datasheet",
+    "revision": "Product data sheet BAV99W v.9, 1 July 2022",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/847c03a1ea35033ca5a772317438acd1.pdf?productCode=C8662",
+    "sha256": "0b5a79d07fade01502c163557fbb819f10af6bed959f419c9150a8775914da81",
+    "bytes": 201185,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers (n / 10) equal PDF pages."
+  },
   "bogatin_myth3": {
     "title": "The Myth of Three Capacitor Values",
     "publisher": "Signal Integrity Journal",
@@ -44,6 +80,18 @@
     "bytes": 823762,
     "retrieved": "2026-10-30",
     "note": "ElecSuper part (not Diodes Inc.); printed page numbers (n / 7) equal PDF pages."
+  },
+  "cj2101": {
+    "title": "CJ2101 P-Channel MOSFET (SOT-323 Plastic-Encapsulate MOSFETS)",
+    "publisher": "Jiangsu Changjiang Electronics Technology (JSCJ)",
+    "doc": "CJ2101 (LCSC C52641)",
+    "kind": "datasheet",
+    "revision": "E, Apr, 2015",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/2daa0d0095ce453994cd48759ac0cf4c.pdf?productCode=C52641",
+    "sha256": "cef524aaeed1910b08e1de2e65963dc267b783e3c678218168dc3e5b11f5ea92",
+    "bytes": 1306723,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers equal PDF pages. VGS(th) is given as min and typ only: no max, and no temperature coefficient."
   },
   "compuphase_antires": {
     "title": "Parallel Capacitors and the effect of Antiresonance",
@@ -89,6 +137,30 @@
     "sha256": "e86fa87bfd65c20360ad049eeb4a22b541df14103e3a3a197ae414a6748616e5",
     "bytes": 520946,
     "retrieved": "2026-10-27"
+  },
+  "jscj_1n4148ws": {
+    "title": "BAV16WS/1N4148WS Fast switching diode (SOD-323 Plastic-Encapsulate Diodes)",
+    "publisher": "Jiangsu Changjiang Electronics Technology (JSCJ)",
+    "doc": "1N4148WS (LCSC C2128)",
+    "kind": "datasheet",
+    "revision": "A, May, 2011",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/460cf88f750c4519b4ed435068ee729e.pdf?productCode=C2128",
+    "sha256": "59e951bd3155eb4a94e958d10edc3b7d17325f38cf06784cac07fbcc9fcabf2e",
+    "bytes": 774532,
+    "retrieved": "2026-10-30",
+    "note": "No printed page numbers; locators are PDF pages. Polarity is shown only by the package figure's band and symbol (no pin numbers)."
+  },
+  "lbss84wt1g": {
+    "title": "LBSS84WT1G, S-LBSS84WT1G Power MOSFET 130 mA, 50V P–Channel SC-70",
+    "publisher": "Leshan Radio Company (LRC)",
+    "doc": "LBSS84WT1G (LCSC C383208)",
+    "kind": "datasheet",
+    "revision": "Rev.G Jul. 2019",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/06701a20ee2d841da147402a08ef7036.pdf?productCode=C383208",
+    "sha256": "d55f94b3f047313534d3fac809763008d6e80146edb1598db14042cbcd80fdcd",
+    "bytes": 626070,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers (n/5) equal PDF pages. The pinout is only in the p.1 figure (no text)."
   },
   "led_c2286": {
     "title": "KT-0603R 0603 red LED specification for approval (0603-0.6 红光)",
@@ -202,6 +274,18 @@
     "bytes": 833877,
     "retrieved": "2026-10-27"
   },
+  "mdd_1n4007ws": {
+    "title": "1N4001WS thru 1N4007WS Surface mount general purpose silicon rectifier (SOD-323)",
+    "publisher": "MDD (Microdiode Semiconductor)",
+    "doc": "1N4007WS (LCSC C193404)",
+    "kind": "datasheet",
+    "revision": "Rev:2024A2",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/a952648e4ea7cc7052043f03daa09fa8.pdf?productCode=C193404",
+    "sha256": "5bd15ecf26151949ce9f40389005b589f65f55f995cda41f9c3cdafe94b1538a",
+    "bytes": 985771,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers (Page :n) equal PDF pages. Polarity is shown only by the cathode bar in the package drawing (no pin numbers)."
+  },
   "murata_simsurfing_mlcc": {
     "title": "SimSurfing Multilayer Ceramic Capacitors Characteristics Viewer: Measurement Conditions",
     "publisher": "Murata Manufacturing",
@@ -212,6 +296,18 @@
     "sha256": "487b3281b6015f8c865d502c594e12f07cf0bccdeeefcd042cd068c6a0e51027",
     "bytes": 908286,
     "retrieved": "2026-10-27"
+  },
+  "nexperia_74lvc2g14": {
+    "title": "74LVC2G14 Dual inverting Schmitt trigger with 5 V tolerant input",
+    "publisher": "Nexperia",
+    "doc": "74LVC2G14 (LCSC C6085)",
+    "kind": "datasheet",
+    "revision": "Product data sheet Rev. 14, 18 August 2023",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/8ca547c2b7ede7005383a7d0d44aee9a.pdf?productCode=C6085",
+    "sha256": "75a755b0502f7437d41269f6fa094d6368eb7980ac8e95d7107eab9e709e0b38",
+    "bytes": 275778,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers (n / 17) equal PDF pages. Covers every package; the GW package is SOT363 (TSSOP6). Thresholds are tabulated at VCC 1.8, 2.3, 3.0, 4.5 and 5.5 V, not 3.3 V."
   },
   "olson_2152": {
     "title": "Determining Circuit Board Current Carrying Capability (HowTo2152)",
@@ -224,6 +320,30 @@
     "bytes": 144074,
     "retrieved": "2026-10-27"
   },
+  "omron_b3u": {
+    "title": "B3U Ultra-small Tactile Switch (SMT)",
+    "publisher": "Omron",
+    "doc": "B3U (LCSC C963349)",
+    "kind": "datasheet",
+    "revision": "Cat. No. A162-E1-07 (0318)",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/02ba446140ab1b62a028c97a2f7ebc1f.pdf?productCode=C963349",
+    "sha256": "271b3d35eb58fac7449cb36bbe6a78b36439baa29281e74da83bede2b7ba8b01",
+    "bytes": 319028,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers equal PDF pages (p.4 is the back cover, unnumbered). Two-terminal SPST-NO; the switches carry no terminal numbers."
+  },
+  "pesd5v0s1bl": {
+    "title": "PESD5V0S1BL Bidirectional ESD protection diode",
+    "publisher": "Nexperia",
+    "doc": "PESD5V0S1BL (LCSC C84374)",
+    "kind": "datasheet",
+    "revision": "Product data sheet PESD5V0S1BL v.6, 29 April 2024",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/6ed961455ecd1d39daf0ef391bc43af1.pdf?productCode=C84374",
+    "sha256": "8d37e4013567e2211539854b18e64fdb5939e7e3ef7c1c4a1f8842c3e92f243b",
+    "bytes": 211558,
+    "retrieved": "2026-10-30",
+    "note": "Printed page numbers (n / 11) equal PDF pages."
+  },
   "rohm_60an066e": {
     "title": "PCB Layout Techniques of Buck Converter (Switching Regulator Series application note)",
     "publisher": "ROHM",
@@ -234,6 +354,18 @@
     "sha256": "1333c51eaa8ef252f2fafd7e1db77869cb023083cd492883c2d460f9cddd87d7",
     "bytes": 1205481,
     "retrieved": "2026-10-27"
+  },
+  "rpi_rp2350_ds": {
+    "title": "RP2350 Datasheet",
+    "publisher": "Raspberry Pi Ltd",
+    "doc": "RP2350 Datasheet",
+    "kind": "datasheet",
+    "revision": "as cited by packages/rp2350 (same sha256)",
+    "url": "https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf",
+    "sha256": "a638d6780da919162660691bfa02c6dcf7c2a0b6e9f18e2d7519c80b664a2e39",
+    "bytes": 11094994,
+    "retrieved": "2026-10-30",
+    "note": "The RP2350 package's source (packages/rp2350/sources/sources.json), listed here for recipes. Printed page numbers are the PDF's less one."
   },
   "st_an2867": {
     "title": "AN2867 Oscillator design guide for STM8S, STM8A and STM32 microcontrollers",

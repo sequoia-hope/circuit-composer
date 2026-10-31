@@ -1,18 +1,21 @@
 {
  "name": "led_chain",
  "summary": "A chain of addressable LEDs (WS2816C-1313), data from one to the next, with bypass capacitors",
- "note": "Each LED's DO feeds the next one's DI. The datasheet contradicts itself on capacitors (none needed, p.1; 100 nF suggested between VDD and GND, p.5): cap_every = 1 puts one by every LED, larger values one by every that-many. DI's thresholds are fractions of VDD, so a 3.3 V output can't drive a chain at a LiPo's 4.2 V directly (0.7 x 4.2 = 2.94 V): the level rule says so, and nfet_level_shift is the usual fix. The footprint is simple_earring's (library parts.pretty, vendored with the bolt earring); KiCad's LED:WS2812B symbol has the same pin numbers.",
+ "note": "Each LED's DO feeds the next one's DI. The datasheet contradicts itself on capacitors (none needed, p.1; 100 nF suggested between VDD and GND, p.5): cap_every = 1 puts one by every LED, larger values one by every that-many, starting at LED cap_first (the bolt earring starts at the 4th and puts one by every 6th, so each sits mid-group). DI's thresholds are fractions of VDD, so a 3.3 V output can't drive a chain at a LiPo's 4.2 V directly (0.7 x 4.2 = 2.94 V): the level rule says so, and nfet_level_shift is the usual fix. The footprint is simple_earring's (library parts.pretty, vendored with the bolt earring); KiCad's LED:WS2812B symbol has the same pin numbers.",
  "params": {
   "n": { "default": 8, "note": "LEDs in the chain" },
-  "cap_every": { "default": 1, "note": "One 100 nF capacitor per this many LEDs" }
+  "cap_every": { "default": 1, "note": "One 100 nF capacitor per this many LEDs" },
+  "cap_first": { "default": 1, "note": "The LED the first capacitor sits by" }
  },
  "requires": [
   { "expr": "n >= 1", "message": "a chain has at least one LED" },
-  { "expr": "cap_every >= 1", "message": "cap_every is at least 1" }
+  { "expr": "cap_every >= 1", "message": "cap_every is at least 1" },
+  { "expr": "cap_first >= 1", "message": "cap_first is at least 1" },
+  { "expr": "cap_first <= n", "message": "cap_first is one of the chain's LEDs" }
  ],
  "parts": {
   "D{i}": { "for": "1..n", "reference_ref": "D{i}", "symbol": "LED:WS2812B", "value": "WS2816C-1313", "footprint": "parts:LED_WS2816C-1313", "lcsc": "C42417612", "mpn": "WS2816C-1313/4P" },
-  "C{i}": { "for": "1..ceil(n / cap_every)", "reference_ref": "C{i}", "symbol": "Device:C", "value": "100n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C1525", "mpn": "CL05B104KO5NNNC", "near": "D{(i - 1) * cap_every + 1}.1" }
+  "C{i}": { "for": "1..ceil((n - cap_first + 1) / cap_every)", "reference_ref": "C{i}", "symbol": "Device:C", "value": "100n", "footprint": "Capacitor_SMD:C_0402_1005Metric", "lcsc": "C1525", "mpn": "CL05B104KO5NNNC", "near": "D{cap_first + (i - 1) * cap_every}.1" }
  },
  "nets": {
   "D{i}_DO": { "for": "1..n-1", "pins": ["D{i}.2", "D{i+1}.4"] }
@@ -20,8 +23,8 @@
  "ports": {
   "DIN": { "kind": "signal", "pins": ["D1.4"], "supply": "VDD", "levels": { "vih": "0.7*supply", "vil": "0.3*supply", "citation": { "source": "ws2816c_1313", "locator": "p.3" } } },
   "DOUT": { "kind": "signal", "pins": ["D{n}.2"] },
-  "VDD": { "kind": "supply", "pins": ["D{i}.1 for 1..n", "C{i}.1 for 1..ceil(n / cap_every)"], "note": "3.3-5.5 V (the datasheet's maximum-ratings table, p.2)" },
-  "GND": { "kind": "ground", "pins": ["D{i}.3 for 1..n", "C{i}.2 for 1..ceil(n / cap_every)"] }
+  "VDD": { "kind": "supply", "pins": ["D{i}.1 for 1..n", "C{i}.1 for 1..ceil((n - cap_first + 1) / cap_every)"], "note": "3.3-5.5 V (the datasheet's maximum-ratings table, p.2)" },
+  "GND": { "kind": "ground", "pins": ["D{i}.3 for 1..n", "C{i}.2 for 1..ceil((n - cap_first + 1) / cap_every)"] }
  },
  "interfaces": {
   "din": { "type": "logic", "dir": "in", "pins": { "IO": "DIN" } },

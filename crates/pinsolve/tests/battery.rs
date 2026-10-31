@@ -40,10 +40,14 @@ fn the_loose_board_solves_and_composes() {
     assert!(s.ok, "{:?}", s.errors);
     assert!(s.exhaustive);
     let n = nets(&s.composition);
-    // The IMU on I2C0's GPIO4/5, side by side, as the board was drawn by hand.
-    assert_eq!(n["I2C0_SDA"], ["imu.SDA", "mcu.GPIO4"].map(String::from).into());
-    assert_eq!(n["I2C0_SCL"], ["imu.SCL", "mcu.GPIO5"].map(String::from).into());
-    assert!(s.pinout.iter().filter(|r| r.via.starts_with("I2C0")).all(|r| r.function.as_deref() == Some("F3")));
+    // The IMU on a hardware I2C block, its two pins side by side (I2C1 on GPIO2/3 ties with the
+    // hand-drawn board's I2C0 on GPIO4/5: the same pin-number sum, given where the rest go).
+    let i2c: Vec<&pinsolve::Row> = s.pinout.iter().filter(|r| r.connection.starts_with("imu.i2c")).collect();
+    assert_eq!(i2c.len(), 2);
+    assert!(i2c.iter().all(|r| r.function.as_deref() == Some("F3")), "{i2c:?}");
+    let pins: Vec<i32> = i2c.iter().map(|r| r.pin.parse().unwrap()).collect();
+    assert_eq!((pins[0] - pins[1]).abs(), 1, "{pins:?}");
+    assert!(n.values().any(|e| e.contains("imu.SDA") && e.len() == 2));
     // The USB-C sink's D+ and D- reach the MCU's USB pins through the package's 27 ohm resistors.
     assert_eq!(n["USB_DP"], ["mcu.USB_DP", "usb.DP"].map(String::from).into());
     assert_eq!(n["USB_DM"], ["mcu.USB_DM", "usb.DM"].map(String::from).into());

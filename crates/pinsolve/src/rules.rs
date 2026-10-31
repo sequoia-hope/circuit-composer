@@ -45,22 +45,11 @@ fn num(v: &Value, k: &str) -> Option<f64> {
 
 /// The resistors inside an instance from `port` to one of its supply ports.
 fn pullups(comp: &Composition, pk: &Package, inst: &str, port: &str) -> Vec<Pullup> {
-    let i = &comp.instances[inst];
-    let Some(p) = pk.circuit.ports.get(port) else { return vec![] };
-    let mut out = Vec::new();
-    for pin in &p.pins {
-        let Some((role, n)) = pin.split_once('.') else { continue };
-        let Some(part) = pk.circuit.parts.get(role) else { continue };
-        if role == "U1" || i.omit.iter().any(|o| o == role) || part.symbol != "Device:R" {
-            continue;
-        }
-        let other = format!("{role}.{}", if n == "1" { "2" } else { "1" });
-        let Some((sport, _)) = pk.circuit.ports.iter().find(|(_, q)| q.kind == "supply" && q.pins.contains(&other)) else { continue };
-        let value = i.parts.get(role).and_then(|m| m.get("value")).and_then(Value::as_str).unwrap_or(&part.value);
-        let Some(ohms) = compose::expr::parse_value(value) else { continue };
-        out.push(Pullup { inst: inst.to_string(), role: role.to_string(), ohms, rail: net_of(comp, &format!("{inst}.{sport}")) });
-    }
-    out
+    crate::levels::resistors(comp, pk, inst, port)
+        .into_iter()
+        .filter(|r| r.3 == "supply")
+        .map(|(role, ohms, far, _)| Pullup { inst: inst.to_string(), role, ohms, rail: net_of(comp, &format!("{inst}.{far}")) })
+        .collect()
 }
 
 fn parallel(rs: &[f64]) -> f64 {

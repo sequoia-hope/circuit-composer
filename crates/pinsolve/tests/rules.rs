@@ -30,13 +30,16 @@ fn a_bus_without_pull_ups_gets_a_pair() {
     loose["instances"]["imu"]["omit"] = json!(["R_SDA_PU", "R_SCL_PU"]);
     let s = solve(&loose);
     assert!(s.ok, "{:?}", s.errors);
-    assert!(s.added.iter().any(|a| a.contains("i2c0_pu")), "{:?}", s.added);
-    assert_eq!(s.composition["instances"]["i2c0_pu"]["recipe"], "i2c_pullups");
+    // Named for the bus it pulls up (i2c0_pu or i2c1_pu, whichever the solver chose).
+    let (pu, _) = s.composition["instances"].as_object().unwrap().iter().find(|(_, i)| i["recipe"] == "i2c_pullups").unwrap();
+    assert!(s.added.iter().any(|a| a.contains(pu.as_str())), "{:?}", s.added);
     let c = composes(&s.composition);
     assert!(c.ok, "{:?}", c.errors);
     // 400 kHz (the IMU's limit), ~40 pF: 967 ohm to 8.85k, so 4.7k on each line, to +3V3.
     for sig in ["SDA", "SCL"] {
-        let r = c.nets[&format!("I2C0_{sig}")].iter().find(|p| p.starts_with('R')).unwrap().split('.').next().unwrap().to_string();
+        let imu = c.bindings["imu"].chip.clone();
+        let (_, net) = c.nets.iter().find(|(n, ps)| !n.starts_with('/') && ps.iter().any(|p| p.starts_with(&format!("{imu}.")))  && n.ends_with(sig)).unwrap();
+        let r = net.iter().find(|p| p.starts_with('R')).unwrap().split('.').next().unwrap().to_string();
         assert_eq!(c.parts[&r].value, "4.7k");
         assert!(c.nets["+3V3"].contains(&format!("{r}.2")), "{r}");
     }

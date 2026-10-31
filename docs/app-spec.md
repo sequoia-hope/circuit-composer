@@ -458,24 +458,31 @@ Separate from the app's milestones A–F, in this order:
    "imu irqs to mcu", "a LED to mcu"), solved into a pin-level composition that composes,
    floorplans and passes `ccomp check package`. It runs in `ccomp` and in the app's WASM core.
    Done, but not yet wired into the app's UI: `crates/pinsolve`, `ccomp pins` (`-b rp2350-battery` solves
-   `boards/rp2350-battery/loose.json`), and `pins_solve` in the WASM core. It puts the IMU on
-   I2C0's GPIO4/5, as the hand-drawn board has it; pinned like that board, it reproduces its
-   `compose.json` net for net. Electrical domains came with step 4; floorplan-side preferences
-   are not in its cost yet.
+   `boards/rp2350-battery/loose.json`), and `pins_solve` in the WASM core. It puts the IMU on a
+   hardware I2C block's two neighbouring pins (I2C1 on GPIO2/3, which ties on cost with the
+   hand-drawn board's I2C0 on GPIO4/5); pinned like that board, it reproduces its
+   `compose.json` net for net. Bus connections are searched first, and costs within 0.01 are
+   ties, so the bolt's 16 connections are searched exhaustively in under a second. Electrical
+   domains came with step 4; floorplan-side preferences are not in its cost yet.
 4. **Interface rules and recipes**: I2C pull-ups, USB-C sink, LiPo power path, LED chain. With
-   those, the bolt earring composes from its blocks in the browser. Done for the rules and
-   recipes; the bolt earring is not there yet (below).
+   those, the bolt earring composes from its blocks in the browser. Done in `ccomp`: the bolt
+   composes from its blocks net for net (below). Not yet in the app's Circuit view.
    - **Recipes** (`library/recipes/`, `ccomp recipe`): `usb_c_sink`, `lipo_load_share`, `led`,
-     `led_chain`, `nfet_level_shift`, `i2c_pullups`, each cited. They take parameters, choose
-     values from stocked parts (`library/stock.json`, JLC basic and preferred 0402 resistors) and
-     repeat parts (`led_chain` with n = 134 is 134 LEDs and their capacitors). An instance is
+     `led_chain`, `nfet_level_shift`, `i2c_pullups`, and from the bolt `power_latch`,
+     `enable_or`, `button_esd`, `long_press_reset`, `divider` and `light_sensor`; each cited.
+     They take parameters, choose
+     values from stocked parts (`library/stock.json`, JLC basic and preferred 0402 resistors),
+     repeat parts (`led_chain` with n = 134 is 134 LEDs and their capacitors) and fit optional
+     ones (`"if": "series_ohm > 0"`: `lipo_load_share`'s gate divider). An instance is
      `{ "recipe": "led", "params": {...} }`, which composes like a package and offers
      interfaces to the pin solver.
    - **Electrical domains**: packages' pin functions carry logic levels (`levels`: VIH, VOH,
      the most an input takes), and the solver rejects pins whose levels don't meet. A 5 V
      charger status goes to a 5 V-tolerant RP2350 GPIO, not an ADC pin, with a warning that the
      tolerance needs IOVDD up; a GPIO can't drive an LED chain on the cell (VIH 0.7 VDD) without
-     `nfet_level_shift`.
+     `nfet_level_shift`. A driver's VOL and VOH hold at a stated current (the RP2350's at its
+     drive setting, 2 mA at the weakest); an input that says what it draws (the TPS22913's ON,
+     1 uA) is judged at that load instead, so an RP2350 pin drives the switch's 0.4 V VIL.
    - **The I2C rule**: each bus gets one pull-up pair within SLVA689A's window for its speed,
      rail and estimated capacitance. With none, it adds `i2c_pullups`; with several packages'
      pairs in parallel below Rp(min), it omits all but one.
@@ -485,10 +492,16 @@ Separate from the app's milestones A–F, in this order:
    - **The bolt earring's chips** have packages, each matching the bolt's wiring of its chip
      net for net: `lgs4056h`, `ncp730`, `tps22913`, `usblc6`, `lsm6ds3trc`. Its W25Q16 flash is
      the RP2350 package's FLASH role with a part override; a board net may name the pad that
-     footprint adds (`mcu.FLASH.9`). Still to do: map simple_earring's MCU cluster onto the
-     RP2350 package (it differs: BOOTSEL through a MOSFET, no RUN button), recipes for its
-     power latch and button, the bolt's loose composition, and the app wiring the solver and
-     recipes into its Circuit view.
+     footprint adds (`mcu.FLASH.9`).
+   - **The bolt earring from blocks:** `boards/bolt-earring/compose.json` is the whole board as
+     8 instances of 6 packages and 15 instances of 10 recipes, keeping the
+     bolt's designators. It composes to the bolt's `circuit.json` net for net: 192 nets, 881
+     pins, all 256 parts. The only differences are pad names in two of the bolt's own
+     footprints. The RP2350 package is fitted without its BOOTSEL and RUN buttons, and
+     `long_press_reset` drives both. `boards/bolt-earring/loose.json` leaves 16 connections
+     to the solver. Pinned to the bolt's GPIOs it is `compose.json` again
+     (`crates/pinsolve/tests/bolt.rs`).
+   - Still to do: the app wiring the solver and recipes into its Circuit view.
 5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
    suppliers as plug-ins.
 

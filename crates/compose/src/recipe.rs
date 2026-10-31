@@ -11,6 +11,8 @@
 //!   nearest `target` between `min` and `max`, all expressions of the parameters.
 //! - **Repetition**: a part, net or port pin with `for: "1..n"` is written once per `i`, and
 //!   `{expr}` in a name is the expression's value (`D{i+1}`).
+//! - **Options**: a part or net with `if: "expr"`, or a port pin written `PIN if expr`, is there
+//!   only when the expression is non-zero (a gate resistor only when `series_ohm > 0`).
 //!
 //! An instance of a recipe in a composition is `{ "recipe": "led", "params": {...} }`. It expands
 //! to a [`Circuit`] (so it composes as a package does) and a `ports.json`-shaped value (so the pin
@@ -65,6 +67,8 @@ pub struct Param {
 pub struct RPart {
     #[serde(rename = "for", default)]
     pub range: Option<String>,
+    #[serde(rename = "if", default)]
+    pub when: Option<String>,
     #[serde(default)]
     pub symbol: Option<String>,
     #[serde(default)]
@@ -109,12 +113,17 @@ pub enum RNet {
         range: String,
         pins: Vec<String>,
     },
+    If {
+        #[serde(rename = "if")]
+        when: String,
+        pins: Vec<String>,
+    },
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RPort {
     pub kind: String,
-    /// Role pins; `D{i}.1 for 1..n` is one per `i`.
+    /// Role pins; `D{i}.1 for 1..n` is one per `i`, `R2.1 if series_ohm > 0` one if it holds.
     pub pins: Vec<String>,
     /// The rail's voltage range, as numbers or expressions, when the recipe sets it.
     #[serde(default)]
@@ -236,7 +245,9 @@ impl Env<'_> {
             let choice = self.vals.get(p)?.as_str()?;
             return self.r.params.get(p)?.choices.as_ref()?.get(choice)?.get(field)?.as_f64();
         }
-        self.vals.get(name)?.as_f64()
+        // A number, or a value written with an SI suffix (`"4k7"`, `"1M"`).
+        let v = self.vals.get(name)?;
+        v.as_f64().or_else(|| v.as_str().and_then(crate::expr::parse_value))
     }
     fn eval(&self, s: &str) -> Result<f64, String> {
         eval(s, &|n| self.num(n)).map_err(|e| format!("{}: {e}", self.r.name))
@@ -286,6 +297,11 @@ pub fn expand(r: &Recipe, given: &BTreeMap<String, Value>, stock: &Stock) -> Res
     let mut parts = BTreeMap::new();
     let mut chosen = BTreeMap::new();
     for (role, p) in &r.parts {
+        if let Some(w) = &p.when {
+            if env.eval(w)? == 0.0 {
+                continue;
+            }
+        }
         let is: Vec<Option<f64>> = match &p.range {
             Some(rg) => env.range(rg)?.into_iter().map(Some).collect(),
             None => vec![None],
@@ -340,13 +356,16 @@ pub fn expand(r: &Recipe, given: &BTreeMap<String, Value>, stock: &Stock) -> Res
     let pin_list = |pins: &[String], e: &Env| -> Result<Vec<String>, String> {
         let mut out = Vec::new();
         for p in pins {
-            match p.split_once(" for ") {
-                Some((pat, rg)) => {
-                    for i in e.range(rg)? {
-                        out.push(e.with_i(i).fill(pat)?);
-                    }
+            if let Some((pat, rg)) = p.split_once(" for ") {
+                for i in e.range(rg)? {
+                    out.push(e.with_i(i).fill(pat)?);
                 }
-                None => out.push(e.fill(p)?),
+            } else if let Some((pat, w)) = p.split_once(" if ") {
+                if e.eval(w)? != 0.0 {
+                    out.push(e.fill(pat)?);
+                }
+            } else {
+                out.push(e.fill(p)?);
             }
         }
         Ok(out)
@@ -361,6 +380,11 @@ pub fn expand(r: &Recipe, given: &BTreeMap<String, Value>, stock: &Stock) -> Res
                 for i in env.range(range)? {
                     let e = env.with_i(i);
                     nets.insert(e.fill(name)?, pin_list(pins, &e)?);
+                }
+            }
+            RNet::If { when, pins } => {
+                if env.eval(when)? != 0.0 {
+                    nets.insert(env.fill(name)?, pin_list(pins, &env)?);
                 }
             }
         }
@@ -481,5 +505,29 @@ mod tests {
         assert!(!x.circuit.nets.contains_key("D3_DO"));
         assert_eq!(x.circuit.ports["VDD"].pins, ["D1.1", "D2.1", "D3.1"]);
         assert_eq!(x.volts["VDD"], (3.7, 5.5));
+    }
+
+    #[test]
+    fn options() {
+        // A gate resistor in series only when asked for: without it, the gate is on VIN.
+        let r: Recipe = serde_json::from_value(json!({
+            "name": "gate", "summary": "a gate",
+            "params": { "series": { "default": 0 } },
+            "parts": {
+                "Q1": { "reference_ref": "Q1", "symbol": "s", "value": "v", "footprint": "f" },
+                "R1": { "if": "series > 0", "reference_ref": "R1", "symbol": "s", "value": "v", "footprint": "f" }
+            },
+            "nets": { "GATE": { "if": "series > 0", "pins": ["Q1.1", "R1.2"] } },
+            "ports": { "VIN": { "kind": "supply", "pins": ["Q1.1 if series == 0", "R1.1 if series > 0"] } }
+        }))
+        .unwrap();
+        let x = expand(&r, &BTreeMap::new(), &Stock::default()).unwrap();
+        assert_eq!(x.circuit.parts.len(), 1);
+        assert!(x.circuit.nets.is_empty());
+        assert_eq!(x.circuit.ports["VIN"].pins, ["Q1.1"]);
+        let x = expand(&r, &[("series".to_string(), json!(1))].into(), &Stock::default()).unwrap();
+        assert_eq!(x.circuit.parts.len(), 2);
+        assert_eq!(x.circuit.nets["GATE"], ["Q1.1", "R1.2"]);
+        assert_eq!(x.circuit.ports["VIN"].pins, ["R1.1"]);
     }
 }

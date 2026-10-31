@@ -12,7 +12,9 @@
 //!
 //! `from` is a device's interface (`INSTANCE.INTERFACE`, from its package's `ports.json`) or a
 //! board part's pin with the `type` it carries; `to` is the instance that serves it, or one of
-//! its interfaces. `pins` fixes the partner's pin for some of the device's signals.
+//! its interfaces. `pins` fixes the partner's pin for some of the device's signals. A device
+//! signal already on one of the composition's nets (a button's line that also feeds a timer)
+//! takes the partner's pin onto that net.
 //!
 //! For each connection the solver finds the partner's interfaces that can serve it: the same type
 //! in the complementary role (an `i2c` target needs an `i2c` controller), or a block that
@@ -103,7 +105,8 @@ pub struct Solved {
     pub composition: Value,
     pub pinout: Vec<Row>,
     pub cost: f64,
-    /// Whether the search covered every assignment (false: it stopped at its node limit).
+    /// Whether the search covered every assignment, up to ties (false: it stopped at its node
+    /// limit).
     pub exhaustive: bool,
     pub warnings: Vec<String>,
     pub errors: Vec<String>,
@@ -360,9 +363,10 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
         return Ok(Solved { ok: false, composition: Value::Null, pinout: vec![], cost: 0.0, exhaustive: true, warnings, errors, added: vec![] });
     }
 
-    // Fewest choices first.
+    // Buses first (opening one costs what the bound below leaves out, so placing them early lets
+    // it prune), then fewest choices first.
     let mut order: Vec<usize> = (0..conns.len()).collect();
-    order.sort_by_key(|&i| (conns[i].picks.len(), i));
+    order.sort_by_key(|&i| (!conns[i].ways.iter().any(|w| w.bus && !w.soft), conns[i].picks.len(), i));
     // What the connections still to place will cost at least: their cheapest picks.
     let mut rest = vec![0.0; order.len() + 1];
     for d in (0..order.len()).rev() {
@@ -381,6 +385,8 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
     let mut net_of: BTreeMap<(String, String, String), String> = BTreeMap::new();
     let mut pinout = Vec::new();
     let mut buses: BTreeMap<(String, String), rules::Bus> = BTreeMap::new();
+    // The composition's nets a device signal was already on.
+    let mut onto: BTreeSet<String> = BTreeSet::new();
     for (k, conn) in conns.iter().enumerate() {
         let p = &conn.picks[choice[k]];
         let way = &conn.ways[p.way];
@@ -390,8 +396,13 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
             let partner = format!("{}.{port}", conn.partner);
             let shared = way.bus && !way.per_target.contains(psig) && !way.soft;
             let key = (conn.partner.clone(), way.iface.clone(), psig.clone());
-            let net = match (shared, net_of.get(&key)) {
-                (true, Some(n)) => n.clone(),
+            let hand = comp.nets.iter().find(|(_, ps)| ps.contains(&conn.ends[dsig])).map(|(n, _)| n.clone());
+            let net = match (shared, net_of.get(&key), hand) {
+                (_, _, Some(n)) => {
+                    onto.insert(n.clone());
+                    n
+                }
+                (true, Some(n), _) => n.clone(),
                 _ => {
                     let base = match (&conn.c.name, shared) {
                         (Some(n), _) => n.clone(),
@@ -475,10 +486,19 @@ pub fn solve(loose: &Value, types: &Types, pkgs: &BTreeMap<String, Package>, nod
     obj.remove("connect");
     let n = obj.entry("nets").or_insert(Value::Object(Default::default())).as_object_mut().ok_or("nets is not an object")?;
     for (k, v) in &nets {
-        if n.contains_key(k) {
-            errors.push(format!("{k}: the solver's net has a name the composition already uses; name the connection"));
+        match n.get_mut(k).and_then(Value::as_array_mut) {
+            Some(have) if onto.contains(k) => {
+                for e in v {
+                    if !have.iter().any(|x| x == e) {
+                        have.push(Value::String(e.clone()));
+                    }
+                }
+            }
+            Some(_) => errors.push(format!("{k}: the solver's net has a name the composition already uses; name the connection")),
+            None => {
+                n.insert(k.clone(), serde_json::to_value(v).unwrap());
+            }
         }
-        n.insert(k.clone(), serde_json::to_value(v).unwrap());
     }
     // The interface rules, on the composition with its new nets.
     let mut added = Vec::new();
@@ -689,9 +709,14 @@ struct Search<'a> {
     chosen: Vec<usize>,
 }
 
+/// Costs closer than this are ties. The pin-number tie-break (1e-4 a pin) orders each
+/// connection's picks, lowest pins first, but is not searched exhaustively: a dozen GPIO
+/// connections would otherwise be tried in every order of nearly equal cost.
+const TIE: f64 = 0.01;
+
 impl Search<'_> {
     fn go(&mut self, depth: usize, cost: f64, st: &mut State) {
-        if self.best.as_ref().is_some_and(|b| cost + self.rest[depth] >= b.0 - 1e-9) || self.nodes >= self.limit {
+        if self.best.as_ref().is_some_and(|b| cost + self.rest[depth] >= b.0 - TIE) || self.nodes >= self.limit {
             return;
         }
         if depth == self.order.len() {
@@ -709,7 +734,7 @@ impl Search<'_> {
             let inst = (conn.partner.clone(), way.iface.clone());
             let Some(extra) = fits(conn, way, p, st) else { continue };
             // Picks come cheapest first: once one can't beat the best, none after it can.
-            if self.best.as_ref().is_some_and(|b| cost + p.cost + self.rest[depth + 1] >= b.0 - 1e-9) {
+            if self.best.as_ref().is_some_and(|b| cost + p.cost + self.rest[depth + 1] >= b.0 - TIE) {
                 break;
             }
             let mut next = st.clone();
