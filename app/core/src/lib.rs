@@ -164,7 +164,8 @@ impl Session {
 
     /// `text`, the board's `.kicad_pcb`, with every part where it is here: moved, turned and on its
     /// side, written as pcbnew would save it (`kicad_pcb::place`). Every other byte of the board
-    /// is kept: its outline, tracks and zones too. The shape's keep-outs (references with a `:`)
+    /// is kept: its outline, tracks and zones too, except that the locked copper of a part that
+    /// moves is unlocked (`unlock_moved_copper`). The shape's keep-outs (references with a `:`)
     /// are not parts on the board; a part the board does not have is an error.
     pub fn write_kicad_pcb(&self, text: &str) -> Result<String, String> {
         let placements: Vec<kicad_pcb::place::Placement> = self
@@ -180,7 +181,8 @@ impl Session {
                 side: if p.back { kicad_pcb::Side::Back } else { kicad_pcb::Side::Front },
             })
             .collect();
-        kicad_pcb::place::apply(text, &placements).map_err(|e| e.to_string())
+        let text = unlock_moved_copper(text, &placements)?;
+        kicad_pcb::place::apply(&text, &placements).map_err(|e| e.to_string())
     }
 
     /// Where the board puts this problem's parts: each footprint's pose, as `set_placement` takes
@@ -656,6 +658,123 @@ mod wasm {
     }
 }
 
+/// `text` with the locked copper of the parts about to move unlocked: every locked track, arc and
+/// via of a pad's net that touches one of their pads, and the locked copper of that net joined to
+/// it end to end. Copper stays where it is when its part moves, so a part's locked fan-out would be
+/// left at its old place, shorting the pads that land on it, and Route's bare-board start keeps
+/// locked copper. Unlocked, Route takes it out and lays the part's copper again. Each lock goes as
+/// KiCad writes an unlocked item: without its `(locked yes)` line.
+pub fn unlock_moved_copper(text: &str, placements: &[kicad_pcb::place::Placement]) -> Result<String, String> {
+    use kicad_pcb::copper::Outline;
+    let (pcb, copper) = kicad_pcb::parse_board(text).map_err(|e| e.to_string())?;
+    let moved: Vec<usize> = pcb
+        .footprints
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| {
+            placements.iter().any(|p| {
+                let turn = (f.rotation_deg - p.rotation_deg).rem_euclid(360.0);
+                p.reference == f.reference
+                    // Both in metres; a nanometre is the file's own precision.
+                    && ((f.at[0] - p.at[0]).abs() > 1e-9
+                        || (f.at[1] - p.at[1]).abs() > 1e-9
+                        || turn.min(360.0 - turn) > 1e-6
+                        || f.side != p.side)
+            })
+        })
+        .map(|(i, _)| i)
+        .collect();
+    if moved.is_empty() {
+        return Ok(text.to_string());
+    }
+    // The pads of the moved parts, with their nets.
+    let pads: Vec<(&Outline, u32)> = copper
+        .pads
+        .iter()
+        .filter(|p| moved.contains(&p.footprint))
+        .filter_map(|p| Some((&p.outline, pcb.footprints[p.footprint].pads.get(p.pad)?.net.as_ref()?.number)))
+        .filter(|(_, n)| *n != 0)
+        .collect();
+    // The copper: its ends (a via's centre), its net, its half width, where it is in the text.
+    struct Item {
+        ends: Vec<[f64; 2]>,
+        net: u32,
+        r: f64,
+        via: bool,
+        locked: bool,
+        span: (usize, usize),
+    }
+    let mut items: Vec<Item> = vec![];
+    for t in &copper.tracks {
+        items.push(Item { ends: vec![t.start, t.end], net: t.net, r: t.width / 2.0, via: false, locked: t.locked, span: (t.span.start, t.span.end) });
+    }
+    for a in &copper.arcs {
+        items.push(Item { ends: vec![a.start, a.end], net: a.net, r: a.width / 2.0, via: false, locked: a.locked, span: (a.span.start, a.span.end) });
+    }
+    for v in &copper.vias {
+        items.push(Item { ends: vec![v.at], net: v.net, r: v.size / 2.0, via: true, locked: v.locked, span: (v.span.start, v.span.end) });
+    }
+    let touches_pad = |it: &Item| pads.iter().any(|(o, n)| *n == it.net && it.ends.iter().any(|q| near(o, *q, it.r)));
+    let mut hit: Vec<bool> = items.iter().map(|it| it.locked && touches_pad(it)).collect();
+    // Joined end to end, or an end on a via.
+    let joined = |a: &Item, b: &Item| {
+        let reach = 1e-6 + if a.via { a.r } else { 0.0 } + if b.via { b.r } else { 0.0 };
+        a.ends.iter().any(|p| b.ends.iter().any(|q| (p[0] - q[0]).hypot(p[1] - q[1]) <= reach))
+    };
+    let mut queue: Vec<usize> = (0..items.len()).filter(|&i| hit[i]).collect();
+    while let Some(i) = queue.pop() {
+        for j in 0..items.len() {
+            if !hit[j] && items[j].locked && items[j].net == items[i].net && joined(&items[i], &items[j]) {
+                hit[j] = true;
+                queue.push(j);
+            }
+        }
+    }
+    let mut spans: Vec<(usize, usize)> = items.iter().zip(&hit).filter(|(_, h)| **h).map(|(it, _)| it.span).collect();
+    spans.sort_unstable();
+    let mut out = String::with_capacity(text.len());
+    let mut at = 0;
+    for (start, end) in spans {
+        let item = &text[start..end];
+        let Some(k) = item.find("(locked yes)") else { continue };
+        let (mut a, mut b) = (start + k, start + k + "(locked yes)".len());
+        // Its own line, as KiCad 8 and later write it, goes whole; else the token and the space before it.
+        let line_start = text[..a].rfind('\n').map_or(0, |n| n + 1);
+        if text[line_start..a].chars().all(char::is_whitespace) && text[b..].starts_with('\n') {
+            (a, b) = (line_start, b + 1);
+        } else if text[..a].ends_with(' ') {
+            a -= 1;
+        }
+        out.push_str(&text[at..a]);
+        at = b;
+    }
+    out.push_str(&text[at..]);
+    Ok(out)
+}
+
+/// Whether a point, grown by `r`, touches a pad's outline.
+fn near(o: &kicad_pcb::copper::Outline, q: [f64; 2], r: f64) -> bool {
+    match o {
+        kicad_pcb::copper::Outline::Circle { centre, radius } => (q[0] - centre[0]).hypot(q[1] - centre[1]) <= radius + r,
+        kicad_pcb::copper::Outline::Polygons(polys) => polys.iter().any(|poly| {
+            let n = poly.len();
+            let mut inside = false;
+            let mut edge = f64::INFINITY;
+            for i in 0..n {
+                let (p, s) = (poly[i], poly[(i + 1) % n]);
+                if (p[1] > q[1]) != (s[1] > q[1]) && q[0] < (s[0] - p[0]) * (q[1] - p[1]) / (s[1] - p[1]) + p[0] {
+                    inside = !inside;
+                }
+                let (dx, dy) = (s[0] - p[0], s[1] - p[1]);
+                let len2 = dx * dx + dy * dy;
+                let t = if len2 > 0.0 { (((q[0] - p[0]) * dx + (q[1] - p[1]) * dy) / len2).clamp(0.0, 1.0) } else { 0.0 };
+                edge = edge.min((q[0] - p[0] - t * dx).hypot(q[1] - p[1] - t * dy));
+            }
+            inside || edge <= r
+        }),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -744,6 +863,54 @@ mod tests {
         }
         assert!(b.nets["/+3V3"].contains(&"U1.1".to_string()));
         assert_eq!(b.parts["C1"].value, "100n");
+    }
+
+    #[test]
+    fn a_moved_parts_locked_copper_is_unlocked_and_no_other() {
+        // On a board with copper locked at U1's pin 1 (a stub, and a via at its end) and at C1, U1
+        // moves: its stub and via are unlocked, C1's stays locked, and nothing else changes.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let ex = root.join("app/web/public/examples/easy2350");
+        let pr: Problem = serde_json::from_str(&std::fs::read_to_string(ex.join("problem.json")).unwrap()).unwrap();
+        let base = std::fs::read_to_string(root.join("boards/easy2350/floorplan/placed.kicad_pcb")).unwrap();
+        let (pcb, copper) = kicad_pcb::parse_board(&base).unwrap();
+        let pad_at = |r: &str| {
+            let f = pcb.footprints.iter().position(|f| f.reference == r).unwrap();
+            let p = copper.pads.iter().find(|p| p.footprint == f && pcb.footprints[f].pads[p.pad].net.as_ref().is_some_and(|n| n.number != 0)).unwrap();
+            let net = pcb.footprints[f].pads[p.pad].net.as_ref().unwrap().number;
+            let c = match &p.outline {
+                kicad_pcb::copper::Outline::Circle { centre, .. } => *centre,
+                kicad_pcb::copper::Outline::Polygons(ps) => {
+                    let n = ps[0].len() as f64;
+                    [ps[0].iter().map(|q| q[0]).sum::<f64>() / n, ps[0].iter().map(|q| q[1]).sum::<f64>() / n]
+                }
+            };
+            ([c[0] * 1e3, c[1] * 1e3], net)
+        };
+        let ((u, un), (c, cn)) = (pad_at("U1"), pad_at("C1"));
+        let seg = |a: [f64; 2], b: [f64; 2], net: u32, id: &str| {
+            format!("\t(segment\n\t\t(start {} {})\n\t\t(end {} {})\n\t\t(width 0.2)\n\t\t(locked yes)\n\t\t(layer \"F.Cu\")\n\t\t(net {net})\n\t\t(uuid \"{id}\")\n\t)\n", a[0], a[1], b[0], b[1])
+        };
+        let far = [u[0] + 1.0, u[1]];
+        let via = format!("\t(via\n\t\t(at {} {})\n\t\t(size 0.6)\n\t\t(drill 0.3)\n\t\t(layers \"F.Cu\" \"B.Cu\")\n\t\t(locked yes)\n\t\t(net {un})\n\t\t(uuid \"00000000-0000-0000-0000-000000000002\")\n\t)\n", far[0], far[1]);
+        let copper_text = seg(u, far, un, "00000000-0000-0000-0000-000000000001") + &via + &seg(c, [c[0], c[1] + 1.0], cn, "00000000-0000-0000-0000-000000000003");
+        let end = base.trim_end().rfind(')').unwrap();
+        let text = format!("{}{}{}", &base[..end], copper_text, &base[end..]);
+
+        let mut s = Session::new(pr);
+        let b = KicadBoard::read(&text).unwrap();
+        s.set_placement(&s.placement_of(&b));
+        assert_eq!(s.write_kicad_pcb(&text).unwrap(), text, "nothing moved, nothing unlocked");
+        let i = s.index("U1").unwrap();
+        let at = s.poses()[i];
+        s.move_to(i, at.x + 2000.0, at.y + 2000.0);
+        let out = s.write_kicad_pcb(&text).unwrap();
+        let (_, after) = kicad_pcb::parse_board(&out).unwrap();
+        let locked = |id: &str| after.tracks.iter().map(|t| (&t.uuid, t.locked)).chain(after.vias.iter().map(|v| (&v.uuid, v.locked))).find(|(u, _)| u.ends_with(id)).unwrap().1;
+        assert!(!locked("001"), "U1's stub is unlocked");
+        assert!(!locked("002"), "the via at its end too");
+        assert!(locked("003"), "C1's copper stays locked");
+        assert_eq!(out.matches("(locked yes)").count(), text.matches("(locked yes)").count() - 2);
     }
 
     #[test]
