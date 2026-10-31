@@ -311,7 +311,8 @@ The same shape as UltraRoute Studio, so the two apps share habits and code.
   logic the CLI lacks.
 
 **Windows.** The app runs standalone, at `/?project=<path>&board=<name>` in its own browser
-window. It can also be embedded with `&embed=1`, which hides the project chrome and reports its
+window. It can also be embedded with `&embed=1`, which hides the project chrome (keeping a slim bar
+of workspaces and Save) and reports its
 selection and status to the parent page by `postMessage`. Both modes come from one build.
 Standalone is the default, because a canvas app wants the whole screen. Boardroom (the suite's
 main app, formerly easy_pcb) opens either: a window of its own in its windows mode, or a tab

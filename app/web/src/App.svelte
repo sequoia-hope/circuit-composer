@@ -537,6 +537,14 @@
 
 <svelte:window onkeydown={key} />
 
+{#snippet tabs()}
+  <nav>
+    {#each WORKSPACES as [id, label], k}
+      <button class:on={workspace === id} onclick={() => { workspace = id; setUrl(); }} title="{label} ({k + 1})">{label}</button>
+    {/each}
+  </nav>
+{/snippet}
+
 <div class="app" class:embed class:wide={workspace === 'shape'} class:parts-open={selection.length > 0 || partsOpen} class:dock-open={!!dockOpen}>
   {#if !embed}
     <header>
@@ -559,11 +567,7 @@
           {/if}
         </select>
       {/if}
-      <nav>
-        {#each WORKSPACES as [id, label], k}
-          <button class:on={workspace === id} onclick={() => { workspace = id; setUrl(); }} title="{label} ({k + 1})">{label}</button>
-        {/each}
-      </nav>
+      {@render tabs()}
       <div class="right">
         {#if mode !== 'pages'}<a class="debug" href="../../debug.html" title="The project's status and debug page (local only)">debug</a>{/if}
         <span class="mode" title={project ? `${project.paths.pcb} in project ${project.store.kind === 'browser' ? project.store.project : 'on this machine'}` : mode === 'local' ? 'Served by Composer on this machine' : 'No server: the example boards are built into the page'}>{modeLabel}</span>
@@ -575,6 +579,19 @@
             title="Write the placement into {project.paths.pcb} (Ctrl+S), unless the board changed since Composer read it">Save to project</button>
         {/if}
       </div>
+    </header>
+  {:else}
+    <!-- Boardroom has the project and the app tabs: Composer's own bar is just its workspaces and,
+         for a project's board, whether the placement is saved. -->
+    <header class="bar">
+      {@render tabs()}
+      {#if project}
+        <div class="right">
+          <span class="saved" class:unsaved>{unsaved ? 'Not saved' : saveNote || 'Saved'}</span>
+          <button class="primary" onclick={() => save()} disabled={!unsaved || !!anneal || !!storeConflict}
+            title="Write the placement into {project.paths.pcb} (Ctrl+S), unless the board changed since Composer read it">Save</button>
+        </div>
+      {/if}
     </header>
   {/if}
 
@@ -635,10 +652,7 @@
             {/if}
             <button onclick={() => run(true)} title="Anneal from the current placement, gently: locked parts stay">Refine</button>
             <button class="primary" onclick={() => run(false)} title="Place every unlocked part from scratch">Place unlocked parts</button>
-            {#if project && embed}
-              <button onclick={() => save()} disabled={!unsaved || !!storeConflict} title="Write the placement into {project.paths.pcb} (Ctrl+S)">Save to project</button>
-            {/if}
-            <span class="last">{[lastRun, project && (unsaved ? 'Not saved to the project yet.' : saveNote)].filter(Boolean).join(' ')}</span>
+            <span class="last">{[lastRun, project && !embed && (unsaved ? 'Not saved to the project yet.' : saveNote)].filter(Boolean).join(' ')}</span>
           {/if}
         </div>
       {:else if workspace === 'circuit'}
@@ -737,6 +751,9 @@
   .wide main { grid-template-columns: minmax(0, 1fr); }
   .wide aside { display: none; }
   .embed main { grid-template-rows: minmax(0, 1fr) 140px; }
+  header.bar { height: 38px; gap: 10px; padding: 0 8px; }
+  .saved { font-size: 12px; color: var(--muted); white-space: nowrap; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; }
+  .saved.unsaved { color: var(--lock); }
   .parts-btn { display: none; }
   /* A phone: the header wraps (workspaces on their own row, desktop-only actions gone), the
      board's options sit in one scrolling row above it instead of over it, and the part panel and
@@ -744,6 +761,9 @@
   @media (max-width: 820px) {
     .app { height: 100dvh; }
     header { height: auto; flex-wrap: wrap; gap: 8px; padding: 6px 10px; }
+    /* Embedded, the bar stays one row: the workspaces scroll beside the save state. */
+    header.bar { flex-wrap: nowrap; padding: 4px 8px; }
+    header.bar nav { order: 0; flex: 1 1 auto; flex-basis: auto; }
     header .right { gap: 6px; }
     .debug, .mode, .desk { display: none; }
     nav { order: 9; flex-basis: 100%; }

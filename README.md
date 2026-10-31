@@ -97,8 +97,10 @@ app/build.sh        # core to WASM, page to app/dist/
 ./serve.sh          # then open /app/dist/ on the project's registered port
 ```
 
-URL parameters: `board=NAME`, `ws=circuit|board|shape|copper|rules`, `embed=1` (no header, for
-Boardroom's single-window mode; selection is posted to the parent window).
+URL parameters: `board=NAME`, `view=circuit|board|shape|copper|rules` (`ws=` in older links),
+`embed=1` (for Boardroom's single-window mode: a slim bar of workspaces and, for a project's board,
+Save, in place of the header; selection is posted to the parent window). On a touchscreen a finger
+pans the board and two pinch to zoom; a tap selects a part, which can then be dragged.
 
 ## Build and run
 
