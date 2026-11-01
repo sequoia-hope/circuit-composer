@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use super::{bbox_at, edge_miss, gap, overlap, rot, side, Pose, State, P};
+use super::{bbox_at, edge_miss, gap, pair, rot, side, Pose, State, P};
 
 /// What a move changed, to undo it.
 struct Undo {
@@ -16,6 +16,7 @@ struct Undo {
     nets: Vec<(usize, f64, f64)>,
     blocks: Vec<(usize, (f64, f64, f64), f64)>,
     ov: f64,
+    fill: f64,
     outside: f64,
     near: f64,
     spread: f64,
@@ -31,6 +32,8 @@ pub(crate) struct Inc {
     wire: f64,
     wire_mm: f64,
     ov: f64,
+    /// Where courtyards grown by their halos overlap.
+    fill: f64,
     out_part: Vec<f64>,
     outside: f64,
     near_part: Vec<f64>,
@@ -88,6 +91,7 @@ impl Inc {
             wire: 0.0,
             wire_mm: 0.0,
             ov: 0.0,
+            fill: 0.0,
             out_part: vec![0.0; n],
             outside: 0.0,
             near_part: vec![0.0; n],
@@ -120,9 +124,12 @@ impl Inc {
         self.wire = self.net.iter().map(|v| v.0).sum();
         self.wire_mm = self.net.iter().map(|v| v.1).sum();
         self.ov = 0.0;
+        self.fill = 0.0;
         for i in 0..n {
             for j in i + 1..n {
-                self.ov += self.pair(st, i, j);
+                let (a, f) = self.pair(st, i, j);
+                self.ov += a;
+                self.fill += f;
             }
         }
         for i in 0..n {
@@ -144,16 +151,17 @@ impl Inc {
         let pr = st.pr;
         let parts: Vec<usize> = moved.iter().flat_map(|&m| self.movable_parts[m].iter().copied()).collect();
         let inside: BTreeSet<usize> = parts.iter().copied().collect();
-        let mut u = Undo { parts: Vec::new(), nets: Vec::new(), blocks: Vec::new(), ov: self.ov, outside: self.outside, near: self.near, spread: self.spread, wire: self.wire, wire_mm: self.wire_mm };
+        let mut u = Undo { parts: Vec::new(), nets: Vec::new(), blocks: Vec::new(), ov: self.ov, fill: self.fill, outside: self.outside, near: self.near, spread: self.spread, wire: self.wire, wire_mm: self.wire_mm };
         // Overlap: what the moved parts had with every other part, before and after.
-        let mut before = 0.0;
+        let mut before = (0.0, 0.0);
         for &i in &parts {
             for j in 0..pr.parts.len() {
                 // Each pair once: a moved part with every other part, moved pairs by index.
                 if j == i || (inside.contains(&j) && j < i) {
                     continue;
                 }
-                before += self.pair(st, i, j);
+                let (a, f) = self.pair(st, i, j);
+                before = (before.0 + a, before.1 + f);
             }
         }
         for &i in &parts {
@@ -161,17 +169,19 @@ impl Inc {
             self.poses[i] = st.part_pose(i);
             self.boxes[i] = bbox_at(&pr.parts[i].bbox, &self.poses[i], pr.parts[i].back);
         }
-        let mut after = 0.0;
+        let mut after = (0.0, 0.0);
         for &i in &parts {
             for j in 0..pr.parts.len() {
                 // Each pair once: a moved part with every other part, moved pairs by index.
                 if j == i || (inside.contains(&j) && j < i) {
                     continue;
                 }
-                after += self.pair(st, i, j);
+                let (a, f) = self.pair(st, i, j);
+                after = (after.0 + a, after.1 + f);
             }
         }
-        self.ov += after - before;
+        self.ov += after.0 - before.0;
+        self.fill += after.1 - before.1;
         // Nets on the moved parts' pins.
         let nets: BTreeSet<usize> = parts.iter().flat_map(|&i| self.part_nets[i].iter().copied()).collect();
         for k in nets {
@@ -225,6 +235,7 @@ impl Inc {
             self.block_spread[b] = v;
         }
         self.ov = u.ov;
+        self.fill = u.fill;
         self.outside = u.outside;
         self.near = u.near;
         self.spread = u.spread;
@@ -280,7 +291,7 @@ impl Inc {
                 }
             }
         }
-        o.w_wire * self.wire + w_ov * (self.ov + self.outside) + o.w_area * area + o.w_near * self.near + o.w_block * self.spread + o.w_edge * edge + o.w_sep * sep
+        o.w_wire * self.wire + w_ov * (self.ov + self.outside) + o.w_area * area + o.w_near * self.near + o.w_block * self.spread + o.w_edge * edge + o.w_sep * sep + o.w_fill * self.fill
     }
 
     fn net_len(&self, st: &State, k: usize) -> (f64, f64) {
@@ -304,23 +315,9 @@ impl Inc {
         (self.poses[i].x + q.0, self.poses[i].y + q.1)
     }
 
-    /// Two parts' overlap, as `State::cost` counts it.
-    fn pair(&self, st: &State, i: usize, j: usize) -> f64 {
-        let pr = st.pr;
-        if (st.in_group[i].is_some() && st.in_group[i] == st.in_group[j]) || (pr.parts[i].fixed.is_some() && pr.parts[j].fixed.is_some()) {
-            return 0.0;
-        }
-        let a = if pr.parts[i].back != pr.parts[j].back {
-            let thru = |k: usize, other: usize| -> f64 { pr.parts[k].through.iter().map(|t| overlap(&bbox_at(t, &self.poses[k], pr.parts[k].back), &self.boxes[other], 0.0)).sum() };
-            thru(i, j) + thru(j, i)
-        } else {
-            overlap(&self.boxes[i], &self.boxes[j], pr.options.clearance)
-        };
-        if a > 1e-9 {
-            a
-        } else {
-            0.0
-        }
+    /// Two parts' overlap and fill, as `State::cost` counts them.
+    fn pair(&self, st: &State, i: usize, j: usize) -> (f64, f64) {
+        pair(st.pr, &st.in_group, &st.halo, &self.poses, &self.boxes, i, j)
     }
 
     fn outside_of(&self, st: &State, i: usize) -> f64 {

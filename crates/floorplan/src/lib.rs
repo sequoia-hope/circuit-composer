@@ -10,7 +10,9 @@
 //! - **block**: each part's distance from its block's centre, so blocks stay together;
 //! - **edge**: a connector's distance from the board edge, and whether it faces outward;
 //! - **separation**: how far two blocks that must stay apart (an aggressor and a victim) fall
-//!   short of their distance.
+//!   short of their distance;
+//! - **fill**: on a board with an outline, where courtyards grown by their halo overlap, so the
+//!   parts spread over the board instead of packing into one corner of it (see `halos`).
 //!
 //! A rigid group (a generated block layout, in its anchor's frame) moves and turns as one.
 //! Rotations follow KiCad: positive is counter-clockwise on screen, with y pointing down.
@@ -81,6 +83,14 @@ fn one() -> f64 {
     1.0
 }
 
+fn fill() -> f64 {
+    0.5
+}
+
+fn w_fill() -> f64 {
+    3.0
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Rigid {
     pub name: String,
@@ -113,6 +123,13 @@ pub struct Options {
     pub w_edge: f64,
     pub w_sep: f64,
     pub w_overlap: f64,
+    /// How much of each side's free board the movable parts share out as room around them, 0 to
+    /// 1: 0 packs them as tight as the wiring pulls them, 1 spreads them over all of it. Only
+    /// with an outline set (without one, the area term packs the board).
+    #[serde(default = "fill")]
+    pub fill: f64,
+    #[serde(default = "w_fill")]
+    pub w_fill: f64,
     /// How the placement starts: annealed from a random spread, or from the analytical placer's
     /// (then annealed cool, as a warm start is).
     #[serde(default)]
@@ -129,7 +146,7 @@ pub enum Placer {
 
 impl Default for Options {
     fn default() -> Self {
-        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, placer: Placer::Sa }
+        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), placer: Placer::Sa }
     }
 }
 
@@ -255,6 +272,73 @@ fn gap(a: &[f64; 4], b: &[f64; 4]) -> f64 {
     let dx = (a[0] - b[2]).max(b[0] - a[2]).max(0.0);
     let dy = (a[1] - b[3]).max(b[1] - a[3]).max(0.0);
     (dx * dx + dy * dy).sqrt()
+}
+
+/// The board's own area, mm² (a shaped outline's, not its box's), when an outline is set.
+fn board_area(pr: &Problem) -> Option<f64> {
+    if let Some(poly) = &pr.outline_polygon {
+        let twice: f64 = (0..poly.len()).map(|k| {
+            let (a, b) = (poly[k], poly[(k + 1) % poly.len()]);
+            a.0 * b.1 - b.0 * a.1
+        }).sum();
+        return Some(twice.abs() / 2.0);
+    }
+    pr.outline.map(|o| (o[2] - o[0]) * (o[3] - o[1]))
+}
+
+/// Each part's halo, mm: how far the fill term grows its courtyard. On each side the movable
+/// parts share one halo, sized so that their courtyards grown by it take up `fill` of the board
+/// that side's locked parts and their own courtyards leave free. Two neighbours keep twice it
+/// apart; a locked part keeps one halo from its movable neighbours. Locked parts, and every part
+/// with no outline set, have none.
+fn halos(pr: &Problem) -> Vec<f64> {
+    let o = &pr.options;
+    let mut out = vec![0.0; pr.parts.len()];
+    let Some(board) = board_area(pr).filter(|_| o.fill > 0.0) else { return out };
+    for back in [false, true] {
+        let (mut locked, mut moving, mut sides, mut count) = (0.0, 0.0, 0.0, 0.0);
+        for p in pr.parts.iter().filter(|p| p.back == back) {
+            let (w, h) = (p.bbox[2] - p.bbox[0] + o.clearance, p.bbox[3] - p.bbox[1] + o.clearance);
+            if p.fixed.is_some() {
+                locked += w * h;
+            } else {
+                moving += w * h;
+                sides += w + h;
+                count += 1.0;
+            }
+        }
+        if count == 0.0 {
+            continue;
+        }
+        // Σ (w + 2h)(l + 2h) = moving + extra, so 4n·h² + 2·Σ(w + l)·h = extra.
+        let extra = o.fill.min(1.0) * (board - locked - moving).max(0.0);
+        let h = (-2.0 * sides + (4.0 * sides * sides + 16.0 * count * extra).sqrt()) / (8.0 * count);
+        for (i, p) in pr.parts.iter().enumerate() {
+            if p.back == back && p.fixed.is_none() {
+                out[i] = h;
+            }
+        }
+    }
+    out
+}
+
+/// Two parts against each other: how much they overlap, as the rules count it, and how much
+/// their courtyards grown by their halos do (the fill term's). Within a rigid group, or between
+/// two parts nothing here can move, neither.
+fn pair(pr: &Problem, in_group: &[Option<usize>], halo: &[f64], poses: &[Pose], boxes: &[[f64; 4]], i: usize, j: usize) -> (f64, f64) {
+    if (in_group[i].is_some() && in_group[i] == in_group[j]) || (pr.parts[i].fixed.is_some() && pr.parts[j].fixed.is_some()) {
+        return (0.0, 0.0);
+    }
+    if pr.parts[i].back != pr.parts[j].back {
+        // Opposite sides meet only where a through-hole pad comes through.
+        let thru = |k: usize, other: usize| -> f64 { pr.parts[k].through.iter().map(|t| overlap(&bbox_at(t, &poses[k], pr.parts[k].back), &boxes[other], 0.0)).sum() };
+        let a = thru(i, j) + thru(j, i);
+        return (if a > 1e-9 { a } else { 0.0 }, 0.0);
+    }
+    let c = pr.options.clearance;
+    let a = overlap(&boxes[i], &boxes[j], c);
+    let h = halo[i] + halo[j];
+    (if a > 1e-9 { a } else { 0.0 }, if h > 0.0 { overlap(&boxes[i], &boxes[j], c + h) } else { 0.0 })
 }
 
 /// The outward direction of a side, in KiCad's frame (y down).
@@ -438,6 +522,18 @@ pub struct Metrics {
     /// The overlapping pairs (and parts outside a set outline), worst first, at most 20.
     pub overlap_pairs: Vec<String>,
     pub near_mm: f64,
+    /// The board's own area, mm²: a shaped outline's, not its box's.
+    pub board_area_mm2: f64,
+    /// How much of the board the parts' courtyards cover, front and back, 0 to 1. Keep-outs are
+    /// not parts.
+    pub density: [f64; 2],
+    /// From each movable part's courtyard to its nearest neighbour's on its side (part or
+    /// keep-out), on average, mm: the room the parts leave each other to route in.
+    pub gap_mm: f64,
+    /// The halo the fill term grows each side's movable parts by, front and back, mm.
+    pub halo_mm: [f64; 2],
+    /// Where those grown courtyards overlap, mm²: what the fill term weighs.
+    pub fill_mm2: f64,
     pub edge_misses: Vec<String>,
     pub separation_misses: Vec<String>,
 }
@@ -462,6 +558,8 @@ struct State<'a> {
     /// Part index -> (movable, member offset, member rotation).
     of_part: Vec<(usize, P, f64)>,
     in_group: Vec<Option<usize>>,
+    /// Each part's halo (`halos`).
+    halo: Vec<f64>,
 }
 
 impl<'a> State<'a> {
@@ -508,20 +606,12 @@ impl<'a> State<'a> {
             }
         }
         let mut ov = 0.0;
+        let mut fill = 0.0;
         for i in 0..n {
             for j in i + 1..n {
-                // Within a rigid group, or between two parts nothing here can move: not ours.
-                if (self.in_group[i].is_some() && self.in_group[i] == self.in_group[j]) || (pr.parts[i].fixed.is_some() && pr.parts[j].fixed.is_some()) {
-                    continue;
-                }
-                let a = if pr.parts[i].back != pr.parts[j].back {
-                    // Opposite sides meet only where a through-hole pad comes through.
-                    let thru = |k: usize, other: usize| -> f64 { pr.parts[k].through.iter().map(|t| overlap(&bbox_at(t, &poses[k], pr.parts[k].back), &boxes[other], 0.0)).sum() };
-                    thru(i, j) + thru(j, i)
-                } else {
-                    overlap(&boxes[i], &boxes[j], o.clearance)
-                };
-                if a > 1e-9 {
+                let (a, f) = pair(pr, &self.in_group, &self.halo, &poses, &boxes, i, j);
+                fill += f;
+                if a > 0.0 {
                     ov += a;
                     m.overlaps += 1;
                     m.overlap_pairs.push(format!("{} {} {a:.3}", pr.parts[i].reference, pr.parts[j].reference));
@@ -529,6 +619,7 @@ impl<'a> State<'a> {
             }
         }
         m.overlap_mm2 = ov;
+        m.fill_mm2 = fill;
         let mut all = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
         for b in &boxes {
             all = [all[0].min(b[0]), all[1].min(b[1]), all[2].max(b[2]), all[3].max(b[3])];
@@ -584,6 +675,24 @@ impl<'a> State<'a> {
             m.board_mm = [x1 - x0, y1 - y0];
             m.area_mm2 = m.board_mm[0] * m.board_mm[1];
         }
+        m.board_area_mm2 = board_area(pr).unwrap_or(m.area_mm2);
+        let (mut gaps, mut counted) = (0.0, 0);
+        for (i, p) in pr.parts.iter().enumerate() {
+            if p.reference.contains(':') {
+                continue;
+            }
+            let s = p.back as usize;
+            m.density[s] += (boxes[i][2] - boxes[i][0]) * (boxes[i][3] - boxes[i][1]) / m.board_area_mm2;
+            m.halo_mm[s] = m.halo_mm[s].max(self.halo[i]);
+            if p.fixed.is_none() {
+                let nearest = (0..n).filter(|&j| j != i && pr.parts[j].back == p.back).map(|j| gap(&boxes[i], &boxes[j])).fold(f64::INFINITY, f64::min);
+                if nearest.is_finite() {
+                    gaps += nearest;
+                    counted += 1;
+                }
+            }
+        }
+        m.gap_mm = if counted > 0 { gaps / counted as f64 } else { 0.0 };
         let mut near = 0.0;
         for (i, p) in pr.parts.iter().enumerate() {
             if let Some((j, pin)) = &p.near {
@@ -645,7 +754,7 @@ impl<'a> State<'a> {
             v(b).total_cmp(&v(a))
         });
         m.overlap_pairs.truncate(20);
-        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_block * spread + o.w_edge * edge + o.w_sep * sep;
+        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_block * spread + o.w_edge * edge + o.w_sep * sep + o.w_fill * fill;
         (cost, m)
     }
 }
@@ -702,7 +811,7 @@ pub fn solve_with(pr: &Problem, start: Option<&[Pose]>, every: usize, on: &mut d
     // A warm start keeps what it was given: a cooler anneal with shorter moves.
     let (heat, reach) = if start.is_some() { (0.03, 0.2) } else { (1.0, 1.0) };
     let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
-    let mut st = State { pr, sdf, mv, movables, of_part, in_group };
+    let mut st = State { pr, sdf, mv, movables, of_part, in_group, halo: halos(pr) };
     let free: Vec<usize> = (0..st.movables.len()).filter(|&m| fixed(&st.movables[m]).is_none()).collect();
     let slides = edge_slides(&mut st, &free, start.is_some());
 
@@ -971,7 +1080,7 @@ mod inc_tests {
             let mut rng = Rng(7);
             let mv: Vec<Pose> = movables.iter().map(|_| Pose { x: rng.f() * 30.0, y: rng.f() * 30.0, rotation: 0.0 }).collect();
             let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
-            let mut st = State { pr: &pr, sdf, mv, movables, of_part, in_group };
+            let mut st = State { pr: &pr, sdf, mv, movables, of_part, in_group, halo: halos(&pr) };
             let mut inc = inc::Inc::new(&st);
             for k in 0..3000 {
                 let a = (rng.next() as usize) % st.mv.len();
@@ -1012,7 +1121,7 @@ pub fn evaluate(pr: &Problem, poses: &BTreeMap<String, Pose>) -> Result<Metrics,
         mv.push(*poses.get(&p.reference).ok_or_else(|| format!("{} has no pose", p.reference))?);
     }
     let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
-    let st = State { pr, sdf, mv, movables: (0..n).map(Movable::Part).collect(), of_part: (0..n).map(|i| (i, (0.0, 0.0), 0.0)).collect(), in_group: vec![None; n] };
+    let st = State { pr, sdf, mv, movables: (0..n).map(Movable::Part).collect(), of_part: (0..n).map(|i| (i, (0.0, 0.0), 0.0)).collect(), in_group: vec![None; n], halo: halos(pr) };
     Ok(st.cost(pr.options.w_overlap).1)
 }
 
@@ -1125,6 +1234,28 @@ mod tests {
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: Some(tri) };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
+    }
+
+    #[test]
+    fn fill_spreads_the_parts_over_the_board() {
+        // Twelve small parts on a 30 mm square cover a twentieth of it. Packed, they sit against
+        // each other; filling, they keep room between them, and the halo leaves half the free board
+        // to share out.
+        let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
+        let nets: Vec<Net> = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let solved = |fill: f64| {
+            let pr = Problem { parts: parts.clone(), nets: nets.clone(), groups: vec![], separations: vec![], options: Options { moves: 60_000, fill, ..Default::default() }, outline: Some([0.0, 0.0, 30.0, 30.0]), outline_polygon: None };
+            solve(&pr).metrics
+        };
+        let (packed, filled) = (solved(0.0), solved(0.5));
+        assert_eq!((packed.overlaps, filled.overlaps), (0, 0), "{packed:?} {filled:?}");
+        assert_eq!(packed.halo_mm, [0.0, 0.0]);
+        assert!(filled.gap_mm > packed.gap_mm + 1.0, "packed {} mm apart, filled {} mm", packed.gap_mm, filled.gap_mm);
+        // Twelve 1.6 x 0.8 courtyards on 900 mm².
+        assert!((filled.density[0] - 12.0 * 1.28 / 900.0).abs() < 1e-9 && filled.density[1] == 0.0, "{:?}", filled.density);
+        assert_eq!(filled.board_area_mm2, 900.0);
+        let grown = 12.0 * (1.6 + 2.0 * filled.halo_mm[0]) * (0.8 + 2.0 * filled.halo_mm[0]);
+        assert!((grown - (12.0 * 1.28 + 0.5 * (900.0 - 12.0 * 1.28))).abs() < 1e-6, "{grown}");
     }
 
     #[test]

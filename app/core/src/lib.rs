@@ -351,6 +351,12 @@ impl Session {
         Ok(())
     }
 
+    /// How much of the board's free room the parts spread into, 0 (packed as the wiring pulls
+    /// them) to 1 (over all of it): the floorplanner's `fill`.
+    pub fn set_fill(&mut self, fill: f64) {
+        self.pr.options.fill = fill.clamp(0.0, 1.0);
+    }
+
     /// Anneal: from a random spread, or (`warm`) refining the current placement. `on` sees a
     /// snapshot every `every` moves and stops the anneal by returning false. The result's poses
     /// become the session's.
@@ -602,6 +608,11 @@ mod wasm {
         /// `sa` or `analytic`: how `anneal` starts a placement from scratch.
         pub fn set_placer(&mut self, placer: &str) -> Result<(), JsValue> {
             self.s.set_placer(placer).map_err(err)
+        }
+
+        /// 0 to 1: how much of the board's free room `anneal` spreads the parts into.
+        pub fn set_fill(&mut self, fill: f64) {
+            self.s.set_fill(fill);
         }
 
         /// Runs to the end (or until `on` returns false), calling `on(posesFloat64Array,

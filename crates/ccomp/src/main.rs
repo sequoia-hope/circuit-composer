@@ -140,6 +140,10 @@ enum Cmd {
         /// that cool for `--moves` (the spec's choice, or `sa`).
         #[arg(long, value_parser = ["sa", "analytic"])]
         placer: Option<String>,
+        /// How much of the board's free room the parts spread into, 0 (packed as the wiring pulls
+        /// them) to 1 (over all of it); the spec's, or 0.5. Only with an outline.
+        #[arg(long)]
+        fill: Option<f64>,
         /// Score this board's own placement instead of solving (the parts as placed there).
         #[arg(long)]
         evaluate: Option<PathBuf>,
@@ -611,7 +615,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             Ok((value, r.ok))
         }
-        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, placer, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
+        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, placer, fill, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
             if let Some(p) = input_problem {
                 let mut pr: floorplan::Problem = serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?;
                 if let Some(s) = seed {
@@ -619,6 +623,9 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 }
                 if let Some(m) = moves {
                     pr.options.moves = m;
+                }
+                if let Some(f) = fill {
+                    pr.options.fill = f;
                 }
                 set_placer(&mut pr, placer.as_deref());
                 return Ok(solve_and_report(&pr, output.as_deref())?);
@@ -679,6 +686,9 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             if let Some(m) = moves {
                 pr.options.moves = m;
+            }
+            if let Some(f) = fill {
+                pr.options.fill = f;
             }
             set_placer(&mut pr, placer.as_deref());
             if problem {

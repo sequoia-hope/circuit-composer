@@ -80,6 +80,7 @@
   let seed = $state(1);
   let moves = $state(200000);
   let placer = $state('analytic'); // how Place starts: gradient descent, or a random spread
+  let fill = $state(0.5); // how much of the board's free room the parts spread into
   let lastRun = $state('');
   let history = [];
 
@@ -486,7 +487,7 @@
       error = `Anneal failed: ${e.message}`;
       stop();
     };
-    worker.postMessage({ problem: doc.board.problem(), poses: doc.board.poses(), seed, moves, warm, placer, every: Math.max(1000, Math.round(moves / 120)) });
+    worker.postMessage({ problem: doc.board.problem(), poses: doc.board.poses(), seed, moves, warm, placer, fill, every: Math.max(1000, Math.round(moves / 120)) });
     void started;
   }
 
@@ -645,6 +646,10 @@
         <div class="metrics">
           <span class="stat"><b>{fmt(metrics?.wire_mm, 0)}</b> mm wire</span>
           <span class="stat"><b>{fmt(doc.box ? doc.box[2] - doc.box[0] : metrics?.board_mm?.[0])} × {fmt(doc.box ? doc.box[3] - doc.box[1] : metrics?.board_mm?.[1])}</b> mm</span>
+          {#if metrics?.density}
+            <span class="stat" title="How much of the board the parts' courtyards cover, front / back; and from each movable part to its nearest neighbour, on average">
+              <b>{fmt(100 * metrics.density[0], 0)} / {fmt(100 * metrics.density[1], 0)} %</b> packed, <b>{fmt(metrics.gap_mm, 2)}</b> mm apart</span>
+          {/if}
           <span class="stat" class:bad={problems}><b>{problems}</b> {problems === 1 ? 'problem' : 'problems'}</span>
           <span class="sep"></span>
           {#if anneal}
@@ -662,6 +667,11 @@
             <label class="small">moves
               <select bind:value={moves}>
                 {#each [50000, 200000, 400000, 1000000] as m}<option value={m}>{m >= 1e6 ? '1 M' : `${m / 1000} k`}</option>{/each}
+              </select>
+            </label>
+            <label class="small" title="How much of the board's free room the parts spread into: none packs them as tight as the wiring pulls them, all spreads them over the whole board (only with an outline)">fill
+              <select bind:value={fill}>
+                {#each [[0, 'none'], [0.25, '¼'], [0.5, '½'], [0.75, '¾'], [1, 'all']] as [v, name]}<option value={v}>{name}</option>{/each}
               </select>
             </label>
             {#if narrow}

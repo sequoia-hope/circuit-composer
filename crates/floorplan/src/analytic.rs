@@ -8,6 +8,7 @@
 //! - **overlap**: for two courtyards on one side, their overlap in x times their overlap in y,
 //!   measured from their centres so that a part wholly inside another is still pushed out; its
 //!   weight rises through the run, as the anneal's does;
+//! - **fill**: the same for the courtyards grown by their halos, at the anneal's fill weight;
 //! - **outline**: how far a courtyard pokes out of the outline (or, on a shaped board, of its
 //!   signed-distance field), squared;
 //! - **area** with no outline: the courtyards' extent, smoothed like a net;
@@ -40,7 +41,7 @@ pub(crate) fn global(pr: &Problem) -> Vec<Pose> {
     let mut rng = Rng(o.seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
     let mv: Vec<Pose> = movables.iter().map(|m| fixed_pose(pr, m).unwrap_or(Pose { x: cx + rng.normal() * sx * 0.05, y: cy + rng.normal() * sy * 0.05, rotation: 0.0 })).collect();
     let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
-    let mut st = State { pr, sdf, mv, movables, of_part, in_group };
+    let mut st = State { pr, sdf, mv, movables, of_part, in_group, halo: super::halos(pr) };
     let free: Vec<usize> = (0..st.movables.len()).filter(|&m| fixed_pose(pr, &st.movables[m]).is_none()).collect();
     let slides = edge_slides(&mut st, &free, true);
     let mut adam = vec![[0.0f64; 4]; st.movables.len()];
@@ -169,13 +170,15 @@ fn gradient(st: &State, gamma: f64, w_ov: f64, board: Option<[f64; 4]>) -> Vec<P
         }
     }
 
-    // Overlap: pairs found by sweeping boxes sorted by their left side.
+    // Overlap, and fill (the same, of courtyards grown by their halos): pairs found by sweeping
+    // boxes sorted by their left side.
     let grow = o.clearance;
+    let reach = grow + 2.0 * st.halo.iter().copied().fold(0.0, f64::max);
     let mut order: Vec<usize> = (0..n).collect();
     order.sort_by(|&a, &b| boxes[a][0].total_cmp(&boxes[b][0]));
     for (k, &i) in order.iter().enumerate() {
         for &j in &order[k + 1..] {
-            if boxes[j][0] > boxes[i][2] + grow {
+            if boxes[j][0] > boxes[i][2] + reach {
                 break;
             }
             let (pi, pj) = (&pr.parts[i], &pr.parts[j]);
@@ -185,19 +188,23 @@ fn gradient(st: &State, gamma: f64, w_ov: f64, board: Option<[f64; 4]>) -> Vec<P
             let (a, b) = (&boxes[i], &boxes[j]);
             let dx = (a[0] + a[2] - b[0] - b[2]) / 2.0;
             let dy = (a[1] + a[3] - b[1] - b[3]) / 2.0;
-            let ox = (a[2] - a[0] + b[2] - b[0]) / 2.0 + grow - dx.abs();
-            let oy = (a[3] - a[1] + b[3] - b[1]) / 2.0 + grow - dy.abs();
-            if ox <= 0.0 || oy <= 0.0 {
-                continue;
-            }
             // Apart along both axes, a tie broken by index.
             let sx = if dx != 0.0 { dx.signum() } else if i < j { 1.0 } else { -1.0 };
             let sy = if dy != 0.0 { dy.signum() } else if i < j { 1.0 } else { -1.0 };
-            let (fx, fy) = (w_ov * sx * oy, w_ov * sy * ox);
-            g[i].0 -= fx;
-            g[i].1 -= fy;
-            g[j].0 += fx;
-            g[j].1 += fy;
+            let halo = st.halo[i] + st.halo[j];
+            // Fill comes in with overlap, so connected parts gather first.
+            for (w, grown) in [(w_ov, grow), (o.w_fill.min(w_ov), grow + halo)].into_iter().take(if halo > 0.0 { 2 } else { 1 }) {
+                let ox = (a[2] - a[0] + b[2] - b[0]) / 2.0 + grown - dx.abs();
+                let oy = (a[3] - a[1] + b[3] - b[1]) / 2.0 + grown - dy.abs();
+                if ox <= 0.0 || oy <= 0.0 {
+                    continue;
+                }
+                let (fx, fy) = (w * sx * oy, w * sy * ox);
+                g[i].0 -= fx;
+                g[i].1 -= fy;
+                g[j].0 += fx;
+                g[j].1 += fy;
+            }
         }
     }
 

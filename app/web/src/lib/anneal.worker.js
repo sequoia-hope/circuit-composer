@@ -7,10 +7,11 @@ const ready = init();
 
 self.onmessage = async (e) => {
   await ready;
-  const { problem, poses, seed, moves, warm, every, placer } = e.data;
+  const { problem, poses, seed, moves, warm, every, placer, fill } = e.data;
   const board = new Board(problem);
   board.set_poses(poses);
   board.set_placer(placer);
+  board.set_fill(fill);
   const started = performance.now();
   const placement = board.anneal(seed, moves, warm, every, (p, metrics, done, total) => {
     self.postMessage({ type: 'snap', poses: p, metrics, done, total });
