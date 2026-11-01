@@ -85,7 +85,7 @@
       renderer.upload(1, doc.board.mesh(px, mask));
       const showBox = !doc.outline && !doc.boxIsSet && doc.box;
       renderer.upload(2, doc.board.overlay(px, JSON.stringify({
-        selected: selection, ratsnest: layers.ratsnest, blocks: layers.blocks, front: layers.front, back: layers.back,
+        selected: selection, ratsnest: layers.ratsnest, blocks: layers.blocks, locks: layers.locks, front: layers.front, back: layers.back,
         dashed_box: showBox ? doc.box : null, dark: d,
       })));
       renderer.clear(background());
@@ -118,7 +118,25 @@
       ctx.font = `${Math.max(9, Math.min(16, l.size * view.zoom))}px ui-monospace, monospace`;
       ctx.fillStyle = sel.has(l.i) ? (d ? '#ff8a4c' : '#d9480f') : part.back ? (d ? 'rgba(170,170,180,.6)' : 'rgba(90,90,100,.6)') : d ? '#e7e6e2' : '#2b2c30';
       ctx.fillText(l.name, sx, sy);
+      if (layers.locks && part.locked && !part.reference.includes(':')) {
+        ctx.fillStyle = d ? '#f0b43c' : '#b07d10';
+        padlock(ctx, sx - ctx.measureText(l.name).width / 2 - 7, sy, Math.max(9, Math.min(13, l.size * view.zoom)));
+      }
     }
+  }
+
+  /** A padlock `h` CSS pixels tall, centred on (x, y): the mark on a locked part's label. */
+  function padlock(ctx, x, y, h) {
+    const w = h * 0.8, body = h * 0.55;
+    ctx.fillRect(x - w / 2, y + h / 2 - body, w, body);
+    ctx.lineWidth = Math.max(1.2, h * 0.14);
+    ctx.strokeStyle = ctx.fillStyle;
+    ctx.beginPath();
+    const r = w * 0.3, foot = y + h / 2 - body;
+    ctx.moveTo(x - r, foot);
+    ctx.arc(x, y - h / 2 + r + ctx.lineWidth / 2, r, Math.PI, 0);
+    ctx.lineTo(x + r, foot);
+    ctx.stroke();
   }
 
   $effect(() => {
@@ -128,7 +146,7 @@
       doc.board.set_side_hidden(false, !layers.front);
       doc.board.set_side_hidden(true, !layers.back);
     }
-    layers.ratsnest; layers.blocks; layers.labels;
+    layers.ratsnest; layers.blocks; layers.locks; layers.labels;
     schedule();
   });
 

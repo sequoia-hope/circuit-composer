@@ -24,6 +24,13 @@
       .slice(0, 40);
   });
 
+  // The board's own parts, locked and free (keep-outs, `keepout:…` or `shape:…`, are neither:
+  // they never move).
+  const own = $derived(doc.parts.map((p, i) => ({ p, i })).filter(({ p }) => !p.reference.includes(':')));
+  const locked = $derived(own.filter(({ p }) => p.locked).map(({ i }) => i));
+  const free = $derived(own.filter(({ p }) => !p.locked).map(({ i }) => i));
+  const lockedInSelection = $derived(parts.filter((p) => p.locked).length);
+
   function num(v) {
     return Math.round(v * 1000) / 1000;
   }
@@ -34,13 +41,13 @@
   {#if matches.length}
     <ul class="hits">
       {#each matches as m}
-        <li><button onclick={() => { onselect([m.i]); filter = ''; }}><b>{m.p.reference}</b> {m.c.value || ''} <span>{m.p.block || ''}</span></button></li>
+        <li><button onclick={() => { onselect([m.i]); filter = ''; }}><b>{m.p.reference}</b> {#if m.p.locked}<i class="lock" title="Locked">locked</i>{/if} {m.c.value || ''} <span>{m.p.block || ''}</span></button></li>
       {/each}
     </ul>
   {/if}
 
   {#if one}
-    <h2>{one.reference} <span class="side">{one.back ? 'bottom' : 'top'}</span></h2>
+    <h2>{one.reference} <span class="side">{one.back ? 'bottom' : 'top'}</span>{#if one.locked} <span class="side lock">locked</span>{/if}</h2>
     <dl>
       <dt>Value</dt><dd>{info.value || '—'}</dd>
       <dt>Footprint</dt><dd class="fp">{info.footprint || '—'}</dd>
@@ -66,6 +73,7 @@
     {/if}
   {:else if parts.length > 1}
     <h2>{parts.length} parts</h2>
+    <p class="hint">{lockedInSelection === parts.length ? 'All locked.' : lockedInSelection ? `${lockedInSelection} locked, ${parts.length - lockedInSelection} free.` : 'All free.'}</p>
     <p class="refs">{parts.map((p) => p.reference).join(' ')}</p>
     <div class="actions">
       <button onclick={() => onlock(true)}>Lock all</button>
@@ -75,10 +83,15 @@
     <h2>{doc.name}</h2>
     <p class="hint">{doc.note}</p>
     <dl>
-      <dt>Parts</dt><dd>{doc.parts.length} ({doc.parts.filter((p) => p.locked).length} locked, {doc.parts.filter((p) => p.back).length} on the bottom)</dd>
+      <dt>Parts</dt><dd>{own.length} ({locked.length} locked, {own.filter(({ p }) => p.back).length} on the bottom)</dd>
       <dt>Nets</dt><dd>{Object.keys(circuit.nets).length}</dd>
       <dt>Outline</dt><dd>{doc.outline ? 'shaped (set by the mechanical design)' : doc.boxIsSet ? 'rectangle (set)' : "the floorplanner's to choose"}</dd>
     </dl>
+    <div class="actions">
+      <button onclick={() => onselect(locked)} disabled={!locked.length} title="Select every locked part: the floorplanner leaves these where they are">Select locked ({locked.length})</button>
+      <button onclick={() => onselect(free)} disabled={!free.length} title="Select every free part: what Place moves">Select free ({free.length})</button>
+    </div>
+    <p class="hint">Locked parts are outlined in amber with a padlock (the Locks layer).</p>
     <p class="hint">Click a part to select it, shift-click to add to the selection. Drag a selected part to move it (<kbd>Esc</kbd> puts it back); a locked one stays put. Wheel zooms, drag the background to pan, <kbd>F</kbd> fits.</p>
     <p class="hint">On a touchscreen: a finger pans and two pinch to zoom; tap a part to select it, then drag it to move it.</p>
   {/if}
@@ -91,6 +104,8 @@
   .hits button { all: unset; display: block; width: 100%; box-sizing: border-box; padding: 4px 8px; cursor: pointer; font-size: 12px; }
   .hits button:hover { background: var(--hover); }
   .hits span { color: var(--muted); float: right; }
+  .hits .lock { font-style: normal; font-size: 10.5px; color: var(--lock); }
+  h2 .side.lock { color: var(--lock); border-color: var(--lock); }
   h2 { font-size: 16px; margin: 14px 0 8px; }
   h2 .side { font-size: 11px; font-weight: 500; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 7px; vertical-align: 2px; }
   h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 16px 0 6px; }

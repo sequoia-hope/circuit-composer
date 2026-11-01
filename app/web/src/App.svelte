@@ -55,7 +55,7 @@
   let version = $state(0);
   let selection = $state.raw([]);
   let metrics = $state.raw(null);
-  let layers = $state({ front: true, back: true, ratsnest: true, labels: true, blocks: true });
+  let layers = $state({ front: true, back: true, ratsnest: true, labels: true, blocks: true, locks: true });
   // A phone: the board gets the screen; the part panel shows when parts are selected (or Parts is
   // pressed) and the dock only when one of its tabs is opened.
   const narrowQuery = matchMedia('(max-width: 820px)');
@@ -626,7 +626,7 @@
             </span>
           {/if}
           {#snippet layerBoxes()}
-            {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['labels', 'Labels'], ['blocks', 'Block colours']] as [k, label]}
+            {#each [['front', 'Top'], ['back', 'Bottom'], ['ratsnest', 'Ratsnest'], ['labels', 'Labels'], ['blocks', 'Block colours'], ['locks', 'Locks']] as [k, label]}
               <label><input type="checkbox" bind:checked={layers[k]} /> {label}</label>
             {/each}
           {/snippet}

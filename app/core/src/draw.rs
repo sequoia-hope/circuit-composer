@@ -69,6 +69,9 @@ pub struct OverlayOpts {
     pub ratsnest: bool,
     #[serde(default)]
     pub blocks: bool,
+    /// Locked parts outlined and tinted (the page marks their labels with a padlock).
+    #[serde(default)]
+    pub locks: bool,
     #[serde(default)]
     pub front: bool,
     #[serde(default)]
@@ -105,11 +108,16 @@ pub fn overlay(s: &Session, px: f32, o: &OverlayOpts) -> Vec<f32> {
             m.segment([k[0] as f32, k[1] as f32], [k[2] as f32, k[3] as f32], px * 0.6, c);
         }
     }
-    let lock: Rgba = if o.dark { [0.94, 0.71, 0.24, 0.9] } else { [0.69, 0.49, 0.06, 0.9] };
-    for p in &parts {
-        if p.locked && !p.reference.starts_with("shape:") && ((p.back && o.back) || (!p.back && o.front)) {
-            let c = centre(&p.outline);
-            m.disc(c, (px * 3.0).min(0.35), lock);
+    if o.locks {
+        let lock: Rgba = if o.dark { [0.94, 0.71, 0.24, 0.95] } else { [0.69, 0.49, 0.06, 0.95] };
+        let tint: Rgba = [lock[0], lock[1], lock[2], 0.16];
+        for p in &parts {
+            // A keep-out (`keepout:…`, `shape:…`) never moves: it isn't a locked part.
+            if p.locked && !p.reference.contains(':') && ((p.back && o.back) || (!p.back && o.front)) {
+                let r = ring(&p.outline);
+                m.fill(&r, [0.0, 0.0], tint);
+                m.ring(&r, px * 1.3, lock);
+            }
         }
     }
     let sel: Rgba = if o.dark { [1.0, 0.54, 0.30, 1.0] } else { [0.85, 0.28, 0.06, 1.0] };
@@ -145,11 +153,6 @@ pub fn grid(px: f32, x0: f32, y0: f32, x1: f32, y1: f32, dark: bool) -> Vec<f32>
 
 fn ring(o: &[[f64; 2]; 4]) -> Vec<f32> {
     o.iter().flat_map(|p| [p[0] as f32, p[1] as f32]).collect()
-}
-
-fn centre(o: &[[f64; 2]; 4]) -> [f32; 2] {
-    let (x, y) = o.iter().fold((0.0, 0.0), |a, p| (a.0 + p[0], a.1 + p[1]));
-    [(x / 4.0) as f32, (y / 4.0) as f32]
 }
 
 /// A colour per block name, as the placeholder scene picked it.
