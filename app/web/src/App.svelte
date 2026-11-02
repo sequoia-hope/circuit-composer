@@ -135,8 +135,8 @@
     error = '';
     leaveProject();
     try {
-      const data = await loadBoard(name);
       const meta = boards.find((b) => b.name === name) || {};
+      const data = await loadBoard(name, meta);
       circuit = data.circuit;
       composition = data.loose && data.packages ? { loose: data.loose, packages: data.packages, library: await loadLibrary() } : null;
       live = null;
@@ -651,7 +651,7 @@
               <b>{fmt(100 * metrics.density[0], 0)} / {fmt(100 * metrics.density[1], 0)} %</b> packed, <b>{fmt(metrics.gap_mm, 2)}</b> mm apart</span>
           {/if}
           <span class="stat" class:bad={problems}><b>{problems}</b> {problems === 1 ? 'problem' : 'problems'}</span>
-          <span class="sep"></span>
+          <span class="run">
           {#if anneal}
             <span class="progress"><span style="width:{(100 * anneal.done) / anneal.total}%"></span></span>
             <span class="stat">{anneal.warm ? 'Refining' : 'Placing'}… {Math.round((100 * anneal.done) / anneal.total)} %</span>
@@ -681,6 +681,7 @@
             <button class="primary" onclick={() => run(false)} title="Place every unlocked part from scratch">Place unlocked parts</button>
             <span class="last">{[lastRun, project && !embed && (unsaved ? 'Not saved to the project yet.' : saveNote)].filter(Boolean).join(' ')}</span>
           {/if}
+          </span>
         </div>
       {:else if workspace === 'circuit'}
         {#key current}
@@ -699,7 +700,7 @@
             and routing regions (<i>must</i>, <i>prefer</i>, <i>avoid</i>, <i>never</i>) per net class, with a preview of the
             <code>routing.json</code> UltraRoute will get.</p>
           <p class="muted">Milestone F. On this board: {doc.problem.groups.length} rigid generated layout{doc.problem.groups.length === 1 ? '' : 's'}
-            ({doc.problem.groups.map((g) => g.name).join(', ') || 'none'}), {doc.parts.filter((p) => p.locked).length} locked parts.</p>
+            ({doc.problem.groups.map((g) => g.name).join(', ') || 'none'}), {doc.parts.filter((p) => p.locked && !p.reference.includes(':')).length} locked parts.</p>
         </div>
       {:else}
         <div class="later rules">
@@ -723,7 +724,7 @@
       {/if}
     </aside>
     <footer>
-      <Dock {metrics} {mode} {refIndex} onselect={select} bind:open={dockOpen} collapsible={narrow} />
+      <Dock {metrics} {mode} {refIndex} onselect={select} bind:open={dockOpen} />
     </footer>
   </main>
 </div>
@@ -756,17 +757,19 @@
   .toolbar .which button.on { background: var(--hover); box-shadow: inset 0 -2px 0 var(--accent); }
   .note { position: absolute; top: 44px; left: 10px; right: 10px; z-index: 2; font-size: 12px; color: var(--muted); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 7px; padding: 4px 9px; }
   .toolbar label { display: flex; align-items: center; gap: 4px; cursor: pointer; color: var(--muted); }
-  .metrics { flex: none; display: flex; align-items: center; gap: 14px; padding: 6px 12px; border-top: 1px solid var(--line); background: var(--panel); font-size: 12.5px; flex-wrap: wrap; }
+  .metrics { flex: none; display: flex; align-items: center; gap: 8px 10px; padding: 6px 12px; border-top: 1px solid var(--line); background: var(--panel); font-size: 12.5px; flex-wrap: wrap; }
   .stat { color: var(--muted); white-space: nowrap; }
   .stat b { color: var(--ink); font-variant-numeric: tabular-nums; }
   .stat.bad b, .stat.bad { color: var(--bad); }
-  .sep { flex: 1; }
+  /* The run controls stay together at the right, and wrap below the numbers as one row. */
+  .run { margin-left: auto; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px 10px; }
   .small { color: var(--muted); display: flex; align-items: center; gap: 4px; }
-  .small input { width: 52px; }
+  .small input { width: 44px; }
   .small input, .small select { padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--ink); font: 12px var(--mono); }
   .progress { width: 160px; height: 6px; border-radius: 3px; background: var(--hover); overflow: hidden; }
   .progress span { display: block; height: 100%; background: var(--accent); }
   .last { color: var(--muted); font-size: 12px; }
+  .last:empty { display: none; }
   .empty, .later { padding: 28px 32px; color: var(--muted); max-width: 760px; line-height: 1.55; overflow: auto; }
   .later h2 { color: var(--ink); margin-top: 0; }
   .later.rules { max-width: none; }
@@ -778,6 +781,10 @@
   .wide main { grid-template-columns: minmax(0, 1fr); }
   .wide aside { display: none; }
   .embed main { grid-template-rows: minmax(0, 1fr) 140px; }
+  /* The dock closed (its open tab pressed again): just its tabs, and the board takes the rest. */
+  @media (min-width: 821px) {
+    .app:not(.dock-open) main { grid-template-rows: minmax(0, 1fr) auto; }
+  }
   header.bar { height: 38px; gap: 10px; padding: 0 8px; }
   .saved { font-size: 12px; color: var(--muted); white-space: nowrap; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; }
   .saved.unsaved { color: var(--lock); }
@@ -820,5 +827,8 @@
     .note { position: static; border-radius: 0; border: 0; border-bottom: 1px solid var(--line); }
     .metrics { gap: 8px 10px; padding: 6px 10px; }
     .metrics .small, .metrics .last { display: none; }
+    /* A finger needs a target about 9 mm tall: every control is at least 36 px. */
+    header select, nav button, .toolbar .which button, .metrics button { min-height: 36px; }
+    .view-menu summary { min-height: 36px; display: inline-flex; align-items: center; box-sizing: border-box; }
   }
 </style>

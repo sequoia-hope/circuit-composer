@@ -40,15 +40,19 @@ export async function listBoards() {
   return (await r.json()).boards;
 }
 
-export async function loadBoard(name) {
+/**
+ * An example board's files. `meta` is its entry in index.json: where it says the board has no
+ * shape or loose composition, those files are not asked for (each would be a 404).
+ */
+export async function loadBoard(name, meta = {}) {
   const get = (f) => retrying(() => fetch(`examples/${name}/${f}`).then((r) => {
     if (!r.ok) throw new Error(`${name}/${f}: ${r.status}`);
     return r.text();
   }));
-  const optional = (f) => get(f).then(JSON.parse, () => null);
+  const optional = (f, has = true) => (has === false ? Promise.resolve(null) : get(f).then(JSON.parse, () => null));
   const [problem, placement, circuit, shape, loose, packages] = await Promise.all([
     get('problem.json'), get('placement.json'), get('circuit.json'),
-    optional('shape.json'), optional('loose.json'), optional('packages.json'),
+    optional('shape.json', meta.shape), optional('loose.json', meta.loose), optional('packages.json', meta.loose),
   ]);
   return { problem, placement, circuit: JSON.parse(circuit), shape, loose, packages };
 }

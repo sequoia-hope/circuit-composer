@@ -611,8 +611,10 @@ impl<'a> State<'a> {
             for j in i + 1..n {
                 let (a, f) = pair(pr, &self.in_group, &self.halo, &poses, &boxes, i, j);
                 fill += f;
-                if a > 0.0 {
-                    ov += a;
+                ov += a;
+                // Courtyards that only touch overlap by rounding: a problem only from a
+                // thousandth of a square millimetre, the least the report shows.
+                if a >= 1e-3 {
                     m.overlaps += 1;
                     m.overlap_pairs.push(format!("{} {} {a:.3}", pr.parts[i].reference, pr.parts[j].reference));
                 }

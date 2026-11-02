@@ -174,6 +174,10 @@
           const sy = (touched[1] - view.cy) * view.zoom + was[1] / 2;
           const keep = Math.max(24, Math.min(r.height - 48, sy));
           view.cy = touched[1] - (keep - r.height / 2) / view.zoom;
+        } else if (auto) {
+          // Nothing pressed and the view still follows the board (the page settling as it
+          // loads, a panel with nothing selected): the whole board stays in view.
+          return fit();
         } else {
           view.cy += (r.height - was[1]) / 2 / view.zoom;
         }

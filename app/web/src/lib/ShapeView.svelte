@@ -249,10 +249,15 @@
       else { ctx.arc(cx, cy, 6 * px, 0, 2 * Math.PI); }
       ctx.stroke(); ctx.setLineDash([]);
     }
-    // Handles, in screen space.
+    // Handles, in screen space. A traced outline has hundreds of points a pixel or two apart:
+    // only those at least 12 px from the last one drawn show, and zooming in brings back the rest
+    // (any of them can still be grabbed).
     ctx.setTransform(k, 0, 0, k, 0, 0);
+    let last = null;
     for (const [hx, hy] of handles()) {
       const [sx, sy] = toScreen(hx, hy);
+      if (last && Math.hypot(sx - last[0], sy - last[1]) < 12) continue;
+      last = [sx, sy];
       ctx.fillStyle = t.canvas; ctx.strokeStyle = t.select; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.rect(sx - 5, sy - 5, 10, 10); ctx.fill(); ctx.stroke();
     }

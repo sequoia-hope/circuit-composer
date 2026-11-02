@@ -1,8 +1,8 @@
 <script>
   // Along the bottom: checks, AI jobs, and the composition terminal.
-  // `collapsible` (a phone): the open tab's button closes it again, leaving only the tabs.
-  let { metrics, mode, refIndex, onselect, open = $bindable('checks'), collapsible = false } = $props();
-  const pick = (tab) => (open = collapsible && open === tab ? null : tab);
+  // The open tab's button closes it again, leaving only the tabs.
+  let { metrics, mode, refIndex, onselect, open = $bindable('checks') } = $props();
+  const pick = (tab) => (open = open === tab ? null : tab);
 
   // Findings from the floorplanner's metrics: each names the parts it concerns.
   const findings = $derived.by(() => {
@@ -20,9 +20,9 @@
 
 <div class="dock">
   <div class="tabs" role="tablist">
-    <button class:on={open === 'checks'} onclick={() => pick('checks')} role="tab">Checks {#if findings.length}<span class="n">{findings.length}</span>{:else if metrics}<span class="ok">✓</span>{/if}</button>
-    <button class:on={open === 'jobs'} onclick={() => pick('jobs')} role="tab">AI jobs</button>
-    <button class:on={open === 'terminal'} onclick={() => pick('terminal')} role="tab">Terminal</button>
+    <button class:on={open === 'checks'} onclick={() => pick('checks')} role="tab" aria-selected={open === 'checks'}>Checks {#if findings.length}<span class="n">{findings.length}</span>{:else if metrics}<span class="ok">✓</span>{/if}</button>
+    <button class:on={open === 'jobs'} onclick={() => pick('jobs')} role="tab" aria-selected={open === 'jobs'}>AI jobs</button>
+    <button class:on={open === 'terminal'} onclick={() => pick('terminal')} role="tab" aria-selected={open === 'terminal'}>Terminal</button>
   </div>
   <div class="body" hidden={!open}>
     {#if open === 'checks'}
@@ -61,6 +61,7 @@
   .tabs { display: flex; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); flex: none; }
   .tabs button { all: unset; cursor: pointer; padding: 7px 10px 6px; font-size: 12px; color: var(--muted); border-bottom: 2px solid transparent; }
   .tabs button.on { color: var(--ink); border-color: var(--accent); }
+  @media (max-width: 820px) { .tabs button { min-height: 36px; display: inline-flex; align-items: center; box-sizing: border-box; } }
   .n { background: var(--bad); color: #fff; border-radius: 99px; padding: 0 6px; font-size: 10.5px; margin-left: 3px; }
   .ok { color: var(--good); margin-left: 3px; }
   .body { overflow: auto; padding: 8px 14px; flex: 1; font-size: 12.5px; }
