@@ -322,12 +322,19 @@ as a datasheet-versus-practice dispute. Its XL7005A 60 V buck has a hot loop 25�
 Mining it added asynchronous bucks (a `diode` role), divider feedback, and plane shielding to
 the checks.
 
+Its four half-bridges and three phase current-sense amplifiers are measured too (`ccomp check
+half-bridge`, `ccomp check sense`). Bridges A–C have commutation loops of 25.4–25.5 mm², each
+through its own 2.2 µF ceramic. Bridge D has no ceramic of its own and closes through phase A's,
+at 91 mm². The INA240s sit under their shunts, with sense loops of 2.7–7.1 mm² and taps within
+0.5 mm of the shunt pads.
+
 ## Next
 
 - Rerun the routed check with `--regions` once ultraroute has it.
 - Milestone 4: the RP2350 package's QFN-80 variant, using the motor controller's regulator as
   its measured reference.
-- The asynchronous buck in the generator, then the half-bridge (milestone 7).
+- The asynchronous buck in the generator, then a half-bridge generator (milestone 7), measured
+  against the motor controller's bridges.
 - **Package:** a 2-layer layout, and the transplant tool used in context on a real board, not
   only on a test bench.
 - Then mine `~/pcb/rp2350-motor-controller` for further blocks.

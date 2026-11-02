@@ -1,0 +1,59 @@
+{
+  "weights": {
+    "sense_loop_area_mm2": 1.0
+  },
+  "limits": {},
+  "rows": [
+    {
+      "id": "sense_a",
+      "label": "Phase A current sense: U5 (INA240A1) across R20 \u2016 R23 (8 m\u03a9 each), rev A",
+      "note": "",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "sense_path_pos_mm": 4.807,
+        "kelvin_offset_pos_mm": 0.0,
+        "sense_path_neg_mm": 7.483,
+        "kelvin_offset_neg_mm": 0.296,
+        "sense_loop_area_mm2": 2.656
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 2.656,
+      "svg": "sense_a.svg"
+    },
+    {
+      "id": "sense_b",
+      "label": "Phase B current sense: U9 (INA240A1) across R39 \u2016 R40 (8 m\u03a9 each), rev A",
+      "note": "",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "sense_path_pos_mm": 3.381,
+        "kelvin_offset_pos_mm": 0.0,
+        "sense_path_neg_mm": 8.977,
+        "kelvin_offset_neg_mm": 0.244,
+        "sense_loop_area_mm2": 7.144
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 7.144,
+      "svg": "sense_b.svg"
+    },
+    {
+      "id": "sense_c",
+      "label": "Phase C current sense: U10 (INA240A1) across R55 \u2016 R56 (8 m\u03a9 each), rev A",
+      "note": "",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "sense_path_pos_mm": 5.187,
+        "kelvin_offset_pos_mm": 0.0,
+        "sense_path_neg_mm": 7.734,
+        "kelvin_offset_neg_mm": 0.508,
+        "sense_loop_area_mm2": 3.28
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 3.28,
+      "svg": "sense_c.svg"
+    }
+  ]
+}

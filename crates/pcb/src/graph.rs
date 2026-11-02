@@ -163,16 +163,15 @@ pub fn copper_path(board: &Board, net: &str, from: &str, to: &str) -> Option<Pat
         }
     }
 
-    let start_pad = board.pad(from)?;
-    let end_pad = board.pad(to)?;
-    let find = |pad: &crate::Pad| -> Vec<usize> {
-        pad_nodes
-            .iter()
-            .find(|(pi, _)| std::ptr::eq(&board.pads[*pi], pad))
-            .map(|(_, ids)| ids.clone())
-            .unwrap_or_default()
+    // A pin with several pads (a MOSFET's three source leads, an exposed pad in pieces) is one
+    // terminal: the path may start or end at any of them.
+    board.pad(from)?;
+    board.pad(to)?;
+    let find = |ref_pin: &str| -> Vec<usize> {
+        let (r, pin) = ref_pin.split_once('.').unwrap_or_default();
+        pad_nodes.iter().filter(|(pi, _)| board.pads[*pi].part == r && board.pads[*pi].pin == pin).flat_map(|(_, ids)| ids.iter().copied()).collect()
     };
-    let (starts, ends) = (find(start_pad), find(end_pad));
+    let (starts, ends) = (find(from), find(to));
 
     let mut best = vec![f64::INFINITY; nodes.len()];
     let mut prev = vec![usize::MAX; nodes.len()];
@@ -277,5 +276,28 @@ mod tests {
         };
         let p = copper_path(&board, "N", "A.1", "B.1").expect("the vias join the pads");
         assert!((p.length - 5.2).abs() < 1e-9, "{}", p.length);
+    }
+
+    #[test]
+    fn a_pin_with_several_pads_is_one_terminal() {
+        // Q's pin 1 is two pads; the track reaches only the second.
+        let mut pads = vec![pad("Q", [0.0, 0.0]), pad("Q", [0.0, 2.0]), pad("B", [5.0, 2.0])];
+        pads[2].pin = "1".into();
+        let mut parts = BTreeMap::new();
+        for (r, ix) in [("Q", vec![0, 1]), ("B", vec![2])] {
+            parts.insert(r.to_string(), Part { reference: r.to_string(), value: String::new(), footprint: String::new(), at: pads[ix[0]].centre, rotation: 0.0, back: false, locked: false, courtyard: None, pads: ix });
+        }
+        let board = Board {
+            layers: vec!["F.Cu".into()],
+            parts,
+            pads,
+            tracks: vec![Track { a: [0.0, 2.0], b: [5.0, 2.0], width: 0.2, layer: "F.Cu".into(), net: "N".into(), locked: false }],
+            vias: vec![],
+            fills: vec![],
+            rules: None,
+            outline: None,
+        };
+        let p = copper_path(&board, "N", "Q.1", "B.1").expect("the second pad of Q.1 is joined");
+        assert!((p.length - 5.0).abs() < 1e-9, "{}", p.length);
     }
 }

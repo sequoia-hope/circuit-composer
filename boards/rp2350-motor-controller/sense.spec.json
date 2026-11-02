@@ -1,0 +1,39 @@
+{
+  "check": "sense",
+  "weights": {
+    "sense_loop_area_mm2": 1.0
+  },
+  "limits": {},
+  "entries": [
+    {
+      "id": "sense_a",
+      "label": "Phase A current sense: U5 (INA240A1) across R20 ‖ R23 (8 mΩ each), rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "inp": "U5.8",
+        "inn": "U5.1",
+        "shunt": "R20+R23"
+      }
+    },
+    {
+      "id": "sense_b",
+      "label": "Phase B current sense: U9 (INA240A1) across R39 ‖ R40 (8 mΩ each), rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "inp": "U9.8",
+        "inn": "U9.1",
+        "shunt": "R39+R40"
+      }
+    },
+    {
+      "id": "sense_c",
+      "label": "Phase C current sense: U10 (INA240A1) across R55 ‖ R56 (8 mΩ each), rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "inp": "U10.8",
+        "inn": "U10.1",
+        "shunt": "R55+R56"
+      }
+    }
+  ]
+}

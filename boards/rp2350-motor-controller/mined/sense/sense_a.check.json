@@ -1,0 +1,157 @@
+{
+  "block": "sense_a",
+  "geometry": {
+    "ends": [
+      "R23.2",
+      "R23.1"
+    ],
+    "loop_": [
+      [
+        131.46494999999996,
+        109.93159
+      ],
+      [
+        132.0,
+        109.321899
+      ],
+      [
+        132.249272,
+        109.07262700000001
+      ],
+      [
+        130.25,
+        111.0
+      ],
+      [
+        129.52745099999999,
+        110.521268
+      ],
+      [
+        135.452451,
+        110.521268
+      ],
+      [
+        135.1,
+        110.9
+      ],
+      [
+        132.65659,
+        110.9
+      ],
+      [
+        132.01659,
+        111.54000000000002
+      ],
+      [
+        131.46495,
+        111.955535
+      ],
+      [
+        131.46494999999996,
+        114.88159
+      ]
+    ],
+    "routed": true,
+    "taps": [
+      [
+        130.13504902272726,
+        110.92383809090909
+      ],
+      [
+        134.54377658536586,
+        110.9
+      ]
+    ]
+  },
+  "measurements": [
+    {
+      "block": "sense_a",
+      "check": "sense_path_pos_mm",
+      "fix_stage": "block",
+      "location": [
+        131.46494999999996,
+        109.93159
+      ],
+      "measured": 4.8074729152620055,
+      "method": "copper, amplifier input to the nearest shunt pad",
+      "nets": [
+        "/C_N"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "sense_a",
+      "check": "kelvin_offset_pos_mm",
+      "fix_stage": "route",
+      "location": [
+        130.13504902272726,
+        110.92383809090909
+      ],
+      "measured": 0.0,
+      "method": "where the input's path first enters a fill of its net or another part's pad, to the nearest shunt pad; 0 is a tap on the pad",
+      "nets": [
+        "/C_N"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "sense_a",
+      "check": "sense_path_neg_mm",
+      "fix_stage": "block",
+      "location": [
+        131.46494999999996,
+        114.88159
+      ],
+      "measured": 7.482554513319594,
+      "method": "copper, amplifier input to the nearest shunt pad",
+      "nets": [
+        "/A_P"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "sense_a",
+      "check": "kelvin_offset_neg_mm",
+      "fix_stage": "route",
+      "location": [
+        134.54377658536586,
+        110.9
+      ],
+      "measured": 0.2961262154638007,
+      "method": "where the input's path first enters a fill of its net or another part's pad, to the nearest shunt pad; 0 is a tap on the pad",
+      "nets": [
+        "/A_P"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "sense_a",
+      "check": "sense_loop_area_mm2",
+      "fix_stage": "route",
+      "location": [
+        132.14974581818183,
+        110.958707
+      ],
+      "measured": 2.6561793515625105,
+      "method": "copper of both inputs to the shunt, closed across the shunt and the amplifier",
+      "nets": [
+        "/C_N",
+        "/A_P"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": [
+    "/C_N",
+    "/A_P"
+  ],
+  "ok": true,
+  "roles": {
+    "inn": "U5.1",
+    "inp": "U5.8",
+    "shunt": [
+      "R20",
+      "R23"
+    ]
+  }
+}

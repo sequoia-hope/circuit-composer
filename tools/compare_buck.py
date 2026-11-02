@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Measure one buck block on several boards the same way, for a side-by-side comparison.
+"""Measure one kind of block on several boards (or several blocks on one) the same way, for a
+side-by-side comparison.
 
     compare_buck.py SPEC_JSON OUT_DIR
 
-SPEC_JSON: {"entries": [{"id", "label", "board", "roles": {...}, "note"}], "limits": {...},
-"weights": {"hot_loop_area_mm2": 1.0, ...}}. An entry's "not_applicable" maps a
+SPEC_JSON: {"check": "buck", "entries": [{"id", "label", "board", "roles": {...}, "note"}],
+"limits": {...}, "weights": {"hot_loop_area_mm2": 1.0, ...}}. "check" is the `ccomp check`
+command, `buck` (the default), `half-bridge` or `sense`. An entry's "not_applicable" maps a
 check to the reason its limit does not hold there (it is measured, not judged). Board paths are relative to SPEC_JSON. Writes
 OUT_DIR/<id>.svg, OUT_DIR/<id>.check.json and OUT_DIR/compare.json, and prints compare.json.
 """
@@ -27,7 +29,7 @@ def main():
     for e in spec["entries"]:
         board = os.path.normpath(os.path.join(base, os.path.expanduser(e["board"])))
         roles = ",".join(f"{k}={v}" for k, v in e["roles"].items())
-        cmd = [CCOMP, "check", "buck", board, "--roles", roles, "--block", e["id"], "--svg", os.path.join(out, e["id"] + ".svg"), "-o", os.path.join(out, e["id"] + ".check.json")]
+        cmd = [CCOMP, "check", spec.get("check", "buck"), board, "--roles", roles, "--block", e["id"], "--svg", os.path.join(out, e["id"] + ".svg"), "-o", os.path.join(out, e["id"] + ".check.json")]
         for check, lim in spec.get("limits", {}).items():
             if check not in e.get("not_applicable", {}):
                 cmd += ["--limit", f"{check}{lim}"]

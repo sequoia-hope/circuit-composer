@@ -1,0 +1,76 @@
+{
+  "check": "half-bridge",
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "hs_gate_loop_area_mm2": 0.25,
+    "ls_gate_loop_area_mm2": 0.25
+  },
+  "limits": {},
+  "entries": [
+    {
+      "id": "bridge_a",
+      "label": "Half-bridge A: AH1/AL1, U1 (EG3113), C1, rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "hs": "AH1",
+        "ls": "AL1",
+        "cbus": "C1",
+        "ho": "U1.7",
+        "lo": "U1.5",
+        "vs": "U1.6",
+        "vb": "U1.8",
+        "com": "U1.4",
+        "vcc": "U1.1"
+      }
+    },
+    {
+      "id": "bridge_b",
+      "label": "Half-bridge B: BH1/BL1, U6 (EG3113), C8, rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "hs": "BH1",
+        "ls": "BL1",
+        "cbus": "C8",
+        "ho": "U6.7",
+        "lo": "U6.5",
+        "vs": "U6.6",
+        "vb": "U6.8",
+        "com": "U6.4",
+        "vcc": "U6.1"
+      }
+    },
+    {
+      "id": "bridge_c",
+      "label": "Half-bridge C: CH1/CL1, U7 (EG3113), C44, rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "hs": "CH1",
+        "ls": "CL1",
+        "cbus": "C44",
+        "ho": "U7.7",
+        "lo": "U7.5",
+        "vs": "U7.6",
+        "vb": "U7.8",
+        "com": "U7.4",
+        "vcc": "U7.1"
+      }
+    },
+    {
+      "id": "bridge_d",
+      "label": "Half-bridge D: CH2/CL2, U12 (EG3113), C1, rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "hs": "CH2",
+        "ls": "CL2",
+        "cbus": "C1",
+        "ho": "U12.7",
+        "lo": "U12.5",
+        "vs": "U12.6",
+        "vb": "U12.8",
+        "com": "U12.4",
+        "vcc": "U12.1"
+      },
+      "note": "Has no ceramic bus capacitor of its own: C1, phase A's, is the nearest (the 100 uF electrolytic C39 is nearer still)."
+    }
+  ]
+}

@@ -294,6 +294,39 @@ enum Check {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// A MOSFET half-bridge and its gate driver: commutation-loop area, phase-node path, gate
+    /// loops and paths, bootstrap loop, driver supply path.
+    HalfBridge {
+        board: PathBuf,
+        /// `hs=AH1,ls=AL1,cbus=C1,ho=U1.7,lo=U1.5,vs=U1.6,vb=U1.8,com=U1.4,vcc=U1.1`; `rgh`,
+        /// `rgl` and `cboot` are found from the nets unless given.
+        #[arg(long)]
+        roles: String,
+        #[arg(long)]
+        block: Option<String>,
+        #[arg(long)]
+        limit: Vec<String>,
+        #[arg(long)]
+        svg: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
+    /// A current-sense amplifier across a shunt: sense-loop area, each input's path to the shunt,
+    /// and how far its tap on load-carrying copper is from the shunt's pad (Kelvin).
+    Sense {
+        board: PathBuf,
+        /// `inp=U5.8,inn=U5.1,shunt=R20+R23`.
+        #[arg(long)]
+        roles: String,
+        #[arg(long)]
+        block: Option<String>,
+        #[arg(long)]
+        limit: Vec<String>,
+        #[arg(long)]
+        svg: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
     /// A board against a package's blocks, by role: net wiring, block constraints, net length
     /// limits and part values, each judged with its source.
     Package {
@@ -512,22 +545,46 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
         Cmd::Check { kind: Check::Buck { board, intent: intent_path, block, roles, limit, svg, output } } => {
             let b = pcb::Board::load(&board)?;
             let (name, role_map, mut limits) = block_roles(intent_path.as_deref(), block, roles)?;
-            for l in &limit {
-                let (check, op, v) = if let Some((c, v)) = l.split_once("<=") {
-                    (c, "<=", v)
-                } else if let Some((c, v)) = l.split_once(">=") {
-                    (c, ">=", v)
-                } else {
-                    return Err(format!("limit `{l}` is not check<=value or check>=value"));
-                };
-                let value = v.trim().parse::<f64>().map_err(|_| format!("limit `{l}`: not a number"))?;
-                limits.insert(check.trim().to_string(), verify::Limit { op, value });
-            }
+            parse_limits(&limit, &mut limits)?;
             let roles = verify::buck::BuckRoles::from_map(&role_map)?;
             let report = verify::buck::check(&b, &name, &roles, &limits)?;
             if let Some(p) = svg {
                 let title = format!("{} — {}", board.file_stem().unwrap_or_default().to_string_lossy(), name);
                 std::fs::write(&p, verify::svg::render(&b, &report, &title, 1.0)).map_err(|e| format!("{}: {e}", p.display()))?;
+            }
+            let ok = report.measurements.iter().all(|m| m.passed != Some(false));
+            let mut value = serde_json::to_value(&report).unwrap();
+            value["ok"] = json!(ok);
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, ok))
+        }
+        Cmd::Check { kind: Check::HalfBridge { board, roles, block, limit, svg, output } } => {
+            let b = pcb::Board::load(&board)?;
+            let (name, role_map, mut limits) = block_roles(None, Some(block.unwrap_or_else(|| "half_bridge".into())), Some(roles))?;
+            parse_limits(&limit, &mut limits)?;
+            let report = verify::bridge::check(&b, &name, &verify::bridge::BridgeRoles::from_map(&role_map)?, &limits)?;
+            if let Some(p) = svg {
+                let title = format!("{} — {}", board.file_stem().unwrap_or_default().to_string_lossy(), name);
+                std::fs::write(&p, verify::svg::render_bridge(&b, &report, &title, 1.0)).map_err(|e| format!("{}: {e}", p.display()))?;
+            }
+            let ok = report.measurements.iter().all(|m| m.passed != Some(false));
+            let mut value = serde_json::to_value(&report).unwrap();
+            value["ok"] = json!(ok);
+            if let Some(o) = output {
+                write_json(&o, &value)?;
+            }
+            Ok((value, ok))
+        }
+        Cmd::Check { kind: Check::Sense { board, roles, block, limit, svg, output } } => {
+            let b = pcb::Board::load(&board)?;
+            let (name, role_map, mut limits) = block_roles(None, Some(block.unwrap_or_else(|| "sense".into())), Some(roles))?;
+            parse_limits(&limit, &mut limits)?;
+            let report = verify::bridge::sense(&b, &name, &verify::bridge::SenseRoles::from_map(&role_map)?, &limits)?;
+            if let Some(p) = svg {
+                let title = format!("{} — {}", board.file_stem().unwrap_or_default().to_string_lossy(), name);
+                std::fs::write(&p, verify::svg::render_sense(&b, &report, &title, 1.0)).map_err(|e| format!("{}: {e}", p.display()))?;
             }
             let ok = report.measurements.iter().all(|m| m.passed != Some(false));
             let mut value = serde_json::to_value(&report).unwrap();
@@ -999,6 +1056,22 @@ struct DecouplingSpec {
 }
 
 /// A block's name, roles and limits: from an intent file's block, or from `k=v,...`.
+/// `check<=value` / `check>=value` limits into `limits`.
+fn parse_limits(given: &[String], limits: &mut BTreeMap<String, verify::Limit>) -> Result<(), String> {
+    for l in given {
+        let (check, op, v) = if let Some((c, v)) = l.split_once("<=") {
+            (c, "<=", v)
+        } else if let Some((c, v)) = l.split_once(">=") {
+            (c, ">=", v)
+        } else {
+            return Err(format!("limit `{l}` is not check<=value or check>=value"));
+        };
+        let value = v.trim().parse::<f64>().map_err(|_| format!("limit `{l}`: not a number"))?;
+        limits.insert(check.trim().to_string(), verify::Limit { op, value });
+    }
+    Ok(())
+}
+
 fn block_roles(intent_path: Option<&Path>, block: Option<String>, roles: Option<String>) -> Result<BlockRoles, String> {
     let mut limits = BTreeMap::new();
     match (intent_path, roles) {

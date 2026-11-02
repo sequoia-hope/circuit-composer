@@ -164,7 +164,8 @@
       "status": "asserted",
       "links": [{ "refines": "half_bridge.power.hot_loop_min" }, { "refines": "buck.sw.min_area" }],
       "enforced_by": [
-        "verifier switch_node_area_mm2 (note: here the node is also the motor output, so area is wanted along the current path, not spread around it)"
+        "verifier switch_node_area_mm2 (note: here the node is also the motor output, so area is wanted along the current path, not spread around it)",
+        "verifier phase_path_mm (check half-bridge): copper length, high-side source to low-side drain"
       ],
       "could_enforce": "inductance proxy: length/width of HS-source to LS-drain connection",
       "note": "Infineon HVIC drivers are guaranteed immune to at least 5 V of VS undershoot (ifx_transients §4 p.6); beyond that the high-side output latches its state. Allegro (p.7, about its buck regulator's LX node) warns against widening a switch node to make up for length, since length makes it an antenna."
@@ -192,6 +193,7 @@
         }
       ],
       "status": "asserted",
+      "enforced_by": ["verifier hs_gate_path_mm, ls_gate_path_mm (check half-bridge)"],
       "could_enforce": "part_distance_mm from driver gate pin to MOSFET gate pad; max_length on gate nets"
     },
     {
@@ -223,6 +225,7 @@
         }
       ],
       "status": "asserted",
+      "enforced_by": ["verifier hs_gate_loop_area_mm2, ls_gate_loop_area_mm2 (check half-bridge)"],
       "could_enforce": "pair gate net with its source-return net: coupled-pair spacing and length (like a differential pair); trace_width check on gate nets"
     },
     {
@@ -300,7 +303,7 @@
         }
       ],
       "status": "asserted",
-      "enforced_by": ["verifier decoupling_path_mm (if the bootstrap cap is tagged as the VB-VS decoupler)"],
+      "enforced_by": ["verifier bootstrap_loop_area_mm2, bootstrap_path_mm (check half-bridge)", "verifier decoupling_path_mm (if the bootstrap cap is tagged as the VB-VS decoupler)"],
       "could_enforce": "decoupling_path_mm from bootstrap cap pads to VB and VS pins"
     },
     {
@@ -354,7 +357,7 @@
       ],
       "status": "asserted",
       "links": [{ "supports": "rp2350.decoupling.close" }],
-      "enforced_by": ["verifier decoupling_path_mm"],
+      "enforced_by": ["verifier decoupling_path_mm", "verifier driver_supply_path_mm (check half-bridge)"],
       "could_enforce": "via_count = 0 on the cap-to-pin path; length/width ratio of that path"
     },
     {
@@ -499,6 +502,7 @@
         }
       ],
       "status": "asserted",
+      "enforced_by": ["verifier sense_path_pos_mm, sense_path_neg_mm (check sense)"],
       "could_enforce": "part_distance_mm shunt-to-CSA; shunt is series element in LS-source to ground path"
     },
     {
@@ -529,7 +533,7 @@
         }
       ],
       "status": "asserted",
-      "enforced_by": ["intent max_length (per net) partly"],
+      "enforced_by": ["intent max_length (per net) partly", "verifier kelvin_offset_pos_mm, kelvin_offset_neg_mm, sense_loop_area_mm2 (check sense)"],
       "could_enforce": "length_match on SP/SN pair; net tie present at shunt pads; parallel-run length to switch-node nets"
     },
     {
