@@ -1,0 +1,181 @@
+{
+  "block": "vmot_j10",
+  "geometry": {
+    "clamp_loop": [
+      [
+        153.625,
+        120.525
+      ],
+      [
+        151.95,
+        89.6
+      ],
+      [
+        153.34750000000003,
+        89.625
+      ],
+      [
+        160.1475,
+        89.625
+      ],
+      [
+        158.75,
+        90.5
+      ],
+      [
+        158.62500000000003,
+        120.525
+      ]
+    ],
+    "first": "CH2.3",
+    "ground_via": [
+      158.7,
+      89.55000000000001
+    ],
+    "ret": "J10.1",
+    "routed": true,
+    "to_first": [
+      [
+        153.625,
+        120.525
+      ],
+      [
+        147.845,
+        121.295
+      ]
+    ],
+    "to_tvs": [
+      [
+        153.625,
+        120.525
+      ],
+      [
+        151.95,
+        89.6
+      ],
+      [
+        153.34750000000003,
+        89.625
+      ]
+    ],
+    "tvs_ground": "D5.2",
+    "tvs_pad": "D5.1"
+  },
+  "measurements": [
+    {
+      "block": "vmot_j10",
+      "check": "connector_to_tvs_mm",
+      "fix_stage": "floorplan",
+      "location": [
+        153.625,
+        120.525
+      ],
+      "measured": 32.36805213771781,
+      "method": "shortest copper path, connector pad to TVS pad",
+      "nets": [
+        "VMOT"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "vmot_j10",
+      "check": "vias_before_tvs",
+      "fix_stage": "route",
+      "location": [
+        153.625,
+        120.525
+      ],
+      "measured": 1.0,
+      "method": "layer changes on the connector-to-TVS path, a through-hole pad's own excluded",
+      "nets": [
+        "VMOT"
+      ],
+      "unit": "count"
+    },
+    {
+      "block": "vmot_j10",
+      "check": "tvs_lead_mm",
+      "fix_stage": "floorplan",
+      "location": [
+        147.424,
+        123.2
+      ],
+      "measured": -26.536988769857707,
+      "method": "copper from the connector to CH2.3, the first other pad reached, less to the TVS",
+      "nets": [
+        "VMOT"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "vmot_j10",
+      "check": "tvs_stub_mm",
+      "fix_stage": "route",
+      "location": [
+        153.34750000000003,
+        89.625
+      ],
+      "measured": 29.947218901217173,
+      "method": "how far the TVS pad sits off the connector's path to CH2.3",
+      "nets": [
+        "VMOT"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "vmot_j10",
+      "check": "clamp_loop_area_mm2",
+      "fix_stage": "floorplan",
+      "location": [
+        156.07416666666666,
+        100.06666666666666
+      ],
+      "measured": 183.24969219531266,
+      "method": "copper, connector pad to the TVS, its ground pad to the connector's ground pad",
+      "nets": [
+        "VMOT",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "vmot_j10",
+      "check": "tvs_ground_via_mm",
+      "fix_stage": "route",
+      "location": [
+        160.1475,
+        89.625
+      ],
+      "measured": 0.0,
+      "method": "TVS ground pad edge to the nearest ground via's ring, 0 in the pad",
+      "nets": [
+        "GND"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "vmot_j10",
+      "check": "tvs_ground_vias",
+      "fix_stage": "route",
+      "location": [
+        160.1475,
+        89.625
+      ],
+      "measured": 5.0,
+      "method": "ground vias whose ring is within 1 mm of the TVS ground pad",
+      "nets": [
+        "GND"
+      ],
+      "unit": "count"
+    }
+  ],
+  "nets": [
+    "VMOT",
+    "GND"
+  ],
+  "ok": true,
+  "roles": {
+    "conn": "J10.2",
+    "tvs": "D5"
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "block": "lm74700_vbus",
+  "geometry": {
+    "anode_path": [
+      [
+        165.795,
+        96.9625
+      ],
+      [
+        165.795,
+        96.605
+      ],
+      [
+        166.769,
+        95.63100000000001
+      ],
+      [
+        167.077682,
+        95.63100000000001
+      ],
+      [
+        167.326,
+        95.38268200000002
+      ],
+      [
+        167.326,
+        95.07400000000001
+      ],
+      [
+        167.695,
+        94.705
+      ],
+      [
+        168.3375,
+        94.68750000000001
+      ],
+      [
+        168.5,
+        94.85
+      ],
+      [
+        168.7,
+        94.85
+      ],
+      [
+        169.2,
+        95.35
+      ],
+      [
+        170.0325,
+        95.35
+      ],
+      [
+        172.2525,
+        97.57
+      ],
+      [
+        172.46227200000004,
+        97.57
+      ],
+      [
+        173.28244700000002,
+        98.390175
+      ],
+      [
+        173.28244700000002,
+        99.954955
+      ],
+      [
+        172.7,
+        100.537402
+      ],
+      [
+        172.7,
+        104.875002
+      ],
+      [
+        171.350001,
+        105.575001
+      ]
+    ],
+    "cathode_path": [
+      [
+        167.69500000000002,
+        96.9625
+      ],
+      [
+        168.480002,
+        97.747502
+      ],
+      [
+        168.480002,
+        98.644999
+      ],
+      [
+        168.94499900000002,
+        98.644999
+      ],
+      [
+        169.05,
+        100.75
+      ],
+      [
+        168.0,
+        101.8
+      ],
+      [
+        168.0,
+        104.074999
+      ],
+      [
+        171.26250299999998,
+        104.074999
+      ]
+    ],
+    "gate_path": [
+      [
+        166.745,
+        96.9625
+      ],
+      [
+        166.745,
+        96.636318
+      ],
+      [
+        167.412318,
+        95.969
+      ],
+      [
+        169.652681,
+        95.969
+      ],
+      [
+        172.033681,
+        98.35
+      ],
+      [
+        172.489532,
+        98.35
+      ],
+      [
+        172.9,
+        98.760468
+      ],
+      [
+        172.9,
+        99.75
+      ],
+      [
+        171.35,
+        101.3
+      ],
+      [
+        171.35,
+        102.575001
+      ]
+    ],
+    "routed": true,
+    "taps": [
+      [
+        171.9636369090909,
+        105.25681963636363
+      ],
+      [
+        168.0,
+        103.21688534210527
+      ]
+    ],
+    "vcap_cap": "C79",
+    "vcap_path": [
+      [
+        165.795,
+        94.68750000000001
+      ],
+      [
+        165.0775,
+        95.405
+      ],
+      [
+        164.46000000000004,
+        95.405
+      ],
+      [
+        164.46000000000004,
+        96.36500000000001
+      ],
+      [
+        165.1975,
+        96.365
+      ],
+      [
+        165.795,
+        96.9625
+      ]
+    ]
+  },
+  "measurements": [
+    {
+      "block": "lm74700_vbus",
+      "check": "gate_path_mm",
+      "fix_stage": "block",
+      "location": [
+        166.745,
+        96.9625
+      ],
+      "measured": 12.370422092224509,
+      "method": "copper, GATE pin to the MOSFET's gate",
+      "nets": [
+        "Net-(Q5-G)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "lm74700_vbus",
+      "check": "anode_path_mm",
+      "fix_stage": "block",
+      "location": [
+        165.795,
+        96.9625
+      ],
+      "measured": 18.59348471363727,
+      "method": "copper, sense pin to the MOSFET's pad",
+      "nets": [
+        "VBUS"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "lm74700_vbus",
+      "check": "anode_kelvin_offset_mm",
+      "fix_stage": "route",
+      "location": [
+        171.9636369090909,
+        105.25681963636363
+      ],
+      "measured": 0.0,
+      "method": "where the sense path first enters a fill of its net or a load-carrying pad, to the MOSFET's pad; 0 is a tap on the pad",
+      "nets": [
+        "VBUS"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "lm74700_vbus",
+      "check": "cathode_path_mm",
+      "fix_stage": "block",
+      "location": [
+        167.69500000000002,
+        96.9625
+      ],
+      "measured": 11.602698901866724,
+      "method": "copper, sense pin to the MOSFET's pad",
+      "nets": [
+        "Net-(JP1-A)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "lm74700_vbus",
+      "check": "cathode_kelvin_offset_mm",
+      "fix_stage": "route",
+      "location": [
+        168.0,
+        103.21688534210527
+      ],
+      "measured": 0.0,
+      "method": "where the sense path first enters a fill of its net or a load-carrying pad, to the MOSFET's pad; 0 is a tap on the pad",
+      "nets": [
+        "Net-(JP1-A)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "lm74700_vbus",
+      "check": "vcap_path_mm",
+      "fix_stage": "block",
+      "location": [
+        165.795,
+        94.68750000000001
+      ],
+      "measured": 3.2146908345205496,
+      "method": "copper, VCAP pin to C79 to the anode pin",
+      "nets": [
+        "Net-(U29-VCAP)",
+        "VBUS"
+      ],
+      "unit": "mm"
+    }
+  ],
+  "nets": [
+    "VBUS",
+    "Net-(JP1-A)",
+    "Net-(Q5-G)"
+  ],
+  "ok": true,
+  "roles": {
+    "anode": "U29.6",
+    "cathode": "U29.4",
+    "fet": "Q5",
+    "gate": "U29.5",
+    "vcap": "U29.1"
+  }
+}

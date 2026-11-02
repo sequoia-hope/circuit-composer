@@ -328,6 +328,13 @@ through its own 2.2 µF ceramic. Bridge D has no ceramic of its own and closes t
 at 91 mm². The INA240s sit under their shunts, with sense loops of 2.7–7.1 mm² and taps within
 0.5 mm of the shunt pads.
 
+Its power entries are measured too (`ccomp check protection`, `ccomp check ideal-diode`). The
+USB ESD array sits 15–16 mm from the connector behind two vias, which fails the library's
+no-via rule. The motor-bus TVS sits behind the input connector, 7 mm of copper away, but a surge
+entering at the pass-through connector reaches bridge D before it. The LM74700 senses its MOSFET
+at its pins. The board's firmware asks for a 20 V USB-PD contract at boot, which drives the USB
+ESD array's 5 V VBUS clamp into conduction; the board's own review assumed 5 V.
+
 ## Next
 
 - Rerun the routed check with `--regions` once ultraroute has it.

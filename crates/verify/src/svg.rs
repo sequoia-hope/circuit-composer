@@ -8,6 +8,7 @@ use pcb::Board;
 
 use crate::bridge::{BridgeReport, SenseReport};
 use crate::buck::BuckReport;
+use crate::protect::{IdealDiodeReport, ProtectionReport};
 
 fn layer_colour(layer: &str) -> &'static str {
     match layer {
@@ -93,6 +94,48 @@ pub fn render_sense(board: &Board, report: &SenseReport, title: &str, margin: f6
     let mut overlays = vec![Overlay { points: &g.loop_, colour: "#ff3df2", closed: true, filled: true, dash: None, width: 0.06 }];
     overlays.extend(rings.iter().map(|c| Overlay { points: c, colour: "#fff35c", closed: true, filled: false, dash: None, width: 0.08 }));
     draw(board, title, pts, &nets, "", &[r.amp()], &overlays, margin)
+}
+
+/// Protection at a connector: the clamp loop filled, the path to the TVS and to the first
+/// other pad, the nearest ground via ringed.
+pub fn render_protection(board: &Board, report: &ProtectionReport, title: &str, margin: f64) -> String {
+    let (r, g) = (&report.roles, &report.geometry);
+    let mut pts = part_points(board, &[r.tvs.as_str()]);
+    pts.extend(pin_points(board, &[&r.conn, &g.ret]));
+    if let Some(f) = &g.first {
+        pts.extend(pin_points(board, &[f]));
+    }
+    let nets = [report.nets[0].as_str()];
+    let ring: Vec<P> = g.ground_via.map(|v| geom::circle(v, 0.5, 24)).unwrap_or_default();
+    let overlays = [
+        Overlay { points: &g.clamp_loop, colour: "#ff3df2", closed: true, filled: true, dash: None, width: 0.08 },
+        Overlay { points: &g.to_tvs, colour: "#fff35c", closed: false, filled: false, dash: None, width: 0.1 },
+        Overlay { points: &g.to_first, colour: "#3de0ff", closed: false, filled: false, dash: Some("0.3 0.2"), width: 0.08 },
+        Overlay { points: &ring, colour: "#7dff6a", closed: true, filled: false, dash: None, width: 0.08 },
+    ];
+    draw(board, title, pts, &nets, &report.nets[0], &[], &overlays, margin)
+}
+
+/// An ideal-diode controller and its MOSFET: the gate path, both sense paths with their taps
+/// ringed, the charge-pump loop.
+pub fn render_ideal_diode(board: &Board, report: &IdealDiodeReport, title: &str, margin: f64) -> String {
+    let (r, g) = (&report.roles, &report.geometry);
+    let ctrl = r.ctrl();
+    let mut parts = vec![ctrl, r.fet.as_str()];
+    if let Some(c) = &g.vcap_cap {
+        parts.push(c);
+    }
+    let pts = part_points(board, &parts);
+    let nets = [report.nets[0].as_str(), &report.nets[1], &report.nets[2]];
+    let rings: Vec<Vec<P>> = g.taps.iter().map(|t| geom::circle(*t, 0.3, 24)).collect();
+    let mut overlays = vec![
+        Overlay { points: &g.gate_path, colour: "#fff35c", closed: false, filled: false, dash: None, width: 0.08 },
+        Overlay { points: &g.anode_path, colour: "#ff3df2", closed: false, filled: false, dash: None, width: 0.08 },
+        Overlay { points: &g.cathode_path, colour: "#3de0ff", closed: false, filled: false, dash: None, width: 0.08 },
+        Overlay { points: &g.vcap_path, colour: "#7dff6a", closed: true, filled: false, dash: Some("0.15 0.1"), width: 0.06 },
+    ];
+    overlays.extend(rings.iter().map(|c| Overlay { points: c, colour: "#ffffff", closed: true, filled: false, dash: None, width: 0.06 }));
+    draw(board, title, pts, &nets, "", &[], &overlays, margin)
 }
 
 /// The pad outlines of these parts.

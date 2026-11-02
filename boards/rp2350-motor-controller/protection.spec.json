@@ -1,0 +1,58 @@
+{
+  "check": "protection",
+  "weights": {
+    "clamp_loop_area_mm2": 1.0
+  },
+  "limits": {
+    "vias_before_tvs": "<=0",
+    "tvs_stub_mm": "<=0"
+  },
+  "entries": [
+    {
+      "id": "vmot_j9",
+      "label": "VMOT from J9 (XT30 power input) to D5 (SMDJ85A), rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "conn": "J9.2",
+        "tvs": "D5"
+      },
+      "not_applicable": {
+        "vias_before_tvs": "the no-via rule is scoped to ESD at signal connectors; a supply input has no cited layout limit",
+        "tvs_stub_mm": "the no-stub rule is scoped to ESD at signal connectors; here the first pads reached are bulk capacitors, which absorb a surge too"
+      },
+      "note": "D5 sits on B.Cu behind J9; the VMOT pour is on F.Cu only, so the surge reaches D5 through vias."
+    },
+    {
+      "id": "vmot_j10",
+      "label": "VMOT from J10 (XT30 pass-through output) to D5, rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "conn": "J10.2",
+        "tvs": "D5"
+      },
+      "not_applicable": {
+        "vias_before_tvs": "the no-via rule is scoped to ESD at signal connectors; a supply input has no cited layout limit",
+        "tvs_stub_mm": "the no-stub rule is scoped to ESD at signal connectors; here the first pads reached are bulk capacitors, which absorb a surge too"
+      },
+      "note": "Energy from a daisy-chained board enters at J10 and crosses the board to D5."
+    },
+    {
+      "id": "usb_dp",
+      "label": "USB D+ from J3.A6 to U11 (USBLC6-2P6), rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "conn": "J3.A6",
+        "tvs": "U11"
+      }
+    },
+    {
+      "id": "usb_dn",
+      "label": "USB D- from J3.A7 to U11 (USBLC6-2P6), rev A",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "roles": {
+        "conn": "J3.A7",
+        "tvs": "U11"
+      }
+    }
+  ]
+}

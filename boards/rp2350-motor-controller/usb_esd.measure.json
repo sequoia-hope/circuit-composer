@@ -1,0 +1,34 @@
+{
+  "paths": [
+    {
+      "name": "dp_connector_to_tvs",
+      "from": "J3.A6",
+      "to": "U11.6"
+    },
+    {
+      "name": "dp_tvs_to_resistor",
+      "from": "U11.1",
+      "to": "R50.1"
+    },
+    {
+      "name": "dp_resistor_to_ic",
+      "from": "R50.2",
+      "to": "U8.67"
+    },
+    {
+      "name": "dn_connector_to_tvs",
+      "from": "J3.A7",
+      "to": "U11.4"
+    },
+    {
+      "name": "dn_tvs_to_resistor",
+      "from": "U11.3",
+      "to": "R51.1"
+    },
+    {
+      "name": "dn_resistor_to_ic",
+      "from": "R51.2",
+      "to": "U8.66"
+    }
+  ]
+}

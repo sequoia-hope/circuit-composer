@@ -1,0 +1,93 @@
+{
+  "weights": {
+    "clamp_loop_area_mm2": 1.0
+  },
+  "limits": {
+    "vias_before_tvs": "<=0",
+    "tvs_stub_mm": "<=0"
+  },
+  "rows": [
+    {
+      "id": "vmot_j9",
+      "label": "VMOT from J9 (XT30 power input) to D5 (SMDJ85A), rev A",
+      "note": "D5 sits on B.Cu behind J9; the VMOT pour is on F.Cu only, so the surge reaches D5 through vias.",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 6.958,
+        "vias_before_tvs": 1.0,
+        "tvs_lead_mm": -2.339,
+        "tvs_stub_mm": 6.912,
+        "clamp_loop_area_mm2": 25.339,
+        "tvs_ground_via_mm": 0.0,
+        "tvs_ground_vias": 5.0
+      },
+      "passed": {},
+      "not_applicable": {
+        "vias_before_tvs": "the no-via rule is scoped to ESD at signal connectors; a supply input has no cited layout limit",
+        "tvs_stub_mm": "the no-stub rule is scoped to ESD at signal connectors; here the first pads reached are bulk capacitors, which absorb a surge too"
+      },
+      "score": 25.339,
+      "svg": "vmot_j9.svg"
+    },
+    {
+      "id": "vmot_j10",
+      "label": "VMOT from J10 (XT30 pass-through output) to D5, rev A",
+      "note": "Energy from a daisy-chained board enters at J10 and crosses the board to D5.",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 32.368,
+        "vias_before_tvs": 1.0,
+        "tvs_lead_mm": -26.537,
+        "tvs_stub_mm": 29.947,
+        "clamp_loop_area_mm2": 183.25,
+        "tvs_ground_via_mm": 0.0,
+        "tvs_ground_vias": 5.0
+      },
+      "passed": {},
+      "not_applicable": {
+        "vias_before_tvs": "the no-via rule is scoped to ESD at signal connectors; a supply input has no cited layout limit",
+        "tvs_stub_mm": "the no-stub rule is scoped to ESD at signal connectors; here the first pads reached are bulk capacitors, which absorb a surge too"
+      },
+      "score": 183.25,
+      "svg": "vmot_j10.svg"
+    },
+    {
+      "id": "usb_dp",
+      "label": "USB D+ from J3.A6 to U11 (USBLC6-2P6), rev A",
+      "note": "",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 15.87,
+        "vias_before_tvs": 2.0,
+        "clamp_loop_area_mm2": 13.364,
+        "tvs_ground_via_mm": 1.123,
+        "tvs_ground_vias": 0.0
+      },
+      "passed": {
+        "vias_before_tvs": false
+      },
+      "not_applicable": {},
+      "score": 13.364,
+      "svg": "usb_dp.svg"
+    },
+    {
+      "id": "usb_dn",
+      "label": "USB D- from J3.A7 to U11 (USBLC6-2P6), rev A",
+      "note": "",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 15.024,
+        "vias_before_tvs": 2.0,
+        "clamp_loop_area_mm2": 17.229,
+        "tvs_ground_via_mm": 1.123,
+        "tvs_ground_vias": 0.0
+      },
+      "passed": {
+        "vias_before_tvs": false
+      },
+      "not_applicable": {},
+      "score": 17.229,
+      "svg": "usb_dn.svg"
+    }
+  ]
+}

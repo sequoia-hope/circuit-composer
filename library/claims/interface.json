@@ -328,7 +328,7 @@
         }
       ],
       "links": [{ "supports": "interface.esd.tvs_ground" }, { "supports": "signal.decoupling.multiple_vias" }],
-      "enforced_by": ["verifier via_count (as a minimum on ground pads)"],
+      "enforced_by": ["verifier via_count (as a minimum on ground pads)", "verifier tvs_ground_vias (check protection: ground vias within 1 mm of a TVS ground pad)"],
       "status": "asserted"
     },
     {
@@ -356,7 +356,7 @@
       ],
       "status": "contested",
       "links": [{ "contradicts": "interface.protection.tvs_near_protected_device" }],
-      "enforced_by": ["verifier part_distance_mm (connector pad to TVS pad)"],
+      "enforced_by": ["verifier part_distance_mm (connector pad to TVS pad)", "verifier connector_to_tvs_mm (check protection)"],
       "could_enforce": "Ratio check: trace length TVS->IC divided by connector->TVS along the protected net."
     },
     {
@@ -399,7 +399,8 @@
         }
       ],
       "could_enforce": "Net-topology check: on each protected net, every path from the connector pad to any other pad passes through the TVS pad (TVS pad is a cut vertex), and the TVS branch length is 0 mm.",
-      "status": "asserted"
+      "status": "asserted",
+      "enforced_by": ["verifier tvs_stub_mm, tvs_lead_mm (check protection)"]
     },
     {
       "id": "interface.esd.no_via_before_tvs",
@@ -425,7 +426,7 @@
         }
       ],
       "links": [{ "refines": "interface.esd.no_stub_to_tvs" }],
-      "enforced_by": ["verifier via_count (connector-to-TVS segment)"],
+      "enforced_by": ["verifier via_count (connector-to-TVS segment)", "verifier vias_before_tvs (check protection)"],
       "status": "asserted"
     },
     {
@@ -456,7 +457,7 @@
           "quote": "make both the VIA pad diameter and the VIA drill diameter as large as possible"
         }
       ],
-      "enforced_by": ["verifier decoupling_path_mm (TVS ground pad to nearest ground via)"],
+      "enforced_by": ["verifier decoupling_path_mm (TVS ground pad to nearest ground via)", "verifier tvs_ground_via_mm (check protection)"],
       "could_enforce": "TVS GND pad to nearest plane via <= ~1 mm; no plane cutout around that via.",
       "note": "SLVA680A §1 p.3 also recommends a chassis-screw ground right beside the TVS ground and connector shield where a chassis earth exists, else tightly coupled multilayer ground planes; it notes a chassis ground separated by inductance protects well but complicates high-speed routing, and does not choose.",
       "status": "asserted"

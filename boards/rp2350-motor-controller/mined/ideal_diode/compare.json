@@ -1,0 +1,24 @@
+{
+  "weights": {},
+  "limits": {},
+  "rows": [
+    {
+      "id": "lm74700_vbus",
+      "label": "LM74700 (U29) with Q5, USB-C VBUS to VMOT through JP1, rev A",
+      "note": "Rev B replaces U29 with an LTC4359 and Q5 with a PowerPAK 5x6 part (review/revb-schematic.html).",
+      "board": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb",
+      "measured": {
+        "gate_path_mm": 12.37,
+        "anode_path_mm": 18.593,
+        "anode_kelvin_offset_mm": 0.0,
+        "cathode_path_mm": 11.603,
+        "cathode_kelvin_offset_mm": 0.0,
+        "vcap_path_mm": 3.215
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 0,
+      "svg": "lm74700_vbus.svg"
+    }
+  ]
+}

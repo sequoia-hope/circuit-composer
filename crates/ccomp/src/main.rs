@@ -327,6 +327,38 @@ enum Check {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// A TVS at a connector: path to it, vias before it, whether it is reached first, its stub,
+    /// the clamp loop, and its ground vias.
+    Protection {
+        board: PathBuf,
+        /// `conn=J9.2,tvs=D5`; `ret` (the connector's ground pad) is found unless given.
+        #[arg(long)]
+        roles: String,
+        #[arg(long)]
+        block: Option<String>,
+        #[arg(long)]
+        limit: Vec<String>,
+        #[arg(long)]
+        svg: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
+    /// An ideal-diode controller and its MOSFET: gate path, each sense pin's path and Kelvin
+    /// offset, the charge-pump loop.
+    IdealDiode {
+        board: PathBuf,
+        /// `anode=U29.6,cathode=U29.4,gate=U29.5,vcap=U29.1,fet=Q5`.
+        #[arg(long)]
+        roles: String,
+        #[arg(long)]
+        block: Option<String>,
+        #[arg(long)]
+        limit: Vec<String>,
+        #[arg(long)]
+        svg: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
     /// A board against a package's blocks, by role: net wiring, block constraints, net length
     /// limits and part values, each judged with its source.
     Package {
@@ -561,38 +593,28 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((value, ok))
         }
         Cmd::Check { kind: Check::HalfBridge { board, roles, block, limit, svg, output } } => {
-            let b = pcb::Board::load(&board)?;
-            let (name, role_map, mut limits) = block_roles(None, Some(block.unwrap_or_else(|| "half_bridge".into())), Some(roles))?;
-            parse_limits(&limit, &mut limits)?;
+            let (b, (name, role_map, limits)) = block_check(&board, block, "half_bridge", roles, &limit)?;
             let report = verify::bridge::check(&b, &name, &verify::bridge::BridgeRoles::from_map(&role_map)?, &limits)?;
-            if let Some(p) = svg {
-                let title = format!("{} — {}", board.file_stem().unwrap_or_default().to_string_lossy(), name);
-                std::fs::write(&p, verify::svg::render_bridge(&b, &report, &title, 1.0)).map_err(|e| format!("{}: {e}", p.display()))?;
-            }
-            let ok = report.measurements.iter().all(|m| m.passed != Some(false));
-            let mut value = serde_json::to_value(&report).unwrap();
-            value["ok"] = json!(ok);
-            if let Some(o) = output {
-                write_json(&o, &value)?;
-            }
-            Ok((value, ok))
+            let drawn = svg.map(|p| (p, verify::svg::render_bridge(&b, &report, &check_title(&board, &name), 1.0)));
+            check_out(&report, &report.measurements, drawn, output)
         }
         Cmd::Check { kind: Check::Sense { board, roles, block, limit, svg, output } } => {
-            let b = pcb::Board::load(&board)?;
-            let (name, role_map, mut limits) = block_roles(None, Some(block.unwrap_or_else(|| "sense".into())), Some(roles))?;
-            parse_limits(&limit, &mut limits)?;
+            let (b, (name, role_map, limits)) = block_check(&board, block, "sense", roles, &limit)?;
             let report = verify::bridge::sense(&b, &name, &verify::bridge::SenseRoles::from_map(&role_map)?, &limits)?;
-            if let Some(p) = svg {
-                let title = format!("{} — {}", board.file_stem().unwrap_or_default().to_string_lossy(), name);
-                std::fs::write(&p, verify::svg::render_sense(&b, &report, &title, 1.0)).map_err(|e| format!("{}: {e}", p.display()))?;
-            }
-            let ok = report.measurements.iter().all(|m| m.passed != Some(false));
-            let mut value = serde_json::to_value(&report).unwrap();
-            value["ok"] = json!(ok);
-            if let Some(o) = output {
-                write_json(&o, &value)?;
-            }
-            Ok((value, ok))
+            let drawn = svg.map(|p| (p, verify::svg::render_sense(&b, &report, &check_title(&board, &name), 1.0)));
+            check_out(&report, &report.measurements, drawn, output)
+        }
+        Cmd::Check { kind: Check::Protection { board, roles, block, limit, svg, output } } => {
+            let (b, (name, role_map, limits)) = block_check(&board, block, "protection", roles, &limit)?;
+            let report = verify::protect::protection(&b, &name, &verify::protect::ProtectionRoles::from_map(&role_map)?, &limits)?;
+            let drawn = svg.map(|p| (p, verify::svg::render_protection(&b, &report, &check_title(&board, &name), 1.0)));
+            check_out(&report, &report.measurements, drawn, output)
+        }
+        Cmd::Check { kind: Check::IdealDiode { board, roles, block, limit, svg, output } } => {
+            let (b, (name, role_map, limits)) = block_check(&board, block, "ideal_diode", roles, &limit)?;
+            let report = verify::protect::ideal_diode(&b, &name, &verify::protect::IdealDiodeRoles::from_map(&role_map)?, &limits)?;
+            let drawn = svg.map(|p| (p, verify::svg::render_ideal_diode(&b, &report, &check_title(&board, &name), 1.0)));
+            check_out(&report, &report.measurements, drawn, output)
         }
         Cmd::Check { kind: Check::Package { board, package, binding, output } } => {
             let report = package_check::check(&board, &package, &binding)?;
@@ -1056,6 +1078,32 @@ struct DecouplingSpec {
 }
 
 /// A block's name, roles and limits: from an intent file's block, or from `k=v,...`.
+/// A block check's inputs: the board, the block's name (or `default`), its roles and limits.
+fn block_check(board: &Path, block: Option<String>, default: &str, roles: String, limit: &[String]) -> Result<(pcb::Board, BlockRoles), String> {
+    let b = pcb::Board::load(board)?;
+    let (name, role_map, mut limits) = block_roles(None, Some(block.unwrap_or_else(|| default.into())), Some(roles))?;
+    parse_limits(limit, &mut limits)?;
+    Ok((b, (name, role_map, limits)))
+}
+
+fn check_title(board: &Path, block: &str) -> String {
+    format!("{} — {block}", board.file_stem().unwrap_or_default().to_string_lossy())
+}
+
+/// A block check's report as JSON with `ok`, its drawing written, and the report to `output`.
+fn check_out<T: serde::Serialize>(report: &T, measurements: &[verify::Measurement], svg: Option<(PathBuf, String)>, output: Option<PathBuf>) -> Result<(serde_json::Value, bool), String> {
+    if let Some((p, text)) = svg {
+        std::fs::write(&p, text).map_err(|e| format!("{}: {e}", p.display()))?;
+    }
+    let ok = measurements.iter().all(|m| m.passed != Some(false));
+    let mut value = serde_json::to_value(report).unwrap();
+    value["ok"] = json!(ok);
+    if let Some(o) = output {
+        write_json(&o, &value)?;
+    }
+    Ok((value, ok))
+}
+
 /// `check<=value` / `check>=value` limits into `limits`.
 fn parse_limits(given: &[String], limits: &mut BTreeMap<String, verify::Limit>) -> Result<(), String> {
     for l in given {

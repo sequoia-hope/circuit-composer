@@ -113,23 +113,23 @@ pub struct BridgeReport {
     pub geometry: BridgeGeometry,
 }
 
-fn pad<'a>(b: &'a Board, ref_pin: &str) -> Result<&'a Pad, String> {
+pub(crate) fn pad<'a>(b: &'a Board, ref_pin: &str) -> Result<&'a Pad, String> {
     b.pad(ref_pin).ok_or_else(|| format!("pad {ref_pin} is not on the board"))
 }
 
-fn pads<'a>(b: &'a Board, part: &str) -> Result<Vec<&'a Pad>, String> {
+pub(crate) fn pads<'a>(b: &'a Board, part: &str) -> Result<Vec<&'a Pad>, String> {
     let p = b.parts.get(part).ok_or_else(|| format!("part {part} is not on the board"))?;
     Ok(p.pads.iter().map(|&i| &b.pads[i]).collect())
 }
 
 /// `part`'s pin on `net`, as `REF.PIN`.
-fn pin_on(b: &Board, part: &str, net: &str) -> Result<String, String> {
+pub(crate) fn pin_on(b: &Board, part: &str, net: &str) -> Result<String, String> {
     pads(b, part)?.into_iter().find(|p| p.net == net).map(|p| format!("{part}.{}", p.pin)).ok_or_else(|| format!("{part} has no pad on net `{net}`"))
 }
 
 /// The two-pad part joining nets `a` and `b` whose reference starts with `prefix`; an error
 /// unless there is exactly one.
-fn bridging(b: &Board, a: &str, c: &str, prefix: &str, what: &str) -> Result<String, String> {
+pub(crate) fn bridging(b: &Board, a: &str, c: &str, prefix: &str, what: &str) -> Result<String, String> {
     let found: Vec<&str> = b
         .parts
         .values()
@@ -148,7 +148,7 @@ fn bridging(b: &Board, a: &str, c: &str, prefix: &str, what: &str) -> Result<Str
 }
 
 /// The mean of a pin's pad centres: where a part's terminal is, for the placed loop.
-fn centre(b: &Board, ref_pin: &str) -> P {
+pub(crate) fn centre(b: &Board, ref_pin: &str) -> P {
     let (r, pin) = ref_pin.split_once('.').unwrap_or_default();
     let cs: Vec<P> = b.parts.get(r).map(|p| p.pads.iter().map(|&i| &b.pads[i]).filter(|p| p.pin == pin).map(|p| p.centre).collect()).unwrap_or_default();
     let n = cs.len().max(1) as f64;
@@ -158,7 +158,7 @@ fn centre(b: &Board, ref_pin: &str) -> P {
 /// A loop of copper legs `(net, from, to)`, each the shortest copper path, consecutive legs
 /// joined straight (through a part). Unrouted legs are pad centres. Returns the points, whether
 /// every leg was routed, and the legs' total length.
-fn legs_loop(b: &Board, legs: &[(&str, &str, &str)]) -> (Vec<P>, bool, f64) {
+pub(crate) fn legs_loop(b: &Board, legs: &[(&str, &str, &str)]) -> (Vec<P>, bool, f64) {
     let (mut pts, mut routed, mut length) = (Vec::new(), true, 0.0);
     for (net, from, to) in legs {
         match copper_path(b, net, from, to) {
@@ -178,7 +178,7 @@ fn legs_loop(b: &Board, legs: &[(&str, &str, &str)]) -> (Vec<P>, bool, f64) {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn measurement(block: &str, check: &'static str, nets: &[&str], location: P, measured: f64, unit: &'static str, fix: FixStage, method: &str) -> Measurement {
+pub(crate) fn measurement(block: &str, check: &'static str, nets: &[&str], location: P, measured: f64, unit: &'static str, fix: FixStage, method: &str) -> Measurement {
     Measurement {
         check,
         block: block.to_string(),
@@ -193,7 +193,7 @@ fn measurement(block: &str, check: &'static str, nets: &[&str], location: P, mea
     }
 }
 
-fn routed_note(routed: bool, how: &str) -> String {
+pub(crate) fn routed_note(routed: bool, how: &str) -> String {
     if routed { how.to_string() } else { "pad centres: a leg is unrouted".to_string() }
 }
 
@@ -342,6 +342,40 @@ pub struct SenseReport {
     pub geometry: SenseGeometry,
 }
 
+/// Where a sense path first meets copper carrying the load current, and how far that is from
+/// the nearest pad of `targets` (0 on the pad). Load copper is a fill of `net`, or a pad of any
+/// part but the `quiet` ones (the sensing IC and what hangs off its pin), on the path's layer.
+pub(crate) fn kelvin_tap(board: &Board, path: &pcb::graph::Path, net: &str, quiet: &[&str], targets: &[&str]) -> (P, f64) {
+    let target_shapes: Vec<&Vec<P>> = targets
+        .iter()
+        .filter_map(|t| board.parts.get(*t))
+        .flat_map(|p| p.pads.iter().map(|&i| &board.pads[i]))
+        .filter(|p| p.net == net)
+        .flat_map(|p| p.shape.iter())
+        .collect();
+    let loaded = |q: P, layer: &str| {
+        board.fills.iter().any(|f| f.net == net && f.layer == layer && geom::inside(&f.polygon, q))
+            || board.pads.iter().any(|p| p.net == net && !quiet.contains(&p.part.as_str()) && p.layers.iter().any(|l| l == layer) && p.shape.iter().any(|s| geom::inside(s, q)))
+    };
+    let mut tap = *path.points.last().unwrap();
+    'walk: for w in 0..path.points.len().saturating_sub(1) {
+        let (a, c) = (path.points[w], path.points[w + 1]);
+        if path.layers[w] != path.layers[w + 1] {
+            continue;
+        }
+        let n = (geom::dist(a, c) / 0.02).ceil().max(1.0) as usize;
+        for k in 0..=n {
+            let q = geom::add(a, geom::scale(geom::sub(c, a), k as f64 / n as f64));
+            if loaded(q, &path.layers[w]) {
+                tap = q;
+                break 'walk;
+            }
+        }
+    }
+    let offset = target_shapes.iter().map(|s| if geom::inside(s, tap) { 0.0 } else { geom::point_poly_dist(tap, s) }).fold(f64::INFINITY, f64::min);
+    (tap, offset)
+}
+
 pub fn sense(board: &Board, block: &str, roles: &SenseRoles, limits: &BTreeMap<String, Limit>) -> Result<SenseReport, String> {
     let (inp, inn) = (pad(board, &roles.inp)?, pad(board, &roles.inn)?);
     let amp = roles.amp();
@@ -376,29 +410,8 @@ pub fn sense(board: &Board, block: &str, roles: &SenseRoles, limits: &BTreeMap<S
         let check_path = if side == "pos" { "sense_path_pos_mm" } else { "sense_path_neg_mm" };
         out.push(measurement(block, check_path, &[&input.net], input.centre, path.length, "mm", FixStage::Block, &routed_note(geo.routed, "copper, amplifier input to the nearest shunt pad")));
 
-        // The tap: the first point along the path inside a fill of the net or another part's
-        // pad (the shunt's included), on the path's layer.
-        let shunt_shapes: Vec<&Vec<P>> = roles.shunt.iter().flat_map(|s| board.parts[s].pads.iter().map(|&i| &board.pads[i])).filter(|p| p.net == input.net).flat_map(|p| p.shape.iter()).collect();
-        let loaded = |q: P, layer: &str| {
-            board.fills.iter().any(|f| f.net == input.net && f.layer == layer && geom::inside(&f.polygon, q))
-                || board.pads.iter().any(|p| p.net == input.net && p.part != amp && p.layers.iter().any(|l| l == layer) && p.shape.iter().any(|s| geom::inside(s, q)))
-        };
-        let mut tap = *path.points.last().unwrap();
-        'walk: for w in 0..path.points.len().saturating_sub(1) {
-            let (a, c) = (path.points[w], path.points[w + 1]);
-            if path.layers[w] != path.layers[w + 1] {
-                continue;
-            }
-            let n = (geom::dist(a, c) / 0.02).ceil().max(1.0) as usize;
-            for k in 0..=n {
-                let q = geom::add(a, geom::scale(geom::sub(c, a), k as f64 / n as f64));
-                if loaded(q, &path.layers[w]) {
-                    tap = q;
-                    break 'walk;
-                }
-            }
-        }
-        let offset = shunt_shapes.iter().map(|s| if geom::inside(s, tap) { 0.0 } else { geom::point_poly_dist(tap, s) }).fold(f64::INFINITY, f64::min);
+        let shunts: Vec<&str> = roles.shunt.iter().map(String::as_str).collect();
+        let (tap, offset) = kelvin_tap(board, &path, &input.net, &[amp], &shunts);
         let check_tap = if side == "pos" { "kelvin_offset_pos_mm" } else { "kelvin_offset_neg_mm" };
         out.push(measurement(
             block,
@@ -437,30 +450,8 @@ pub fn sense(board: &Board, block: &str, roles: &SenseRoles, limits: &BTreeMap<S
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pcb::{Fill, Part, Track};
-
-    /// A board of 1 mm square F.Cu pads, `(part, pin, net, at)`.
-    fn board(pads: &[(&str, &str, &str, P)], tracks: Vec<Track>, fills: Vec<Fill>) -> Board {
-        let mut parts: BTreeMap<String, Part> = BTreeMap::new();
-        let pads: Vec<Pad> = pads
-            .iter()
-            .enumerate()
-            .map(|(i, &(part, pin, net, at))| {
-                parts
-                    .entry(part.to_string())
-                    .or_insert_with(|| Part { reference: part.into(), value: String::new(), footprint: String::new(), at, rotation: 0.0, back: false, locked: false, courtyard: None, pads: vec![] })
-                    .pads
-                    .push(i);
-                let sq = vec![[at[0] - 0.5, at[1] - 0.5], [at[0] + 0.5, at[1] - 0.5], [at[0] + 0.5, at[1] + 0.5], [at[0] - 0.5, at[1] + 0.5]];
-                Pad { part: part.into(), pin: pin.into(), net: net.into(), layers: vec!["F.Cu".into()], centre: at, shape: vec![sq] }
-            })
-            .collect();
-        Board { layers: vec!["F.Cu".into(), "B.Cu".into()], parts, pads, tracks, vias: vec![], fills, rules: None, outline: None }
-    }
-
-    fn track(net: &str, a: P, b: P) -> Track {
-        Track { a, b, width: 0.2, layer: "F.Cu".into(), net: net.into(), locked: false }
-    }
+    use crate::test_board::{board, track};
+    use pcb::Fill;
 
     #[test]
     fn half_bridge_finds_its_parts_and_measures_the_commutation_loop() {

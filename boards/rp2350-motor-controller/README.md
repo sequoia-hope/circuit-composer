@@ -11,6 +11,9 @@ Rebuild:
 python3 tools/compare_buck.py boards/rp2350-motor-controller/mine.spec.json boards/rp2350-motor-controller/mined
 python3 tools/compare_buck.py boards/rp2350-motor-controller/bridges.spec.json boards/rp2350-motor-controller/mined/bridges
 python3 tools/compare_buck.py boards/rp2350-motor-controller/sense.spec.json boards/rp2350-motor-controller/mined/sense
+python3 tools/compare_buck.py boards/rp2350-motor-controller/protection.spec.json boards/rp2350-motor-controller/mined/protection
+python3 tools/compare_buck.py boards/rp2350-motor-controller/ideal_diode.spec.json boards/rp2350-motor-controller/mined/ideal_diode
+ccomp measure ~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb --spec boards/rp2350-motor-controller/usb_esd.measure.json -o boards/rp2350-motor-controller/mined/protection/usb_esd_paths.json
 ```
 
 ## Measured
@@ -111,15 +114,85 @@ four-terminal rule starts below 1 mΩ.
   terminal in the copper-path search. Published buck numbers do not move.
 - `tools/compare_buck.py` takes a spec's `check` (`buck`, `half-bridge`, `sense`).
 
+## Bus protection and the LM74700
+
+The board has two power entries. The motor bus VMOT comes in on XT30 J9 and passes out on J10,
+with the TVS D5 and the bulk capacitors on it. USB-C VBUS reaches VMOT through the LM74700 U29
+and its MOSFET Q5, an ideal diode, and the bridged solder jumper JP1. The USB data lines pass
+through U11 (USBLC6-2P6). Measured with `ccomp check protection` and `ccomp check ideal-diode`
+(outputs in `mined/protection/` and `mined/ideal_diode/`).
+
+| Entry | To TVS mm | Vias before | TVS lead mm (first pad) | Stub mm | Clamp loop mm² | Ground via mm, count within 1 mm |
+|---|---|---|---|---|---|---|
+| VMOT from J9 to D5 | 6.96 | 1 | −2.34 (C80) | 6.91 | 25.3 | 0, 5 |
+| VMOT from J10 to D5 | 32.4 | 1 | −26.5 (CH2's drain) | 29.9 | 183 | 0, 5 |
+| USB D+ from J3.A6 to U11 | 15.9 | **2, fails** | in line | in line | 13.4 | 1.12, 0 |
+| USB D− from J3.A7 to U11 | 15.0 | **2, fails** | in line | in line | 17.2 | 1.12, 0 |
+
+A negative lead means another pad on the net is reached before the TVS. The two USB entries
+are judged by `interface.esd.no_via_before_tvs` (no via between the connector and the TVS).
+The VMOT entries are measured, not judged: the ESD layout rules are scoped to signal connectors,
+and a supply input has no cited layout limit.
+
+| LM74700 (U29) with Q5 | mm |
+|---|---|
+| GATE to Q5's gate | 12.4 |
+| ANODE to Q5's source; Kelvin offset | 18.6; 0 |
+| CATHODE to Q5's drain; Kelvin offset | 11.6; 0 |
+| VCAP → C79 → ANODE | 3.2 |
+
+The LM74700 numbers are measured, not judged: its datasheet is not in the library yet.
+
+### Findings
+
+1. **The firmware asks for 20 V at boot, so U11 conducts on any 9–20 V charger.** The board's
+   review records U11's VBUS pin on the PD rail as F-39 (MED): a 5 V-class clamp, abs max 5.5 V,
+   which the library has as `usblc6.vbus.working_voltage` (VRWM 5 V, VBR 6 V min). The review
+   counts it as safe for now because "today firmware never requests above 5 V". But
+   `firmware/platformio.ini` builds with `HAS_USB_PD=1`, and `firmware/src/main.cpp:2187` calls
+   `pd_ufp->init(PIN_PD_INT, PD_POWER_OPTION_MAX_20V)`, and has since the firmware was added
+   (344bbfc, 2026-05-26). A charger that offers 9 V or more gets a contract above 5 V at boot,
+   and U11's internal zener conducts. Until rev B moves pin 5 to +3V3, the firmware should ask
+   for 5 V.
+2. **USB ESD protection is far from the connector, behind two vias.** U11 is 15–16 mm of copper
+   from J3, through two vias; the library's rules ask for no via before the TVS
+   (`interface.esd.no_via_before_tvs`) and for the TVS near the connector, with the protected IC
+   much farther from it than the connector is (`interface.esd.tvs_near_connector`). Here the
+   RP2350 is 12.6 mm (D+) and 14.1 mm (D−) past U11, through the 27 Ω series resistors: 0.8 and
+   0.94 times the connector-to-U11 distance, not much more than 1 (`mined/protection/usb_esd_paths.json`).
+   The 27 Ω resistors limit what reaches the RP2350. U11's ground pad has no via within 1 mm;
+   the nearest is 1.12 mm away.
+3. **D5 sits behind J9, but the bulk capacitor is reached first.** D5 is on B.Cu 5 mm from J9's
+   pins; the VMOT pour is on F.Cu only, so the surge reaches D5 through a via cluster at its pad,
+   after 7 mm of copper. C80 (100 µF) is 2.3 mm nearer J9 along the copper, which is harmless:
+   a bulk capacitor absorbs a surge too. The clamp loop is 25 mm², and D5's ground pad has five
+   vias in or beside it.
+4. **From J10, a surge reaches bridge D before D5.** J10 is the pass-through for a daisy chain.
+   Energy entering there (a neighbouring board's regeneration, a hot plug at the far end)
+   reaches CH2's drain 26.5 mm of copper before D5, and the clamp loop is 183 mm². There is no
+   TVS near J10.
+5. **Rev A's D5 cannot protect its MOSFETs; the current schematic has fixed it.** The fabricated
+   rev A has D5 = SMDJ85A (LCSC C2990214): its 85 V standoff is above the 80 V MOSFETs (the
+   current schematic names LCSC C501507 as BSC030N08NS5). The README and the power review
+   describe SMDJ64A, which the current schematic has.
+6. **The LM74700 senses Q5 at its pins.** Both sense paths land on Q5's own pads (Kelvin offset 0).
+   The anode pin reaches Q5's source through the EN pin, over 18.6 mm of 0.2 mm track around the
+   RP2350. It carries only the controller's supply current, so its drop is negligible against
+   the forward voltage it regulates. Rev B replaces U29 and Q5 (an LTC4359 and a PowerPAK
+   MOSFET), so these numbers describe rev A only.
+
+### What mining these changed in the tools
+
+- `ccomp check protection` and `ccomp check ideal-diode`, with their SVGs.
+- The Kelvin-tap search behind `ccomp check sense` is shared with the ideal-diode check;
+  capacitors on the sensed net are not load copper there. The sense numbers do not move.
+
 ## Recognized, not yet measured
 
 These are the circuit elements here for the block library and the later milestones:
 
 - **Half-bridge protection:** SMAJ51A phase TVS diodes D9, D13, D17, D21 and the bootstrap
   diodes, the gate turn-off paths (a Schottky and 0 Ω on each gate, and a transistor on the low side).
-- **Bus protection:** SMDJ85A TVS D5 on VMOT. The LM74700 U29 ideal-diode controller with Q5 on
-  VBUS is the first real disconnect among the boards here, for protection paths and protected
-  zones.
 - **USB-C** with an FUSB302 and a USBLC6-2P6; **isolated CAN** (CA-IS3052, ESDCAN24); the
   **encoder interface** (SIT3088 line drivers, TS5A3159 switches, DLW21 common-mode chokes).
 - **RP2350B (QFN-80) support parts:** crystal, QSPI flash W25Q16JV, and decoupling: the

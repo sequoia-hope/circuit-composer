@@ -1,0 +1,72 @@
+{
+  "decoupling": null,
+  "errors": [],
+  "ok": true,
+  "paths": {
+    "dn_connector_to_tvs": {
+      "from": "J3.A7",
+      "layers": [
+        "B.Cu",
+        "F.Cu"
+      ],
+      "length_mm": 15.023858672564838,
+      "net": "/USB_D-",
+      "to": "U11.4",
+      "vias": 2
+    },
+    "dn_resistor_to_ic": {
+      "from": "R51.2",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 3.8150734486990925,
+      "net": "Net-(U8-USB_DM)",
+      "to": "U8.66",
+      "vias": 0
+    },
+    "dn_tvs_to_resistor": {
+      "from": "U11.3",
+      "layers": [
+        "B.Cu",
+        "F.Cu"
+      ],
+      "length_mm": 10.288232603450274,
+      "net": "/USB_DN",
+      "to": "R51.1",
+      "vias": 1
+    },
+    "dp_connector_to_tvs": {
+      "from": "J3.A6",
+      "layers": [
+        "B.Cu",
+        "F.Cu"
+      ],
+      "length_mm": 15.8701361020684,
+      "net": "/USB_D+",
+      "to": "U11.6",
+      "vias": 2
+    },
+    "dp_resistor_to_ic": {
+      "from": "R50.2",
+      "layers": [
+        "F.Cu"
+      ],
+      "length_mm": 4.0755532337000915,
+      "net": "Net-(U8-USB_DP)",
+      "to": "U8.67",
+      "vias": 0
+    },
+    "dp_tvs_to_resistor": {
+      "from": "U11.1",
+      "layers": [
+        "B.Cu",
+        "F.Cu"
+      ],
+      "length_mm": 8.520885907873287,
+      "net": "/USB_DP",
+      "to": "R50.1",
+      "vias": 1
+    }
+  },
+  "return_paths": []
+}

@@ -170,6 +170,7 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
         <li class="done">Research library: 143 cited claims from 41 vendor documents (buck, half-bridge, crystal, USB/return path/decoupling, CAN/protection), 17 disputes kept; every quote checked against its PDF; <code>ccomp library check|query</code></li>
         <li class="done">Mined the motor controller's rev A: RP2350B regulator and the XL7005A 60 V buck measured; async bucks and plane shielding in the checks</li>
         <li class="done">Mined its half-bridges and current sensing: <code>ccomp check half-bridge|sense</code>; bridges A–C 25 mm² hot loops, bridge D 91 mm² (no ceramic of its own); INA240 sense loops 2.7–7.1 mm²</li>
+        <li class="done">Mined its power entries: <code>ccomp check protection|ideal-diode</code>; USB ESD 15–16 mm from the connector behind two vias; firmware's 20 V PD request vs U11's 5 V clamp</li>
       </ul>
     </section>
 
@@ -207,6 +208,12 @@ footer { margin-top: 1.5rem; color: var(--muted); font-size: .8rem; }
   <section class="card">
     <h2>Log</h2>
     <div class="log">
+      <div class="entry">
+        <time datetime="2026-11-02">2026-11-02</time>
+        <div>Mined the motor controller's power entries. USB ESD (U11) is 15–16 mm from J3 behind two vias, failing the no-via rule;
+        the bus TVS sits behind J9 but a surge from J10 reaches bridge D 26.5 mm first; the LM74700 senses Q5 at its pins. The firmware
+        requests 20 V PD at boot, so U11's 5 V VBUS clamp conducts on a PD charger; the board's review assumed 5 V.</div>
+      </div>
       <div class="entry">
         <time datetime="2026-11-01">2026-11-01</time>
         <div>Mined the motor controller's half-bridges and current sensing. Bridges A–C have matching 25 mm² commutation loops;

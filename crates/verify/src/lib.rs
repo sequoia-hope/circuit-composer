@@ -3,8 +3,41 @@
 
 pub mod bridge;
 pub mod buck;
+pub mod protect;
 pub mod nets;
 pub mod svg;
+
+/// Synthetic boards for the checks' tests.
+#[cfg(test)]
+pub(crate) mod test_board {
+    use std::collections::BTreeMap;
+
+    use pcb::geom::P;
+    use pcb::{Board, Fill, Pad, Part, Track};
+
+    /// A board of 1 mm square F.Cu pads, `(part, pin, net, at)`.
+    pub fn board(pads: &[(&str, &str, &str, P)], tracks: Vec<Track>, fills: Vec<Fill>) -> Board {
+        let mut parts: BTreeMap<String, Part> = BTreeMap::new();
+        let pads: Vec<Pad> = pads
+            .iter()
+            .enumerate()
+            .map(|(i, &(part, pin, net, at))| {
+                parts
+                    .entry(part.to_string())
+                    .or_insert_with(|| Part { reference: part.into(), value: String::new(), footprint: String::new(), at, rotation: 0.0, back: false, locked: false, courtyard: None, pads: vec![] })
+                    .pads
+                    .push(i);
+                let sq = vec![[at[0] - 0.5, at[1] - 0.5], [at[0] + 0.5, at[1] - 0.5], [at[0] + 0.5, at[1] + 0.5], [at[0] - 0.5, at[1] + 0.5]];
+                Pad { part: part.into(), pin: pin.into(), net: net.into(), layers: vec!["F.Cu".into()], centre: at, shape: vec![sq] }
+            })
+            .collect();
+        Board { layers: vec!["F.Cu".into(), "B.Cu".into()], parts, pads, tracks, vias: vec![], fills, rules: None, outline: None }
+    }
+
+    pub fn track(net: &str, a: P, b: P) -> Track {
+        Track { a, b, width: 0.2, layer: "F.Cu".into(), net: net.into(), locked: false }
+    }
+}
 
 use serde::Serialize;
 
