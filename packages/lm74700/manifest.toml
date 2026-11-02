@@ -1,0 +1,61 @@
+# Circuit Composer package: Texas Instruments LM74700-Q1 ideal diode controller with its N-MOSFET.
+#
+# 0.1.0: the LM74700 as the RP2350 motor controller rev A uses it (U29, Q5, C79, C78): USB-C
+# VBUS on ANODE, the cathode to the motor bus through the board's solder jumper JP1, EN tied to
+# ANODE for always-on operation, the 100 nF charge-pump capacitor across VCAP and ANODE, 1 uF
+# 100 V on the cathode. Pin table (ports.json), cited rules (rules.json) on capacitors, MOSFET
+# selection, regulation and reverse blocking, voltage ratings and layout. No layout generated;
+# the board's layout is measured in boards/rp2350-motor-controller/mined/ideal_diode/.
+
+[package]
+name = "lm74700"
+version = "0.1.0"
+family = "LM74700-Q1"
+license = "MIT"
+summary = "LM74700-Q1 ideal diode controller (SOT-23-6) with a 100 V SOT-89 N-MOSFET: the motor controller's USB VBUS reverse-blocking path, ports, cited rules"
+
+[[variants]]
+name = "LM74700QDBVRQ1"
+mpn = "LM74700QDBVRQ1"
+package = "SOT-23 (DBV), 6 pins, 2.90 x 1.60 mm"
+footprint = "Package_TO_SOT_SMD:SOT-23-6"
+symbol = "Power_Management:LM74700"
+mosfet = "TMG08N10SI"
+mosfet_footprint = "Package_TO_SOT_SMD:SOT-89-3"
+mosfet_symbol = "Transistor_FET:Q_NMOS_GDS"
+# LM74700QDBVRQ1 is the 3000-piece reel of the DBV package, marking M747 (package option
+# addendum, PDF p.26); LCSC C2941042. KiCad's Power_Management:LM74700 matches Table 5-1 (p.3)
+# pin by pin (1 VCAP, 2 GND, 3 EN, 4 CATHODE, 5 GATE, 6 ANODE). The 8-pin DDF package numbers
+# its pins differently and is not this variant. The MOSFET is the board's Q5, LCSC C7422896,
+# Tritech-MOS TMG08N10SI: G, D, S with the tab on D, as Q_NMOS_GDS on SOT-89-3.
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "TI SNOSD17G, revised December 2020 (sha256 e16b3a8c…)"
+mosfet_datasheet = "Tritech-MOS TMG08N10SI, undated, LCSC copy (sha256 6572192f…)"
+
+# LCSC parts the circuit names. Stock is JLCPCB's, from
+# ~/Software/easy_pcb/.claude/skills/pcb-design/scripts/jlc_parts.py show, on the date given.
+[[sourcing]]
+role = "U1"
+part = "TI LM74700QDBVRQ1, SOT-23-6"
+lcsc = "C2941042"
+checked = "2026-11-02"   # extended, JLC stock 7022, lifecycle normal
+
+[[sourcing]]
+role = "Q1"
+part = "Tritech-MOS TMG08N10SI, 100 V 8 A N-MOSFET, SOT-89-3L"
+lcsc = "C7422896"
+checked = "2026-11-02"   # extended, JLC stock 3248, lifecycle normal
+
+[[sourcing]]
+role = "CVCAP"
+part = "YAGEO CC0402KRX7R9BB104, 100 nF 50 V X7R 10 % 0402"
+lcsc = "C131394"
+checked = "2026-11-02"   # extended, JLC stock 11588395, lifecycle normal
+
+[[sourcing]]
+role = "COUT"
+part = "Murata GRM188D72A105KE01D, 1 uF 100 V X7T 10 % 0603"
+lcsc = "C23829972"
+checked = "2026-11-02"   # extended, JLC stock 34316, lifecycle normal

@@ -1,0 +1,351 @@
+{
+ "note": "One phase of the RP2350 motor controller rev A: EG3113 driver U1 with high-side AH1 and low-side AL1 (bridge A), as the board's netlist wires it (hardware/rev-A/rp2350_driver.kicad_sch, tag rev-A-fab), which is the datasheet's typical application (Figure 6-1, PDF p.6) plus a bootstrap resistor, a 0 ohm option in each turn-off path, a PNP turn-off for the low side, a per-bridge ceramic bus capacitor and unfitted snubber and gate-capacitor footprints. Bridges B (U6, BH1/BL1), C (U7, CH1/CL1) and D (U12, CH2/CL2) are wired the same way. Parts by role; `reference_ref` is the board's designator; values and LCSC numbers are the board's (DNP where the board does not fit the part). Nets inside the package by role pin; ports are where it meets the board. The board's parts on these nets that stay out of the package (HIN/LIN pull-downs, the phase voltage divider, the shunts and the motor-terminal TVS) are listed with reasons in README.md.",
+ "variant": "EG3113",
+ "board": "rp2350-motor-controller",
+ "source": "eg3113_ds",
+ "parts": {
+  "U1": {
+   "block": "half_bridge",
+   "symbol": "Driver_FET_EG3113:EG3113",
+   "value": "EG3113",
+   "footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+   "reference_ref": "U1",
+   "lcsc": "C480666",
+   "mpn": "EG3113",
+   "note": "EGmicro EG3113, SOP-8 (datasheet §9.1, PDF p.12: 3.9 x 5.0 mm body, 1.27 mm pitch, 6.0 mm over leads), the board's footprint KiCad SOIC-8_3.9x4.9mm_P1.27mm. KiCad has no EG3113 symbol and the board uses its own MotorBuck:EG2131 with value EG3113; the package's symbol (kicad/Driver_FET_EG3113.kicad_sym) keeps that symbol's geometry and pin types and names pin 4 GND, as the EG3113 datasheet does (EG2131's symbol calls it COM). Pins 1 VCC, 2 HIN, 3 ~LIN, 4 GND, 5 LO, 6 VS, 7 HO, 8 VB match the datasheet's pin definition (Figure 4-1, PDF p.5) and pin description (§4.2, PDF p.5) pin by pin, and the board's netlist (1 Vdrive, 2 A_PWM_H, 3 A_PWM_L, 4 GND, 5 LO net, 6 /A_P, 7 HO net, 8 VB net). LCSC C480666 had no stock at LCSC or JLC on 2026-11-02."
+  },
+  "QH": {
+   "block": "half_bridge",
+   "symbol": "Transistor_FET:BSC030N08NS5",
+   "value": "BSC030N08NS5",
+   "footprint": "Package_TO_SOT_SMD:TDSON-8-1",
+   "reference_ref": "AH1",
+   "lcsc": "C501507",
+   "mpn": "BSC030N08NS5",
+   "note": "High-side MOSFET, Infineon BSC030N08NS5 (80 V, 3.0 mohm max at VGS 10 V), the part LCSC C501507 is. Rev A's schematic values it 'MOSFETSO-8' with Device:Q_NMOS_SGD on the board's own 3-pad footprint motor:PowerPAK_SO-8_123 (pads 1 S, 2 G, 3 D: a Vishay PowerPAK SO-8 pattern with the drain tab and leads as one pad number). The package uses KiCad's own symbol for the part, which numbers it as KiCad's TDSON-8-1 footprint does: 1-3 S, 4 G, 5 D (tab and drain leads). Same 1.27 mm lead pitch; the land patterns were not compared pad by pad. Datasheet figure: Q1 in Figure 6-1 (PDF p.6)."
+  },
+  "QL": {
+   "block": "half_bridge",
+   "symbol": "Transistor_FET:BSC030N08NS5",
+   "value": "BSC030N08NS5",
+   "footprint": "Package_TO_SOT_SMD:TDSON-8-1",
+   "reference_ref": "AL1",
+   "lcsc": "C501507",
+   "mpn": "BSC030N08NS5",
+   "note": "Low-side MOSFET, same part as QH (Figure 6-1's Q2). Source to GND directly: this board senses current in line on the phase (the ina240 package's shunts), not in the low-side source."
+  },
+  "RGH": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "10.2",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R13",
+   "lcsc": "C2933129",
+   "mpn": "FRC0603F10R2TS",
+   "near": "QH.4",
+   "note": "High-side gate resistor, HO to QH gate (Figure 6-1's R1, value not given there). FOJAN 10.2 ohm 1 % 0603. Turn-on goes through it alone; turn-off also through DOFFH."
+  },
+  "RGL": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "10.2",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R14",
+   "lcsc": "C2933129",
+   "mpn": "FRC0603F10R2TS",
+   "near": "QL.4",
+   "note": "Low-side gate resistor, LO to QL gate (Figure 6-1's R2). Same part as RGH."
+  },
+  "ROFFH": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "0",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R10",
+   "lcsc": "C21189",
+   "mpn": "0603WAF0000T5E",
+   "note": "0 ohm link in series with DOFFH: the place for a separate turn-off resistor. Figure 6-1 has none (the diode goes straight from gate to HO)."
+  },
+  "DOFFH": {
+   "block": "half_bridge",
+   "symbol": "Device:D",
+   "value": "CDBU0130R-HF",
+   "footprint": "Diode_SMD:D_SOD-523",
+   "reference_ref": "D6",
+   "lcsc": "C2886025",
+   "mpn": "CDBU0230-HF",
+   "near": "QH.4",
+   "note": "High-side turn-off diode across RGH: anode at the gate, cathode (through ROFFH) at HO, as Figure 6-1's D1 (1N4148). The board's value says CDBU0130R-HF, but LCSC C2886025 is Comchip's CDBU0230-HF (30 V, 200 mA Schottky, SOD-523F, per LCSC's listing); the package keeps the board's value and LCSC number and names the LCSC part as the MPN."
+  },
+  "ROFFL": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "0",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R11",
+   "lcsc": "C21189",
+   "mpn": "0603WAF0000T5E",
+   "note": "0 ohm link in series with DOFFL, as ROFFH."
+  },
+  "DOFFL": {
+   "block": "half_bridge",
+   "symbol": "Device:D",
+   "value": "CDBU0130R-HF",
+   "footprint": "Diode_SMD:D_SOD-523",
+   "reference_ref": "D7",
+   "lcsc": "C2886025",
+   "mpn": "CDBU0230-HF",
+   "near": "QL.4",
+   "note": "Low-side turn-off diode across RGL (Figure 6-1's D2), anode at QL's gate, cathode through ROFFL at LO. Same part and value note as DOFFH."
+  },
+  "QOFF": {
+   "block": "half_bridge",
+   "symbol": "Transistor_BJT:Q_PNP_BEC",
+   "value": "FMMT591",
+   "footprint": "Package_TO_SOT_SMD:SOT-23",
+   "reference_ref": "Q1",
+   "lcsc": "C686646",
+   "mpn": "FMMT591",
+   "near": "QL.4",
+   "note": "Low-side PNP turn-off: emitter through RQE to QL's gate, collector to GND, base through RQB to LO. When LO falls, it discharges the gate to GND locally instead of back through the driver. The board's addition: the EG3113 datasheet does not show it. PJSEMI FMMT591 per LCSC's listing (the board's value is the symbol name Q_PNP_BEC); pins 1 B, 2 E, 3 C as the board's Device:Q_PNP_BEC (KiCad 9 and 10 keep that symbol as Transistor_BJT:Q_PNP_BEC; Device:Q_PNP now has lettered pins) and the board's netlist."
+  },
+  "RQB": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "100",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R12",
+   "lcsc": "C22775",
+   "mpn": "0603WAF1000T5E",
+   "note": "QOFF base resistor, LO to base."
+  },
+  "RQE": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "10.2",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R15",
+   "lcsc": "C2933129",
+   "mpn": "FRC0603F10R2TS",
+   "note": "QOFF emitter resistor to QL's gate: limits the turn-off current through the PNP."
+  },
+  "CGSL": {
+   "block": "half_bridge",
+   "symbol": "Device:C",
+   "value": "DNP",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C6",
+   "note": "QL gate to GND, not fitted on the reference board (value DNP): a footprint for slowing the low side or holding its gate against dv/dt. Not in the datasheet."
+  },
+  "DBOOT": {
+   "block": "half_bridge",
+   "symbol": "Device:D",
+   "value": "DSS110",
+   "footprint": "Diode_SMD:D_SOD-123F",
+   "reference_ref": "D3",
+   "lcsc": "C2923942",
+   "mpn": "DSS110",
+   "near": "U1.8",
+   "note": "Bootstrap diode, anode at Vdrive (VCC), cathode through RBOOT to VB (Figure 6-1's D3 FR107, Figure 8-3's '外接自举二极管'). JSCJ DSS110, a 100 V 1 A Schottky per LCSC's listing (850 mV at 1 A): it blocks VMOT plus Vdrive while the high side is on (eg3113.bootstrap.circuit)."
+  },
+  "RBOOT": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "4.7",
+   "footprint": "Resistor_SMD:R_0603_1608Metric",
+   "reference_ref": "R9",
+   "lcsc": "C2907035",
+   "mpn": "FRC0603F4R70TS",
+   "note": "Bootstrap series resistor between DBOOT and VB, limiting the bootstrap capacitor's charging current. Not in the datasheet's circuit (Figure 6-1 goes straight from the diode to VB): the board's addition."
+  },
+  "CBOOT": {
+   "block": "half_bridge",
+   "symbol": "Device:C",
+   "value": "10u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C10",
+   "lcsc": "C194427",
+   "mpn": "GRM188R6YA106MA73D",
+   "near": "U1.8",
+   "note": "Bootstrap capacitor, VB to VS: Figure 6-1's C2 '10uF', the same value. Murata 10 uF 35 V X5R 0603."
+  },
+  "CVCC": {
+   "block": "half_bridge",
+   "symbol": "Device:C",
+   "value": "4.7u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C2",
+   "lcsc": "C329940",
+   "mpn": "C1608X5R1V475KT000E",
+   "near": "U1.1",
+   "note": "Driver VCC capacitor, VCC to GND: the 0.1 uF high-frequency bypass the pin description asks for (§4.2, PDF p.5; Figure 6-1's C1 0.1uF). TDK 4.7 uF 35 V X5R 0603. The nearest Vdrive capacitor to U1 by copper (2.1 mm path, the board's measurement); the rail's other capacitors are the board's."
+  },
+  "CBUS": {
+   "block": "half_bridge",
+   "symbol": "Device:C",
+   "value": "2.2u",
+   "footprint": "Capacitor_SMD:C_1206_3216Metric",
+   "reference_ref": "C1",
+   "lcsc": "C650969",
+   "mpn": "HMK316AC7225KLHTE",
+   "near": "QH.5",
+   "note": "Per-bridge high-frequency bus capacitor, VMOT to GND beside the MOSFETs: closes the commutation loop (library half_bridge.power.hf_cap_at_bridge, half_bridge.power.hot_loop_min). Taiyo Yuden 2.2 uF 100 V X7S 1206. Not in the EG3113 datasheet, whose circuit stops at '+600V'."
+  },
+  "RSNH": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "DNP",
+   "footprint": "Resistor_SMD:R_0805_2012Metric",
+   "reference_ref": "R17",
+   "near": "QH.5",
+   "note": "High-side RC snubber resistor, VMOT to CSNH: across QH's drain and source with CSNH. Not fitted on the reference board (value R, DNP): a footprint (library half_bridge.snubber.rc_across_fet)."
+  },
+  "CSNH": {
+   "block": "half_bridge",
+   "symbol": "Device:C",
+   "value": "DNP",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "reference_ref": "C7",
+   "note": "High-side RC snubber capacitor, RSNH to the phase. Not fitted (DNP)."
+  },
+  "RSNL": {
+   "block": "half_bridge",
+   "symbol": "Device:R",
+   "value": "DNP",
+   "footprint": "Resistor_SMD:R_0805_2012Metric",
+   "reference_ref": "R18",
+   "near": "QL.5",
+   "note": "Low-side RC snubber resistor, phase to CSNL: across QL's drain and source with CSNL. Not fitted (DNP)."
+  },
+  "CSNL": {
+   "block": "half_bridge",
+   "symbol": "Device:C",
+   "value": "DNP",
+   "footprint": "Capacitor_SMD:C_0805_2012Metric",
+   "reference_ref": "C9",
+   "note": "Low-side RC snubber capacitor, RSNL to GND. Not fitted (DNP)."
+  }
+ },
+ "nets": {
+  "HO": [
+   "U1.7",
+   "RGH.1",
+   "ROFFH.1"
+  ],
+  "GH": [
+   "QH.4",
+   "RGH.2",
+   "DOFFH.2"
+  ],
+  "DOFFH_K": [
+   "DOFFH.1",
+   "ROFFH.2"
+  ],
+  "LO": [
+   "U1.5",
+   "RGL.1",
+   "ROFFL.1",
+   "RQB.1"
+  ],
+  "GL": [
+   "QL.4",
+   "RGL.2",
+   "DOFFL.2",
+   "RQE.2",
+   "CGSL.2"
+  ],
+  "DOFFL_K": [
+   "DOFFL.1",
+   "ROFFL.2"
+  ],
+  "QOFF_B": [
+   "QOFF.1",
+   "RQB.2"
+  ],
+  "QOFF_E": [
+   "QOFF.2",
+   "RQE.1"
+  ],
+  "VB": [
+   "U1.8",
+   "CBOOT.2",
+   "RBOOT.2"
+  ],
+  "DBOOT_K": [
+   "DBOOT.1",
+   "RBOOT.1"
+  ],
+  "SNH": [
+   "RSNH.2",
+   "CSNH.1"
+  ],
+  "SNL": [
+   "RSNL.2",
+   "CSNL.1"
+  ]
+ },
+ "ports": {
+  "VMOT": {
+   "kind": "supply",
+   "pins": [
+    "QH.5",
+    "CBUS.1",
+    "RSNH.1"
+   ],
+   "note": "The motor bus: QH's drain, CBUS and the high-side snubber. On the board, VMOT (after the LM74700 ideal diode), shared by all four bridges and the bulk electrolytics C39/C42/C80, which are the board's. The MOSFETs are 80 V parts (eg3113.fet.ratings); the driver's high side stands 600 V (eg3113.hs.abs_max)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.4",
+    "QL.1",
+    "QL.2",
+    "QL.3",
+    "CBUS.2",
+    "CVCC.1",
+    "CGSL.1",
+    "QOFF.3",
+    "CSNL.2"
+   ],
+   "note": "Driver GND (pin 4), QL's source, the return of CBUS, CVCC, QOFF and the snubber. One net on the board: the driver's ground and the power ground are not separated."
+  },
+  "PHASE": {
+   "kind": "signal",
+   "pins": [
+    "QH.1",
+    "QH.2",
+    "QH.3",
+    "QL.5",
+    "U1.6",
+    "CBOOT.1",
+    "CSNH.2",
+    "RSNL.1"
+   ],
+   "note": "The switch node: QH's source, QL's drain, the driver's VS (pin 6) and CBOOT's low end. Board net /A_P, which goes on through the ina240 package's shunts (R20, R23) to the motor terminal /C_N. Kind signal so that compose's supply rule does not apply to it, but a bridge with its phase open drives nothing: always connect it. Net class SWITCH_HI (ports.json VS)."
+  },
+  "VDRIVE": {
+   "kind": "supply",
+   "pins": [
+    "U1.1",
+    "CVCC.2",
+    "DBOOT.2"
+   ],
+   "note": "Driver supply: VCC (pin 1), CVCC and the bootstrap diode's anode. The board's Vdrive, about 5.0 V from the XL7005A buck U28 (R5/R6 10k/3.3k), shared by the four drivers. Operating 2.8-20 V (eg3113.vcc.range); the datasheet recommends 10-15 V for MOSFETs that need a high gate voltage (eg3113.vcc.drive_voltage, contested at 5 V for the BSC030N08NS5)."
+  },
+  "HIN": {
+   "kind": "signal",
+   "pins": [
+    "U1.2"
+   ],
+   "note": "High-side input, active high, internal 200 kohm pull-down (eg3113.input.defaults). Board net A_PWM_H from RP2350 GPIO2, with R1 10k to GND at the MCU (the board's). Levels in ports.json: Vin(H) 3.0 V min in the table, 2.5 V in the text (eg3113.input.levels, contested)."
+  },
+  "LIN_N": {
+   "kind": "signal",
+   "pins": [
+    "U1.3"
+   ],
+   "note": "Low-side input, active LOW: '0' turns the low side on (§4.2, PDF p.5). Internal 200 kohm pull-up to an internal 5 V, so a floating LIN keeps the low side off (eg3113.input.defaults). Absolute maximum 6 V, not VCC-related (eg3113.input.abs_max). Board net A_PWM_L\\\\ from RP2350 GPIO3, with R2 10k to GND at the MCU (the board's), which holds LIN low and so turns the low side on while the GPIO floats."
+  }
+ },
+ "chip_pins_unconnected": []
+}

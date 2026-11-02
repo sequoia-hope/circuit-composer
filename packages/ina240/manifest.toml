@@ -1,0 +1,57 @@
+# Circuit Composer package: TI INA240A1, -4 V to 80 V bidirectional current-sense amplifier
+# with enhanced PWM rejection, gain 20 V/V, SOIC-8.
+#
+# 0.1.0: inline phase current sensing as the rp2350-motor-controller rev A senses phase A (U5 across
+# R20 || R23, C16): two 8 mohm 2512 shunts in parallel between the phase node and the motor
+# terminal, REF1 on VS and REF2 on GND (mid-supply reference), output straight to an ADC. Pin
+# table (ports.json), an analog output interface, cited rules (rules.json). KiCad ships the
+# symbol (Amplifier_Current:INA240A1D), so there is no kicad/ directory. No generated layout;
+# the board's layout is measured in boards/rp2350-motor-controller/mined/sense/.
+
+[package]
+name = "ina240"
+version = "0.1.0"
+family = "INA240"
+license = "MIT"
+summary = "INA240A1 inline phase current sense (SOIC-8, 20 V/V) across two 8 mohm shunts, mid-supply reference: circuit, ports, cited rules"
+
+[[variants]]
+name = "INA240A1D"
+mpn = "INA240A1D"
+package = "SOIC-8 (D)"
+footprint = "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+symbol = "Amplifier_Current:INA240A1D"
+gain_v_per_v = 20
+# Table 5-1 p.3: A1 20, A2 50, A3 100, A4 200 V/V. SOIC pins (Table 6-1 p.3): 1 IN-, 2 GND,
+# 3 REF2, 4 NC, 5 OUT, 6 VS, 7 REF1, 8 IN+. KiCad's symbol has the same numbers, checked pin by
+# pin; it names pin 4 GND (the datasheet allows NC to be grounded).
+
+[sources]
+# Document revision this package was built from; hash in sources/sources.json.
+datasheet = "TI SBOS662C, revised December 2021 (Rev. C) (sha256 c9d26e72…)"
+
+# LCSC parts the circuit names. Stock is JLCPCB's, from
+# ~/Software/easy_pcb/.claude/skills/pcb-design/scripts/jlc_parts.py show, on the date given.
+[[sourcing]]
+role = "U1"
+part = "TI INA240A1D, SOIC-8"
+lcsc = "C1346458"
+checked = "2026-11-02"   # extended, JLC stock 1334, lifecycle normal
+
+[[sourcing]]
+role = "RSHUNT1"
+part = "Milliohm HoJLR2512-3W-8mR-1%, 8 mohm 1 % 3 W 2512"
+lcsc = "C2904240"
+checked = "2026-11-02"   # extended, JLC stock 4355, lifecycle normal
+
+[[sourcing]]
+role = "RSHUNT2"
+part = "Milliohm HoJLR2512-3W-8mR-1%, 8 mohm 1 % 3 W 2512"
+lcsc = "C2904240"
+checked = "2026-11-02"   # extended, JLC stock 4355, lifecycle normal
+
+[[sourcing]]
+role = "CBYPASS"
+part = "YAGEO CC0603KRX7R9BB104, 100 nF 50 V X7R 10 % 0603"
+lcsc = "C14663"
+checked = "2026-11-02"   # basic, JLC stock 40543908, lifecycle normal

@@ -40,7 +40,11 @@ It sits between two sibling projects:
   - **Packages:** three more, each ingested from its datasheet with cited rules: `mcp73831`
     (LiPo charger), `tlv62569` (2 A buck, with a buck intent block) and `lsm6dso` (IMU); and
     the bolt earring's chips, as that board wires them: `lgs4056h` (charger), `ncp730` (3.3 V
-    LDO), `tps22913` (load switch), `usblc6` (USB ESD) and `lsm6ds3trc` (IMU).
+    LDO), `tps22913` (load switch), `usblc6` (USB ESD) and `lsm6ds3trc` (IMU). And the RP2350
+    motor controller's (rev A), as that board wires them: `eg3113` (one half-bridge phase: the
+    EGmicro gate driver with its BSC030N08NS5 MOSFETs, bootstrap and gate network; the datasheet
+    is Chinese only, quoted in Chinese), `ina240` (inline phase current sensing across two 8 mΩ
+    shunts) and `lm74700` (ideal diode with its MOSFET, USB VBUS into the motor bus).
   - **The bolt earring from blocks:** `boards/bolt-earring/compose.json` composes the whole
     board from those packages, the RP2350's, and recipes for its power path, power latch,
     button, long-press BOOTSEL reset, dividers, light sensor and LED zones. It equals the

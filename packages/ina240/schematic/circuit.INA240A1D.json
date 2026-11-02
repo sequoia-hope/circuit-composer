@@ -1,0 +1,98 @@
+{
+ "note": "The INA240A1 as the rp2350-motor-controller rev A senses phase A (U5 across R20 and R23 there; phases B and C, U9 with R39/R40 and U10 with R55/R56, are wired the same): inline phase current sensing, the shunt in series between a half-bridge's phase node and the motor terminal (Figure 9-3, p.20). Two 8 mohm 2512 shunts in parallel make 4 mohm. REF1 on VS and REF2 on GND set the output to VS / 2 at zero current (§8.4.3.2 p.14), the arrangement Figure 11-2 (p.25) draws for the SOIC. No input filter (§9.1.1 p.18: not required, not recommended) and no output filter: the board runs the output straight to an RP2350 ADC pin. Parts by role; `reference_ref` is the board's designator. Values and LCSC numbers are the board's. IN+ is on the motor side and IN- on the bridge side, as on the board; the datasheet puts IN+ on the supply (bridge) side (Table 6-1 p.3, Figure 9-3), so the board's reading is negative for current flowing from the bridge into the motor (ina240.input.polarity, contested).",
+ "variant": "INA240A1D",
+ "board": "rp2350-motor-controller",
+ "source": "ina240_ds",
+ "parts": {
+  "U1": {
+   "block": "current_sense",
+   "symbol": "Amplifier_Current:INA240A1D",
+   "value": "INA240A1D",
+   "footprint": "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm",
+   "reference_ref": "U5",
+   "lcsc": "C1346458",
+   "mpn": "INA240A1D",
+   "note": "Gain 20 V/V (Table 5-1 p.3), SOIC-8 (D). KiCad's Amplifier_Current:INA240A1D pins 1 '-', 2 GND, 3 REF2, 4 GND, 5 '~' (OUT), 6 V+, 7 REF1, 8 '+' match Figure 6-2 and Table 6-1 (p.3) pin by pin: 1 IN-, 2 GND, 3 REF2, 4 NC, 5 OUT, 6 VS, 7 REF1, 8 IN+. KiCad names pin 4 GND where the datasheet has NC, 'Reserved. Connect to ground or leave floating' (p.3); the board, and this package, tie it to GND. Footprint as on the board: KiCad's SOIC-8_3.9x4.9mm_P1.27mm (TI's D0008A, p.33). On the board U5 sits on B.Cu directly under its shunts."
+  },
+  "RSHUNT1": {
+   "block": "current_sense",
+   "symbol": "Device:R",
+   "value": "8m",
+   "footprint": "Resistor_SMD:R_2512_6332Metric",
+   "reference_ref": "R20",
+   "lcsc": "C2904240",
+   "mpn": "HoJLR2512-3W-8mR-1%",
+   "note": "One of two 8 mohm 1 % 2512 shunts in parallel (4 mohm; Milliohm HoJLR2512, listed by LCSC at 3 W; its datasheet was not read). Pin 1 is the half-bridge side, pin 2 the motor side. Sized for the amplifier: 4 mohm x 20 V/V = 80 mV/A, so about +/-20 A fills the 3.3 V output around its 1.65 V midpoint (ina240.shunt.sizing). A two-pad shunt: the four-terminal rule (half_bridge.sense.four_pad_below_1mohm) starts below 1 mohm. On the board the sense lines tap the other shunt (R23, RSHUNT2), not this one."
+  },
+  "RSHUNT2": {
+   "block": "current_sense",
+   "symbol": "Device:R",
+   "value": "8m",
+   "footprint": "Resistor_SMD:R_2512_6332Metric",
+   "reference_ref": "R23",
+   "lcsc": "C2904240",
+   "mpn": "HoJLR2512-3W-8mR-1%",
+   "near": "U1.8",
+   "note": "The second 8 mohm shunt, same part as RSHUNT1. On the board both of U5's inputs land on this shunt's pads (IN+ on its motor-side pad, IN- joining the phase pour 0.30 mm before its bridge-side pad), so the amplifier reads this shunt's share of the phase current; the copper around the pair sets the split (boards/rp2350-motor-controller/README.md, 'Half-bridges and current sensing'). A schematic cannot say which shunt the Kelvin taps leave from: route both inputs from one shunt's inner pad edges (ina240.layout.kelvin)."
+  },
+  "CBYPASS": {
+   "block": "current_sense",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C16",
+   "lcsc": "C14663",
+   "mpn": "CC0603KRX7R9BB104",
+   "near": "U1.6",
+   "note": "Figure 11-2 'CBYPASS' (p.25); TI recommends 0.1 uF as close as possible to the supply and ground pins (§10.1 p.23). Yageo 100 nF 50 V X7R 0603. Found on the board as U5's nearest +3V3 capacitor along the copper (ccomp measure, decoupling): C16, 2.22 mm from VS (pin 6) and 3.49 mm from REF1 (pin 7), on B.Cu with U5. Phases B and C have C29 (4.83 mm) and C40 (4.23 mm), the same part."
+  }
+ },
+ "nets": {},
+ "ports": {
+  "BRIDGE": {
+   "kind": "supply",
+   "pins": [
+    "U1.1",
+    "RSHUNT1.1",
+    "RSHUNT2.1"
+   ],
+   "note": "The shunt's half-bridge side: the phase node (the board's /A_P: the MOSFETs' midpoint, the EG3113's VS pin and bootstrap capacitor, the phase-voltage divider). Carries the full phase current; 'supply' only so that it must be connected. IN- (U1.1) is on this side, as on the board. Common mode -4 V to 80 V (p.4): the phase node swings from a diode drop below ground to the motor bus (rev A: up to about 48 V)."
+  },
+  "MOTOR": {
+   "kind": "supply",
+   "pins": [
+    "U1.8",
+    "RSHUNT1.2",
+    "RSHUNT2.2"
+   ],
+   "note": "The shunt's motor side, to the motor terminal (the board's /C_N: J2 pin 1 and the phase TVS D9). Carries the full phase current; 'supply' only so that it must be connected. IN+ (U1.8) is on this side, as on the board (ina240.input.polarity)."
+  },
+  "VS": {
+   "kind": "supply",
+   "pins": [
+    "U1.6",
+    "U1.7",
+    "CBYPASS.1"
+   ],
+   "note": "Amplifier supply, 2.7-5.5 V (p.4), 2.4 mA max (p.5); the board's +3V3, which also feeds the RP2350's ADC_AVDD, so the reading is ratiometric to the ADC's reference. REF1 (U1.7) is tied here for the mid-supply reference."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.2",
+    "U1.3",
+    "U1.4",
+    "CBYPASS.2"
+   ],
+   "note": "Ground (pin 2), REF2 (pin 3, the other half of the mid-supply reference) and NC (pin 4, which the datasheet allows to be grounded, p.3)."
+  },
+  "OUT": {
+   "kind": "signal",
+   "pins": [
+    "U1.5"
+   ],
+   "note": "The current reading: 1.65 V at zero current on a 3.3 V supply, 80 mV/A with 4 mohm, 0.01 V to VS - 0.2 V usable (p.5). On the board A_SENSE, straight to the RP2350B's GPIO40_ADC0 with no filter (B_SENSE to ADC1, C_SENSE to ADC2). At most 1 nF of load capacitance (p.5) if a board adds an output filter."
+  }
+ },
+ "chip_pins_unconnected": []
+}

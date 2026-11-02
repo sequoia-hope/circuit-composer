@@ -20,13 +20,18 @@ import subprocess
 import sys
 
 
+CJK = "\u3400-\u4dbf\u4e00-\u9fff"  # Chinese characters, kept so a Chinese datasheet can be quoted
+
+
 def norm(s, join=True):
     """Lower-case words. A hyphen at a line end either splits a word (join) or is a real one."""
     s = s.replace("­", "")
     s = re.sub(r"-\s*\n\s*", "" if join else "-", s)
     for a, b in [("‘", "'"), ("’", "'"), ("“", '"'), ("”", '"'), ("–", "-"), ("—", "-"), ("−", "-"), ("ﬁ", "fi"), ("ﬂ", "fl"), ("µ", "u"), ("μ", "u"), ("Ω", "ohm"), ("Ω", "ohm")]:
         s = s.replace(a, b)
-    return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+    s = re.sub(rf"[^a-z0-9{CJK}]+", " ", s.lower()).strip()
+    # Chinese has no spaces between words: drop those the text layer puts beside a character.
+    return re.sub(rf"(?<=[{CJK}]) | (?=[{CJK}])", "", s)
 
 
 def main():

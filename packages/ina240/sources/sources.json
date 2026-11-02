@@ -1,0 +1,14 @@
+{
+  "ina240_ds": {
+    "title": "INA240 -4-V to 80-V, Bidirectional, Ultra-Precise Current Sense Amplifier With Enhanced PWM Rejection",
+    "publisher": "Texas Instruments",
+    "doc": "SBOS662C",
+    "kind": "datasheet",
+    "revision": "SBOS662C - July 2016 - Revised December 2021 (Rev. C)",
+    "url": "https://www.ti.com/lit/ds/symlink/ina240.pdf",
+    "sha256": "c9d26e72ebdb52a169cbaca8f47d3811833c0afb765335a14f53f05c1a8b1854",
+    "bytes": 1935924,
+    "retrieved": "2026-11-02",
+    "note": "39 pages. Pages 1-26 carry a printed page number equal to the PDF page; 27-39 are unnumbered addendum pages: packaging information (pp.27-29, which list INA240A1D as SOIC (D) 8, tube, and INA240A1DR as reel), tape and reel (pp.30-32), the SOIC D0008A drawing with its land pattern (pp.33-35), the TSSOP PW0008A drawing (pp.36-38) and the legal notice (p.39). The PDF title says Rev. C and the addendum is dated 10/2025; the PDF was generated 2026-08-11. The text layer is clean for prose and tables (micro sign as µ, minus signs as en dashes, which library_quotes.py normalizes). Figure labels in a symbol font extract garbled: the '100 mΩ' shunt in Figure 9-3 reads '100 PŸ', the 'DON'T' in Figure 9-7 reads ''21¶7', and the Figure 9-2 axis 'µA' reads 'PA'; claims that rely on figures cite them with `figure` descriptions read off a rendering. The page-1 features and description run in two columns, so -layout text interleaves them; plain pdftotext reads them in order."
+  }
+}

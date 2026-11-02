@@ -1,0 +1,114 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. DBV (6-pin SOT-23) numbering from Figure 5-1 (top view) and Table 5-1 Pin Functions (p.3): 1 VCAP, 2 GND, 3 EN, 4 CATHODE, 5 GATE, 6 ANODE. KiCad's Power_Management:LM74700 has the same numbers and names (checked pin by pin), so the package carries no symbol. The 8-pin DDF package (Figure 5-2, Table 5-2 p.4) numbers them differently and is not this variant. The external MOSFET's pins are in the circuit (Q1), not here. Limits from §6.1 Absolute Maximum Ratings and §6.3 Recommended Operating Conditions (p.5) and §6.5 Electrical Characteristics (pp.6-7).",
+ "functions": {
+  "ANODE": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    4,
+    60
+   ],
+   "note": "Anode of the diode and the controller's supply; connects to the external MOSFET's source (p.3). Operating input voltage 4-60 V; POR rising threshold 3.9 V max, falling 2.2-3.1 V (p.6); the features list 3.2-65 V with 3.9 V start-up (p.1). Recommended -60 to 60 V to GND; absolute maximum -65 to 65 V to GND (p.5). Draws 80 uA typ, 130 uA max operating and 0.9 uA typ, 1.5 uA max in shutdown (EN low) (p.6). At least 22 nF of input capacitance (p.5, p.17); a ceramic bypass above 22 nF if the supply is more than a few inches away (p.22)",
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "p.3 (Table 5-1); p.5 (§6.1, §6.3); p.6 (§6.5); p.17 (§10.1.1.2.3); p.22 (§11)"
+   }
+  },
+  "CATHODE": {
+   "kind": "power_out",
+   "class": "POWER",
+   "supply": "ANODE",
+   "note": "Cathode of the diode; connects to the external MOSFET's drain (p.3), the protected output. Not a regulated rail: forward it follows ANODE less V(AK), regulated to 20 mV (13-29 mV) at light load, and less ID x RDS(on) once V(AK) exceeds the 50 mV (34-57 mV) full-conduction threshold; reverse current blocking below -11 mV (-17 to -2 mV), gate off within 0.45 us typ, 0.75 us max (pp.6-7, §9.4.2 p.15). Recommended up to 60 V to GND; ANODE to CATHODE recommended down to -70 V; CATHODE to ANODE absolute maximum -5 to 75 V (p.5). Sinks 1.2-2.2 uA (p.7). Needs at least 0.1 uF (p.5, p.17)",
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "p.3 (Table 5-1); p.5 (§6.1, §6.3); pp.6-7 (§6.5, §6.6); p.15 (§9.4.2); p.17"
+   }
+  },
+  "GATE": {
+   "kind": "gate_drive",
+   "class": "POWER",
+   "supply": "ANODE",
+   "note": "Gate drive output to the external N-channel MOSFET's gate (p.3). Referenced to ANODE: regulated in forward regulation, tied to VCAP in full conduction, tied to ANODE (MOSFET off) in reverse current protection or while EN, VCAP UVLO or ANODE POR keep the driver off (§9.3.3 pp.14-15). Source current 3 mA min, 11 mA typ; peak sink 2370 mA typ (p.6). GATE to ANODE absolute maximum -0.3 to 15 V (p.5); the MOSFET needs a VGS rating of at least 15 V (p.5, p.17). Short trace to the gate (p.23)",
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "p.3; p.5; p.6; pp.14-15 (§9.3.3); p.17; p.23 (§12.1)"
+   }
+  },
+  "VCAP": {
+   "kind": "charge_pump",
+   "class": "POWER",
+   "supply": "ANODE",
+   "note": "Charge pump output; the charge-pump capacitor goes between VCAP and ANODE (p.3, §9.3.2 p.13), 0.1 uF minimum and at least 10 x the MOSFET's Ciss (p.5, p.17). Charges at 300 uA typ (162-600 uA) and cycles between 12.1 V and 13 V above ANODE (turn on 10.8-12.9 V, turn off 11.6-13.9 V); the gate driver waits for VCAP - ANODE to pass the 6.6 V typ (5.8-7.7 V) UV release (pp.7, 13). VCAP to ANODE absolute maximum -0.3 to 15 V (p.5). Keep the capacitor away from the MOSFET (p.23)",
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "p.3; p.5; p.7 (§6.5 charge pump); p.13 (§9.3.2); p.17; p.23"
+   }
+  },
+  "EN": {
+   "kind": "enable",
+   "class": "SIGNAL",
+   "supply": "ANODE",
+   "note": "Enable, active high: above V(EN_IH) the charge pump and gate driver run; below V(EN_IL) the device is in shutdown, drawing about 1 uA, and forward current still flows through the MOSFET's body diode (§9.3.4 p.15, §9.4.1 p.15). Withstands -65 to 65 V, so it 'Can be connected to ANODE for always ON operation' (p.3), as this package does. Left floating, a 3 uA typ (5 uA max at 12 V) sink pulls it low and disables the device (p.6, p.15). Enable-to-gate delay 75 us typ, 110 us max (p.7). Absolute maximum -0.3 to 65 V to GND while ANODE > 0 V (p.5)",
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "p.3 (Table 5-1); p.5 (§6.1); p.6 (§6.5 enable input); p.7 (§6.6); p.15 (§9.3.4, §9.4.1)"
+   },
+   "levels": {
+    "vih": "2.6",
+    "vil": "0.5",
+    "vin_max": "65",
+    "iin_ua": "5",
+    "note": "VIH is V(EN_IH)'s maximum (rising threshold 1.06-2.6 V, 2 V typ); VIL is V(EN_IL)'s minimum (falling threshold 0.5-1.22 V, 0.9 V typ); hysteresis 0.52-1.35 V; over TJ -40 to 125 C (p.6). vin_max is the EN-to-GND absolute maximum with ANODE above 0 V (p.5); EN is not limited by ANODE's voltage. iin_ua is the enable sink current's maximum at V(EN) = 12 V. In this package EN is tied to ANODE and these levels are not exercised",
+    "citation": {
+     "source": "lm74700_ds",
+     "locator": "p.5 (§6.1); p.6 (§6.5 enable input)"
+    }
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Ground pin (p.3): the controller's bias return only; the power path runs ANODE -> MOSFET -> CATHODE and has no ground connection",
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "p.3 (Table 5-1)"
+   }
+  }
+ },
+ "variants": {
+  "LM74700QDBVRQ1": {
+   "package": "SOT-23 (DBV), 6 pins, 2.90 x 1.60 mm body, 0.95 mm pitch, 1.45 mm max height",
+   "source": {
+    "source": "lm74700_ds",
+    "locator": "p.1 (Device Information); p.3 (Figure 5-1, Table 5-1); PDF p.26 (package option addendum: LM74700QDBVRQ1, SOT-23 DBV 6, 3000 reel, marking M747, Active); PDF pp.33-34 (DBV0006A outline and example board layout)"
+   },
+   "pins": {
+    "1": {
+     "name": "VCAP",
+     "function": "VCAP"
+    },
+    "2": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "3": {
+     "name": "EN",
+     "function": "EN"
+    },
+    "4": {
+     "name": "CATHODE",
+     "function": "CATHODE"
+    },
+    "5": {
+     "name": "GATE",
+     "function": "GATE"
+    },
+    "6": {
+     "name": "ANODE",
+     "function": "ANODE"
+    }
+   }
+  }
+ },
+ "interfaces": {}
+}

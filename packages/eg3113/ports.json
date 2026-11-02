@@ -1,0 +1,176 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. SOP-8 numbering from the EG3113 datasheet's pin definition (Figure 4-1, PDF p.5) and pin description (§4.2, PDF p.5); the datasheet is Chinese only, and its pages are cited as PDF pages (the body's printed 'n/9' is PDF page n+3). The package's symbol (kicad/Driver_FET_EG3113.kicad_sym) has the same numbers and names, except that it draws LIN with its overbar (~{LIN}, active low; named LIN here, as the datasheet's text does), and pin 4 is GND (the board's MotorBuck:EG2131 symbol calls it COM). The logic levels are the datasheet table's, at VCC 12 V and 25 C; they are the only ones given.",
+ "functions": {
+  "VCC": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    2.8,
+    20
+   ],
+   "note": "Driver supply, low side and logic. Operating 2.8-20 V (features PDF p.4; §4.2 PDF p.5; Table 7.2 PDF p.8, 12 V typical), absolute maximum -0.3 to 20 V (Table 7.1, PDF p.7). Recommended 10-15 V typical for MOSFETs that need a high gate voltage and 2.8-10 V for low-voltage ones (§8.1, PDF p.10). LO swings to VCC, and the bootstrap charges VB to about VCC (§8.3, PDF p.11). Needs a high-frequency 0.1 uF bypass (§4.2, PDF p.5; Figure 6-1 C1). Quiescent current 50 uA max at 12 V with inputs open (Table 7.2, PDF p.8; the features' 'less than 5uA' disagrees)",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.4 (features); p.5 (§4.2); p.7 (Table 7.1); p.8 (Table 7.2); p.10 (§8.1)"
+   }
+  },
+  "HIN": {
+   "kind": "input",
+   "class": "SIGNAL",
+   "supply": "VCC",
+   "note": "High-side logic input, active high: '1' turns the high-side MOSFET on (§4.2, PDF p.5). Internal 200 kohm pull-down, so a floating HIN keeps the high side off (§2 PDF p.4; Figure 5-1 PDF p.6). Absolute maximum -0.3 V to VCC + 0.3 V (Table 7.1, PDF p.7). Input current 30 uA max at 5 V (Table 7.2, PDF p.8). The interlock keeps HO off whenever LIN is low (truth table, PDF p.11)",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.4 (§2); p.5 (§4.2); p.6 (Figure 5-1); p.7 (Table 7.1); p.8 (Table 7.2); p.11 (truth table)"
+   },
+   "levels": {
+    "vih": "3.0",
+    "vil": "1.0",
+    "vin_max": "supply + 0.3",
+    "note": "supply is VCC. Table 7.2 (PDF p.8, VCC 12 V, TA 25 C): Vin(H) 3 V min, Vin(L) 1.0 V max for all inputs. §8.2 (PDF p.10) says the high threshold is '2.5V 以上' and that MCU outputs can drive the inputs directly; LCSC's older build of the same V1.2 has 2.5 V in the table too. The package takes the table's 3.0 V (eg3113.input.levels, contested). No temperature range is given",
+    "citation": {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1); p.8 (Table 7.2); p.10 (§8.2)"
+    }
+   }
+  },
+  "LIN": {
+   "kind": "input",
+   "class": "SIGNAL",
+   "supply": "VCC",
+   "note": "Low-side logic input, active LOW: '0' turns the low-side MOSFET on, '1' turns it off (§4.2, PDF p.5; features PDF p.4). Internal 200 kohm pull-up to an internal +5 V, so a floating LIN keeps the low side off (§2 PDF p.4; Figure 5-1 PDF p.6). Absolute maximum -0.3 V to 6 V, a fixed limit unlike HIN's (Table 7.1, PDF p.7). Input current -50 uA min at 0 V (Table 7.2, PDF p.8). The symbol names it ~{LIN}",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.4; p.5 (§4.2); p.6 (Figure 5-1); p.7 (Table 7.1); p.8 (Table 7.2)"
+   },
+   "levels": {
+    "vih": "3.0",
+    "vil": "1.0",
+    "vin_max": "6",
+    "note": "As HIN (Table 7.2, PDF p.8; eg3113.input.levels), with the absolute maximum of 6 V (Table 7.1, PDF p.7). Active low: VIL turns the low side on",
+    "citation": {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1); p.8 (Table 7.2); p.10 (§8.2)"
+    }
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Chip ground ('芯片的地端', §4.2 PDF p.5): the return of VCC, the logic inputs and the low-side driver (LO's sink current flows here)",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.5 (§4.2)"
+   }
+  },
+  "LO": {
+   "kind": "gate_drive",
+   "class": "GATE",
+   "supply": "VCC",
+   "note": "Low-side gate output, GND to VCC (absolute maximum -0.3 V to VCC + 0.3 V, Table 7.1 PDF p.7). Source 1.8 A min / 2 A typ, sink 2 A min / 2.5 A typ at VCC 12 V, pulses under 10 us (Table 7.2, PDF p.8). Delay on 280/400 ns, off 125/300 ns typ/max; rise 120/200 ns, fall 80/100 ns into 10 nF (Table 7.2)",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.7 (Table 7.1); p.8 (Table 7.2)"
+   }
+  },
+  "VS": {
+   "kind": "switch",
+   "class": "SWITCH_HI",
+   "supply": "VB",
+   "note": "High-side floating return ('高端悬浮地端'): the phase node, the high-side MOSFET's source. Absolute maximum VB - 20 V to VB + 0.3 V (Table 7.1, PDF p.7); no limit relative to GND is given beyond VB's -0.3 to 600 V",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.5 (§4.2); p.7 (Table 7.1)"
+   }
+  },
+  "HO": {
+   "kind": "gate_drive",
+   "class": "GATE",
+   "supply": "VB",
+   "note": "High-side gate output, VS to VB (absolute maximum VS - 0.3 V to VB + 0.3 V, Table 7.1 PDF p.7). Same drive strength as LO (Table 7.2, PDF p.8); delay on 250/400 ns, off 180/400 ns typ/max",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.7 (Table 7.1); p.8 (Table 7.2)"
+   }
+  },
+  "VB": {
+   "kind": "bootstrap",
+   "class": "GATE",
+   "supply": "VS",
+   "note": "High-side floating supply ('高端悬浮电源'): the bootstrap capacitor goes from VB to VS, charged to about VCC through an external diode while the low side is on (§8.3, PDF p.11; Figure 6-1 D3 FR107 and C2 10uF, PDF p.6). Absolute maximum -0.3 to 600 V to GND (Table 7.1, PDF p.7). Rides on the phase node: it slews with VS",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.5 (§4.2); p.6 (Figure 6-1); p.7 (Table 7.1); p.11 (§8.3)"
+   }
+  }
+ },
+ "variants": {
+  "EG3113": {
+   "package": "SOP-8",
+   "source": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.4 (features: SOP8, DFN8); p.5 (Figure 4-1 pin definition, §4.2 pin description); p.12 (§9.1 SOP8 outline)"
+   },
+   "pins": {
+    "1": {
+     "name": "VCC",
+     "function": "VCC"
+    },
+    "2": {
+     "name": "HIN",
+     "function": "HIN"
+    },
+    "3": {
+     "name": "LIN",
+     "function": "LIN"
+    },
+    "4": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "5": {
+     "name": "LO",
+     "function": "LO"
+    },
+    "6": {
+     "name": "VS",
+     "function": "VS"
+    },
+    "7": {
+     "name": "HO",
+     "function": "HO"
+    },
+    "8": {
+     "name": "VB",
+     "function": "VB"
+    }
+   }
+  }
+ },
+ "interfaces": {
+  "hin": {
+   "type": "logic",
+   "dir": "in",
+   "pins": {
+    "IO": "HIN"
+   },
+   "note": "High-side PWM input, active high. High above 3.0 V (table; 2.5 V in the text), low below 1.0 V; never above VCC + 0.3 V. Floats off (200 kohm pull-down). The interlock overrides it: HO stays off while LIN is low",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.4; p.5; p.7; p.8; p.10; p.11"
+   }
+  },
+  "lin": {
+   "type": "logic",
+   "dir": "in",
+   "pins": {
+    "IO": "LIN"
+   },
+   "note": "Low-side PWM input, ACTIVE LOW: driving it low turns the low side on. Same thresholds as HIN; absolute maximum 6 V. Floats off (200 kohm pull-up to an internal 5 V): an external pull-down defeats that and turns the low side on. Driving HIN and LIN with one signal gives a complementary pair with the internal dead time (truth table, PDF p.11)",
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.4; p.5; p.7; p.8; p.11"
+   }
+  }
+ }
+}

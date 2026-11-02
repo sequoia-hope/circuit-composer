@@ -1,0 +1,107 @@
+# Circuit Composer package: EGmicro EG3113 half-bridge gate driver, one phase with its MOSFETs.
+#
+# 0.1.0: one half-bridge of the RP2350 motor controller rev A (~/pcb/rp2350-motor-controller,
+# hardware/rev-A, tag rev-A-fab), phase A: driver U1, MOSFETs AH1/AL1 and the parts on their nets
+# that serve them. The datasheet's typical application (Figure 6-1, PDF p.6) plus the board's
+# bootstrap resistor, turn-off options, low-side PNP turn-off, per-bridge bus capacitor and unfitted
+# snubbers. Pin table and HIN/LIN levels (ports.json), cited rules (rules.json), a KiCad symbol
+# (kicad/). Measured layout: boards/rp2350-motor-controller/mined/bridges/.
+
+[package]
+name = "eg3113"
+version = "0.1.0"
+family = "EG3113"
+license = "MIT"
+summary = "EG3113 half-bridge driver (SOP-8) with BSC030N08NS5 MOSFETs, bootstrap and gate network, as one phase of the RP2350 motor controller: circuit, ports, HIN/LIN levels, cited rules"
+
+[[variants]]
+name = "EG3113"
+mpn = "EG3113"
+package = "SOP-8"
+footprint = "Package_SO:SOIC-8_3.9x4.9mm_P1.27mm"
+symbol = "Driver_FET_EG3113:EG3113"
+mosfet = "BSC030N08NS5"
+vcc_v = 5.0
+# HIN active high, LIN active low (port LIN_N). KiCad has no EG3113 symbol; the board uses its own
+# MotorBuck:EG2131 valued EG3113. The package carries one in kicad/ (checked pin by pin against
+# Figure 4-1 and §4.2, PDF p.5). The datasheet also lists a DFN8 package (PDF p.12), not modelled.
+
+[sources]
+# Document revisions this package was built from; hashes in sources/sources.json.
+datasheet = "EGmicro EG3113 芯片数据手册 V1.2 (egmicro.com, PDF of 2024-05-27; Chinese only) (sha256 27eec46b…)"
+mosfet = "Infineon BSC030N08NS5 Rev. 2.3, 2019-10-31 (sha256 fb2962a3…)"
+
+# LCSC parts the circuit names. Stock is JLCPCB's, from
+# ~/Software/easy_pcb/.claude/skills/pcb-design/scripts/jlc_parts.py show, on the date given.
+# The unfitted roles (CGSL, RSNH, CSNH, RSNL, CSNL) have no LCSC part on the board.
+[[sourcing]]
+role = "U1"
+part = "EG Micro EG3113, SOP-8"
+lcsc = "C480666"
+checked = "2026-11-02"   # extended, JLC stock 0 (LCSC stock 0 too), lifecycle normal
+
+[[sourcing]]
+role = "QH, QL"
+part = "Infineon BSC030N08NS5, PG-TDSON-8 (5x6)"
+lcsc = "C501507"
+checked = "2026-11-02"   # extended, JLC stock 24107, lifecycle normal
+
+[[sourcing]]
+role = "RGH, RGL, RQE"
+part = "FOJAN FRC0603F10R2TS, 10.2 ohm 1 % 0603"
+lcsc = "C2933129"
+checked = "2026-11-02"   # extended, JLC stock 10731, lifecycle normal
+
+[[sourcing]]
+role = "ROFFH, ROFFL"
+part = "UNI-ROYAL 0603WAF0000T5E, 0 ohm 0603"
+lcsc = "C21189"
+checked = "2026-11-02"   # basic, JLC stock 20458696, lifecycle normal
+
+[[sourcing]]
+role = "DOFFH, DOFFL"
+part = "Comchip CDBU0230-HF, 30 V 200 mA Schottky, SOD-523F (the board's value says CDBU0130R-HF)"
+lcsc = "C2886025"
+checked = "2026-11-02"   # extended, JLC stock 3788, lifecycle normal
+
+[[sourcing]]
+role = "QOFF"
+part = "PJSEMI FMMT591, PNP 60 V 1 A, SOT-23"
+lcsc = "C686646"
+checked = "2026-11-02"   # extended, JLC stock 4237, lifecycle normal
+
+[[sourcing]]
+role = "RQB"
+part = "UNI-ROYAL 0603WAF1000T5E, 100 ohm 1 % 0603"
+lcsc = "C22775"
+checked = "2026-11-02"   # basic, JLC stock 8982515, lifecycle normal
+
+[[sourcing]]
+role = "DBOOT"
+part = "JSCJ DSS110, 100 V 1 A Schottky, SOD-123FL"
+lcsc = "C2923942"
+checked = "2026-11-02"   # extended, JLC stock 61280, lifecycle normal
+
+[[sourcing]]
+role = "RBOOT"
+part = "FOJAN FRC0603F4R70TS, 4.7 ohm 1 % 0603"
+lcsc = "C2907035"
+checked = "2026-11-02"   # extended, JLC stock 4868427, lifecycle normal
+
+[[sourcing]]
+role = "CBOOT"
+part = "Murata GRM188R6YA106MA73D, 10 uF 35 V X5R 20 % 0603"
+lcsc = "C194427"
+checked = "2026-11-02"   # extended, JLC stock 252725, lifecycle normal
+
+[[sourcing]]
+role = "CVCC"
+part = "TDK C1608X5R1V475KT000E, 4.7 uF 35 V X5R 10 % 0603"
+lcsc = "C329940"
+checked = "2026-11-02"   # extended, JLC stock 58451, lifecycle normal
+
+[[sourcing]]
+role = "CBUS"
+part = "Taiyo Yuden HMK316AC7225KLHTE, 2.2 uF 100 V X7S 10 % 1206"
+lcsc = "C650969"
+checked = "2026-11-02"   # extended, JLC stock 8452, lifecycle normal

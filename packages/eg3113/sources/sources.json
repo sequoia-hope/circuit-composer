@@ -1,0 +1,26 @@
+{
+  "eg3113_ds": {
+    "title": "EG3113 芯片数据手册 V1.2: 大功率 MOS 管、IGBT 管栅极驱动芯片 (EG3113 datasheet: gate driver for power MOSFETs and IGBTs)",
+    "publisher": "EGmicro (屹晶微电子有限公司, Electronic Giant)",
+    "doc": "EG3113高压600V2A半桥驱动芯片数据手册V1.2.pdf (egmicro.com product page for EG3113, document id 322)",
+    "kind": "datasheet",
+    "revision": "V1.2 (revision table: 2017-08-19, '输出电流能力修改'); PDF created 2024-05-27",
+    "url": "https://www.egmicro.com/static/upload/drive/%E7%BD%91%E7%AB%99%E5%85%AC%E5%BC%80%E8%8A%AF%E7%89%87%E7%94%A8%E6%88%B7%E6%89%8B%E5%86%8C/%E5%8D%95%E7%9B%B8%E5%8D%8A%E6%A1%A5%E9%A9%B1%E5%8A%A8/EG3113%E9%AB%98%E5%8E%8B600V2A%E5%8D%8A%E6%A1%A5%E9%A9%B1%E5%8A%A8%E8%8A%AF%E7%89%87%E6%95%B0%E6%8D%AE%E6%89%8B%E5%86%8CV1.2.pdf",
+    "sha256": "27eec46b21b9e2cf7bac3020ffde0e5136fc30cf450558a07dee3f36b0b76185",
+    "bytes": 651513,
+    "retrieved": "2026-11-02",
+    "note": "Chinese only: EGmicro publishes no English EG3113 datasheet (its product page lists two documents, both Chinese). 12 PDF pages: cover, revision table and contents (PDF pp.1-3), then the body printed '1/1' (a footer slip, PDF p.4) and '2/9' to '9/9' (PDF pp.5-12). Locators below give the PDF page and the printed one, e.g. 'PDF p.8 (5/9)'. The text layer is good Chinese (pdftotext gets every character), but the feature bullets are a private-use glyph, the overbar on LIN does not extract, and table cells break across lines in -layout mode, so table quotes give a row's cells in order. tools/library_quotes.py keeps Chinese characters (norm() was extended for this package). The document contradicts itself in places, recorded in rules.json: the input-high threshold is 3 V minimum in the table (PDF p.8) but '2.5V 以上' in §8.2 (PDF p.10); quiescent current is 'less than 5uA' in the features (PDF p.4) but 50 uA maximum in the table (PDF p.8); the truth table (PDF p.11) labels HIN 'pin 4' (it is pin 2). LCSC's datasheet for C480666 is an older build of the same V1.2 (PDF created 2019-11-18, sha256 70df0bd34bcfab4b8db07ed1824af7564b34bea0652283539fe01693a02e483b, 504710 bytes) whose table gives Vin(H) 2.5 V min, Icc 30 uA max and Iin 20 uA; it was read for comparison and is not cited. The vendor's other document, 'EG3113 MOS驱动芯片数据手册V1.1.pdf' (sha256 3add1fc8…), is the superseded V1.1 and was not used."
+  },
+  "bsc030n08ns5_ds": {
+    "title": "BSC030N08NS5 OptiMOS 5 Power-Transistor, 80 V",
+    "publisher": "Infineon Technologies",
+    "doc": "BSC030N08NS5 Final Data Sheet (as linked by LCSC for C501507)",
+    "kind": "datasheet",
+    "revision": "Rev. 2.3, 2019-10-31",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/7a0968f8ec9da62898142ac5ce6ea0f3.pdf?productCode=C501507",
+    "sha256": "fb2962a383eeb9ca3ae5ae0f60b16531c44f5755a51e831f01198812bdc09bec",
+    "bytes": 1360185,
+    "retrieved": "2026-11-02",
+    "note": "The MOSFET the reference board fits as AH1/AL1 (LCSC C501507; rev A's schematic values it 'MOSFETSO-8', the board's later schematic names it BSC030N08NS5). 13 pages; the printed page number in each footer equals the PDF page. Read for the gate drive and bootstrap: VGS(th), RDS(on) test voltages, Qg and the plateau (Tables 4 and 6, p.4). The text layer drops the spaces in headings and features ('Gatechargecharacteristics') and separates numbers from units in the test conditions with a control character ('VGS=6\u0002V'), which the quote check reads as a space; quotes are table rows. Infineon's own site was not tried; LCSC's copy is Infineon's Rev. 2.3 file as published."
+  }
+}

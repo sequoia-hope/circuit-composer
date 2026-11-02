@@ -1,0 +1,144 @@
+{
+ "note": "Pins by number; what each function means, its supply and default net class. SOIC-8 (D) numbering from Figure 6-2 and Table 6-1 (p.3): 1 IN-, 2 GND, 3 REF2, 4 NC, 5 OUT, 6 VS, 7 REF1, 8 IN+. The TSSOP-8 (PW) numbers differ and are not modelled. KiCad's Amplifier_Current:INA240A1D has the same numbers (checked pin by pin) under other names: 1 '-', 8 '+', 6 'V+', 5 '~', and pin 4 named GND (passive) where the datasheet has NC ('Reserved. Connect to ground or leave floating', p.3). The reference board ties pin 4 to GND, as KiCad's name suggests and the datasheet allows. One amplifier per phase; the output is an analog voltage centred on the reference (here VS / 2) and moving 20 mV per mV across the shunt.",
+ "functions": {
+  "IN_P": {
+   "kind": "analog_in",
+   "class": "ANALOG",
+   "note": "IN+, the non-inverting sense input. Table 6-1 (p.3) says to connect it to the supply side of the shunt; in the inline motor application (Figure 9-3, p.20) it is on the half-bridge side. Common-mode range -4 V to 80 V independent of VS (p.4, p.5), absolute maximum -6 V to 90 V common mode and +/-80 V differential (p.4). Input bias current 90 uA typical (p.5). Connect by a Kelvin trace to the shunt pad (p.24). Input filters are not required and not recommended; if fitted, series resistors of 10 ohm or less (p.18)",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; §7.1, §7.3 p.4; §7.5 p.5; §9.1.1 p.18; Figure 9-3 p.20; §11.1.1 p.24"
+   }
+  },
+  "IN_N": {
+   "kind": "analog_in",
+   "class": "ANALOG",
+   "note": "IN-, the inverting sense input: the load side of the shunt (Table 6-1, p.3), the motor side in Figure 9-3 (p.20). Same ranges and Kelvin rule as IN+",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; §7.1, §7.3 p.4; Figure 9-3 p.20; §11.1.1 p.24"
+   }
+  },
+  "VS": {
+   "kind": "power_in",
+   "class": "POWER",
+   "nominal_v": [
+    2.7,
+    5.5
+   ],
+   "note": "Supply, 2.7-5.5 V (p.3, p.4), 6 V absolute maximum (p.4); 1.8 mA typical, 2.4 mA maximum quiescent current at 25 C, 2.6 mA over temperature (p.5). The output can only swing within this supply (p.23). Bypass with 0.1 uF as close as possible to the supply and ground pins (p.23); Figure 11-2 (p.25) puts CBYPASS between pins 6 and 2",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; §7.1, §7.3 p.4; §7.5 p.5; §10, §10.1 p.23; Figure 11-2 p.25"
+   }
+  },
+  "GND": {
+   "kind": "ground",
+   "class": "GROUND",
+   "note": "Ground (pin 2). Figure 11-2 (p.25) takes it to the ground plane by a via beside the pin, with REF2 joined to it for the mid-supply reference",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; Figure 11-2 p.25"
+   }
+  },
+  "REF1": {
+   "kind": "analog_in",
+   "class": "ANALOG",
+   "supply": "VS",
+   "note": "Reference input 1, into the internal 50 k / 50 k gain network (§8.2 p.10). Connect to 0 V to VS (p.3); never below GND or above VS (p.12; absolute maximum GND - 0.3 V to VS + 0.3 V, p.4). There is no operational difference between REF1 and REF2 (p.12). One REF pin to VS and the other to GND sets the output at VS / 2 for zero input, ratiometric to the supply (§8.4.3.2 p.14). The REF pins are meant for a direct connection to supply, ground or a low-impedance reference, not a resistor divider used single-ended (p.15). Reference divider accuracy 0.02 % typical, 0.1 % maximum (p.5)",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; §7.1 p.4; §7.5 p.5; §8.4.1 p.12; §8.4.3.2 p.14; §8.4.3.4 p.15"
+   }
+  },
+  "REF2": {
+   "kind": "analog_in",
+   "class": "ANALOG",
+   "supply": "VS",
+   "note": "Reference input 2; the same as REF1 (p.12)",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; §8.4.1 p.12"
+   }
+  },
+  "OUT": {
+   "kind": "analog_out",
+   "class": "ANALOG",
+   "supply": "VS",
+   "note": "Output voltage: VREF + G x (VIN+ - VIN-), G = 20 V/V for the INA240A1 (p.3, p.5), increasing when IN+ is positive relative to IN- (p.14). Swing to VS: VS - 0.05 V typical, VS - 0.2 V worst case; swing to GND: 1 mV typical, 10 mV maximum above GND (RL = 10 kohm, -40 to 125 C, p.5). Bandwidth 400 kHz (-3 dB), settling to 0.5 % in 9.6 us (A1), slew 2 V/us (p.5). Maximum capacitive load 1 nF, no sustained oscillation (p.5). Absolute maximum GND - 0.3 V to VS + 0.3 V (p.4). A filter at the output changes the low output impedance the following circuit sees (p.18). With VS = 3.3 V and REF at VS / 2: 1.65 V at zero current, usable 0.01-3.1 V",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 5-1, Table 6-1 p.3; §7.1 p.4; §7.5 p.5; §8.4.3.1 p.14; §9.1.1 p.18"
+   }
+  },
+  "NC": {
+   "kind": "no_connect",
+   "class": "GROUND",
+   "note": "Pin 4: no internal connection, 'Reserved. Connect to ground or leave floating' (p.3); absolute maximum GND - 0.3 V to VS + 0.3 V (p.4). Figure 11-2 (p.25) takes it to a ground via. KiCad's symbol names it GND, and the reference board ties it to GND",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3; §7.1 p.4; Figure 11-2 p.25"
+   }
+  }
+ },
+ "variants": {
+  "INA240A1D": {
+   "package": "SOIC-8 (D)",
+   "source": {
+    "source": "ina240_ds",
+    "locator": "Table 5-1 p.3 (INA240A1, 20 V/V); Figure 6-2 and Table 6-1 p.3 (D package pins); Packaging Information p.27 (INA240A1D, SOIC (D) 8, tube); SOIC D0008A drawing p.33"
+   },
+   "pins": {
+    "1": {
+     "name": "IN-",
+     "function": "IN_N"
+    },
+    "2": {
+     "name": "GND",
+     "function": "GND"
+    },
+    "3": {
+     "name": "REF2",
+     "function": "REF2"
+    },
+    "4": {
+     "name": "NC",
+     "function": "NC"
+    },
+    "5": {
+     "name": "OUT",
+     "function": "OUT"
+    },
+    "6": {
+     "name": "VS",
+     "function": "VS"
+    },
+    "7": {
+     "name": "REF1",
+     "function": "REF1"
+    },
+    "8": {
+     "name": "IN+",
+     "function": "IN_P"
+    }
+   }
+  }
+ },
+ "interfaces": {
+  "out": {
+   "type": "analog",
+   "dir": "out",
+   "signals": {
+    "OUT": "IN"
+   },
+   "pins": {
+    "OUT": "OUT"
+   },
+   "note": "The current reading, for an ADC input: VS / 2 at zero current with the package's mid-supply reference, 20 V/V times the shunt voltage either side. Drives up to 1 nF directly (p.5). Ratiometric to VS, so an ADC whose reference is the same rail reads it without a separate reference",
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "§7.5 p.5; §8.4.3.2 p.14"
+   }
+  }
+ }
+}

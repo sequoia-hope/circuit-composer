@@ -1,0 +1,28 @@
+{
+ "lm74700_ds": {
+  "title": "LM74700-Q1 Low IQ Reverse Battery Protection Ideal Diode Controller",
+  "publisher": "Texas Instruments",
+  "doc": "SNOSD17G",
+  "kind": "datasheet",
+  "revision": "SNOSD17G - October 2017 - Revised December 2020",
+  "url": "https://www.ti.com/lit/pdf/snosd17",
+  "where": "Fetched from ti.com's lit/pdf link with wget (jlc_parts.py fetch). The PDF was built on 9 January 2026 (its package option addendum carries that date), but the datasheet text is Revision G, December 2020.",
+  "sha256": "e16b3a8c0023201fafa5825436f5f2dd6f885b92b84e65602b3f50d741c58b6f",
+  "bytes": 2657068,
+  "retrieved": "2026-11-02",
+  "note": "36 PDF pages. Printed page numbers 1-25 equal the PDF page numbers; then the package option addendum (Addendum-Page 1-2, PDF pp.26-27, dated 9-Jan-2026, LM74700QDBVRQ1 Active), packaging materials (PDF pp.28-29), the DDF0008A outline, example board layout and stencil (PDF pp.30-32), the DBV0006A outline, example board layout and stencil (PDF pp.33-35) and the notice (PDF p.36). The text layer is clean: the micro sign extracts as 'µ' and minus signs as '–'. The first page sets two columns side by side, so -layout interleaves them line by line; nothing is quoted from p.1. Table cells (§6 Specifications) are cited as figures, not quotes."
+ },
+ "tmg08n10si_ds": {
+  "title": "TMG08N10SI N-Channel Enhancement Mosfet",
+  "publisher": "Tritech-MOS (Shenzhen Tritech Microelectronics)",
+  "doc": "TMG08N10SI",
+  "kind": "datasheet",
+  "revision": "undated (PDF created August 2015, modified June 2023)",
+  "url": "https://datasheet.lcsc.com/datasheet/pdf/3a5458f465b565a7cee139ab690abe9c.pdf?productCode=C7422896",
+  "where": "LCSC's datasheet link for C7422896 (jlc_parts.py fetch C7422896). The maker publishes no revision letter.",
+  "sha256": "6572192ff359c3be679d910c7957ca0396677b9e0c32305ff3e8375f52e4801d",
+  "bytes": 8695685,
+  "retrieved": "2026-11-02",
+  "note": "5 pages, numbered 1/5-5/5. p.1 ratings and the SOT-89-3L pin drawing (G, D, S, with the tab on D; its letters are in the text layer but the drawing is an image), p.2 electrical characteristics, pp.3-4 typical curves, p.5 the SOT-89-3L mechanical drawing (an image, no text). The text layer renders milliohm as 'mW' on p.1 and 'mΩ' on p.2."
+ }
+}

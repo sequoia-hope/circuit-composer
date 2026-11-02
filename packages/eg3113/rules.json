@@ -1,0 +1,621 @@
+{
+ "package": "eg3113",
+ "version": "0.1.0",
+ "note": "Claims scoped to the EG3113 half-bridge driver (variant EG3113, SOP-8) and the phase it drives on the RP2350 motor controller rev A. The EG3113 datasheet (EGmicro V1.2, sha256 27eec46b…) is Chinese only: quotes are its Chinese text exactly as the text layer gives it, and statements translate them; tools/library_quotes.py keeps Chinese characters for this. Locators are PDF pages (the body's printed 'n/9' is PDF page n+3). The MOSFET's datasheet (Infineon BSC030N08NS5 Rev. 2.3) is cited by printed page, equal to the PDF page. The EG3113 datasheet has no layout guidance; layout comes from the library's half_bridge claims, which this package links where they apply. `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names).",
+ "claims": [
+  {
+   "id": "eg3113.vcc.range",
+   "statement": "VCC, the driver's supply, operates from 2.8 V to 20 V (12 V typical in the characterisation), with an absolute maximum of 20 V.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vcc_v": [
+     2.8,
+     20
+    ],
+    "vcc_abs_max_v": 20
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.4 (§1 features)",
+     "quote": "低端 VCC 电压范围 2.8V-20V"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1, absolute maximum ratings: VCC -0.3 to 20 V); PDF p.8 (Table 7.2: Vcc 2.8 / 12 / 20 V)",
+     "figure": "Table 7.1 row '电源 VCC - -0.3 20 V'; Table 7.2 row '电源 Vcc - 2.8 12 20 V'."
+    }
+   ],
+   "status": "asserted",
+   "note": "The board's Vdrive is about 5.0 V (XL7005A U28 with R5/R6 10k/3.3k, the board's): inside the range. No undervoltage lockout is specified anywhere in the datasheet.",
+   "enforced_by": [
+    "ccomp pins (VCC nominal_v in ports.json)"
+   ]
+  },
+  {
+   "id": "eg3113.vcc.drive_voltage",
+   "statement": "Choose VCC for the MOSFET: the datasheet recommends a typical 10-15 V for MOSFETs that need a high gate voltage to turn on, and 2.8-10 V for MOSFETs that turn on at a low voltage. LO reaches VCC and HO about VCC less the bootstrap diode's drop.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "gate_drive",
+    "supply_voltage"
+   ],
+   "requirement": {
+    "vcc_v_high_threshold_fet": [
+     10,
+     15
+    ],
+    "vcc_v_low_threshold_fet": [
+     2.8,
+     10
+    ]
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.10 (§8.1)",
+     "quote": "高压开启 MOS 管推荐电源 Vcc 工作电压典型值为 10V-15V"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.10 (§8.1)",
+     "quote": "低压开启 MOS 管推荐电源 VCC 工作电压 2.8V-10V"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.4 (Table 4, RDS(on))",
+     "quote": "- 2.6 3.0 VGS=10 V, ID=50 A Drain-source on-state resistance RDS(on) mΩ - 3.4 4.5 VGS=6 V, ID=25 A"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.4 (Table 6)",
+     "quote": "Gate plateau voltage Vplateau - 4.6 - V"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.7 (Diagrams 5 and 6)",
+     "figure": "Diagram 5, typical output characteristics at Tj 25 C: at VGS 5 V the drain current flattens near 80 A (VDS 0.5-3 V); at 6 V near 260 A. Diagram 6, typical RDS(on) vs ID at 25 C: the 5 V curve starts about 4.7 mohm and turns vertical near 70 A; the 10 V curve is about 2.5 mohm."
+    }
+   ],
+   "status": "contested",
+   "note": "Contested for the reference board, whose value the package keeps. Vdrive is about 5.0 V, so QL's gate sees about 5 V and QH's about 5 V less DBOOT's drop (DSS110, 850 mV at 1 A per LCSC; less at the bootstrap's current) and RBOOT's. The BSC030N08NS5 is a normal-level part: VGS(th) 2.2-3.8 V, RDS(on) specified only at 10 V (3.0 mohm max) and 6 V (4.5 mohm max), Miller plateau 4.6 V typical. The datasheet does not say which MOSFETs count as 'low-voltage turn-on'; 5 V is inside 2.8-10 V but below the lowest gate voltage at which the MOSFET's RDS(on) is guaranteed, and only about 0.4 V above its typical plateau. Through RGH/RGL (10.2 ohm) plus the MOSFET's internal 1.6 ohm typical, the plateau current at 5 V is roughly (5 - 4.6) / 11.8 = 34 mA, so the 13 nC Qgd takes some 400 ns at turn-on (typical figures; arithmetic, not a datasheet number). Whether that suits the board's PWM frequency and currents is the board's decision; a board that composes this package with these MOSFETs at higher current should consider a 10-12 V VCC, which CBOOT and CVCC (35 V parts) already allow.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.vcc.bypass",
+   "statement": "VCC is bypassed to GND with a high-frequency capacitor of about 0.1 uF at the pin, to keep high-frequency noise off the chip's supply.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "CVCC"
+   },
+   "attributes": [
+    "capacitance",
+    "decoupling_path"
+   ],
+   "requirement": {
+    "capacitance_uf_min": 0.1
+   },
+   "checks": [
+    {
+     "part": "CVCC",
+     "quantity": "capacitance",
+     "min": 1e-07
+    }
+   ],
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.5 (§4.2, pin 1)",
+     "quote": "外接一个高频 0.1uF 旁路电容能降低芯片输入端的高频噪声"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.6 (Figure 6-1)",
+     "figure": "Typical application: C1 '0.1uF' from the +12V line at pin 1 (Vcc) to ground at pin 4."
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "half_bridge.driver.supply_decoupling"
+    },
+    {
+     "refines": "half_bridge.bootstrap.recharge_loop"
+    }
+   ],
+   "note": "The board's CVCC (C2) is 4.7 uF 35 V X5R 0603, 2.1 mm from pin 1 by copper on B.Cu with the driver (boards/rp2350-motor-controller/README.md, 'Half-bridges and current sensing'), which meets this and the library's 5 mm rule. The library's half_bridge.bootstrap.recharge_loop also asks for the VCC capacitor to be at least ten times the bootstrap capacitor: C2 is 0.47 x CBOOT (10 uF). The EG3113 datasheet says nothing of that ratio; the Vdrive rail also carries the board's 100 uF electrolytic C11, the 10 uF C5 and the other drivers' VCC capacitors further away, which are the board's, not this package's.",
+   "enforced_by": [
+    "ccomp check package (nominal value)",
+    "ccomp check half-bridge (driver supply path)"
+   ]
+  },
+  {
+   "id": "eg3113.input.levels",
+   "statement": "Both logic inputs read high at 3 V or more and low at 1.0 V or less (Table 7.2, at VCC 12 V and 25 C), and draw at most 30 uA high (at 5 V) and 50 uA low (at 0 V).",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic_level"
+   ],
+   "requirement": {
+    "vih_v_min": 3.0,
+    "vil_v_max": 1.0,
+    "iin_h_ua_max": 30,
+    "iin_l_ua_max": 50
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.8 (Table 7.2)",
+     "quote": "Vin(H) 所有输入控制信号 3 - - V"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.8 (Table 7.2)",
+     "quote": "Vin(L) 所有输入控制信号 -0.3 0 1.0 V"
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "contradicts": "eg3113.input.levels_text"
+    }
+   ],
+   "note": "ports.json gives HIN and LIN these levels (vih 3.0, vil 1.0). The reference board drives HIN and LIN straight from RP2350 GPIOs at 3.3 V: 0.3 V above the table's minimum with the inputs' tens of uA as the only load. The RP2350 package's own VOH (2.62 V at its weakest drive setting's rated current) is below 3.0 V, so the pin solver will refuse that connection on these figures although the board works with it; see eg3113.input.levels_text for the datasheet's other figure.",
+   "enforced_by": [
+    "ccomp pins (HIN/LIN levels in ports.json)"
+   ]
+  },
+  {
+   "id": "eg3113.input.levels_text",
+   "statement": "The application section gives the input thresholds as above 2.5 V for high and below 1.0 V for low, and says MCU logic outputs can drive the inputs directly.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic_level"
+   ],
+   "requirement": {
+    "vih_v_min": 2.5,
+    "vil_v_max": 1.0
+   },
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.10 (§8.2)",
+    "quote": "逻辑信号输入端高电平阀值为 2.5V 以上，低电平阀值为 1.0V 以下"
+   },
+   "status": "contested",
+   "links": [
+    {
+     "contradicts": "eg3113.input.levels"
+    }
+   ],
+   "note": "Contested by the same datasheet's Table 7.2 (Vin(H) 3 V minimum, eg3113.input.levels), which the package follows as the characterised figure. LCSC's copy of this V1.2 (an older build, PDF of 2019-11-18) has 2.5 V in the table as well, so the 3 V figure is the later one. Either figure is met by a 3.3 V CMOS output lightly loaded.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.input.defaults",
+   "statement": "HIN has an internal 200 kohm pull-down and LIN an internal pull-up (200 kohm to an internal 5 V), so with both inputs floating both MOSFETs are held off. An external pull-down on LIN defeats this and turns the low side on.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "default_state",
+    "pull"
+   ],
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.4 (§2)",
+     "quote": "输入通道 HIN 内建了一个 200K 下拉电阻， LIN 内建了上拉 5V 高电位,在输入悬空时使上、下功率 MOS 管处于关闭状态"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.6 (Figure 5-1)",
+     "figure": "Internal block diagram: HIN (pin 2) has 200K to ground; LIN (pin 3) has 200K to '+5V'; both feed the interlock and dead-time block."
+    }
+   ],
+   "status": "asserted",
+   "note": "Not the package's parts, but the board's: on the reference board both inputs also have 10 kohm to GND at the MCU (R1 on A_PWM_H, R2 on A_PWM_L, 35 mm away). R2 against the 200 kohm internal pull-up holds LIN at about 5 V x 10 / 210 = 0.24 V, below VIL, so the low-side MOSFET is on whenever the GPIO is not driven (reset, boot): all four phases then short the motor's terminals to GND through their low sides. That may be intended (a braked motor at reset); the package leaves the choice to the board and says what the inputs do on their own.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.input.abs_max",
+   "statement": "HIN may range from -0.3 V to VCC + 0.3 V; LIN from -0.3 V to 6 V, independent of VCC.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "abs_max",
+    "logic_level"
+   ],
+   "requirement": {
+    "hin_v": [
+     "-0.3",
+     "VCC + 0.3"
+    ],
+    "lin_v": [
+     -0.3,
+     6
+    ]
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1)",
+     "quote": "高通道逻辑信号 HIN - -0.3 VCC+0.3 V 输入电平"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1)",
+     "quote": "低通道逻辑信号 LIN - -0.3 6 V 输入电平"
+    }
+   ],
+   "status": "asserted",
+   "note": "ports.json gives HIN vin_max 'supply + 0.3' (supply VCC) and LIN vin_max 6. With the board's 5 V Vdrive, HIN's limit is 5.3 V; the RP2350's 3.3 V outputs are inside both. At 12-15 V VCC, LIN still may not exceed 6 V.",
+   "enforced_by": [
+    "ccomp pins (vin_max in ports.json)"
+   ]
+  },
+  {
+   "id": "eg3113.logic.interlock",
+   "statement": "HIN is active high and LIN active low; the internal logic never turns both outputs on. HIN = 1 with LIN = 0 turns both off, HIN = 0 with LIN = 0 turns on the low side, HIN = 1 with LIN = 1 the high side, so one PWM signal on both inputs gives a complementary pair with the internal dead time.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "logic",
+    "shoot_through"
+   ],
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.11 (§8.2, after the truth table)",
+     "quote": "内部逻辑处理器杜绝控制器输出上、下功率管同时导通，具有相互闭锁功能"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.4 (§1 features)",
+     "quote": "LIN 输入通道低电平有效，控制低端 LO 输出"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.11 (truth table)",
+     "figure": "HIN LIN -> HO LO: 0 0 -> 0 1; 0 1 -> 0 0; 1 0 -> 0 0; 1 1 -> 1 0. The table heads its HIN column '引脚 4' (pin 4); HIN is pin 2 (Figure 4-1, §4.2)."
+    }
+   ],
+   "status": "asserted",
+   "note": "The reference board drives HIN and LIN from two GPIOs (GPIO2, GPIO3 for bridge A), so its firmware sets the dead time and polarity; the interlock is a backstop. Because LIN is active low, a complementary pair comes from the same signal on both inputs: an inverted copy of HIN on LIN gives HIN = 1, LIN = 0 or HIN = 0, LIN = 1, and both turn both outputs off.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.logic.dead_time",
+   "statement": "The driver inserts a dead time of 50-300 ns (100 ns typical, measured unloaded) between one output turning off and the other turning on.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "dead_time",
+    "timing"
+   ],
+   "requirement": {
+    "dead_time_ns": [
+     50,
+     300
+    ]
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.8 (Table 7.2)",
+     "quote": "死区时间 DT 50 100 300 nS"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.9 (Figure 7-3)",
+     "figure": "Dead-time waveform: HIN and LIN drawn as one signal; DT from HO falling to 10 % to LO rising past 90 % (and the reverse)."
+    }
+   ],
+   "status": "asserted",
+   "note": "Measured with no load capacitance (CL = 0), between the outputs, not the MOSFETs. With the board's 10.2 ohm gate resistors and 5 V drive the MOSFETs switch more slowly than the outputs (eg3113.vcc.drive_voltage), so whatever dead time the MOSFETs need beyond this comes from the firmware's PWM.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.timing.propagation",
+   "statement": "Propagation delays: LO turns on 280 ns typical (400 ns max) and off 125 ns (300 ns max) after its input; HO on 250 ns (400 ns max) and off 180 ns (400 ns max). Rise 120 ns (200 max) and fall 80 ns (100 max) into 10 nF. Switching up to 500 kHz.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "timing"
+   ],
+   "requirement": {
+    "lo_ton_ns_max": 400,
+    "lo_toff_ns_max": 300,
+    "ho_ton_ns_max": 400,
+    "ho_toff_ns_max": 400,
+    "f_max_khz": 500
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.10 (§8.2); PDF p.8 (Table 7.2, maxima)",
+     "quote": "低端输出开通传导延时为 280nS、关断传导延时为 125nS,高端输出开通传导延时为 250nS、关断传导延时为 180nS"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.4 (§1 features)",
+     "quote": "最高频率支持 500KHZ"
+    }
+   ],
+   "status": "asserted",
+   "note": "§8.2 also gives rise and fall as 110 ns and 50 ns, against Table 7.2's 120/80 ns typical: the table is used. Minimum pulse width is not specified; at 400 ns worst-case delays, PWM edges closer than about half a microsecond may not appear at the outputs.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.output.current",
+   "statement": "Each output sources 1.8 A minimum (2 A typical) and sinks 2 A minimum (2.5 A typical), at VCC 12 V for pulses under 10 us.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "gate_drive",
+    "current"
+   ],
+   "requirement": {
+    "io_source_a_min": 1.8,
+    "io_sink_a_min": 2.0
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.4 (§1 features)",
+     "quote": "输出电流能力 IO+/- 2A/2.5A"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.8 (Table 7.2)",
+     "quote": "IO 输出拉电流 IO+ 1.8 2 - A"
+    }
+   ],
+   "status": "asserted",
+   "note": "Characterised at VCC 12 V; at the board's 5 V the output stages are weaker by an amount the datasheet does not give. The gate resistors set the current here anyway: 5 V across 10.2 ohm plus the MOSFET's 1.6 ohm is about 0.42 A peak.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.bootstrap.circuit",
+   "statement": "The high side is supplied by a bootstrap: an external diode from VCC to VB and a capacitor from VB to VS, charged to about VCC while the low side is on. The datasheet's application uses a fast-recovery FR107 and 10 uF.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "CBOOT"
+   },
+   "attributes": [
+    "bootstrap",
+    "capacitance"
+   ],
+   "checks": [
+    {
+     "part": "DBOOT",
+     "quantity": "fitted",
+     "equals": true
+    },
+    {
+     "part": "CBOOT",
+     "quantity": "fitted",
+     "equals": true
+    }
+   ],
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.11 (§8.3)",
+     "quote": "EG3113 可以使用外接一个自举二极管如图 8-3 和一个自举电容自动完成自举升压功能"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.6 (Figure 6-1); PDF p.11 (Figure 8-3)",
+     "figure": "Figure 6-1: D3 FR107 from the +12V line (pin 1 side) to VB (pin 8); C2 10uF from VB to VS (pin 6), drawn at the +600V rail side. Figure 8-3: '外接自举二极管' (external bootstrap diode) FR107 to VB, '自举电容' (bootstrap capacitor) VC from VB to VS."
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "half_bridge.bootstrap.close_to_driver"
+    },
+    {
+     "refines": "half_bridge.bootstrap.recharge_loop"
+    }
+   ],
+   "note": "The board: DBOOT D3 is a DSS110 Schottky (100 V, 1 A per LCSC), which blocks VMOT + VCC while the high side conducts as the FR107 does; RBOOT R9 (4.7 ohm) in series is the board's addition; CBOOT C10 is 10 uF 35 V X5R 0603, the datasheet's value. Sizing (arithmetic, not a datasheet rule): the BSC030N08NS5 takes 76 nC max from 0 to 10 V, and about 35 nC typical to 5 V (Diagram 14), so 10 uF droops by under 10 mV per turn-on; the 50 uA quiescent current (VB's share is not given) is negligible against it. The board's bootstrap loop measures 4.91 mm2 (bridge A) with the capacitor on the driver's layer.",
+   "enforced_by": [
+    "ccomp check package (fitted)",
+    "ccomp check half-bridge (bootstrap loop)"
+   ]
+  },
+  {
+   "id": "eg3113.hs.abs_max",
+   "statement": "VB may range from -0.3 V to 600 V; VS from VB - 20 V to VB + 0.3 V; HO from VS - 0.3 V to VB + 0.3 V; LO from -0.3 V to VCC + 0.3 V.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "U1"
+   },
+   "attributes": [
+    "abs_max"
+   ],
+   "requirement": {
+    "vb_v": [
+     -0.3,
+     600
+    ],
+    "vb_minus_vs_v_max": 20
+   },
+   "citations": [
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1)",
+     "quote": "自举高端 VB 电源 VB - -0.3 600 V"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1)",
+     "quote": "高端悬浮地端 VS - VB-20 VB+0.3 V"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1)",
+     "quote": "高端输出 HO - VS-0.3 VB+0.3 V"
+    },
+    {
+     "source": "eg3113_ds",
+     "locator": "PDF p.7 (Table 7.1)",
+     "quote": "低端输出 LO -0.3 VCC+0.3 V"
+    }
+   ],
+   "status": "asserted",
+   "note": "The 600 V high side is far above this board's 80 V MOSFETs. No limit is given for VS below GND (negative phase transients) other than VB's -0.3 V, which with VB = VS + ~5 V allows VS to about -5 V; the datasheet does not say so in those words, so it is not a claim. VB - VS is the bootstrap voltage, about VCC, far below 20 V.",
+   "enforced_by": []
+  },
+  {
+   "id": "eg3113.gate.turnoff_diode",
+   "statement": "In the datasheet's application each gate resistor is bypassed by a small diode, anode at the MOSFET gate and cathode at HO or LO, so the gate discharges through the diode (faster turn-off) and charges through the resistor.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge"
+   },
+   "attributes": [
+    "gate_drive"
+   ],
+   "checks": [
+    {
+     "part": "DOFFH",
+     "quantity": "fitted",
+     "equals": true
+    },
+    {
+     "part": "DOFFL",
+     "quantity": "fitted",
+     "equals": true
+    }
+   ],
+   "citation": {
+    "source": "eg3113_ds",
+    "locator": "PDF p.6 (Figure 6-1)",
+    "figure": "HO (pin 7) to Q1's gate through R1, with D1 1N4148 across R1 pointing from the gate to HO; LO (pin 5) to Q2's gate through R2, with D2 1N4148 across R2 likewise. No values for R1 and R2."
+   },
+   "status": "asserted",
+   "note": "The board follows it with RGH/RGL (10.2 ohm) and DOFFH/DOFFL (Comchip Schottky, LCSC C2886025), each diode behind a 0 ohm link (ROFFH, ROFFL) that can become a turn-off resistor. The low side adds the PNP turn-off QOFF (FMMT591) with RQB 100 ohm and RQE 10.2 ohm, which the datasheet does not show: it discharges QL's gate to GND locally, helping hold it off against the phase's dv/dt.",
+   "enforced_by": [
+    "ccomp check package (fitted)"
+   ]
+  },
+  {
+   "id": "eg3113.fet.ratings",
+   "statement": "The bridge's MOSFETs are Infineon BSC030N08NS5: 80 V V(BR)DSS minimum, VGS -20 to 20 V, VGS(th) 2.2-3.8 V, internal gate resistance 1.6 ohm typical (2.4 max), total gate charge 61 nC typical and 76 nC maximum from 0 to 10 V.",
+   "scope": {
+    "chip": "EG3113",
+    "block": "half_bridge",
+    "role": "QH"
+   },
+   "attributes": [
+    "voltage_rating",
+    "gate_charge"
+   ],
+   "requirement": {
+    "vds_v_min": 80,
+    "vgs_v": [
+     -20,
+     20
+    ],
+    "vgs_th_v": [
+     2.2,
+     3.8
+    ],
+    "qg_nc_max_0_10v": 76
+   },
+   "checks": [
+    {
+     "part": "QH",
+     "quantity": "part_number",
+     "any_of": [
+      "BSC030N08NS5"
+     ]
+    },
+    {
+     "part": "QL",
+     "quantity": "part_number",
+     "any_of": [
+      "BSC030N08NS5"
+     ]
+    }
+   ],
+   "citations": [
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.4 (Table 4)",
+     "quote": "Drain-source breakdown voltage V(BR)DSS 80 - - V"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.4 (Table 4)",
+     "quote": "Gate threshold voltage VGS(th) 2.2 3 3.8 V"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.3 (Table 2)",
+     "quote": "Gate source voltage VGS -20 - 20 V"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.4 (Table 4)",
+     "quote": "Gate resistance1) RG - 1.6 2.4"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.4 (Table 6)",
+     "quote": "Gate charge total Qg - 61 76 nC"
+    },
+    {
+     "source": "bsc030n08ns5_ds",
+     "locator": "p.9 (Diagram 14)",
+     "figure": "Typical gate charge at ID 50 A: VGS rises to the 4.6 V plateau at about 20 nC, leaves it at about 32 nC, and reaches 5 V at about 35 nC (VDD 40-64 V)."
+    }
+   ],
+   "status": "asserted",
+   "note": "Rev A's schematic values both MOSFETs 'MOSFETSO-8', so `ccomp check package` reports the part number unverifiable from the board's values; the LCSC number C501507 is the BSC030N08NS5. VMOT's range is the board's (its input protection is the lm74700 package and the board's TVS): 80 V is the ceiling for the phase node's overshoot. A board that composes this package with other MOSFETs changes QH/QL's part and must re-check eg3113.vcc.drive_voltage and the bootstrap sizing.",
+   "enforced_by": [
+    "ccomp check package (part number)"
+   ]
+  }
+ ]
+}

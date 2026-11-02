@@ -1,0 +1,491 @@
+{
+ "package": "ina240",
+ "version": "0.1.0",
+ "note": "Claims scoped to the INA240 (variant INA240A1D: gain 20 V/V, SOIC-8). Page numbers are SBOS662C (December 2021) printed pages, equal to the PDF page for pp.1-26; pp.27-39 are TI's addendum, packing and package drawings (sha256 c9d26e72…). `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names). Arithmetic for the rp2350-motor-controller's values (phase A: U5, R20 || R23, C16) is in each claim's note; its layout was measured with `ccomp check sense` (boards/rp2350-motor-controller/mined/sense/) and `ccomp measure` (decoupling).",
+ "claims": [
+  {
+   "id": "ina240.part.gain",
+   "statement": "The INA240A1 has a fixed gain of 20 V/V; the A2, A3 and A4 are 50, 100 and 200 V/V. The gain error is 0.20 % maximum and its drift 2.5 ppm/C maximum.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "gain"
+   ],
+   "requirement": {
+    "gain_v_per_v": 20,
+    "gain_error_pct_max": 0.2
+   },
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "p.1 (Description); Table 5-1 p.3; §7.5 p.5",
+    "quote": "Four fixed gains are available: 20 V/V, 50 V/V, 100 V/V, and 200 V/V."
+   },
+   "status": "asserted",
+   "note": "The board fits the INA240A1D (U5, U9, U10). With 4 mohm (two 8 mohm in parallel) that is 80 mV/A at the output. The board's README gives the same 0.08 V/A.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.vs.range",
+   "statement": "VS is 2.7 V to 5.5 V (6 V absolute maximum); the amplifier draws at most 2.4 mA at 25 C and 2.6 mA over -40 to 125 C.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "supply_voltage",
+    "quiescent_current"
+   ],
+   "requirement": {
+    "vs_v": [
+     2.7,
+     5.5
+    ],
+    "vs_abs_max_v": 6.0,
+    "iq_ma_max": 2.6
+   },
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "p.1 (Description); §7.1, §7.3 p.4; §7.5 p.5",
+    "quote": "This device operates from a single 2.7-V to 5.5-V power supply, drawing a maximum of 2.4 mA of supply current."
+   },
+   "status": "asserted",
+   "note": "The board supplies all three amplifiers from +3V3, inside the range. Three amplifiers draw at most 7.8 mA from it.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.vcm.range",
+   "statement": "The inputs work at a common-mode voltage of -4 V to 80 V, independent of VS (absolute maximum -6 V to 90 V common mode, +/-80 V differential), so the shunt can sit on a switching phase node.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "common_mode_range"
+   ],
+   "requirement": {
+    "vcm_v": [
+     -4,
+     80
+    ],
+    "vcm_abs_max_v": [
+     -6,
+     90
+    ]
+   },
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "p.1 (Description); §7.1, §7.3 p.4; §7.5 p.5; §10 p.23",
+    "quote": "sense drops across shunt resistors over a wide common-mode voltage range from –4 V to 80 V, independent of the supply voltage"
+   },
+   "status": "asserted",
+   "note": "The board's shunts sit between the phase node and the motor terminal, which swing from about one body-diode drop below ground to the motor bus. The board's README limits rev A to about 48 V, set by its 51 V standoff phase TVS (SMAJ51A), and the design maximum is 60 V. Both are inside 80 V, and -1 V is inside -4 V.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.pwm.rejection",
+   "statement": "The INA240 is built to reject the large common-mode dV/dt of PWM-switched nodes, so it can sense in line with a motor phase; switching at 50-100 kHz is the case the datasheet designs for.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense"
+   },
+   "attributes": [
+    "pwm_rejection",
+    "cmrr",
+    "topology"
+   ],
+   "requirement": {
+    "cmrr_db_min_dc": 120,
+    "cmrr_db_typ_50khz": 93
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§8.3.1.1 p.10",
+     "quote": "The enhanced PWM rejection feature of the INA240 provides increased attenuation of large common-mode ΔV/Δt transients."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§9.2.1.1 p.20",
+     "quote": "Switching frequencies in the 50-kHz to 100-kHz range create higher ΔV/Δt signal transitions that must be addressed to obtain accurate inline current measurements."
+    }
+   ],
+   "status": "asserted",
+   "note": "This is why the board can put its shunts in the phase leads rather than in the low-side sources, the placement half_bridge.sense.shunt_placement describes. CMRR is 120 dB minimum at DC and 93 dB typical at 50 kHz (p.5). The board's PWM frequency is set in firmware and was not checked.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.ref.midsupply",
+   "statement": "For bidirectional inline motor sensing, one REF pin goes to VS and the other to GND: the output then sits at VS / 2 with no input, ratiometric to the supply. REF1 and REF2 are interchangeable.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "reference",
+    "output_offset"
+   ],
+   "requirement": {
+    "ref_pins": "one to VS, the other to GND",
+    "output_at_zero_v": "VS / 2",
+    "reference_divider_accuracy_pct_max": 0.1
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§8.4.3.2 p.14",
+     "quote": "By connecting one reference pin to VS and the other to the GND pin, the output is set at half of the supply when there is no differential input"
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§8.4.1 p.12",
+     "quote": "There is no operational difference between the two reference pins."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§9.1 p.18",
+     "quote": "When using the INA240 for inline motor current sense, the device is commonly configured for bidirectional operation."
+    }
+   ],
+   "status": "asserted",
+   "note": "The board ties REF1 (pin 7) to +3V3 and REF2 (pin 3) to GND, as Figure 11-2 (p.25) draws for the SOIC. The inline motor example (§9.2.1.2 p.20) swaps them (REF1 to ground, REF2 to supply), which p.12 says makes no difference. On 3.3 V the zero-current output is 1.65 V, within 0.1 % (reference divider accuracy, p.5). The RP2350's ADC_AVDD is on the same +3V3, so the ADC reads the offset ratiometrically.",
+   "enforced_by": [
+    "ccomp check package (wiring: U1.7 on the VS port, U1.3 on GND)"
+   ]
+  },
+  {
+   "id": "ina240.ref.within_rails",
+   "statement": "REF1 and REF2 connect directly to supply, ground or a low-impedance reference between GND and VS, never to a source below GND or above VS; a resistor divider on the REF pins makes the output usable only differentially against the divider.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "reference",
+    "abs_max"
+   ],
+   "requirement": {
+    "ref_v": [
+     "GND",
+     "VS"
+    ],
+    "ref_source": "direct or low impedance"
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§8.4.1 Note p.12",
+     "quote": "Do not connect the REF1 pin or the REF2 pin to any voltage source lower than GND or higher than VS."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§8.4.3.4 p.15",
+     "quote": "The REF pins are designed to be connected directly to supply, ground, or a low-impedance reference voltage."
+    }
+   ],
+   "status": "asserted",
+   "note": "The board ties both REF pins to the amplifier's own supply and ground, which meets both parts of this rule.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.input.polarity",
+   "statement": "IN+ connects to the supply side of the shunt and IN- to the load side; the output rises above the reference when IN+ is positive relative to IN-. In the inline motor application IN+ is on the half-bridge side and IN- on the motor side.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "polarity",
+    "pinout"
+   ],
+   "requirement": {
+    "in_p": "supply (half-bridge) side",
+    "in_n": "load (motor) side"
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "Table 6-1 p.3",
+     "quote": "Connect to supply side of shunt resistor"
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§8.4.3.1 p.14",
+     "quote": "The output voltage decreases below the reference voltage when the IN+ pin is negative relative to the IN– pin and increases when the IN+ pin is positive relative to the IN– pin."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "Figure 9-3 p.20",
+     "figure": "Inline Motor Application Circuit: a three-phase bridge on 40 V; a 100 mohm shunt in the first phase lead between the bridge's phase node and the motor. IN+ connects to the phase-node (bridge) end of the shunt, IN- to the motor end. VS 5 V, REF2 to VS, REF1 to GND."
+    }
+   ],
+   "status": "contested",
+   "note": "Contested for the board's wiring, which the package keeps: on all three phases IN+ (pin 8) is on the motor side (U5: /C_N, J2 pin 1) and IN- (pin 1) on the bridge side (/A_P, the phase node). Current is bidirectional in a phase lead, so this inverts only the sign: the output falls below 1.65 V when current flows from the bridge into the motor, and rises when it flows back. It is not an accuracy problem, but firmware must use the board's sign, not the datasheet's.",
+   "enforced_by": [
+    "ccomp check package (wiring)"
+   ]
+  },
+  {
+   "id": "ina240.input.no_filter",
+   "statement": "The INA240 needs no input filter, and the datasheet recommends against one. If a filter is fitted anyway, its series resistors are 10 ohm or less: the bias-current mismatch through them is a gain error (0.17 % at 5 ohm, 0.33 % at 10 ohm, 3.2 % at 100 ohm).",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense"
+   },
+   "attributes": [
+    "input_filter",
+    "gain_error"
+   ],
+   "requirement": {
+    "input_filter": "none",
+    "series_r_ohm_max_if_fitted": 10
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§9.1.1 Note p.18",
+     "quote": "Input filters are not required for accurate measurements using the INA240, and use of filters in this location is not recommended."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§9.1.1 p.18; Table 9-1 p.19",
+     "quote": "keep the value of these series resistors to 10-Ω or less to reduce loss of accuracy"
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "half_bridge.sense.filter_at_amp"
+    }
+   ],
+   "note": "The board has none: U5's pins 1 and 8 are on the shunt nets directly. This refines the library's sense-filter claim, which places RC filters at the amplifier when they exist; for the INA240 the datasheet's answer is to leave the input filter out.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.output.swing",
+   "statement": "The output is confined to the supply: it swings to within 0.2 V of VS and 10 mV of GND worst case (RL = 10 kohm, -40 to 125 C), so the measurable current is (VS - 0.2 V - VREF) / (G x R) upward and (VREF - 0.01 V) / (G x R) downward.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "output_swing",
+    "full_scale"
+   ],
+   "requirement": {
+    "swing_to_vs_v_max": 0.2,
+    "swing_to_gnd_v_max": 0.01
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§10 p.23",
+     "quote": "the output voltage range of the INA240 series is constrained to the supply voltage"
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§7.5 p.5 (Voltage Output)",
+     "figure": "Electrical Characteristics, VOLTAGE OUTPUT: Swing to VS power-supply rail, RL = 10 kohm to GND, TA = -40 to 125 C: VS - 0.05 typ, VS - 0.2 max V. Swing to GND, RL = 10 kohm to GND, VSENSE = 0 mV, VREF1 = VREF2 = 0 V, TA = -40 to 125 C: VGND + 1 typ, VGND + 10 max mV."
+    }
+   ],
+   "status": "asserted",
+   "note": "On the board: VS 3.3 V, VREF 1.65 V, G x R = 20 x 4 mohm = 80 mV/A. Upward (IN+ above IN-, current from motor to bridge on this board) (3.3 - 0.2 - 1.65) / 0.08 = 18.1 A; downward (1.65 - 0.01) / 0.08 = 20.5 A. The ideal +/-1.65 V gives +/-20.6 A, the figure in the board's README. The swing-to-GND limit is stated with both REF pins at 0 V; applying it at mid-supply is an assumption.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.output.cload",
+   "statement": "The output drives at most 1 nF without sustained oscillation; an output filter changes the low output impedance the following circuit sees.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "capacitive_load",
+    "output_filter"
+   ],
+   "requirement": {
+    "c_load_f_max": 1e-09
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§7.5 p.5",
+     "figure": "Electrical Characteristics, OUTPUT: Maximum capacitive load, No sustained oscillation, 1 nF (typical column)."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§9.1.1 p.18",
+     "quote": "Although placing the filter at the output satisfies the filtering requirements, this location changes the low output impedance measured by any circuitry connected to the output voltage pin."
+    }
+   ],
+   "status": "asserted",
+   "note": "The board has no output filter: A_SENSE runs from U5 pin 5 straight to the RP2350B's GPIO40_ADC0, with nothing else on the net (B_SENSE to ADC1, C_SENSE to ADC2). A board that adds an RC at the ADC keeps the capacitor below 1 nF or puts the resistor before it. The 1 nF is in the typical column only.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.vs.bypass",
+   "statement": "VS is bypassed to GND with 0.1 uF placed as close as possible to the supply and ground pins; more capacitance can be added for a noisy or high-impedance supply.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "CBYPASS"
+   },
+   "attributes": [
+    "decoupling",
+    "placement"
+   ],
+   "requirement": {
+    "capacitance_uf": 0.1
+   },
+   "checks": [
+    {
+     "part": "CBYPASS",
+     "quantity": "capacitance",
+     "min": 1e-07
+    }
+   ],
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "§10.1 p.23",
+    "quote": "Place the power-supply bypass capacitor as close as possible to the supply and ground pins. TI recommends a bypass capacitor value of 0.1 μF."
+   },
+   "status": "asserted",
+   "evidence": {
+    "measured_on": "~/pcb/rp2350-motor-controller/hardware/rev-A/rp2350_driver.kicad_pcb, ccomp measure (decoupling, nets +3V3)",
+    "note": "U5's nearest +3V3 capacitor along the copper is C16 (100 nF 0603, B.Cu with U5): 2.22 mm from VS (pin 6), 3.49 mm from REF1 (pin 7). U9: C29, 4.83 mm and 3.56 mm. U10: C40, 4.23 mm and 4.35 mm. All three are the same 100 nF part."
+   },
+   "note": "The check takes the recommended value as a minimum, since the datasheet allows more.",
+   "enforced_by": [
+    "ccomp check package (value)",
+    "verifier decoupling_path_mm (ccomp measure, decoupling)"
+   ]
+  },
+  {
+   "id": "ina240.layout.kelvin",
+   "statement": "The amplifier's inputs connect to the shunt by a Kelvin (4-wire) connection, so that only the shunt's resistance, and no current-carrying copper, lies between IN+ and IN-.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense"
+   },
+   "attributes": [
+    "kelvin",
+    "sense_routing"
+   ],
+   "requirement": {
+    "kelvin_offset_mm": 0
+   },
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§11.1.1 p.24",
+     "quote": "Use a Kelvin or 4-wire connection to connect to the device input pins. This connection technique ensures that only the current-sensing resistor impedance is detected between the input pins."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§9.3.2, Figure 9-7 p.23",
+     "figure": "Shunt Connections to the INA240, drawn for the TSSOP (inputs on pins 2 and 3): 'DO, Kelvin Connection from Shunt Resistor': each input trace leaves the inner edge of its own shunt pad and runs straight down to its pin. 'DON'T, Non-Kelvin Connection': the traces leave from the current-carrying copper outside the pads and loop round to the pins, crossed out."
+    }
+   ],
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "half_bridge.sense.kelvin_pair"
+    },
+    {
+     "supports": "half_bridge.sense.four_pad_below_1mohm"
+    }
+   ],
+   "evidence": {
+    "measured_on": "boards/rp2350-motor-controller/mined/sense/ (ccomp check sense)",
+    "note": "Phase A: sense loop 2.66 mm²; IN+ lands on R23's pad (Kelvin offset 0), IN- joins the phase pour 0.30 mm before R23's other pad. Phase B 0.24 mm, phase C 0.51 mm. Both inputs tap one shunt of each parallel pair (R23, R40, R56)."
+   },
+   "note": "Measured, not judged: the datasheet gives no tolerance. A fraction of a millimetre of pour in series with an 8 mohm shunt is a small fixed gain error, which a calibration removes. With two shunts in parallel, the amplifier reads the tapped shunt's share of the current, so the split between the pair matters too.",
+   "enforced_by": [
+    "ccomp check sense (Kelvin offset, sense loop area; measured, no limit)"
+   ]
+  },
+  {
+   "id": "ina240.layout.soic",
+   "statement": "TI's SOIC layout puts the shunt across the top of the package with its pads above IN- (pin 1) and IN+ (pin 8), CBYPASS between VS (pin 6) and GND (pin 2) under the body, REF1 joined to VS and REF2 to GND at the pins, GND and NC to ground vias, and OUT leaving pin 5.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense"
+   },
+   "attributes": [
+    "placement",
+    "layout"
+   ],
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Figure 11-2 p.25",
+    "figure": "Recommended SOIC Package Layout: RSHUNT between Load (left) and Power Supply (right), drawn above the package; straight traces from its left pad to pin 1 IN- and from its right pad to pin 8 IN+. Pin 2 GnD and pin 3 REF2 joined and taken to a ground via; pin 4 NC to a ground via; CBYPASS between pins 2 and 6 in the middle of the package; pin 7 REF1 joined to pin 6 Vs and a via to the power supply; pin 5 OUT to the right."
+   },
+   "status": "asserted",
+   "note": "The board follows it on B.Cu: each INA240 sits directly under its shunts (on F.Cu), and C16 is 2.22 mm from VS. The circuit gives CBYPASS `near` U1.6 and RSHUNT2 `near` U1.8 as placement hints.",
+   "enforced_by": [
+    "ccomp floorplan (near hints)"
+   ]
+  },
+  {
+   "id": "ina240.shunt.sizing",
+   "statement": "The shunt is chosen from the full-scale current, the input range of the circuit after the amplifier and the gain; a larger shunt voltage measures more accurately but dissipates more (P = R x I^2), and the heat shifts the shunt by its temperature coefficient.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "RSHUNT1"
+   },
+   "attributes": [
+    "shunt_value",
+    "power_dissipation",
+    "full_scale"
+   ],
+   "citations": [
+    {
+     "source": "ina240_ds",
+     "locator": "§8.3.2 p.11",
+     "quote": "The current-sensing resistor is ideally chosen solely based on the full-scale current to be measured, the full-scale input range of the circuitry following the device, and the device gain selected."
+    },
+    {
+     "source": "ina240_ds",
+     "locator": "§8.3.2 p.11; Table 8-1 p.12",
+     "quote": "Two important factors to consider when finalizing the current-sensing resistor value are: the required current measurement accuracy and the maximum power dissipation across the resistor."
+    }
+   ],
+   "status": "asserted",
+   "note": "The board's two 8 mohm shunts in parallel make 4 mohm: 80 mV/A into the RP2350's 0-3.3 V ADC around 1.65 V, about +/-20 A (ina240.output.swing). At 20 A the pair dissipates 1.6 W, 0.8 W each if they share equally. LCSC lists the part at 3 W, but its datasheet was not read. Table 8-1's worked example (A1, 3 V full scale, 10 A) uses 15 mohm. Paralleling two shunts halves each one's dissipation; the datasheet does not discuss it.",
+   "enforced_by": []
+  },
+  {
+   "id": "ina240.nc.pin4",
+   "statement": "Pin 4 (SOIC) has no internal connection: it may be grounded or left floating.",
+   "scope": {
+    "chip": "INA240",
+    "block": "current_sense",
+    "role": "U1"
+   },
+   "attributes": [
+    "pinout",
+    "unused_pin"
+   ],
+   "citation": {
+    "source": "ina240_ds",
+    "locator": "Table 6-1 p.3",
+    "quote": "Reserved. Connect to ground or leave floating"
+   },
+   "status": "asserted",
+   "note": "KiCad's Amplifier_Current:INA240A1D names pin 4 GND (passive). The board, and this package, tie it to GND, as Figure 11-2 (p.25) does with a ground via.",
+   "enforced_by": [
+    "ccomp check package (wiring)"
+   ]
+  }
+ ]
+}

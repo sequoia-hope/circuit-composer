@@ -1,0 +1,90 @@
+{
+ "note": "The LM74700-Q1 as the RP2350 motor controller rev A uses it (hardware/rev-A, tag rev-A-fab: U29, Q5, C79, C78): an ideal diode from USB-C VBUS (ANODE) to Net-(JP1-A) (CATHODE), which the bridged solder jumper JP1 joins to the motor bus VMOT. This is the datasheet's typical application (Figure 10-1, p.16; values in Figure 10-2, p.18) without its TVS and CIN: EN tied to ANODE for always-on operation (Table 5-1 p.3), the charge-pump capacitor across VCAP and ANODE, and a capacitor on the cathode. Parts by role; `reference_ref` is the board's designator, `note` the datasheet's label. Values and LCSC numbers are the board's. The board's VBUS input capacitors C105/C106 (2 x 4.7 uF 50 V 0805) stay out of this package: they sit beside the USB-C receptacle J3, about 6 mm from it and 20 mm from U29, and serve the whole VBUS node (the PD controller U101, the ESD clamp U11's VBUS pin, this block); the datasheet's 22 nF minimum CIN (lm74700.cin.min) is therefore a requirement on the board's VIN net, as tps22913 treats its CIN. JP1 is the board's too: it is the link from this block's cathode to VMOT, not part of the ideal diode. Internal nets: GATE (U1.5, Q1.1; board Net-(Q5-G)), kept short and not too thin (lm74700.layout.gate_short; 12.4 mm on the board), and VCAP (U1.1, CVCAP.1; board Net-(U29-VCAP)), the charge-pump capacitor's top plate, whose other plate is on VIN.",
+ "variant": "LM74700QDBVRQ1",
+ "board": "rp2350-motor-controller",
+ "source": "lm74700_ds",
+ "parts": {
+  "U1": {
+   "block": "ideal_diode",
+   "symbol": "Power_Management:LM74700",
+   "value": "LM74700",
+   "footprint": "Package_TO_SOT_SMD:SOT-23-6",
+   "reference_ref": "U29",
+   "lcsc": "C2941042",
+   "mpn": "LM74700QDBVRQ1",
+   "note": "LM74700-Q1 in the 6-pin SOT-23 (DBV), marking M747; LCSC C2941042 is LM74700QDBVRQ1, the 3000-reel orderable (package option addendum, PDF p.26). KiCad's Power_Management:LM74700 has pins 1 VCAP, 2 GND, 3 EN, 4 CATHODE, 5 GATE, 6 ANODE, the same as Figure 5-1 and Table 5-1 (p.3), checked pin by pin; the board's netlist agrees (1 Net-(U29-VCAP), 2 GND, 3 VBUS, 4 Net-(JP1-A), 5 Net-(Q5-G), 6 VBUS). The 8-pin DDF package numbers its pins differently (Figure 5-2 p.4) and is not this variant. Footprint: KiCad's SOT-23-6 has 1.325 x 0.6 mm pads at +/-1.1375 mm, 0.95 mm pitch; TI's land pattern (DBV0006A example board layout, PDF p.34) has 1.1 x 0.6 mm pads on a 2.6 mm span (+/-1.3 mm), 0.95 mm pitch: same pitch, pad width and outer edge to within 0.05 mm, KiCad's pads reach 0.27 mm further in."
+  },
+  "Q1": {
+   "block": "ideal_diode",
+   "symbol": "Transistor_FET:Q_NMOS_GDS",
+   "value": "TMG08N10SI",
+   "footprint": "Package_TO_SOT_SMD:SOT-89-3",
+   "reference_ref": "Q5",
+   "lcsc": "C7422896",
+   "mpn": "TMG08N10SI",
+   "note": "Figure 10-1 'Q1', the external N-channel MOSFET: source to ANODE, gate to GATE, drain to CATHODE (Table 5-1 p.3). LCSC C7422896 is Tritech-MOS TMG08N10SI (the board's schematic names only the LCSC number; its rev B review names the part): 100 V, +/-20 V VGS, 8 A, RDS(on) 100 mohm typ / 130 mohm max at VGS 10 V, VGS(th) 1.0-3.0 V, Ciss 206 pF (tmg08n10si_ds pp.1-2). SOT-89-3L pinout G, D, S with the tab on D (p.1 drawing); KiCad's Q_NMOS_GDS (1 G, 2 D, 3 S) on SOT-89-3 (pad 2 is the middle lead and the tab) matches it pin by pin, and so does the board's netlist (1 Net-(Q5-G), 2 Net-(JP1-A), 3 VBUS). Against the datasheet's MOSFET guidance it meets VGS (lm74700.mosfet.vgs) and VDS (lm74700.mosfet.vds) and departs on Vth (lm74700.mosfet.vth, contested); its RDS(on) sets the load range over which the 20 mV regulation holds (lm74700.mosfet.rdson)."
+  },
+  "CVCAP": {
+   "block": "ideal_diode",
+   "symbol": "Device:C",
+   "value": "100n",
+   "footprint": "Capacitor_SMD:C_0402_1005Metric",
+   "reference_ref": "C79",
+   "lcsc": "C131394",
+   "mpn": "CC0402KRX7R9BB104",
+   "near": "U1.1",
+   "note": "Figure 10-2 'VCAP 0.1 uF' (p.18): the charge-pump capacitor, across VCAP and ANODE (not to GND; §9.3.2 p.13). YAGEO 100 nF 50 V X7R 0402. 0.1 uF is the minimum, and the recommendation is at least 10 x Ciss of the MOSFET (§10.1.1.2.3 p.17): 10 x 206 pF = 2.1 nF for the TMG08N10SI, so 100 nF meets both (lm74700.vcap.value). VCAP runs 12.1-13 V above ANODE (p.13), 13.9 V max (p.7), well inside 50 V. Keep it away from the MOSFET (lm74700.layout.vcap_away)."
+  },
+  "COUT": {
+   "block": "ideal_diode",
+   "symbol": "Device:C",
+   "value": "1u",
+   "footprint": "Capacitor_SMD:C_0603_1608Metric",
+   "reference_ref": "C78",
+   "lcsc": "C23829972",
+   "mpn": "GRM188D72A105KE01D",
+   "near": "U1.4",
+   "note": "Figure 10-1 'COUT' (p.16). Murata 1 uF 100 V X7T 0603; the board's value field reads '1u 100v'. The datasheet asks a minimum of 100 nF on the output (§10.1.1.2.3 p.17; 0.1 uF minimum CATHODE capacitance, p.5), and its 12 V example uses 47 uF of hold-up (Figure 10-2 p.18). On the board the cathode is joined through JP1 to VMOT, whose bulk and ceramic capacitors are far larger; C78 is the one capacitor at the cathode while JP1 is open (lm74700.cout.min). 100 V rated because the cathode sits on the motor bus."
+  }
+ },
+ "nets": {
+  "GATE": [
+   "U1.5",
+   "Q1.1"
+  ],
+  "VCAP": [
+   "U1.1",
+   "CVCAP.1"
+  ]
+ },
+ "ports": {
+  "VIN": {
+   "kind": "supply",
+   "pins": [
+    "U1.6",
+    "U1.3",
+    "Q1.3",
+    "CVCAP.2"
+   ],
+   "note": "The diode's anode: ANODE (pin 6, the controller's supply), EN (pin 3, tied here for always-on operation, Table 5-1 p.3 and §9.3.4 p.15), the MOSFET's source and the VCAP capacitor's lower plate. On the board this is VBUS from USB-C J3: 5 V, or up to 20 V under a USB PD contract. Operating range 4-60 V (V(ANODE), p.6), start-up above the 3.9 V POR rising threshold (max), absolute maximum -65 to 65 V (p.5). The board must put at least 22 nF of input capacitance on this net (lm74700.cin.min); on the board that is C105/C106, 2 x 4.7 uF beside J3, which belong to the connector side, not this package. A board that wants a switched enable rather than always-on can only do so by changing the package (EN is not brought out)."
+  },
+  "VOUT": {
+   "kind": "supply",
+   "pins": [
+    "U1.4",
+    "Q1.2",
+    "COUT.1"
+   ],
+   "note": "The diode's cathode: CATHODE (pin 4), the MOSFET's drain and COUT. On the board this is Net-(JP1-A), joined to the motor bus VMOT by the bridged solder jumper JP1, so VOUT sits at the bus voltage (60 V maximum continuous by the board's README, about 48 V on rev A) whenever the bus is powered. Forward, VOUT follows VIN less 20 mV (regulated, 13-29 mV) or less I x RDS(on) above about 50 mV (p.6, p.15); reverse, the MOSFET is off within 0.75 us once VIN - VOUT falls below -11 mV (-17 to -2 mV) and the body diode blocks (p.6-7, p.15). CATHODE recommended maximum 60 V to GND, absolute maximum 75 V above ANODE (p.5; lm74700.cathode.range)."
+  },
+  "GND": {
+   "kind": "ground",
+   "pins": [
+    "U1.2",
+    "COUT.2"
+   ],
+   "note": "The controller's ground (pin 2) and COUT's return. The controller draws 80 uA typical (130 uA max) through it when enabled (p.6). The power path itself has no ground connection: load current flows VIN -> Q1 -> VOUT."
+  }
+ },
+ "chip_pins_unconnected": []
+}

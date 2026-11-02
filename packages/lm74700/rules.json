@@ -1,0 +1,675 @@
+{
+ "package": "lm74700",
+ "version": "0.1.0",
+ "note": "Claims scoped to the LM74700-Q1 (variant LM74700QDBVRQ1, 6-pin SOT-23 DBV) with its external N-MOSFET, as the RP2350 motor controller rev A uses it: USB-C VBUS to the motor bus through U29 and Q5, EN tied to ANODE. Page numbers are SNOSD17G's printed pages (Revised December 2020, sha256 e16b3a8c…), equal to the PDF pages 1-25; the package option addendum and drawings follow on PDF pp.26-35. MOSFET facts cite the TMG08N10SI datasheet (tmg08n10si_ds, 5 pages). `requirement` gives values a tool can check, and `checks` the part of them a board's part values can show (SI units, package role names). Where the board departs from the datasheet the claim is `contested` and its note says how; the board's values are kept.",
+ "claims": [
+  {
+   "id": "lm74700.vcap.value",
+   "statement": "The charge-pump capacitor from VCAP to ANODE is at least 0.1 uF, and at least ten times the external MOSFET's input capacitance Ciss.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "CVCAP"
+   },
+   "attributes": [
+    "capacitance"
+   ],
+   "requirement": {
+    "capacitance_uf_min": 0.1,
+    "ratio_to_mosfet_ciss_min": 10
+   },
+   "checks": [
+    {
+     "part": "CVCAP",
+     "quantity": "capacitance",
+     "min": 1e-07
+    }
+   ],
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.3 p.17; §6.3 p.5",
+    "quote": "VCAP: Minimum 0.1 µF is required; recommended value of VCAP (µF) ≥ 10 x CISS(MOSFET)(µF)"
+   },
+   "status": "asserted",
+   "note": "The board's C79 is 100 nF (YAGEO CC0402KRX7R9BB104, 50 V X7R 0402): the minimum exactly, and 48 times the TMG08N10SI's 206 pF typical Ciss (tmg08n10si_ds p.2), so both conditions hold. The recommended operating conditions give the same 0.1 uF minimum for 'CATHODE, VCAP to ANODE' (p.5). VCAP sits 12.1-13 V (13.9 V max) above ANODE, so 50 V leaves a wide DC-bias margin. A larger MOSFET (rev B's 4 mOhm part, or any Ciss above 10 nF) needs more than 100 nF; `checks` holds only the fixed minimum.",
+   "enforced_by": [
+    "ccomp check package (the 0.1 uF minimum; the Ciss ratio needs the MOSFET's datasheet)"
+   ]
+  },
+  {
+   "id": "lm74700.vcap.to_anode",
+   "statement": "The charge-pump capacitor connects between VCAP and ANODE, not to GND; the charge pump only runs while EN is above its high threshold, and the gate driver waits until VCAP is about 6.6 V above ANODE.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "CVCAP"
+   },
+   "attributes": [
+    "topology",
+    "startup"
+   ],
+   "requirement": {
+    "cvcap_between": [
+     "VCAP",
+     "ANODE"
+    ],
+    "vcap_uv_release_v": [
+     5.8,
+     6.6,
+     7.7
+    ]
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§9.3.2 p.13",
+    "quote": "An external charge pump capacitor is placed between VCAP and ANODE pins to provide energy to turn on the external MOSFET."
+   },
+   "status": "asserted",
+   "note": "The package's CVCAP runs from VCAP (net VCAP) to the VIN port, which carries ANODE, as the board's C79 does (Net-(U29-VCAP) to VBUS). Start-up delay from Equation 1 (p.13): 75 us + 100 nF x 6.6 V / 300 uA = about 2.3 ms typical; with the 162 uA minimum charge current and the 7.7 V maximum release (p.7) about 4.8 ms. Until then forward current flows through the MOSFET's body diode.",
+   "enforced_by": [
+    "circuit (CVCAP.2 is on the VIN port)"
+   ]
+  },
+  {
+   "id": "lm74700.cin.min",
+   "statement": "ANODE has at least 22 nF of input capacitance; a ceramic bypass above 22 nF is recommended when the input supply is more than a few inches from the device.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "CIN"
+   },
+   "attributes": [
+    "capacitance",
+    "placement"
+   ],
+   "requirement": {
+    "capacitance_nf_min": 22
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.3 p.17; §6.3 p.5; §11 p.22",
+    "quote": "CIN: minimum 22 nF of input capacitance"
+   },
+   "status": "asserted",
+   "note": "The package has no CIN role: on the board the VBUS node's capacitors are C105 and C106 (2 x 4.7 uF 50 V X5R 0805, Samsung CL21A475KBQNNNE), which sit beside the USB-C receptacle J3 (about 6 mm from it, 20 mm from U29) and serve the whole VBUS node, so they belong to the connector side. They meet the 22 nF minimum by a wide margin. A board composing this package must put at least 22 nF on the VIN net; the datasheet's layout example places CIN between the input TVS and the ANODE pin (Figure 12-1 p.24). §11 (p.22): 'If the input supply is located more than a few inches from the device, an input ceramic bypass capacitor higher than 22 nF is recommended.'",
+   "enforced_by": [
+    "not checked: the role is the board's"
+   ]
+  },
+  {
+   "id": "lm74700.cout.min",
+   "statement": "CATHODE has at least 100 nF of output capacitance; the datasheet's 12 V design uses 47 uF of hold-up.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "COUT"
+   },
+   "attributes": [
+    "capacitance"
+   ],
+   "requirement": {
+    "capacitance_nf_min": 100
+   },
+   "checks": [
+    {
+     "part": "COUT",
+     "quantity": "capacitance",
+     "min": 1e-07
+    }
+   ],
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.3 p.17; §6.3 p.5",
+    "quote": "COUT: minimum 100 nF of output capacitance"
+   },
+   "status": "asserted",
+   "note": "The board's C78 is 1 uF 100 V X7T 0603 (Murata GRM188D72A105KE01D). At the bus voltage an X7T 0603 keeps well over 100 nF. With JP1 bridged the cathode is also the motor bus VMOT, whose bulk capacitors are hundreds of uF; those are the bus's, not this package's.",
+   "enforced_by": [
+    "ccomp check package (nominal value)"
+   ]
+  },
+  {
+   "id": "lm74700.en.always_on",
+   "statement": "EN may be tied to ANODE for always-on operation: it withstands -65 V to 65 V. With EN tied, the device runs whenever ANODE is above its POR threshold and VCAP has charged.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "enable",
+    "topology"
+   ],
+   "requirement": {
+    "en": "tied to ANODE"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "Table 5-1 p.3; §9.3.4 p.15",
+    "quote": "Enable pin. Can be connected to ANODE for always ON operation"
+   },
+   "status": "asserted",
+   "note": "As on the board (U29 pin 3 on VBUS). The package ties EN inside the VIN port and does not bring it out. §9.3.4 (p.15): 'The EN pin can withstand a voltage as large as 65 V and as low as –65 V.' EN's own absolute maximum is -0.3 to 65 V while ANODE is above 0 V (p.5).",
+   "enforced_by": [
+    "circuit (U1.3 is on the VIN port)"
+   ]
+  },
+  {
+   "id": "lm74700.en.floating_off",
+   "statement": "A floating EN is pulled low by an internal 3 uA sink and disables the device; in shutdown the MOSFET stays off and forward current flows through its body diode.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "enable",
+    "default_state"
+   ],
+   "requirement": {
+    "en_sink_ua_typ": 3,
+    "en_sink_ua_max_12v": 5
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§9.3.4 p.15",
+    "quote": "In conditions where EN is left floating, the internal sink current of 3 uA pulls EN pin low and disables the device."
+   },
+   "status": "asserted",
+   "note": "Matters only to a variant that brings EN out: a board must then drive it, never leave it open. §9.4.1 (p.15): in shutdown 'forward current flow through the external MOSFET is not interrupted but is conducted through the MOSFET's body diode', so disabling the controller does not disconnect the load; it costs the body diode's drop (VSD 1.3 V max at 3 A for the TMG08N10SI, tmg08n10si_ds p.2).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.en.levels",
+   "statement": "EN turns the device on above its high threshold (1.06-2.6 V, 2 V typ) and off below its low threshold (0.5-1.22 V, 0.9 V typ), with 0.52-1.35 V of hysteresis.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "enable",
+    "logic_levels"
+   ],
+   "requirement": {
+    "vih_v_max": 2.6,
+    "vil_v_min": 0.5,
+    "hysteresis_v": [
+     0.52,
+     1.35
+    ]
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§6.5 Electrical Characteristics p.6",
+    "figure": "ENABLE INPUT: V(EN_IL) Enable input low threshold 0.5 min, 0.9 typ, 1.22 max V; V(EN_IH) Enable input high threshold 1.06 min, 2 typ, 2.6 max V; V(EN_Hys) 0.52 min, 1.35 max V; I(EN) Enable sink current at V(EN) = 12 V 3 typ, 5 max uA. TJ -40 to 125 C."
+   },
+   "status": "asserted",
+   "note": "Recorded in ports.json under EN's levels (vih 2.6, vil 0.5). In this package EN is tied to ANODE, which is at least 3.2 V whenever the controller is powered, so the levels are not exercised.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.anode.abs_max",
+   "statement": "ANODE withstands -65 V to 65 V to GND (recommended -60 V to 60 V); the controller operates from 4 V to 60 V on ANODE and starts once ANODE passes the POR rising threshold, 3.9 V at most.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "voltage_rating",
+    "input_range"
+   ],
+   "requirement": {
+    "anode_abs_v": [
+     -65,
+     65
+    ],
+    "anode_recommended_v": [
+     -60,
+     60
+    ],
+    "anode_operating_v": [
+     4,
+     60
+    ],
+    "por_rising_v_max": 3.9,
+    "por_falling_v": [
+     2.2,
+     3.1
+    ]
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§9.3.1 p.13; §6.1, §6.3 p.5; §6.5 p.6",
+    "quote": "The voltage from ANODE to GND is designed to vary from 65 V to –65 V, allowing the LM74700-Q1 to withstand negative voltage transients."
+   },
+   "status": "asserted",
+   "note": "On the board ANODE is USB VBUS: 5 V, or up to 20 V under a USB PD contract (the board's firmware asks for up to 20 V). Both are inside 4-60 V. At 5 V the charge pump still reaches its UV release: at V(ANODE) = 3.2 V it gives at least 8 V above ANODE at 30 uA (p.7). VBUS has no TVS on rev A (lm74700.tvs.selection).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.cathode.range",
+   "statement": "CATHODE is recommended up to 60 V to GND, and ANODE to CATHODE down to -70 V; the absolute maximum of CATHODE above ANODE is 75 V (and -5 V below it).",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "voltage_rating"
+   ],
+   "requirement": {
+    "cathode_recommended_v_max": 60,
+    "cathode_to_anode_abs_v": [
+     -5,
+     75
+    ],
+    "anode_to_cathode_recommended_v_min": -70
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§6.1 Absolute Maximum Ratings, §6.3 Recommended Operating Conditions p.5",
+    "figure": "Absolute maximum: CATHODE to ANODE -5 min, 75 max V. Recommended operating: CATHODE to GND 60 V max; ANODE to CATHODE -70 V min. No CATHODE-to-GND absolute maximum is listed."
+   },
+   "status": "contested",
+   "note": "Contested for the board's use, which the package keeps. Through the bridged JP1 the cathode is the motor bus VMOT, which the board's README allows up to 60 V continuous (about 48 V on rev A, whose phase TVS stand off at 51 V) and whose bus TVS on rev A (D5, SMDJ85A) breaks down above 85 V; so the cathode runs at the top of its recommended range at a 60 V bus, and bus surges or regeneration above 60 V leave it, with USB absent (ANODE at 0 V) closest to the 75 V CATHODE-to-ANODE maximum. The board's own review records this as F-27 and replaces U29 and Q5 in rev B with an LTC4359 (100 V) and a 4 mOhm 100 V MOSFET. A board composing this package should keep VOUT within 60 V including surges.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.vak.regulation",
+   "statement": "In forward conduction the controller regulates the ANODE-to-CATHODE drop to 20 mV (13-29 mV) by adjusting the gate; above 50 mV (34-57 mV) it ties GATE to VCAP for full enhancement.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "forward_voltage",
+    "regulation"
+   ],
+   "requirement": {
+    "vak_reg_mv": [
+     13,
+     20,
+     29
+    ],
+    "vak_full_conduction_mv": [
+     34,
+     50,
+     57
+    ]
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§9.1 p.12; §6.5 p.6; §9.4.2 p.15",
+    "quote": "the GATE to ANODE voltage is adjusted as needed to regulate the forward voltage drop at 20 mV"
+   },
+   "status": "asserted",
+   "note": "With the TMG08N10SI (100 mOhm typ at VGS 10 V) the drop stays regulated up to about 0.2 A and is I x RDS(on) above about 0.5 A (lm74700.mosfet.rdson).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.reverse.blocking",
+   "statement": "When ANODE falls below CATHODE by 11 mV (-17 to -2 mV) the controller ties GATE to ANODE within 0.75 us, turning the MOSFET off so its body diode blocks the reverse current.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "reverse_current",
+    "timing"
+   ],
+   "requirement": {
+    "vak_rev_mv": [
+     -17,
+     -11,
+     -2
+    ],
+    "t_reverse_delay_us_max": 0.75,
+    "gate_sink_peak_ma_typ": 2370
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§9.1 p.12; §6.5 p.6; §6.6 p.7; §9.4.2.3 p.15",
+    "quote": "A fast reverse current condition is detected when the voltage across ANODE and CATHODE pins reduces below –11 mV"
+   },
+   "status": "asserted",
+   "note": "On the board this is what keeps the motor bus (through JP1) from back-feeding the USB host when VMOT is above VBUS. A blocked reverse condition leaves the MOSFET's drain-source at the full VOUT - VIN difference (lm74700.mosfet.vds, lm74700.cathode.range).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.mosfet.vds",
+   "statement": "The MOSFET's maximum drain-to-source voltage withstands the largest differential voltage in the application, faults included.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "voltage_rating",
+    "part_selection"
+   ],
+   "requirement": {
+    "vds_v_min": "max(VOUT - VIN) including faults"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.2 p.17",
+    "quote": "The maximum drain-to-source voltage, VDS(MAX), must be high enough to withstand the highest differential voltage seen in the application."
+   },
+   "status": "asserted",
+   "note": "The board's Q5 (TMG08N10SI) is rated 100 V (tmg08n10si_ds p.1). Its largest differential is the motor bus with USB absent: up to 60 V continuous by the board's README, more during surges, so 100 V covers it. The same paragraph also says 'It is recommended to use MOSFETs with voltage rating up to 60-V maximum with the LM74700-Q1 because anode-cathode maximum voltage is 65 V': the 100 V part is above that recommendation, which follows from the controller's own rating rather than a limit on the MOSFET, and the package keeps it (the controller, not the MOSFET, limits this block; lm74700.cathode.range).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.mosfet.vgs",
+   "statement": "The controller drives up to 13 V of VGS, so the MOSFET's VGS rating is at least 15 V; a lower-rated MOSFET needs a zener clamp on VGS.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "voltage_rating",
+    "part_selection"
+   ],
+   "requirement": {
+    "vgs_rating_v_min": 15
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.2 p.17; §6.3 p.5",
+    "quote": "The maximum VGS LM74700-Q1 can drive is 13 V, so a MOSFET with 15-V minimum VGS should be selected."
+   },
+   "status": "asserted",
+   "note": "TMG08N10SI: VGS +/-20 V (tmg08n10si_ds p.1). Meets it. The recommended operating conditions list 'External MOSFET max VGS rating, GATE to ANODE' 15 V min (p.5).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.mosfet.vth",
+   "statement": "The MOSFET's gate threshold is 2-2.5 V maximum, so it is well enhanced near 4.5 V VGS for stable regulation at light load; a lower Vth also shortens turn-on.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "gate_threshold",
+    "part_selection"
+   ],
+   "requirement": {
+    "vth_v_max": 2.5
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.2 p.17",
+    "quote": "It is recommended to choose MOSFET gate threshold voltage Vth of 2-V to 2.5-V maximum."
+   },
+   "status": "contested",
+   "note": "Contested for the board's part, which the package keeps: the TMG08N10SI's VGS(th) is 1.0 V min, 2.0 V typ, 3.0 V max at 250 uA (tmg08n10si_ds p.2), above the recommended 2-2.5 V maximum. A part at the top of its range sits closer to its threshold at the ~4.5 V VGS the datasheet recommends for light-load regulation, where RDS(on) 'increases drastically' (p.17). The datasheet gives no hard limit, and the board was not seen to misbehave; the measured rev A layout is in boards/rp2350-motor-controller/mined/ideal_diode/.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.mosfet.rdson",
+   "statement": "Choose RDS(on) so that at the nominal load current the forward drop is near the 20 mV regulation point and no more than 50 mV: 20 mV / ILoad(nominal) <= RDS(on) <= 50 mV / ILoad(nominal).",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "rdson",
+    "part_selection"
+   ],
+   "requirement": {
+    "rdson_ohm": "[0.020 / I_nominal, 0.050 / I_nominal]"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.2 p.17",
+    "quote": "As a guideline, it is suggested to choose (20 mV / ILoad(Nominal)) ≤ RDS(ON) ≤ ( 50 mV / ILoad(Nominal))."
+   },
+   "status": "asserted",
+   "note": "Inverted for the board's part: the TMG08N10SI (RDS(on) 100 mOhm typ, 130 mOhm max at VGS 10 V, 3 A, 25 C; tmg08n10si_ds p.2) fits a nominal load of about 0.2-0.5 A (typ) or 0.15-0.38 A (max). The package does not know the board's USB load, so the claim is not judged here. Above that range the MOSFET is fully enhanced and drops I x RDS(on): 0.1 V and 0.1 W at 1 A typical. The datasheet also notes that a higher RDS(on) improves reverse-current detection (p.17).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.mosfet.body_diode",
+   "statement": "The MOSFET's body diode carries the start-up inrush into the output capacitance, so its maximum source current exceeds that inrush.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "current_rating",
+    "inrush",
+    "part_selection"
+   ],
+   "requirement": {
+    "body_diode_current_a_min": "peak inrush"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.2.2 p.17",
+    "quote": "The maximum source current through the body diode must be higher than the inrush current that can be seen in the application."
+   },
+   "status": "asserted",
+   "note": "TMG08N10SI: IS 8.0 A continuous, ISM 12 A pulsed (tmg08n10si_ds p.2). On the board the output is the motor bus, so the body diode would only charge it from USB with no bus supply present; that inrush is set by the USB source's current limit and was not quantified here.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.layout.sense_at_mosfet",
+   "statement": "ANODE, GATE and CATHODE connect close to the MOSFET's source, gate and drain.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement",
+    "kelvin"
+   ],
+   "requirement": {
+    "anode_to": "Q1 source",
+    "gate_to": "Q1 gate",
+    "cathode_to": "Q1 drain"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§12.1 p.23",
+    "quote": "Connect ANODE, GATE and CATHODE pins of LM74700-Q1 close to the MOSFET's SOURCE, GATE and DRAIN pins."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "half_bridge.sense.vdrain_kelvin"
+    }
+   ],
+   "note": "The datasheet gives no distance. Measured on the board with `ccomp check ideal-diode` (boards/rp2350-motor-controller/README.md, 'Bus protection and the LM74700'; mined/ideal_diode/): ANODE reaches Q5's source over 18.6 mm and CATHODE its drain over 11.6 mm, both landing on Q5's own pads (Kelvin offset 0); GATE 12.4 mm.",
+   "enforced_by": [
+    "ccomp check ideal-diode (measures; no limit)"
+   ]
+  },
+  {
+   "id": "lm74700.layout.gate_short",
+   "statement": "GATE connects to the MOSFET gate with a short trace, not excessively thin or long, because trace resistance adds to the MOSFET's turn-off delay.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "placement",
+    "trace_length",
+    "trace_width"
+   ],
+   "requirement": {
+    "gate_trace": "short, not thin"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§12.1 p.23",
+    "quote": "The Gate pin of the LM74700-Q1 must be connected to the MOSFET gate with short trace. Avoid excessively thin and long trace to the Gate Drive."
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "supports": "half_bridge.gate.driver_near_fets"
+    }
+   ],
+   "note": "§12.1 also: 'Keep the GATE pin close to the MOSFET to avoid increase in MOSFET turn-off delay due to trace resistance.' The board's GATE trace is 12.4 mm (mined/ideal_diode/lm74700_vbus.check.json).",
+   "enforced_by": [
+    "ccomp check ideal-diode (measures; no limit)"
+   ]
+  },
+  {
+   "id": "lm74700.layout.thick_traces",
+   "statement": "The load current flows through the MOSFET, so its source and drain traces are thick to keep resistive losses low.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "trace_width"
+   ],
+   "requirement": {
+    "source_drain_traces": "thick"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§12.1 p.23",
+    "quote": "it is important to use thick traces for source and drain of the MOSFET to minimize resistive losses."
+   },
+   "status": "asserted",
+   "note": "The datasheet's example layout (Figure 12-1 p.24) puts the MOSFET source on a VIN plane and its drain on a VOUT plane.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.layout.vcap_away",
+   "statement": "The charge-pump capacitor across VCAP and ANODE is kept away from the MOSFET, so the MOSFET's heat does not change its capacitance.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "CVCAP"
+   },
+   "attributes": [
+    "placement",
+    "thermal"
+   ],
+   "requirement": {
+    "cvcap": "away from Q1"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§12.1 p.23",
+    "quote": "The charge pump capacitor across VCAP and ANODE pins must be kept away from the MOSFET to lower the thermal effects on the capacitance value."
+   },
+   "status": "asserted",
+   "note": "On the board C79 is about 2.3 mm from U29 and about 9.6 mm from Q5 (footprint centres); its VCAP-to-ANODE loop is 3.2 mm (mined/ideal_diode/).",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.tvs.selection",
+   "statement": "The input TVS is optional for the controller; when fitted its breakdown voltage is above the worst-case steady-state input and below the controller's 65 V maximum, and its clamp keeps the MOSFET's VDS and the 75 V CATHODE-to-ANODE rating.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "TVS"
+   },
+   "attributes": [
+    "protection",
+    "part_selection"
+   ],
+   "requirement": {
+    "tvs_breakdown_v": "above steady-state input, below 65 V"
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§10.1.1.3 p.18",
+    "quote": "the breakdown voltage should be higher than worst case steady state voltages seen in the system"
+   },
+   "status": "asserted",
+   "links": [
+    {
+     "refines": "interface.supply.tvs_selection"
+    }
+   ],
+   "note": "§10.1 (p.16): 'The TVS is not required for the LM74700-Q1 to operate, but they are used to clamp the positive and negative voltage surges.' The package has no TVS role; the datasheet's layout example puts the input TVS ahead of CIN at the ANODE side (Figure 12-1 p.24). Rev A has no TVS on VBUS; the board's rev B adds an SMF24A at J3, which is the connector's, not this block's.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.iq",
+   "statement": "Enabled, the controller draws 80 uA typical and 130 uA maximum from ANODE; in shutdown (EN low) 0.9 uA typical and 1.5 uA maximum.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "U1"
+   },
+   "attributes": [
+    "quiescent_current"
+   ],
+   "requirement": {
+    "iq_ua": [
+     80,
+     130
+    ],
+    "ishdn_ua": [
+     0.9,
+     1.5
+    ]
+   },
+   "citation": {
+    "source": "lm74700_ds",
+    "locator": "§6.5 Electrical Characteristics p.6",
+    "figure": "VANODE SUPPLY VOLTAGE: I(SHDN) Shutdown Supply Current at V(EN) = 0 V 0.9 typ, 1.5 max uA; I(Q) Operating Quiescent Current 80 typ, 130 max uA. TJ -40 to 125 C, typical at 25 C, V(ANODE) 12 V."
+   },
+   "status": "asserted",
+   "note": "With EN tied to ANODE the board draws the operating current from USB VBUS whenever it is connected.",
+   "enforced_by": []
+  },
+  {
+   "id": "lm74700.q1.ratings",
+   "statement": "The board's MOSFET, Tritech-MOS TMG08N10SI in SOT-89-3L, is a 100 V, +/-20 V VGS, 8 A N-channel part with RDS(on) 100 mOhm typical, 130 mOhm maximum at VGS 10 V, VGS(th) 1.0-3.0 V and Ciss 206 pF; pins G, D, S with the tab on D.",
+   "scope": {
+    "chip": "LM74700-Q1",
+    "block": "ideal_diode",
+    "role": "Q1"
+   },
+   "attributes": [
+    "part_selection",
+    "pinout"
+   ],
+   "requirement": {
+    "vds_v": 100,
+    "vgs_v": 20,
+    "rdson_mohm_max_10v": 130,
+    "vth_v": [
+     1.0,
+     3.0
+    ],
+    "ciss_pf_typ": 206
+   },
+   "checks": [
+    {
+     "part": "Q1",
+     "quantity": "part_number",
+     "any_of": [
+      "TMG08N10SI"
+     ]
+    }
+   ],
+   "citation": {
+    "source": "tmg08n10si_ds",
+    "locator": "pp.1-2 (Absolute Maximum Ratings; Electrical Characteristics; SOT-89-3L pin drawing)",
+    "figure": "Absolute Maximum Ratings: VDS 100 V, VGS +/-20 V, ID 8 A at TA 25 C (3.2 A at 70 C), IDM 12 A, PD 2 W, RthJA 125 C/W max. Electrical Characteristics: V(BR)DSS 100 V min; VGS(th) 1.0/2.0/3.0 V at VDS = VGS, 250 uA; RDS(on) 100 typ, 130 max mOhm at VGS 10 V, 3 A; Ciss 206 pF, Qg 4.3 nC typ; IS 8.0 A, ISM 12 A, VSD 1.3 V max at 3 A. Pin drawing: G, D, S along the leads, tab D."
+   },
+   "status": "asserted",
+   "note": "LCSC C7422896 is TMG08N10SI (jlc_parts.py show, 2026-11-02); the board's schematic carries only the LCSC number on a generic Q_NMOS_GDS symbol. The datasheet has no RDS(on) at 4.5 V VGS in its table, only a typical curve (Figure 5, p.3). KiCad's Q_NMOS_GDS (1 G, 2 D, 3 S) on SOT-89-3 matches the pin drawing.",
+   "enforced_by": []
+  }
+ ]
+}
