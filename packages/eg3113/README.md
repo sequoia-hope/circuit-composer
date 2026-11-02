@@ -138,18 +138,18 @@ Ports:
 
 - **`hin`** and **`lin`** are logic inputs. `ports.json` gives each the levels below, with
   `supply` = VCC:
-  - `vih` = 3.0 V and `vil` = 1.0 V (Table 7.2, p.8, at VCC 12 V and 25 °C);
+  - `vih` = 2.5 V and `vil` = 1.0 V (§8.2, p.10);
   - `vin_max` = `supply + 0.3` for HIN, but a fixed **6 V** for LIN (Table 7.1, p.7).
 
-  The datasheet contradicts itself on the high threshold. §8.2 (p.10) says "2.5V 以上" (above
-  2.5 V), and LCSC's older build of the same V1.2 has 2.5 V in the table too. The package follows
-  the newer table's 3.0 V (`eg3113.input.levels`); the other claim is `eg3113.input.levels_text`,
+  The datasheet contradicts itself on the high threshold. Table 7.2 (p.8, at VCC 12 V and 25 °C)
+  says 3 V minimum; §8.2 (p.10) says "2.5V 以上" (above 2.5 V) and that MCU outputs can drive the
+  inputs directly, and LCSC's older build of the same V1.2 has 2.5 V in the table too. The
+  package follows 2.5 V (`eg3113.input.levels_text`); the table's 3 V is `eg3113.input.levels`,
   contested.
 
-  **Consequence:** `ccomp pins` refuses an RP2350 GPIO on `hin` or `lin`, because the RP2350
-  package's VOH is 2.62 V. It was tried, and both connections were refused with that reason.
-  The reference board drives both inputs straight from GPIOs at 3.3 V, which is 0.3 V above the
-  table's minimum with only tens of µA of load.
+  **Consequence:** `ccomp pins` accepts an RP2350 GPIO on `hin` and `lin` (the RP2350 package's
+  VOH is 2.62 V, 0.12 V above 2.5 V), as the reference board wires them. On the table's 3 V it
+  would refuse them.
 - **Floating inputs are off.** HIN has a 200 kΩ pull-down, and LIN a 200 kΩ pull-up to an
   internal 5 V (§2, p.4; Figure 5-1, p.6).
 - **One signal on both inputs makes a complementary pair**, with the internal dead time of

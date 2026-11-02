@@ -170,16 +170,14 @@
      "quote": "Vin(L) 所有输入控制信号 -0.3 0 1.0 V"
     }
    ],
-   "status": "asserted",
+   "status": "contested",
    "links": [
     {
      "contradicts": "eg3113.input.levels_text"
     }
    ],
-   "note": "ports.json gives HIN and LIN these levels (vih 3.0, vil 1.0). The reference board drives HIN and LIN straight from RP2350 GPIOs at 3.3 V: 0.3 V above the table's minimum with the inputs' tens of uA as the only load. The RP2350 package's own VOH (2.62 V at its weakest drive setting's rated current) is below 3.0 V, so the pin solver will refuse that connection on these figures although the board works with it; see eg3113.input.levels_text for the datasheet's other figure.",
-   "enforced_by": [
-    "ccomp pins (HIN/LIN levels in ports.json)"
-   ]
+   "note": "Contested by the same datasheet's §8.2 (above 2.5 V, eg3113.input.levels_text), which the package follows: ports.json gives HIN and LIN vih 2.5. The reference board drives HIN and LIN straight from RP2350 GPIOs at 3.3 V, and the RP2350 package's own VOH (2.62 V at its weakest drive setting's rated current) is below this 3 V, so on this figure the pin solver would refuse a connection the board makes and works with. A board that wants the table's margin should drive the inputs from 5 V logic or use a stronger GPIO drive setting.",
+   "enforced_by": []
   },
   {
    "id": "eg3113.input.levels_text",
@@ -201,14 +199,16 @@
     "locator": "PDF p.10 (§8.2)",
     "quote": "逻辑信号输入端高电平阀值为 2.5V 以上，低电平阀值为 1.0V 以下"
    },
-   "status": "contested",
+   "status": "asserted",
    "links": [
     {
      "contradicts": "eg3113.input.levels"
     }
    ],
-   "note": "Contested by the same datasheet's Table 7.2 (Vin(H) 3 V minimum, eg3113.input.levels), which the package follows as the characterised figure. LCSC's copy of this V1.2 (an older build, PDF of 2019-11-18) has 2.5 V in the table as well, so the 3 V figure is the later one. Either figure is met by a 3.3 V CMOS output lightly loaded.",
-   "enforced_by": []
+   "note": "The package follows this figure: ports.json gives HIN and LIN vih 2.5, vil 1.0. The same datasheet's Table 7.2 says 3 V minimum (eg3113.input.levels, contested); LCSC's copy of this V1.2 (an older build, PDF of 2019-11-18) has 2.5 V in the table as well. 2.5 V is what the application note's direct MCU drive and the reference board (RP2350 GPIOs at 3.3 V) rely on, and it lets the pin solver accept an RP2350 GPIO (VOH 2.62 V at its weakest drive setting's rated current), with 0.12 V of margin at that setting.",
+   "enforced_by": [
+    "ccomp pins (HIN/LIN levels in ports.json)"
+   ]
   },
   {
    "id": "eg3113.input.defaults",

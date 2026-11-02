@@ -1,5 +1,5 @@
 {
- "note": "Pins by number; what each function means, its supply and default net class. SOP-8 numbering from the EG3113 datasheet's pin definition (Figure 4-1, PDF p.5) and pin description (§4.2, PDF p.5); the datasheet is Chinese only, and its pages are cited as PDF pages (the body's printed 'n/9' is PDF page n+3). The package's symbol (kicad/Driver_FET_EG3113.kicad_sym) has the same numbers and names, except that it draws LIN with its overbar (~{LIN}, active low; named LIN here, as the datasheet's text does), and pin 4 is GND (the board's MotorBuck:EG2131 symbol calls it COM). The logic levels are the datasheet table's, at VCC 12 V and 25 C; they are the only ones given.",
+ "note": "Pins by number; what each function means, its supply and default net class. SOP-8 numbering from the EG3113 datasheet's pin definition (Figure 4-1, PDF p.5) and pin description (§4.2, PDF p.5); the datasheet is Chinese only, and its pages are cited as PDF pages (the body's printed 'n/9' is PDF page n+3). The package's symbol (kicad/Driver_FET_EG3113.kicad_sym) has the same numbers and names, except that it draws LIN with its overbar (~{LIN}, active low; named LIN here, as the datasheet's text does), and pin 4 is GND (the board's MotorBuck:EG2131 symbol calls it COM). The logic levels are the application section's (§8.2, PDF p.10: high above 2.5 V, low below 1.0 V); the table (PDF p.8, at VCC 12 V and 25 C) gives 3 V for high, and the package does not use it (eg3113.input.levels, contested).",
  "functions": {
   "VCC": {
    "kind": "power_in",
@@ -24,10 +24,10 @@
     "locator": "PDF p.4 (§2); p.5 (§4.2); p.6 (Figure 5-1); p.7 (Table 7.1); p.8 (Table 7.2); p.11 (truth table)"
    },
    "levels": {
-    "vih": "3.0",
+    "vih": "2.5",
     "vil": "1.0",
     "vin_max": "supply + 0.3",
-    "note": "supply is VCC. Table 7.2 (PDF p.8, VCC 12 V, TA 25 C): Vin(H) 3 V min, Vin(L) 1.0 V max for all inputs. §8.2 (PDF p.10) says the high threshold is '2.5V 以上' and that MCU outputs can drive the inputs directly; LCSC's older build of the same V1.2 has 2.5 V in the table too. The package takes the table's 3.0 V (eg3113.input.levels, contested). No temperature range is given",
+    "note": "supply is VCC. Table 7.2 (PDF p.8, VCC 12 V, TA 25 C): Vin(H) 3 V min, Vin(L) 1.0 V max for all inputs. §8.2 (PDF p.10) says the high threshold is '2.5V 以上' and that MCU outputs can drive the inputs directly; LCSC's older build of the same V1.2 has 2.5 V in the table too. The package takes the text's 2.5 V (eg3113.input.levels_text), which the reference board's 3.3 V GPIO drive relies on; the table's 3 V is eg3113.input.levels, contested. No temperature range is given",
     "citation": {
      "source": "eg3113_ds",
      "locator": "PDF p.7 (Table 7.1); p.8 (Table 7.2); p.10 (§8.2)"
@@ -44,7 +44,7 @@
     "locator": "PDF p.4; p.5 (§4.2); p.6 (Figure 5-1); p.7 (Table 7.1); p.8 (Table 7.2)"
    },
    "levels": {
-    "vih": "3.0",
+    "vih": "2.5",
     "vil": "1.0",
     "vin_max": "6",
     "note": "As HIN (Table 7.2, PDF p.8; eg3113.input.levels), with the absolute maximum of 6 V (Table 7.1, PDF p.7). Active low: VIL turns the low side on",
@@ -154,7 +154,7 @@
    "pins": {
     "IO": "HIN"
    },
-   "note": "High-side PWM input, active high. High above 3.0 V (table; 2.5 V in the text), low below 1.0 V; never above VCC + 0.3 V. Floats off (200 kohm pull-down). The interlock overrides it: HO stays off while LIN is low",
+   "note": "High-side PWM input, active high. High above 2.5 V (text; 3 V in the table), low below 1.0 V; never above VCC + 0.3 V. Floats off (200 kohm pull-down). The interlock overrides it: HO stays off while LIN is low",
    "citation": {
     "source": "eg3113_ds",
     "locator": "PDF p.4; p.5; p.7; p.8; p.10; p.11"

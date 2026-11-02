@@ -337,7 +337,7 @@
    "pins": [
     "U1.2"
    ],
-   "note": "High-side input, active high, internal 200 kohm pull-down (eg3113.input.defaults). Board net A_PWM_H from RP2350 GPIO2, with R1 10k to GND at the MCU (the board's). Levels in ports.json: Vin(H) 3.0 V min in the table, 2.5 V in the text (eg3113.input.levels, contested)."
+   "note": "High-side input, active high, internal 200 kohm pull-down (eg3113.input.defaults). Board net A_PWM_H from RP2350 GPIO2, with R1 10k to GND at the MCU (the board's). Levels in ports.json: Vin(H) 2.5 V min from the text (eg3113.input.levels_text); the table says 3 V (eg3113.input.levels, contested)."
   },
   "LIN_N": {
    "kind": "signal",
