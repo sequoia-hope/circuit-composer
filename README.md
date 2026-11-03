@@ -81,12 +81,17 @@ It sits between two sibling projects:
     (4 layers), the fab rules, a net class per net from its intent, planes, a current-width rule
     where a net's current needs one (IPC-2221), and each rigid block's generated copper, locked.
     `tools/route_board.sh` runs it all from the composition through ultraroute to the seam
-    checks. The battery board routes in about 20 s with 0 DRC errors and 0 unconnected on 4 of
-    4 seeds (`boards/rp2350-battery/routed/`). Against the rp2350 package's own rules it
-    fails 22 of 63, 2 of them hard (USB over +3V3): the router is not yet given what the package
-    knows.
-  - **Not yet:** the packages' layout rules as routing constraints (regions, layers, vias,
-    hard length limits in their intent); the buck generator for off-chip regulators (the
+    checks. The battery board routes in under a minute with 0 DRC errors, 0 unconnected and 0
+    region violations on 4 of 4 seeds (`boards/rp2350-battery/routed/`).
+  - **Package rules as routing constraints:** `ccomp compile` turns the packages' block
+    constraints into regions: `via_count <= 0` into a via rule, `unreferenced_length_mm <= 0`
+    into keeping off layers with no ground beside them and off the voids in the ground fill
+    beside the others. Hard constraints are `never`, soft ones a weighted `avoid`. `ccomp floorplan
+    --intent` keeps a length-limited net's pins' box under 0.75 of its limit. Against the
+    rp2350 package the battery board went from 22 fails of 63 (2 hard) to 12 to 14, with no
+    hard fail on 3 of 4 seeds.
+  - **Not yet:** decoupling paths as a placement cost; keeping other nets' vias from under a
+    ground-referenced net (ultraroute); the buck generator for off-chip regulators (the
     battery board's TLV62569 is routed freely: 2.98 mm² hot loop against 1.03 for the generated
     core regulator); intent for the remaining packages and the recipes; package schematic
     sheets.

@@ -10,44 +10,76 @@ the copper and the checks.
 | Step | Tool | What it adds |
 |---|---|---|
 | Compose | `ccomp compose --intent` | The circuit, and the board's intent: each package's `intent.json` in board names (42 nets, 11 blocks), the composition's own `intent` over it (VBUS's current, CC1/CC2, a 3.3 V default for logic nets) |
-| Place | `ccomp floorplan` | Every part; the core regulator as the package's generated qfn60-4layer layout, its copper keeping other parts off |
+| Place | `ccomp floorplan --intent` | Every part. The core regulator is the package's generated qfn60-4layer layout, whose copper keeps other parts off. Nets with a length limit keep their pins' box under 0.75 of it |
 | Prepare | `tools/prepare_route.py` | 4 copper layers, JLCPCB rules, a net class per net from its intent class, GND on In1.Cu and +3V3 on In2.Cu, and the layout's 14 tracks, 2 vias and keep-out applied and locked |
-| Compile | `ccomp compile` | `routing.json` and the `.kicad_dru` length block. Both are empty here: the rp2350 package's length limits are soft, and no package carries a region yet |
-| Route | ultraroute e3d5cce | easy2350's recipe plus `--regions`, one thread |
-| Check | `tools/verify_routed.py --refill` | KiCad DRC, regions, the buck checks (`verify.json`) |
+| Compile | `ccomp compile` | `routing.json`: the rp2350 package's block constraints as regions (below) |
+| Route | ultraroute e3d5cce | easy2350's recipe without `--diff-pairs` (see "For ultraroute"), plus `--regions`, one thread |
+| Check | `tools/verify_routed.py --refill`, `ccomp check package` | KiCad DRC, the regions, the buck checks (`verify.json`); the board against the rp2350 package by role (`rp2350.check.json`, `mcu.binding.json`) |
 
-The board here is seed 1: `rp2350-battery.kicad_pcb` with its `.kicad_pro` and `.kicad_dru`,
-`route.log` and `verify.json`.
+## The package's rules reach the router
 
-| Seed | Route time | DRC errors | Unconnected | Region violations | Tracks | Vias | Locked kept |
-|---|---|---|---|---|---|---|---|
-| 0 | 18.4 s | 0 | 0 | 0 | 422 | 105 | 16 |
-| 1 | 18.1 s | 0 | 0 | 0 | 417 | 107 | 16 |
-| 2 | 19.8 s | 0 | 0 | 0 | 435 | 111 | 16 |
-| 3 | 24.0 s | 0 | 0 | 0 | 416 | 105 | 16 |
+The rp2350 package states what its blocks need as constraints its checker measures: no vias on the
+crystal nets (soft, weight 0.7), and USB, crystal and QSPI tracks over ground. USB_DP and USB_DM
+are hard; the rest are soft, at weight 0.5 to 0.7. `ccomp compile` turns them into regions over
+the whole board:
 
-On every seed the router reports 3 connections failed and 0 open. The 3 are pads to their planes,
-which the pours join once KiCad refills them. DRC is run after that refill. The warnings are
-silkscreen only: overlaps, silk on copper and silk at the edge.
+- **No vias:** a via rule on the nets. Hard: `never`. Soft: `avoid`, each via costing 10 × weight
+  mm of track.
+- **Over ground:** the nets keep off layers with no ground fill beside them (In1.Cu and B.Cu
+  here). On the other layers (F.Cu, In2.Cu) they keep off the voids in the ground fill beside
+  them, sent as rectangles: J1's shield and peg holes, the core regulator's In1 cut-out.
 
-**The two bucks.** The RP2350's core regulator is placed and routed by its generator and
-locked: hot loop 1.03 mm² on every seed, the same as the package's layout. The TLV62569 has no
-generated layout, so the floorplanner places it as loose parts and the router wires it: hot loop
-2.98 mm², output loop 16.2 mm², and 5.99 mm² of switch node without ground under it. A generator
-for off-chip bucks (the spec's next step) would lock it like the core regulator.
+29 regions in all, 0 broken on every seed. Against the package: 22 fails before, 12 to 14 now.
 
-**Against the rp2350 package's rules** (`ccomp check package`, `rp2350.check.json`, binding
-`mcu.binding.json`): 41 pass, 22 fail. KiCad's DRC is clean, but the router was never told what
-the package knows, so it put the crystal, QSPI and USB nets on B.Cu, over the +3V3 plane, with
-vias. Two of the fails are hard: USB_DP and USB_DM run 12 and 10 mm over +3V3, as easy2350's
-did. The rest are soft: XIN and XOUT have 3 and 2 vias against none; 11 more nets run partly
-without ground under them, mostly over +3V3; and 7 traces are longer than the reference boards'
-(FLASH_SS 14.3 mm against 2.7).
-With GND on both inner layers it is 42 against 21, so the stack-up is not the cause. The fix
-belongs in the package: these rules as routing constraints (regions, and hard length limits)
-in its intent, so that every board composed from it routes with them.
+| Seed | Route time | DRC errors | Unconnected | Region violations | Tracks | Vias | rp2350 rules pass / fail | Hard fails |
+|---|---|---|---|---|---|---|---|---|
+| 0 | 40.0 s | 0 | 0 | 0 | 395 | 93 | 50 / 13 | 0 |
+| 1 | 56.8 s | 0 | 0 | 0 | 401 | 92 | 50 / 13 | 0 |
+| 2 | 43.7 s | 0 | 0 | 0 | 410 | 99 | 49 / 14 | USB_DP, 0.15 mm |
+| 3 | 51.6 s | 0 | 0 | 0 | 396 | 93 | 51 / 12 | 0 |
 
-**Fixed on the way.**
+The board here is seed 1. Every check the crystal has passes now: no vias, over ground, and
+within its lengths (it was 24 mm from the chip before the floorplanner read the limits). The
+router reports 8 connections failed and 0 open. The 8 are pads to their planes, which the
+pours join once KiCad refills them. DRC runs after that refill, and its warnings are silkscreen
+only.
+
+**What still fails (seed 1, all soft):**
+- Six decoupling paths are over the 4.9 mm the reference boards measure (DVDD at pin 23,
+  11.9 mm). The floorplanner places each capacitor near its pin, but nothing prices the
+  copper path.
+- QSPI_SCLK, SD0 and SD3, and the USB_DP_PIN stub, run partly without ground under them.
+  Their rules are soft prices, and the router pays them.
+- FLASH_SS is 3.8 mm against 2.7, QSPI_SD3 12.7 against 12.5, and R_BOOTSEL is 4.103 mm from
+  the flash against 4.1.
+
+**Seed 2's hard fail** is one the router makes itself: USB_DP passes between two QSPI_SD3 vias,
+and their clearance holes in the In1 plane leave 0.15 mm of the pair over a gap. No region
+drawn before routing can foresee it.
+
+**The two bucks.** The RP2350's core regulator is generated and locked: hot loop 1.03 mm² on
+every seed. The TLV62569 has no generated layout, so it is placed and routed as loose parts:
+its hot loop is 4.14 mm² with this placement, 2.98 with the last. A generator for off-chip bucks
+would lock it like the core regulator.
+
+## For ultraroute
+
+Not yet sent; the ultraroute session was not running.
+
+1. **Pair tuning ignores regions.** With `--diff-pairs`, `tune: /USB_DP//USB_DM skew 54.34 ->
+   0.16 mm` laid serpentines on USB_DM through the region `mcu/usb:over_ground:0:void0`, a
+   `never` rule (`regions: ... 2 pieces break its Never rule`). The 54 mm skew itself came from
+   one net of the pair detouring round the regions. route_board.sh leaves `--diff-pairs` out
+   until tuning keeps to the regions.
+2. **Large `must` polygons are slow.** A `must` region per layer set, shaped as the In1 ground
+   fill's outline (683 vertices), made prefanout take 156 s instead of 4 s and escape 0 of 26
+   pads. The compiler sends voids as small `never`/`avoid` rectangles instead.
+3. **Other nets' vias under a referenced net.** Keeping a net over ground also means keeping
+   other nets' vias (their plane clearance holes) out from under it. Seed 2's USB_DP fail is
+   this.
+
+## Fixed on the way
+
 - The floorplanner put two parts on the core regulator's locked copper: it knew the layout's
   parts, not its tracks and vias. Now a rigid layout's copper rides with the group as pad-less
   parts no courtyard may cover (`floorplan_cmd.rs`).
