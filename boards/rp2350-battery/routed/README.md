@@ -83,6 +83,35 @@ and routed freely, its hot loop had ranged from 2.98 to 11.4 mm² with the place
 ground returns through the plane, since a SOT-23's GND pin sits beside SW across from VIN, and
 its divider is placed by the generator too (`packages/tlv62569/README.md`).
 
+## The flash's QSPI: what was tried
+
+QSPI fails most: its nets run partly without ground under them, and some over their lengths. Two
+causes, measured on this board:
+- **The flash's orientation.** SOIC-8 has QSPI pins on both sides, and the RP2350's six QSPI pins
+  (55-60) are in one row. Placed as the floorplanner placed it, the QSPI nets' straight pin-to-pin
+  lines cross 5 to 8 times, and the crossings are where nets jump to B.Cu.
+- **Escapes at the QFN.** With the crossings gone, QSPI still leaves F.Cu or runs over plane holes
+  right at the RP2350's pins, where the router's escape vias (its own and its neighbours') cut
+  In1. The rules are soft prices (weight 0.7, so 7 times the length on B.Cu), and the router pays
+  them. Without `--prefanout` the same happened.
+
+The floorplanner can now count crossings among the nets a block keeps over ground (`planar`, set
+from the intent) and price each one (`w_cross`). Four placements each, routed with seed 1:
+
+| Variant | Package fails (mean) | QSPI | Crystal | Crossings |
+|---|---|---|---|---|
+| As committed (`w_cross` 0) | 12.75 (10, 16, 14, 11) | 8.25 | 1.25 | 5 to 8 |
+| `w_cross` 10 | 13.25 (14, 9, 16, 14) | 7.0 | 3.5 | 1 |
+| `w_cross` 10, and `clear_under` for the soft over-ground nets too | 14.5 (14, 10, 16, 14) | 7.75 | 4.0 | 1 |
+
+The crossing cost does what it is for (QSPI 8.25 to 7.0 on average) but costs the crystal as much,
+so it is off by default; a board turns it on in its spec's options. The soft `clear_under` did not
+help and is not emitted. None of the 12 boards had a DRC error, a region violation or a hard fail.
+
+What is left is a choice the package makes: the rp2350 package states QSPI over ground as soft
+(measured from the reference boards). Made hard, it would compile to `never` on B.Cu and to
+`clear_under`, and the router would have to find room on F.Cu.
+
 ## Fixed in ultraroute
 
 Reported to the ultraroute session on 2026-11-03 and fixed on its main at f179fcb:

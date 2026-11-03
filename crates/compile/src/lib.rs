@@ -314,8 +314,9 @@ fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> (
             // Over ground: on the layers a ground fill references, the nets keep out of its voids
             // too (a through-hole's clearance, a thermal relief, a keep-out).
             if what == "over_ground" && hard {
-                // And other nets' vias keep their plane holes from under them (only a hard rule:
-                // the router has no price for it).
+                // And other nets' vias keep their plane holes from under them. Only for a hard
+                // constraint: the router has no price for it, and given for the soft ones too it
+                // did not help (rp2350-battery, 4 placements: 14.5 package fails against 13.25).
                 for (planes, on) in ground_groups(intent, board, &unref) {
                     clear.push(ClearUnder { nets: nets.clone(), layers: on, planes, margin_mm: CLEAR_UNDER_MARGIN });
                 }
@@ -418,7 +419,7 @@ mod tests {
         assert_eq!(v.layers.as_deref(), Some(&["F.Cu".to_string(), "In2.Cu".to_string()][..]));
         let (a, b) = (v.polygon[0], v.polygon[2]);
         assert!((a[0] - 6.0).abs() < 0.11 && (b[0] - 9.0).abs() < 0.11 && (a[1] - 1.0).abs() < 0.11 && (b[1] - 9.0).abs() < 0.11, "{a:?} {b:?}");
-        // Other nets' vias keep their In1 holes from under the hard over-ground net's tracks.
+        // Other nets' vias keep their In1 holes from under the over-ground net's tracks.
         assert_eq!(clear.len(), 1);
         assert_eq!((clear[0].nets.clone(), clear[0].layers.clone(), clear[0].planes.clone()), (vec!["/USB".to_string()], vec!["F.Cu".to_string(), "In2.Cu".to_string()], vec!["In1.Cu".to_string()]));
         // A soft no-vias rule is a price on vias.

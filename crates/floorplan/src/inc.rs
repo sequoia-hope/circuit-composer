@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use super::{bbox_at, corridor, edge_miss, flush_miss, gap, net_cost, pair, rot, side, Pose, State, P};
+use super::{bbox_at, corridor, crossings, edge_miss, flush_miss, gap, net_cost, spanning, pair, rot, side, Pose, State, P};
 
 /// What a move changed, to undo it.
 struct Undo {
@@ -269,6 +269,14 @@ impl Inc {
         }
         let flush: f64 = self.boxes.iter().enumerate().map(|(i, b)| flush_miss(pr, all, i, *b)).sum();
         // Corridors depend on every part's place: whole-board, like the edges.
+        let lines: Vec<(usize, P, P)> = pr
+            .nets
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| n.planar)
+            .flat_map(|(k, n)| spanning(&n.pins.iter().map(|(i, pin)| self.pin(st, *i, pin)).collect::<Vec<_>>()).into_iter().map(move |(a, b)| (k, a, b)))
+            .collect();
+        let cross = crossings(&lines) as f64;
         let lane: f64 = pr
             .parts
             .iter()
@@ -303,7 +311,7 @@ impl Inc {
                 }
             }
         }
-        o.w_wire * self.wire + w_ov * (self.ov + self.outside + flush) + o.w_area * area + o.w_near * self.near + o.w_corridor * lane + o.w_block * self.spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * self.fill
+        o.w_wire * self.wire + w_ov * (self.ov + self.outside + flush) + o.w_area * area + o.w_near * self.near + o.w_corridor * lane + o.w_cross * cross + o.w_block * self.spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * self.fill
     }
 
     fn net_len(&self, st: &State, k: usize) -> (f64, f64) {

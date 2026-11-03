@@ -177,7 +177,7 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
         if ps.len() < 2 || ps.len() > spec.max_net_pins || spec.skip_nets.contains(name) {
             continue;
         }
-        nets.push(Net { name: name.clone(), pins: ps, weight: 1.0, max_mm: None });
+        nets.push(Net { name: name.clone(), pins: ps, weight: 1.0, max_mm: None, planar: false });
     }
     let mut groups = Vec::new();
     for g in &spec.rigid {
@@ -229,13 +229,26 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
 /// a length limit becomes a box of this fraction of it.
 pub const LIMIT_BOX: f64 = 0.75;
 
-/// Each net's `max_length` (hard or soft) from the board's intent, as a limit on its pins' box.
-/// The intent names nets as KiCad does; the composition as composed (`/mcu/XIN`, `/mcu_XIN`).
+/// What the board's intent asks of its nets' placement. The intent names nets as KiCad does; the
+/// composition as composed (`/mcu/XIN`, `/mcu_XIN`).
+/// - Each net's `max_length` (hard or soft), as a limit on its pins' box.
+/// - The nets a block keeps over ground (`unreferenced_length_mm <= 0`): they should route on one
+///   layer, so they are `planar` and their pins' lines are kept from crossing.
 pub fn limit_nets(pr: &mut Problem, intent: &intent::IntentFile) {
+    let over_ground: std::collections::BTreeSet<&str> = intent
+        .blocks
+        .values()
+        .filter_map(|b| b.placement_goal.as_ref())
+        .flat_map(|g| &g.constraints)
+        .filter(|c| c.value.metric == intent::Metric::UnreferencedLengthMm)
+        .flat_map(|c| c.value.nets.iter().map(String::as_str))
+        .collect();
     for net in &mut pr.nets {
-        let n = intent.nets.get(&net.name).or_else(|| intent.nets.get(&compose::board_intent::kicad_net_name(&net.name)));
+        let kicad = compose::board_intent::kicad_net_name(&net.name);
+        let n = intent.nets.get(&net.name).or_else(|| intent.nets.get(&kicad));
         if let Some(l) = n.and_then(|n| n.max_length.as_ref()) {
             net.max_mm = Some(LIMIT_BOX * l.value.mm);
         }
+        net.planar = over_ground.contains(net.name.as_str()) || over_ground.contains(kicad.as_str());
     }
 }

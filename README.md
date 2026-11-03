@@ -101,7 +101,12 @@ It sits between two sibling projects:
     measures 3.53 mm² hot loop and 11.05 mm² output loop, and the battery board uses it: package
     fails 9 to 13 of 63, none hard, on 4 seeds (ultraroute f179fcb, which reads `clear_under`:
     other nets' vias keep their plane holes from under a hard over-ground net).
-  - **Not yet:** room for every stub beside the chip (8 of 10 fit); the flash's QSPI lengths;
+  - **Crossings:** `ccomp floorplan` can price crossings between the straight pin lines of the
+    nets a block keeps over ground (`planar` from the intent, `w_cross`, off by default). On the
+    battery board it took the QSPI fails from 8.25 to 7.0 on average over four placements, but
+    the crystal's from 1.25 to 3.5 (`boards/rp2350-battery/routed/README.md`).
+  - **Not yet:** room for every stub beside the chip (8 of 10 fit); the flash's QSPI over ground
+    (soft in the rp2350 package, so the router pays its price);
     intent for the remaining packages and the recipes; package schematic sheets.
 - **Research library:** `library/` holds 143 cited claims from 41 vendor app notes, datasheets
   and articles, on five topics:

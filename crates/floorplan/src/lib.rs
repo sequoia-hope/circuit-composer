@@ -86,6 +86,10 @@ pub struct Net {
     /// a placement can promise. Beyond it each mm costs `w_limit`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_mm: Option<f64>,
+    /// The net should route on one layer (it must stay over ground): its pins' straight lines are
+    /// kept from crossing other such nets' (`crossings`), each crossing costing `w_cross`.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub planar: bool,
 }
 
 /// A net's weighted wire term: its pins' box, and the excess over its limit.
@@ -99,6 +103,52 @@ fn w_limit() -> f64 {
 
 fn w_corridor() -> f64 {
     5.0
+}
+
+/// Off by default: on rp2350-battery, 10 per crossing took the planar nets' crossings from 5-8
+/// to 1 over four placements and the QSPI fails from 8.25 to 7.0 on average, but the crystal's
+/// from 1.25 to 3.5. A board turns it on in its spec's options.
+fn w_cross() -> f64 {
+    0.0
+}
+
+/// A net's pins joined as straight lines: the minimum spanning tree (Prim's).
+fn spanning(pts: &[P]) -> Vec<(P, P)> {
+    let mut out = Vec::new();
+    if pts.len() < 2 {
+        return out;
+    }
+    let mut inside = vec![false; pts.len()];
+    inside[0] = true;
+    for _ in 1..pts.len() {
+        let mut best: Option<(f64, usize, usize)> = None;
+        for i in (0..pts.len()).filter(|&i| inside[i]) {
+            for j in (0..pts.len()).filter(|&j| !inside[j]) {
+                let d = (pts[i].0 - pts[j].0).hypot(pts[i].1 - pts[j].1);
+                if best.is_none_or(|b| d < b.0) {
+                    best = Some((d, i, j));
+                }
+            }
+        }
+        let (_, i, j) = best.unwrap();
+        inside[j] = true;
+        out.push((pts[i], pts[j]));
+    }
+    out
+}
+
+/// How many pairs of lines from different nets cross, each line tagged with its net.
+fn crossings(lines: &[(usize, P, P)]) -> usize {
+    let side = |a: P, b: P, c: P| (b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0);
+    let mut n = 0;
+    for (k, &(na, a, b)) in lines.iter().enumerate() {
+        for &(nc, c, d) in &lines[k + 1..] {
+            if na != nc && side(a, b, c) * side(a, b, d) < 0.0 && side(c, d, a) * side(c, d, b) < 0.0 {
+                n += 1;
+            }
+        }
+    }
+    n
 }
 
 /// Length of segment ab inside box b (Liang-Barsky).
@@ -192,6 +242,9 @@ pub struct Options {
     /// Per mm of a `near_pin`'s line to its `near` that crosses another part's courtyard.
     #[serde(default = "w_corridor")]
     pub w_corridor: f64,
+    /// Per crossing of two `planar` nets' straight lines (0, off, by default).
+    #[serde(default = "w_cross")]
+    pub w_cross: f64,
     /// How the placement starts: annealed from a random spread, or from the analytical placer's
     /// (then annealed cool, as a warm start is).
     #[serde(default)]
@@ -208,7 +261,7 @@ pub enum Placer {
 
 impl Default for Options {
     fn default() -> Self {
-        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), w_limit: w_limit(), w_corridor: w_corridor(), placer: Placer::Sa }
+        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), w_limit: w_limit(), w_corridor: w_corridor(), w_cross: w_cross(), placer: Placer::Sa }
     }
 }
 
@@ -615,6 +668,9 @@ pub struct Metrics {
     /// Length of `near_pin` lines crossing other courtyards, mm.
     #[serde(default)]
     pub corridor_mm: f64,
+    /// Crossings between `planar` nets' straight lines.
+    #[serde(default)]
+    pub crossings: usize,
     /// The board's own area, mm²: a shaped outline's, not its box's.
     pub board_area_mm2: f64,
     /// How much of the board the parts' courtyards cover, front and back, 0 to 1. Keep-outs are
@@ -804,6 +860,14 @@ impl<'a> State<'a> {
         }
         m.near_mm = near;
         m.corridor_mm = lane;
+        let lines: Vec<(usize, P, P)> = pr
+            .nets
+            .iter()
+            .enumerate()
+            .filter(|(_, n)| n.planar)
+            .flat_map(|(k, n)| spanning(&n.pins.iter().map(|(i, pin)| self.pin(&poses, *i, pin)).collect::<Vec<_>>()).into_iter().map(move |(a, b)| (k, a, b)))
+            .collect();
+        m.crossings = crossings(&lines);
         let mut centres: BTreeMap<&str, (f64, f64, f64)> = BTreeMap::new();
         for (i, p) in pr.parts.iter().enumerate() {
             if let Some(b) = &p.block {
@@ -864,7 +928,7 @@ impl<'a> State<'a> {
             v(b).total_cmp(&v(a))
         });
         m.overlap_pairs.truncate(20);
-        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_corridor * lane + o.w_block * spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * fill;
+        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_corridor * lane + o.w_cross * m.crossings as f64 + o.w_block * spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * fill;
         (cost, m)
     }
 }
@@ -1190,6 +1254,11 @@ mod inc_tests {
             for net in pr.nets.iter_mut().step_by(3) {
                 net.max_mm = Some(5.0);
             }
+            // Some nets planar, so the crossing count is checked too.
+            for net in pr.nets.iter_mut().skip(1).step_by(4) {
+                net.planar = true;
+            }
+            pr.options.w_cross = 10.0;
             // And every near hint measured from a pin, with its corridor.
             for part in pr.parts.iter_mut().filter(|p| p.near.is_some()) {
                 part.near_pin = part.pins.keys().next().cloned();
@@ -1334,7 +1403,7 @@ mod tests {
     #[test]
     fn a_chain_packs_without_overlap() {
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
-        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None, planar: false }).collect();
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
@@ -1347,7 +1416,7 @@ mod tests {
     fn rigid_groups_keep_their_shape_and_edges_face_out() {
         let mut parts = vec![part("U1", 3.0, 3.0), part("C1", 1.0, 0.5), part("J1", 4.0, 2.0)];
         parts[2].edge = Some(Edge { side: None, facing: (0.0, 1.0) });
-        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0, max_mm: None }];
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0, max_mm: None, planar: false }];
         let groups = vec![Rigid { name: "core".into(), anchor: 0, members: vec![(1, (0.0, -2.5), 0.0)] }];
         let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 40_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
@@ -1376,9 +1445,21 @@ mod tests {
     }
 
     #[test]
+    fn planar_nets_count_their_crossings() {
+        // A to C and B to D cross when C and D swap sides; a net's own lines never count.
+        let x = |a: P, b: P, c: P, d: P| crossings(&[(0, a, b), (1, c, d)]);
+        assert_eq!(x((0.0, 0.0), (2.0, 2.0), (0.0, 2.0), (2.0, 0.0)), 1);
+        assert_eq!(x((0.0, 0.0), (2.0, 0.0), (0.0, 1.0), (2.0, 1.0)), 0);
+        assert_eq!(crossings(&[(0, (0.0, 0.0), (2.0, 2.0)), (0, (0.0, 2.0), (2.0, 0.0))]), 0);
+        // A three-pin net is its spanning tree: two lines, the short ones.
+        let t = spanning(&[(0.0, 0.0), (5.0, 0.0), (1.0, 0.0)]);
+        assert_eq!(t, vec![((0.0, 0.0), (1.0, 0.0)), ((1.0, 0.0), (5.0, 0.0))]);
+    }
+
+    #[test]
     fn a_limited_net_pays_for_its_excess() {
         let o = Options::default();
-        let mut net = Net { name: "N".into(), pins: vec![], weight: 1.0, max_mm: Some(4.0) };
+        let mut net = Net { name: "N".into(), pins: vec![], weight: 1.0, max_mm: Some(4.0), planar: false };
         assert_eq!(net_cost(&o, &net, 3.0), 3.0);
         assert_eq!(net_cost(&o, &net, 6.0), 6.0 + o.w_limit * 2.0);
         net.max_mm = None;
@@ -1404,7 +1485,7 @@ mod tests {
     fn a_polygon_outline_holds_the_parts() {
         // A triangle: twelve small parts must all end up inside it.
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.0, 0.5)).collect();
-        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None, planar: false }).collect();
         let tri = vec![(0.0, 0.0), (20.0, 0.0), (10.0, 15.0)];
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: Some(tri) };
         let p = solve(&pr);
@@ -1417,7 +1498,7 @@ mod tests {
         // each other; filling, they keep room between them, and the halo leaves half the free board
         // to share out.
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
-        let nets: Vec<Net> = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
+        let nets: Vec<Net> = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None, planar: false }).collect();
         let solved = |fill: f64| {
             let pr = Problem { parts: parts.clone(), nets: nets.clone(), groups: vec![], separations: vec![], options: Options { moves: 60_000, fill, ..Default::default() }, outline: Some([0.0, 0.0, 30.0, 30.0]), outline_polygon: None };
             solve(&pr).metrics
@@ -1437,7 +1518,7 @@ mod tests {
     fn the_analytical_placer_alone_is_legal() {
         // No annealing at all: gradient descent, then legalising.
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
-        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None, planar: false }).collect();
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 0, placer: Placer::Analytic, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
@@ -1452,7 +1533,7 @@ mod tests {
     fn the_analytical_placer_keeps_groups_and_edges() {
         let mut parts = vec![part("U1", 3.0, 3.0), part("C1", 1.0, 0.5), part("J1", 4.0, 2.0)];
         parts[2].edge = Some(Edge { side: None, facing: (0.0, 1.0) });
-        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0, max_mm: None }];
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0, max_mm: None, planar: false }];
         let groups = vec![Rigid { name: "core".into(), anchor: 0, members: vec![(1, (0.0, -2.5), 0.0)] }];
         let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 20_000, placer: Placer::Analytic, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
@@ -1484,9 +1565,9 @@ mod tests {
         let mut j2 = part("J2", 4.0, 2.5);
         j2.edge = Some(Edge { side: None, facing: (0.0, 1.0) });
         parts.extend([j1, j2]);
-        let mut nets: Vec<Net> = (0..9).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
-        nets.push(Net { name: "A".into(), pins: vec![(0, "1".into()), (10, "1".into())], weight: 1.0, max_mm: None });
-        nets.push(Net { name: "B".into(), pins: vec![(9, "2".into()), (11, "1".into())], weight: 1.0, max_mm: None });
+        let mut nets: Vec<Net> = (0..9).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None, planar: false }).collect();
+        nets.push(Net { name: "A".into(), pins: vec![(0, "1".into()), (10, "1".into())], weight: 1.0, max_mm: None, planar: false });
+        nets.push(Net { name: "B".into(), pins: vec![(9, "2".into()), (11, "1".into())], weight: 1.0, max_mm: None, planar: false });
         let ellipse: Vec<P> = (0..72).map(|k| (k as f64 * std::f64::consts::TAU / 72.0).sin_cos()).map(|(s, c)| (14.0 * c, 10.0 * s)).collect();
         for placer in [Placer::Sa, Placer::Analytic] {
             let pr = Problem { parts: parts.clone(), nets: nets.clone(), groups: vec![], separations: vec![], options: Options { moves: 60_000, placer, ..Default::default() }, outline: None, outline_polygon: Some(ellipse.clone()) };
@@ -1508,7 +1589,7 @@ mod tests {
         for (i, p) in parts.iter_mut().enumerate() {
             p.block = Some(if i < 2 { "sw".into() } else { "xtal".into() });
         }
-        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (3, "1".into())], weight: 1.0, max_mm: None }];
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (3, "1".into())], weight: 1.0, max_mm: None, planar: false }];
         let seps = vec![Separation { a: "sw".into(), b: "xtal".into(), min_mm: 5.0, note: None }];
         let pr = Problem { parts, nets, groups: vec![], separations: seps, options: Options { moves: 40_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
