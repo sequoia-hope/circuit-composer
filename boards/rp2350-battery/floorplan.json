@@ -1,5 +1,5 @@
 {
- "note": "Floorplan of the battery demo board: the outline is the floorplanner's to choose. USB-C on the top edge, the battery connector on the bottom edge, both facing out. The RP2350 core regulator is the package's generated qfn60-4layer layout, moved as one. Separations come from the packages' rules: the IMU 10 mm from the USB-C receptacle (a force point) and 5 mm from the heat of the charger and the buck (lsm6dso rules); the buck's switch node 5 mm from the crystal (library crystal.routing.keepout).",
+ "note": "Floorplan of the battery demo board: the outline is the floorplanner's to choose. USB-C on the top edge, the battery connector on the bottom edge, both facing out. The RP2350 core regulator is the package's generated qfn60-4layer layout, moved as one, and the TLV62569 buck is its package's generated sot23-5-4layer layout. Separations come from the packages' rules: the IMU 10 mm from the USB-C receptacle (a force point) and 5 mm from the heat of the charger and the buck (lsm6dso rules); the buck's switch node 5 mm from the crystal (library crystal.routing.keepout).",
  "edges": {
   "J1": {
    "side": "top",
@@ -25,6 +25,19 @@
     "cin": "C6",
     "cout": "C9",
     "inductor": "L1"
+   }
+  },
+  {
+   "name": "reg",
+   "anchor": "U5",
+   "layout": "packages/tlv62569/layouts/sot23-5-4layer/layout.json",
+   "roles": {
+    "cin": "C22",
+    "cout": "C23",
+    "inductor": "L2",
+    "rfb_top": "R19",
+    "rfb_bot": "R18",
+    "cff": "C21"
    }
   }
  ],

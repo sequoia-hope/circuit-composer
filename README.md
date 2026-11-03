@@ -94,12 +94,15 @@ It sits between two sibling projects:
     to its pin, and the floorplanner leaves room for it: a `near` hint is measured from the
     part's pad on that net, and other courtyards across the line to the pin are priced. The
     battery board's decoupling fails went from 6 to 1 to 3.
-  - **Not yet:** room for every stub beside the chip (7 of 10 fit); the flash's QSPI lengths;
-    keeping other nets' vias from under a
-    ground-referenced net (ultraroute); the buck generator for off-chip regulators (the
-    battery board's TLV62569 is routed freely: 2.98 mm² hot loop against 1.03 for the generated
-    core regulator); intent for the remaining packages and the recipes; package schematic
-    sheets.
+  - **Off-chip bucks:** `ccomp gen buck` places a divider (`rfb_top`, `rfb_bot`, `cff` roles: FB
+    runs clear of the switch node, the VOUT sense from COUT when it fits), takes the output net
+    from the inductor, can return ground through the plane (`gnd_return_vias`), and searches
+    behind the switch pin's row (`back`). The TLV62569's layout (`packages/tlv62569/layouts/`)
+    measures 3.53 mm² hot loop and 11.05 mm² output loop, and the battery board uses it: package
+    fails 11 to 13 of 63, none hard, on 4 seeds.
+  - **Not yet:** room for every stub beside the chip (8 of 10 fit); the flash's QSPI lengths;
+    keeping other nets' vias from under a ground-referenced net (ultraroute); intent for the
+    remaining packages and the recipes; package schematic sheets.
 - **Research library:** `library/` holds 143 cited claims from 41 vendor app notes, datasheets
   and articles, on five topics:
   - buck layout,

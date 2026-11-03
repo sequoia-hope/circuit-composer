@@ -10,8 +10,8 @@ the copper and the checks.
 | Step | Tool | What it adds |
 |---|---|---|
 | Compose | `ccomp compose --intent` | The circuit, and the board's intent: each package's `intent.json` in board names (42 nets, 11 blocks), the composition's own `intent` over it (VBUS's current, CC1/CC2, a 3.3 V default for logic nets) |
-| Place | `ccomp floorplan --intent` | Every part. The core regulator is the package's generated qfn60-4layer layout, whose copper keeps other parts off. Nets with a length limit keep their pins' box under 0.75 of it. A part with a `near` pin turns its pad on that net toward it, and the line between them is kept clear of other courtyards |
-| Prepare | `tools/prepare_route.py --composed` | 4 copper layers, JLCPCB rules, a net class per net from its intent class, GND on In1.Cu and +3V3 on In2.Cu, the layout's 14 tracks, 2 vias and keep-out applied and locked, and a locked stub from each decoupling capacitor to its pin where one fits |
+| Place | `ccomp floorplan --intent` | Every part. Both regulators are their packages' generated layouts (rp2350 `qfn60-4layer`, tlv62569 `sot23-5-4layer`), moved as one, whose copper keeps other parts off. Nets with a length limit keep their pins' box under 0.75 of it. A part with a `near` pin turns its pad on that net toward it, and the line between them is kept clear of other courtyards |
+| Prepare | `tools/prepare_route.py --composed` | 4 copper layers, JLCPCB rules, a net class per net from its intent class, GND on In1.Cu and +3V3 on In2.Cu, the two layouts' copper applied and locked (core regulator: 14 tracks, 2 vias, a keep-out; TLV62569: 20 tracks, 6 vias), and a locked stub from each decoupling capacitor to its pin where one fits |
 | Compile | `ccomp compile` | `routing.json`: the rp2350 package's block constraints as regions (below) |
 | Route | ultraroute e3d5cce | easy2350's recipe without `--diff-pairs` (see "For ultraroute"), plus `--regions`, one thread |
 | Check | `tools/verify_routed.py --refill`, `ccomp check package` | KiCad DRC, the regions, the buck checks (`verify.json`); the board against the rp2350 package by role (`rp2350.check.json`, `mcu.binding.json`) |
@@ -49,29 +49,33 @@ seed). So the rp2350 package's circuit gives the crystal, XOUT's damping resisto
 series resistors and the flash `near` pins too (`package_circuit.py`'s `SIGNAL_NEAR`), and
 their lines are kept clear the same way.
 
+With the TLV62569 generated too (below):
+
 | Seed | Route time | DRC errors | Unconnected | Region violations | Tracks | Vias | rp2350 rules pass / fail | Decoupling fails | Hard fails |
 |---|---|---|---|---|---|---|---|---|---|
-| 0 | 44.6 s | 0 | 0 | 0 | 410 | 97 | 48 / 15 | 3 | 0 |
-| 1 | 48.7 s | 0 | 0 | 0 | 406 | 100 | 49 / 14 | 3 | 0 |
-| 2 | 70.5 s | 0 | 0 | 0 | 445 | 99 | 49 / 14 | 2 | 0 |
-| 3 | 57.0 s | 0 | 0 | 0 | 425 | 101 | 50 / 13 | 1 | 0 |
+| 0 | 55.7 s | 0 | 0 | 0 | 432 | 92 | 50 / 13 | 2 | 0 |
+| 1 | 183.4 s | 0 | 0 | 0 | 436 | 100 | 51 / 12 | 1 | 0 |
+| 2 | 35.6 s | 0 | 0 | 0 | 433 | 98 | 52 / 11 | 1 | 0 |
+| 3 | 44.9 s | 0 | 0 | 0 | 424 | 98 | 52 / 11 | 1 | 0 |
 
-The previous chain had 6 decoupling fails, 12 to 14 package fails, and a hard fail on seed 2
-(USB_DP over a QSPI via's plane hole). Now no seed has a hard fail and decoupling is down to 1 to
-3, but QSPI got worse. The flash is the part the new hints moved most: its data lines run 16 to
-26 mm against 12 to 17, and further off ground. The placement is legal at 25.4 × 48.7 mm with
-261 mm of wire.
+Before the decoupling stubs, the chain had 6 decoupling fails, 12 to 14 package fails, and a
+hard fail on seed 2 (USB_DP over a QSPI via's plane hole). With the stubs and the signal hints
+(and before the TLV62569 was generated) it had 13 to 15 package fails and none hard. Now it is
+11 to 13, none hard, and the crystal passes every check again. 8 of 10 stubs fit: C16 (pin 20)
+ends more than 4.9 mm away and C20 (pin 53) is blocked. The flash moved most: QSPI lines run
+18 to 32 mm against 11 to 17, partly without ground under them. The placement is legal at
+27.6 × 53.9 mm with 263 mm of wire. Seed 1's route took 183 s, the others 36 to 56 s.
 
-The board here is seed 1. 7 of 10 stubs fit on every seed. C12 (pin 6) ended more than
-4.9 mm away, and C10 (pin 23) and C20 (pin 53) are blocked: the signal parts now compete for
-the room beside the chip. The router reports 4 connections failed and 0 open, all pads to their
-planes, which the pours join once KiCad refills them. DRC runs after that refill, and its
+The board here is seed 1. The router reports 4 connections failed and 0 open, all pads to
+their planes, which the pours join once KiCad refills them. DRC runs after that refill, and its
 warnings are silkscreen only.
 
-**The two bucks.** The RP2350's core regulator is generated and locked: hot loop 1.03 mm² on
-every seed. The TLV62569 has no generated layout, so it is placed and routed as loose parts,
-and its loop follows the placement: 2.98 mm², then 4.14, now 11.4. A generator for off-chip
-bucks would lock it like the core regulator.
+**The two bucks are generated now.** The RP2350's core regulator: hot loop 1.03 mm² on every
+seed. The TLV62569 (`packages/tlv62569/layouts/sot23-5-4layer`): hot loop 3.53 mm², output loop
+11.05, switch node 5.21, FB clearance 2.67 mm, the same on every seed and on its bench. Placed
+and routed freely, its hot loop had ranged from 2.98 to 11.4 mm² with the placement. Its
+ground returns through the plane, since a SOT-23's GND pin sits beside SW across from VIN, and
+its divider is placed by the generator too (`packages/tlv62569/README.md`).
 
 ## For ultraroute
 
