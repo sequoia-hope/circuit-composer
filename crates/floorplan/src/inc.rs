@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use super::{bbox_at, edge_miss, gap, pair, rot, side, Pose, State, P};
+use super::{bbox_at, edge_miss, flush_miss, gap, pair, rot, side, Pose, State, P};
 
 /// What a move changed, to undo it.
 struct Undo {
@@ -267,6 +267,7 @@ impl Inc {
             all = [x0, y0, x1, y1];
             area = (x1 - x0) * (y1 - y0);
         }
+        let flush: f64 = self.boxes.iter().enumerate().map(|(i, b)| flush_miss(pr, all, i, *b)).sum();
         let mut edge = 0.0;
         for &i in &self.edge_parts {
             edge += edge_miss(pr, st.sdf.as_ref(), all, i, &self.poses[i], self.boxes[i]);
@@ -291,7 +292,7 @@ impl Inc {
                 }
             }
         }
-        o.w_wire * self.wire + w_ov * (self.ov + self.outside) + o.w_area * area + o.w_near * self.near + o.w_block * self.spread + o.w_edge * edge + o.w_sep * sep + o.w_fill * self.fill
+        o.w_wire * self.wire + w_ov * (self.ov + self.outside + flush) + o.w_area * area + o.w_near * self.near + o.w_block * self.spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * self.fill
     }
 
     fn net_len(&self, st: &State, k: usize) -> (f64, f64) {

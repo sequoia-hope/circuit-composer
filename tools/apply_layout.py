@@ -70,7 +70,7 @@ def main():
     board = pcbnew.LoadBoard(a.board)
     anchor_ref = roles["vin"].split(".")[0]
     anchor = board.FindFootprintByReference(anchor_ref)
-    if anchor.GetFPIDAsString() != layout["anchor_footprint"] and anchor.GetFPID().GetLibItemName() != layout["anchor_footprint"].split(":")[-1]:
+    if anchor.GetFPIDAsString() != layout["anchor_footprint"] and str(anchor.GetFPID().GetLibItemName()) != layout["anchor_footprint"].split(":")[-1]:
         sys.exit(json.dumps({"ok": False, "error": f"{anchor_ref} is {anchor.GetFPIDAsString()}, layout is for {layout['anchor_footprint']}"}))
     nets = {"vin": pad_net(board, roles["vin"]), "sw": pad_net(board, roles["sw"]), "gnd": pad_net(board, roles["pgnd"]), "out": pad_net(board, roles["fb"])}
     block_refs = {anchor_ref} | {roles[r] for r in layout["parts"]}

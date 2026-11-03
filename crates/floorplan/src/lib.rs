@@ -121,6 +121,8 @@ pub struct Options {
     pub w_near: f64,
     pub w_block: f64,
     pub w_edge: f64,
+    /// A separation miss's weight at the start; it rises with the overlap weight, so the end
+    /// keeps the separations as it keeps courtyards apart (the analytical placer's way).
     pub w_sep: f64,
     pub w_overlap: f64,
     /// How much of each side's free board the movable parts share out as room around them, 0 to
@@ -339,6 +341,34 @@ fn pair(pr: &Problem, in_group: &[Option<usize>], halo: &[f64], poses: &[Pose], 
     let a = overlap(&boxes[i], &boxes[j], c);
     let h = halo[i] + halo[j];
     (if a > 1e-9 { a } else { 0.0 }, if h > 0.0 { overlap(&boxes[i], &boxes[j], c + h) } else { 0.0 })
+}
+
+/// With no outline set, a side an edge part sits flush on is drawn at the parts' extent with
+/// no margin (`solve_with`'s outline), so every other part keeps the margin from that side
+/// itself. How far part `i`'s courtyard `b` comes inside it, over each such side, times the
+/// courtyard's half-perimeter (as a part outside a set outline is priced).
+fn flush_miss(pr: &Problem, all: [f64; 4], i: usize, b: [f64; 4]) -> f64 {
+    let p = &pr.parts[i];
+    if pr.outline.is_some() || pr.outline_polygon.is_some() || p.edge.is_some() || p.fixed.is_some() {
+        return 0.0;
+    }
+    let m = pr.options.margin;
+    let mut flush = [false; 4];
+    for s in pr.parts.iter().filter_map(|q| q.edge.as_ref()?.side) {
+        flush[match s {
+            Side::Left => 0,
+            Side::Top => 1,
+            Side::Right => 2,
+            Side::Bottom => 3,
+        }] = true;
+    }
+    let into = [b[0] - all[0], b[1] - all[1], all[2] - b[2], all[3] - b[3]];
+    let d: f64 = (0..4).filter(|&k| flush[k]).map(|k| (m - into[k]).max(0.0)).sum();
+    if d > 1e-6 {
+        d * ((b[2] - b[0]) + (b[3] - b[1]))
+    } else {
+        0.0
+    }
 }
 
 /// The outward direction of a side, in KiCad's frame (y down).
@@ -720,6 +750,14 @@ impl<'a> State<'a> {
                 spread += ((poses[i].x - c.0 / c.2).powi(2) + (poses[i].y - c.1 / c.2).powi(2)).sqrt();
             }
         }
+        for (i, b) in boxes.iter().enumerate() {
+            let f = flush_miss(pr, all, i, *b);
+            if f > 0.0 {
+                outside += f;
+                m.overlaps += 1;
+                m.overlap_pairs.push(format!("{} within the margin of a flush edge {f:.3}", pr.parts[i].reference));
+            }
+        }
         let mut edge = 0.0;
         for (i, p) in pr.parts.iter().enumerate() {
             if p.edge.is_none() {
@@ -756,7 +794,7 @@ impl<'a> State<'a> {
             v(b).total_cmp(&v(a))
         });
         m.overlap_pairs.truncate(20);
-        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_block * spread + o.w_edge * edge + o.w_sep * sep + o.w_fill * fill;
+        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_block * spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * fill;
         (cost, m)
     }
 }
@@ -1118,12 +1156,27 @@ fn w_ov_at(o: &Options, prog: f64) -> f64 {
 /// puts it; rigid groups are not enforced.
 pub fn evaluate(pr: &Problem, poses: &BTreeMap<String, Pose>) -> Result<Metrics, String> {
     let n = pr.parts.len();
+    // A part the board does not have (a keep-out, a rigid layout's copper) is where its fixed
+    // pose or its group's anchor puts it.
+    let member: BTreeMap<usize, (usize, P, f64)> = pr.groups.iter().flat_map(|g| g.members.iter().map(move |&(i, off, r)| (i, (g.anchor, off, r)))).collect();
     let mut mv = Vec::with_capacity(n);
-    for p in &pr.parts {
-        mv.push(*poses.get(&p.reference).ok_or_else(|| format!("{} has no pose", p.reference))?);
+    for (i, p) in pr.parts.iter().enumerate() {
+        let pose = poses.get(&p.reference).copied().or(p.fixed).or_else(|| {
+            let &(a, off, r) = member.get(&i)?;
+            let base = poses.get(&pr.parts[a].reference)?;
+            let q = rot(off, base.rotation);
+            Some(Pose { x: base.x + q.0, y: base.y + q.1, rotation: (base.rotation + r).rem_euclid(360.0) })
+        });
+        mv.push(pose.ok_or_else(|| format!("{} has no pose", p.reference))?);
     }
     let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
-    let st = State { pr, sdf, mv, movables: (0..n).map(Movable::Part).collect(), of_part: (0..n).map(|i| (i, (0.0, 0.0), 0.0)).collect(), in_group: vec![None; n], halo: halos(pr) };
+    let mut in_group = vec![None; n];
+    for (g, grp) in pr.groups.iter().enumerate() {
+        for i in std::iter::once(grp.anchor).chain(grp.members.iter().map(|m| m.0)) {
+            in_group[i] = Some(g);
+        }
+    }
+    let st = State { pr, sdf, mv, movables: (0..n).map(Movable::Part).collect(), of_part: (0..n).map(|i| (i, (0.0, 0.0), 0.0)).collect(), in_group, halo: halos(pr) };
     Ok(st.cost(pr.options.w_overlap).1)
 }
 
@@ -1225,6 +1278,21 @@ mod tests {
         assert!((c.x - u.x - off.0).abs() < 1e-3 && (c.y - u.y - off.1).abs() < 1e-3, "{u:?} {c:?}");
         assert!(p.metrics.edge_misses.is_empty(), "{:?}", p.metrics);
         assert_eq!(p.metrics.overlaps, 0);
+    }
+
+    #[test]
+    fn parts_keep_the_margin_from_a_flush_edge() {
+        // A connector flush on the bottom edge, and a part beside it reaching as low: the outline
+        // is drawn at the connector's face, so the part is inside the margin. Lift it the margin
+        // and it is legal.
+        let mut parts = vec![part("J1", 4.0, 2.0), part("U1", 6.0, 1.0)];
+        parts[0].edge = Some(Edge { side: Some(Side::Bottom), facing: (0.0, 1.0) });
+        let pr = Problem { parts, nets: vec![], groups: vec![], separations: vec![], options: Options::default(), outline: None, outline_polygon: None };
+        let at = |uy: f64| -> BTreeMap<String, Pose> { [("J1".to_string(), Pose { x: 0.0, y: 0.0, rotation: 0.0 }), ("U1".to_string(), Pose { x: 6.0, y: uy, rotation: 0.0 })].into() };
+        let m = evaluate(&pr, &at(0.5)).unwrap();
+        assert_eq!(m.overlaps, 1, "{:?}", m.overlap_pairs);
+        assert!(m.overlap_pairs[0].starts_with("U1 within the margin of a flush edge"), "{:?}", m.overlap_pairs);
+        assert_eq!(evaluate(&pr, &at(0.5 - pr.options.margin)).unwrap().overlaps, 0);
     }
 
     #[test]

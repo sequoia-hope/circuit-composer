@@ -105,7 +105,9 @@ pub fn copper_path(board: &Board, net: &str, from: &str, to: &str) -> Option<Pat
                     continue;
                 }
                 let (pc, pd) = (nodes[c].p, nodes[d].p);
-                if geom::point_seg_dist(p, pc, pd) <= (w.max(w2)) / 2.0 {
+                // Copper touches when the centrelines come within the half-widths' sum, as
+                // KiCad's connectivity counts it: a router may leave segments that only overlap.
+                if geom::point_seg_dist(p, pc, pd) <= (w + w2) / 2.0 {
                     link(&mut adj, end, c, geom::dist(p, pc));
                     link(&mut adj, end, d, geom::dist(p, pd));
                 }
@@ -249,6 +251,23 @@ mod tests {
         assert!((p.length - 6.0).abs() < 1e-9, "{}", p.length);
         let p = copper_path(&board, "N", "A.1", "P.1").unwrap();
         assert!((p.length - 4.0).abs() < 1e-9, "{}", p.length);
+    }
+
+    #[test]
+    fn overlapping_tracks_join() {
+        // Two 0.1 mm tracks whose ends are 0.099 mm apart: their copper overlaps, so they join.
+        let pads = vec![pad("A", [0.0, 0.0]), pad("B", [2.0, 0.099])];
+        let mut parts = BTreeMap::new();
+        for (i, r) in ["A", "B"].iter().enumerate() {
+            parts.insert(r.to_string(), Part { reference: r.to_string(), value: String::new(), footprint: String::new(), at: pads[i].centre, rotation: 0.0, back: false, locked: false, courtyard: None, pads: vec![i] });
+        }
+        let t = |a: P, b: P| Track { a, b, width: 0.1, layer: "F.Cu".into(), net: "N".into(), locked: false };
+        let mut board = Board { layers: vec!["F.Cu".into()], parts, pads, tracks: vec![t([0.0, 0.0], [1.0, 0.0]), t([1.0, 0.099], [2.0, 0.099])], vias: vec![], fills: vec![], rules: None, outline: None };
+        assert!(copper_path(&board, "N", "A.1", "B.1").is_some());
+        // 0.101 mm apart they do not touch.
+        board.tracks[1] = t([1.0, 0.101], [2.0, 0.101]);
+        board.pads[1].centre = [2.0, 0.101];
+        assert!(copper_path(&board, "N", "A.1", "B.1").is_none());
     }
 
     #[test]

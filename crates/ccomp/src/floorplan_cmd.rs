@@ -187,6 +187,27 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
             let at = (place["at"][0].as_f64().unwrap_or(0.0), place["at"][1].as_f64().unwrap_or(0.0));
             members.push((i, at, place["rotation"].as_f64().unwrap_or(0.0)));
         }
+        // The layout's own copper rides with it, as pad-less parts no other courtyard may cover:
+        // a track blocks its side, a via both. Inner-layer copper blocks no part.
+        let num = |v: &Value| v.as_f64().unwrap_or(0.0);
+        for (k, t) in lay["layout"]["tracks"].as_array().into_iter().flatten().enumerate() {
+            let back = match t["layer"].as_str() {
+                Some("F.Cu") => false,
+                Some("B.Cu") => true,
+                _ => continue,
+            };
+            let (a, z, hw) = ((num(&t["a"][0]), num(&t["a"][1])), (num(&t["b"][0]), num(&t["b"][1])), num(&t["width"]) / 2.0);
+            let c = ((a.0 + z.0) / 2.0, (a.1 + z.1) / 2.0);
+            let (dx, dy) = ((a.0 - z.0).abs() / 2.0 + hw, (a.1 - z.1).abs() / 2.0 + hw);
+            members.push((parts.len(), c, 0.0));
+            parts.push(PartGeom { reference: format!("copper:{}:track{k}", g.name), bbox: [-dx, -dy, dx, dy], pins: BTreeMap::new(), block: None, near: None, edge: None, fixed: None, back, through: vec![] });
+        }
+        for (k, v) in lay["layout"]["vias"].as_array().into_iter().flatten().enumerate() {
+            let r = num(&v["size"]) / 2.0;
+            let bbox = [-r, -r, r, r];
+            members.push((parts.len(), (num(&v["at"][0]), num(&v["at"][1])), 0.0));
+            parts.push(PartGeom { reference: format!("copper:{}:via{k}", g.name), bbox, pins: BTreeMap::new(), block: None, near: None, edge: None, fixed: None, back: false, through: vec![bbox] });
+        }
         groups.push(Rigid { name: g.name.clone(), anchor, members });
     }
     let mut options = serde_json::to_value(floorplan::Options::default()).unwrap();
