@@ -1,0 +1,1869 @@
+{
+  "blocks": {
+    "chg/charger": {
+      "note": "CIN at VDD, COUT at VBAT, RPROG at PROG, all on the IC's side (mcp73831.layout.parts_adjacent).",
+      "package": "mcp73831@0.1.0",
+      "parts": [
+        "U1",
+        "C1",
+        "C2",
+        "R5"
+      ],
+      "ports": {
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "/GND"
+          ]
+        },
+        "vbat": {
+          "current_a": 0.213,
+          "direction": "out",
+          "kind": "supply",
+          "nets": [
+            "/VBAT"
+          ],
+          "voltage_v": 4.2
+        },
+        "vin": {
+          "current_a": 0.213,
+          "direction": "in",
+          "kind": "supply",
+          "nets": [
+            "/VBUS"
+          ],
+          "voltage_v": 5.0
+        }
+      },
+      "type": "charger"
+    },
+    "chg/status_led": {
+      "package": "mcp73831@0.1.0",
+      "parts": [
+        "R6",
+        "D2"
+      ],
+      "type": "indicator"
+    },
+    "imu/imu": {
+      "note": "Placement rules (10 mm from force points, away from heat) are the floorplanner's separations.",
+      "package": "lsm6dso@0.1.0",
+      "parts": [
+        "U2",
+        "C3",
+        "C4",
+        "R8",
+        "R7"
+      ],
+      "ports": {
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "/GND"
+          ]
+        },
+        "i2c": {
+          "kind": "bus",
+          "nets": [
+            "/I2C0_SDA",
+            "/I2C0_SCL"
+          ],
+          "protocol": "i2c"
+        },
+        "vdd": {
+          "current_a": 0.00055,
+          "direction": "in",
+          "kind": "supply",
+          "nets": [
+            "/+3V3"
+          ],
+          "voltage_v": 3.3
+        }
+      },
+      "type": "sensor"
+    },
+    "mcu/bootsel": {
+      "note": "1 k from QSPI_SS to the button, so QSPI_SS can over-drive it at boot (HDG §3.1).",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "SW1",
+        "R10"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§3.1 p.11",
+              "note": "R1 and R6 close to the flash. Set at what the reference boards achieve, nearest pad centres: 4.07 mm (RP2350A Minimal), 3.91 mm (RP2350B Minimal), measured by ccomp check package",
+              "source": "rp2350_hdg"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 4.1,
+              "metric": "part_distance_mm",
+              "op": "<=",
+              "parts": [
+                "R10",
+                "U3"
+              ]
+            },
+            "weight": 0.5
+          }
+        ]
+      },
+      "roles": {
+        "button": "SW1",
+        "r": "R10",
+        "ss": "U4.60"
+      },
+      "type": "button"
+    },
+    "mcu/core_reg": {
+      "note": "U1 is the RP2350 itself; pins are QFN-60 numbers. Part references are roles, renamed when composed onto a board.",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "L1",
+        "C6",
+        "C9",
+        "R9",
+        "C5"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§6.3.8 p.412",
+              "note": "Datasheet: avoid routing VREG_FB directly underneath LX. 0.3 mm is this package's floor, under the reference board's 0.365 mm.",
+              "source": "rp2350_ds"
+            },
+            "strength": "hard",
+            "value": {
+              "limit": 0.3,
+              "metric": "feedback_clearance_mm",
+              "nets": [
+                "/mcu_DVDD",
+                "/mcu_VREG_LX"
+              ],
+              "op": ">="
+            }
+          },
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§6.3.8 p.412, Figure 27",
+              "note": "4-layer: no copper on the layer under LX",
+              "source": "rp2350_ds"
+            },
+            "strength": "hard",
+            "value": {
+              "limit": 0.0,
+              "metric": "switch_node_underlap_mm2",
+              "nets": [
+                "/mcu_VREG_LX"
+              ],
+              "op": "<="
+            }
+          }
+        ],
+        "objectives": [
+          {
+            "metric": "hot_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 1.0
+          },
+          {
+            "metric": "switch_node_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          },
+          {
+            "metric": "output_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          }
+        ]
+      },
+      "ports": {
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "/GND"
+          ]
+        },
+        "out": {
+          "current_a": 0.2,
+          "direction": "out",
+          "kind": "supply",
+          "nets": [
+            "/mcu_DVDD"
+          ],
+          "voltage_v": 1.1
+        },
+        "vin": {
+          "current_a": 0.1,
+          "direction": "in",
+          "kind": "supply",
+          "nets": [
+            "/+3V3"
+          ],
+          "voltage_v": 3.3
+        }
+      },
+      "roles": {
+        "cin": "C6",
+        "cout": "C9",
+        "fb": "U4.50",
+        "inductor": "L1",
+        "pgnd": "U4.47",
+        "sw": "U4.48",
+        "vin": "U4.49"
+      },
+      "type": "buck"
+    },
+    "mcu/crystal": {
+      "note": "ABM8-272-T3, 2 x 15 pF, 1 k on XOUT; rules rp2350.crystal.*. Tuned for IOVDD 3.3 V.",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "Y1",
+        "C7",
+        "C8",
+        "R17"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths xin_to_crystal, xout_to_damping_r, damping_r_to_crystal",
+              "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Both reference boards route the crystal on top with no vias.",
+              "source": "rp2350a_minimal"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 0.0,
+              "metric": "via_count",
+              "nets": [
+                "/mcu_XIN",
+                "/mcu_XOUT",
+                "/mcu_XOUT_XTAL"
+              ],
+              "op": "<="
+            },
+            "weight": 0.7
+          },
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths ",
+              "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Reference: 0 mm on both boards (return_paths).",
+              "source": "rp2350a_minimal"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 0.0,
+              "metric": "unreferenced_length_mm",
+              "nets": [
+                "/mcu_XIN",
+                "/mcu_XOUT",
+                "/mcu_XOUT_XTAL"
+              ],
+              "op": "<="
+            },
+            "weight": 0.7
+          }
+        ],
+        "objectives": [
+          {
+            "metric": "trace_length_mm",
+            "nets": [
+              "/mcu_XIN",
+              "/mcu_XOUT",
+              "/mcu_XOUT_XTAL"
+            ],
+            "sense": "minimize",
+            "weight": 1.0
+          }
+        ]
+      },
+      "roles": {
+        "cload_xin": "C7",
+        "cload_xout": "C8",
+        "crystal": "Y1",
+        "rdamp": "R17",
+        "xin": "U4.21",
+        "xout": "U4.22"
+      },
+      "type": "crystal"
+    },
+    "mcu/flash": {
+      "note": "W25Q128JVS; R_SS_LINK 0 ohm (remove for RP2354 with internal flash), R_SS_PULLUP 10 k DNF, R_CS1_LINK DNF (fit to use FLASH as second memory on GPIO0). Rules rp2350.qspi.*.",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "U3",
+        "R13",
+        "R14",
+        "R11",
+        "C13"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§3.1 p.10",
+              "note": "Crosstalk; the QFN-60 reference meets it except 0.8 mm of QSPI_SS, the QFN-80 one does not (rules rp2350.qspi.short_direct).",
+              "source": "rp2350_hdg"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 0.0,
+              "metric": "unreferenced_length_mm",
+              "nets": [
+                "/mcu_QSPI_SCLK",
+                "/mcu_QSPI_SD0",
+                "/mcu_QSPI_SD1",
+                "/mcu_QSPI_SD2",
+                "/mcu_QSPI_SD3",
+                "/mcu_QSPI_SS",
+                "/mcu_FLASH_SS"
+              ],
+              "op": "<="
+            },
+            "weight": 0.7
+          }
+        ],
+        "objectives": [
+          {
+            "metric": "trace_length_mm",
+            "nets": [
+              "/mcu_QSPI_SCLK",
+              "/mcu_QSPI_SD0",
+              "/mcu_QSPI_SD1",
+              "/mcu_QSPI_SD2",
+              "/mcu_QSPI_SD3"
+            ],
+            "sense": "minimize",
+            "weight": 1.0
+          }
+        ]
+      },
+      "ports": {
+        "qspi": {
+          "class": "SE_HS",
+          "kind": "bus",
+          "nets": [
+            "/mcu_QSPI_SCLK",
+            "/mcu_QSPI_SD0",
+            "/mcu_QSPI_SD1",
+            "/mcu_QSPI_SD2",
+            "/mcu_QSPI_SD3",
+            "/mcu_QSPI_SS"
+          ],
+          "protocol": "qspi"
+        }
+      },
+      "roles": {
+        "cs1_link": "R11",
+        "decoupling": "C13",
+        "memory": "U3",
+        "sclk": "U4.56",
+        "sd0": "U4.57",
+        "sd1": "U4.59",
+        "sd2": "U4.58",
+        "sd3": "U4.55",
+        "ss": "U4.60",
+        "ss_link": "R13",
+        "ss_pullup": "R14"
+      },
+      "type": "memory"
+    },
+    "mcu/mcu": {
+      "note": "Decoupling as on Raspberry Pi's minimal boards: 100 nF per pin, except C_OTP_QSPI shared by USB_OTP_VDD and QSPI_IOVDD (HDG §2.2.1) and C_IOVDD_45_ADC shared by ADC_AVDD and IOVDD pin 45 (not documented). The datasheet asks for one per pin (§6.1.4-6.1.5): a board with room should split both (rules rp2350.decoupling.*). C_DVDD_23 is 4.7 uF, the other DVDD caps 100 nF (§6.1.3).",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "C10",
+        "C11",
+        "C12",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "C19",
+        "C20"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths ",
+              "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Worst pin on the two minimal boards (decoupling). HDG §2.2.1: close to the power pins.",
+              "source": "rp2350a_minimal"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 4.9,
+              "metric": "decoupling_path_mm",
+              "op": "<=",
+              "parts": [
+                "C10",
+                "C11",
+                "C12",
+                "C14",
+                "C15",
+                "C16",
+                "C17",
+                "C18",
+                "C19",
+                "C20"
+              ]
+            },
+            "weight": 0.7
+          }
+        ],
+        "objectives": [
+          {
+            "metric": "decoupling_path_mm",
+            "sense": "minimize",
+            "weight": 1.0
+          }
+        ]
+      },
+      "roles": {
+        "cap_pin1": "C14",
+        "cap_pin11": "C15",
+        "cap_pin20": "C16",
+        "cap_pin23": "C10",
+        "cap_pin30": "C17",
+        "cap_pin38": "C18",
+        "cap_pin39": "C11",
+        "cap_pin44": "C19",
+        "cap_pin45": "C19",
+        "cap_pin53": "C20",
+        "cap_pin54": "C20",
+        "cap_pin6": "C12"
+      },
+      "type": "mcu"
+    },
+    "mcu/reset": {
+      "note": "RUN to ground through 1 k; optional (HDG §5.4).",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "SW2",
+        "R12"
+      ],
+      "roles": {
+        "button": "SW2",
+        "r": "R12",
+        "run": "U4.26"
+      },
+      "type": "button"
+    },
+    "mcu/usb": {
+      "note": "27 ohm series resistors at the chip; rules rp2350.usb.*.",
+      "package": "rp2350@0.2.0",
+      "parts": [
+        "R16",
+        "R15"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§5.1 p.15",
+              "note": "Solid, uninterrupted ground under the whole length. Met on the connector side of both reference boards.",
+              "source": "rp2350_hdg"
+            },
+            "strength": "hard",
+            "value": {
+              "limit": 0.0,
+              "metric": "unreferenced_length_mm",
+              "nets": [
+                "/USB_DP",
+                "/USB_DM"
+              ],
+              "op": "<="
+            }
+          },
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§5.1 p.15",
+              "note": "Contested: the reference boards leave 0.9-1.8 mm of the chip side over cut ground (rules rp2350.usb.impedance).",
+              "source": "rp2350_hdg"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 0.0,
+              "metric": "unreferenced_length_mm",
+              "nets": [
+                "/mcu_USB_DP_PIN",
+                "/mcu_USB_DM_PIN"
+              ],
+              "op": "<="
+            },
+            "weight": 0.5
+          }
+        ],
+        "objectives": [
+          {
+            "metric": "trace_length_mm",
+            "nets": [
+              "/mcu_USB_DP_PIN",
+              "/mcu_USB_DM_PIN"
+            ],
+            "sense": "minimize",
+            "weight": 1.0
+          }
+        ]
+      },
+      "ports": {
+        "usb": {
+          "class": "DIFF_HS",
+          "impedance_ohm": 90.0,
+          "kind": "bus",
+          "nets": [
+            "/USB_DP",
+            "/USB_DM"
+          ],
+          "protocol": "usb2-fs"
+        }
+      },
+      "roles": {
+        "dm": "U4.51",
+        "dp": "U4.52",
+        "r_dm": "R15",
+        "r_dp": "R16"
+      },
+      "type": "usb"
+    },
+    "reg/reg": {
+      "note": "U1 is the TLV62569DBV (SOT-23-5): 1 EN, 2 GND, 3 SW, 4 VIN, 5 FB. The GND pin is both power and signal ground (no exposed pad, no separate AGND). The feedback divider is external (RFB_TOP from VOUT to FB, RFB_BOT from FB to GND, CFF across RFB_TOP), so `fb` is not on the output net. Part references are roles, renamed when composed onto a board. No switch_node_underlap constraint: this datasheet does not ask for the plane under SW to be cut (see the library dispute buck.sw.keep_ground_under).",
+      "package": "tlv62569@0.1.0",
+      "parts": [
+        "U5",
+        "L2",
+        "C22",
+        "C23",
+        "R19",
+        "R18",
+        "C21",
+        "R20"
+      ],
+      "placement_goal": {
+        "constraints": [
+          {
+            "provenance": {
+              "kind": "datasheet",
+              "locator": "§10.1 p.13",
+              "note": "Datasheet: keep FB sense traces away from SW nodes, no distance given. 0.3 mm is the rp2350 package's floor, borrowed; soft until a source or a measurement gives one. With the divider the checked path is FB pin to the nearest divider pad (crates/verify/src/buck.rs); the VOUT sense run from COUT to RFB_TOP is not covered.",
+              "source": "tlv62569_ds"
+            },
+            "strength": "soft",
+            "value": {
+              "limit": 0.3,
+              "metric": "feedback_clearance_mm",
+              "nets": [
+                "/reg_FB",
+                "/reg_SW"
+              ],
+              "op": ">="
+            },
+            "weight": 0.5
+          }
+        ],
+        "objectives": [
+          {
+            "metric": "hot_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 1.0
+          },
+          {
+            "metric": "switch_node_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          },
+          {
+            "metric": "output_loop_area_mm2",
+            "sense": "minimize",
+            "weight": 0.5
+          }
+        ]
+      },
+      "ports": {
+        "en": {
+          "direction": "in",
+          "kind": "signal",
+          "nets": [
+            "/reg_EN"
+          ]
+        },
+        "gnd": {
+          "kind": "ground",
+          "nets": [
+            "/GND"
+          ]
+        },
+        "out": {
+          "current_a": 0.6,
+          "direction": "out",
+          "kind": "supply",
+          "nets": [
+            "/+3V3"
+          ],
+          "voltage_v": 3.3
+        },
+        "vin": {
+          "current_a": 0.6,
+          "direction": "in",
+          "kind": "supply",
+          "nets": [
+            "/VSYS"
+          ],
+          "voltage_v": 4.2
+        }
+      },
+      "roles": {
+        "cin": "C22",
+        "cout": "C23",
+        "fb": "U5.5",
+        "inductor": "L2",
+        "pgnd": "U5.2",
+        "sw": "U5.3",
+        "vin": "U5.4"
+      },
+      "type": "buck"
+    }
+  },
+  "board": {
+    "layers": 4,
+    "name": "rp2350-battery",
+    "packages": {
+      "lsm6dso": "0.1.0",
+      "mcp73831": "0.1.0",
+      "rp2350": "0.2.0",
+      "tlv62569": "0.1.0"
+    }
+  },
+  "domains": {
+    "children": [
+      {
+        "blocks": [
+          "chg/charger",
+          "chg/status_led"
+        ],
+        "kind": "group",
+        "name": "chg/mcp73831",
+        "reference_ground": "/GND",
+        "supplies": [
+          "/VBUS",
+          "/VBAT"
+        ],
+        "switchable": false
+      },
+      {
+        "blocks": [
+          "imu/imu"
+        ],
+        "kind": "group",
+        "name": "imu/lsm6dso",
+        "reference_ground": "/GND",
+        "supplies": [
+          "/+3V3"
+        ],
+        "switchable": false
+      },
+      {
+        "blocks": [
+          "mcu/mcu",
+          "mcu/crystal",
+          "mcu/usb",
+          "mcu/flash",
+          "mcu/bootsel",
+          "mcu/reset"
+        ],
+        "children": [
+          {
+            "blocks": [
+              "mcu/core_reg"
+            ],
+            "kind": "group",
+            "name": "mcu/core",
+            "reference_ground": "/GND",
+            "supplies": [
+              "/mcu_DVDD"
+            ],
+            "switchable": false
+          }
+        ],
+        "kind": "group",
+        "name": "mcu/rp2350",
+        "reference_ground": "/GND",
+        "supplies": [
+          "/+3V3"
+        ],
+        "switchable": false
+      },
+      {
+        "blocks": [
+          "reg/reg"
+        ],
+        "kind": "group",
+        "name": "reg/tlv62569",
+        "reference_ground": "/GND",
+        "supplies": [
+          "/VSYS",
+          "/+3V3"
+        ],
+        "switchable": false
+      }
+    ],
+    "kind": "board",
+    "name": "rp2350-battery",
+    "reference_ground": "/GND",
+    "supplies": [
+      "/VBUS",
+      "/VBAT",
+      "/+3V3",
+      "/VSYS"
+    ],
+    "switchable": false
+  },
+  "nets": {
+    "/+3V3": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "3.3 V rail budget",
+          "note": "RP2350, flash, IMU and LEDs; the IC is rated 2 A (p.4).",
+          "source": "board_m5"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.6
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.1.1 p.400",
+          "note": "nominal 1.8-3.3 V; 3.3 V here, which the crystal circuit is tuned for (HDG §4.1)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/CC1": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "USB-C sink",
+          "note": "CC with Rd to ground; bounded here by VBUS, the highest a source's Rp pulls to.",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "/CC2": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "USB-C sink",
+          "note": "As CC1.",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "/GND": {
+      "class": "GROUND",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "3.3 V rail budget",
+          "source": "board_m5"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.6
+        }
+      }
+    },
+    "/I2C0_SCL": {
+      "bandwidth": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4.4.2 Table 6 p.14",
+          "note": "Fast mode, 400 kHz.",
+          "source": "lsm6dso_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "kind": "digital",
+          "max_hz": 400000.0
+        }
+      },
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4.2 Table 3 p.12",
+          "note": "I2C at VDDIO.",
+          "source": "lsm6dso_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/I2C0_SDA": {
+      "bandwidth": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4.4.2 Table 6 p.14",
+          "note": "Fast mode, 400 kHz.",
+          "source": "lsm6dso_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "kind": "digital",
+          "max_hz": 400000.0
+        }
+      },
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4.2 Table 3 p.12",
+          "note": "I2C at VDDIO; inputs stay below VDDIO + 0.3 V (Table 7 p.15).",
+          "source": "lsm6dso_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/IMU_INT1": {
+      "class": "SIGNAL",
+      "note": "No pull-up: high at power-on starts the part I3C-only (lsm6dso.int1.low_at_powerup).",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4.2 Table 3 p.12",
+          "note": "Push-pull at VDDIO.",
+          "source": "lsm6dso_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/IMU_INT2": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4.2 Table 3 p.12",
+          "note": "Push-pull at VDDIO.",
+          "source": "lsm6dso_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/LED": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/LED_A": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/SWCLK": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/SWDIO": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/USB_DM": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§5.1 p.15",
+          "note": "90 ohm differential, over solid ground",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DP",
+          "tolerance_pct": 15.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/USB_DP": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§5.1 p.15",
+          "note": "90 ohm differential, over solid ground",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_DM",
+          "tolerance_pct": 15.0
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/VBAT": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "power budget",
+          "note": "On battery the whole 3.3 V rail's input comes from the cell through Q1.",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.6
+        }
+      },
+      "note": "Short, wide copper to the battery connector: drop here degrades the 0.75 % regulation (mcp73831.layout.battery_close).",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§1.0 p.3",
+          "note": "VREG for the -2 variant: 4.20 V typ, 4.232 V max.",
+          "source": "mcp73831_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 4.232
+        }
+      }
+    },
+    "/VBUS": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "power budget",
+          "note": "The charger's 213 mA and, through D3, the buck's 600 mA input at full load: what the charger package alone does not know.",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.813
+        }
+      },
+      "note": "USB 5 V from J1 to the charger, D3 and Q1's gate.",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§1.0 p.3; §3.1 p.11",
+          "note": "Operating VDD 3.75-6 V; 7.0 V absolute maximum. From USB this is 5 V.",
+          "source": "mcp73831_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 6.0
+        }
+      }
+    },
+    "/VSYS": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "3.3 V rail budget",
+          "note": "Input current is below the 600 mA output whenever VIN > VOUT; peak is the inductor's IL,MAX at VIN = 5.5 V (Equation 3 p.10), drawn from CIN.",
+          "source": "board_m5"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.6,
+          "peak_a": 0.8
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.3 p.4",
+          "note": "Recommended maximum; 6 V absolute maximum (p.3). 4.2 V from the cell, up to 5.5 V if fed from USB.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "/chg_PROG": {
+      "class": "SIGNAL",
+      "note": "RPROG beside PROG, returning to VSS (mcp73831.layout.parts_adjacent); left open the charger shuts down (mcp73831.prog.disable).",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§5.1.2 p.15",
+          "note": "IREG (mA) = 1000 V / RPROG (kohm): PROG sits at 1 V.",
+          "source": "mcp73831_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 1.0
+        }
+      }
+    },
+    "/chg_STAT": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§3.3 p.11; §1.0 p.4",
+          "note": "STAT's high is VDD - 0.4 V typ: up to the 6 V input.",
+          "source": "mcp73831_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 6.0
+        }
+      }
+    },
+    "/chg_STAT_LED": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "Figure 6-1 p.17",
+          "note": "LED anode at VIN through R_STAT.",
+          "source": "mcp73831_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 6.0
+        }
+      }
+    },
+    "/mcu_DVDD": {
+      "class": "POWER",
+      "current": {
+        "provenance": {
+          "kind": "expert",
+          "locator": "regulator rated 200 mA",
+          "source": "easy2350_core_audit"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.2,
+          "peak_a": 0.4
+        }
+      },
+      "victim": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.3.8 p.412",
+          "note": "VREG_FB is on this net, taken at COUT",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "expert",
+          "locator": "1V1 core, nets.csv row +1V1",
+          "source": "easy2350_core_audit"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 1.3
+        }
+      }
+    },
+    "/mcu_FLASH_SS": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths flash_ss_r_to_flash",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. 0 ohm link to the flash's CS.",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 2.7
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_GPIO0": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/mcu_N_R_RUN_1": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/mcu_QSPI_SCLK": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sclk",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (§3.1 p.10).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 11.1
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_QSPI_SD0": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd0",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (§3.1 p.10).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 8.7
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_QSPI_SD1": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd1",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (§3.1 p.10).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 17.4
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_QSPI_SD2": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd2",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (§3.1 p.10).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 13.2
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_QSPI_SD3": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_sd3",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (§3.1 p.10).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 12.5
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_QSPI_SS": {
+      "class": "SE_HS",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths qspi_ss_to_r",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: wire directly to the flash with short connections (§3.1 p.10).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 20.9
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_RUN": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/mcu_USB_DM_PIN": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§5.1 p.15",
+          "note": "The series resistor is part of the line; the pair runs at 90 ohm to the connector",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/mcu_USB_DP_PIN",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths usb_dm_to_r",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. 27 ohm close to the chip (Table 2; HDG §5.1).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 3.9
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_USB_DP_PIN": {
+      "class": "DIFF_HS",
+      "impedance": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§5.1 p.15",
+          "note": "The series resistor is part of the line; the pair runs at 90 ohm to the connector",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/mcu_USB_DM_PIN",
+          "tolerance_pct": 15.0
+        }
+      },
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths usb_dp_to_r",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. 27 ohm close to the chip (Table 2; HDG §5.1).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 4.2
+        },
+        "weight": 0.7
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_VREG_AVDD": {
+      "bandwidth": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§2.1 p.7",
+          "note": "Draws about 200 uA; an RC filter of 33 ohm and 4.7 uF",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "kind": "dc"
+        }
+      },
+      "class": "ANALOG",
+      "current": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§2.1 p.7",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.0002
+        }
+      },
+      "victim": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§2.1 p.5",
+          "note": "very sensitive to noise; RC filtered",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.1.7 p.401",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/mcu_VREG_LX": {
+      "aggressor": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.3.8 p.411",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "class": "SWITCH",
+      "current": {
+        "provenance": {
+          "kind": "expert",
+          "locator": "regulator rated 200 mA",
+          "source": "easy2350_core_audit"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.2,
+          "peak_a": 0.4
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "p.401",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/mcu_XIN": {
+      "class": "CLOCK",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths xin_to_crystal",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. HDG: keep the layout as short as possible (§4 p.13).",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 11.2
+        },
+        "weight": 0.7
+      },
+      "victim": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4 p.13",
+          "note": "Trace capacitance adds to the crystal's load",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_XOUT": {
+      "class": "CLOCK",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths xout_to_damping_r",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. XOUT to the 1 k damping resistor.",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 3.0
+        },
+        "weight": 0.7
+      },
+      "victim": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4 p.13",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_XOUT_XTAL": {
+      "class": "CLOCK",
+      "max_length": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "reference/rp2350a_minimal and rp2350b_minimal measured.json, paths damping_r_to_crystal",
+          "note": "Longest of the two minimal boards: what Raspberry Pi achieved, as a soft ceiling. Damping resistor to the crystal.",
+          "source": "rp2350a_minimal"
+        },
+        "strength": "soft",
+        "value": {
+          "mm": 5.6
+        },
+        "weight": 0.7
+      },
+      "victim": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§4 p.13",
+          "source": "rp2350_hdg"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§14.9 (IOVDD 3.3 V nominal)",
+          "source": "rp2350_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.6
+        }
+      }
+    },
+    "/mcu_~USB_BOOT": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "requirement",
+          "locator": "logic rail",
+          "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package).",
+          "source": "rp2350_battery_brief"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 3.63
+        }
+      }
+    },
+    "/reg_EN": {
+      "class": "SIGNAL",
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.1 p.3; §6.3 p.4",
+          "note": "Pulled up to VIN.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.5
+        }
+      }
+    },
+    "/reg_FB": {
+      "bandwidth": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§8.2.2.2 p.9",
+          "note": "High-impedance divider node (100 kOhm to ground); the regulation loop's bandwidth is not given.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "kind": "dc"
+        }
+      },
+      "class": "ANALOG",
+      "victim": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§10.1 p.13",
+          "note": "The sense traces connected to FB are signal traces; avoid noise being induced.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.5 p.4",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 0.612
+        }
+      }
+    },
+    "/reg_SW": {
+      "aggressor": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§10.1 p.13",
+          "note": "Keep FB sense traces away from SW nodes.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "level": "strong"
+        }
+      },
+      "class": "SWITCH",
+      "current": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§8.2.2.4 Equation 3 p.10",
+          "note": "IL,MAX = 0.6 A + 0.40 A / 2 at VIN = 5.5 V, L = 2.2 uH, 1.5 MHz.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "continuous_a": 0.6,
+          "peak_a": 0.8
+        }
+      },
+      "voltage": {
+        "provenance": {
+          "kind": "datasheet",
+          "locator": "§6.1 p.3",
+          "note": "DC limit VIN + 0.3 V; ringing to 9 V for under 10 ns is within absolute maximum.",
+          "source": "tlv62569_ds"
+        },
+        "strength": "hard",
+        "value": {
+          "peak_v": 5.8
+        }
+      }
+    }
+  },
+  "schema_version": "0.1",
+  "sources": {
+    "board_m5": {
+      "revision": "2026-10-27",
+      "title": "Milestone 5 demo board brief: RP2350A + MCP73831 + 1S LiPo + TLV62569 + LSM6DSO, 3.3 V rail up to 600 mA"
+    },
+    "easy2350_core_audit": {
+      "location": "easy_pcb commit 2d56198, examples/easy2350/design/parts/rp2350-core.md (not yet on GitHub; will be at github.com/sequoia-hope/easy_pcb once pushed)",
+      "revision": "easy_pcb 2d56198",
+      "title": "easy2350 U1 core block audit (easy_pcb)"
+    },
+    "lsm6dso_ds": {
+      "location": "https://datasheet.lcsc.com/datasheet/pdf/9b8183d12f183970849d8eecce406049.pdf?productCode=C2655100",
+      "revision": "DS12140 - Rev 2 (PDF dated 2019-01-28)",
+      "sha256": "1074e39739595e97705507c23ba0e31d1587884810b18335822444e8b207acb8",
+      "title": "LSM6DSO iNEMO inertial module: always-on 3D accelerometer and 3D gyroscope"
+    },
+    "mcp73831_ds": {
+      "location": "https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP73831-Family-Data-Sheet-DS20001984H.pdf",
+      "revision": "Revision H (June 2020)",
+      "sha256": "75297f2a5235599368381adfb63df2652cc22d757f171f388147b2ab3d32776f",
+      "title": "MCP73831/2 Miniature Single-Cell, Fully Integrated Li-Ion, Li-Polymer Charge Management Controllers"
+    },
+    "rp2350_battery_brief": {
+      "revision": "2026-11-02",
+      "title": "rp2350-battery: milestone 5's demo board (compose.json's note)"
+    },
+    "rp2350_ds": {
+      "location": "https://datasheets.raspberrypi.com/rp2350/rp2350-datasheet.pdf",
+      "sha256": "a638d6780da919162660691bfa02c6dcf7c2a0b6e9f18e2d7519c80b664a2e39",
+      "title": "RP2350 datasheet"
+    },
+    "rp2350_hdg": {
+      "location": "https://datasheets.raspberrypi.com/rp2350/hardware-design-with-rp2350.pdf",
+      "revision": "release 3, build 20/08/2026",
+      "sha256": "cef88bc7d87e67b4262ee15f2b94b03566667143f4e8daf6931828bef6408059",
+      "title": "Hardware design with RP2350"
+    },
+    "rp2350a_minimal": {
+      "revision": "RP-006440-DD rev 2",
+      "sha256": "745e4b3a7bbf0beaf65f7dbc56808ce764420eaf4c26e9cce1fa314cfb0c3b2b",
+      "title": "RP2350A Minimal Board, KiCad files (RP2350_60QFN_minimal.kicad_pcb)"
+    },
+    "rp2350b_minimal": {
+      "revision": "RP-006442-DD rev 2",
+      "sha256": "1eef941cd8b64716f15f0b79c60e8d34d0d1e7792e8017c8dd54124654b87c09",
+      "title": "RP2350B Minimal Board, KiCad files (RP2350_80QFN_minimal.kicad_pcb)"
+    },
+    "smnr4020_ds": {
+      "location": "https://datasheet.lcsc.com/datasheet/pdf/c30b0f031d0070e2292eba9306a4bf8b.pdf?productCode=C135262",
+      "sha256": "1deed22423597bd5cb68f8417c6c51a0c994c898bff827e1a7f7fc85bf5cc0c1",
+      "title": "SXN SMNR series magnetic resin shielded SMD power inductors"
+    },
+    "tlv62569_ds": {
+      "location": "https://www.ti.com/lit/ds/symlink/tlv62569.pdf",
+      "revision": "SLVSDG1C, revised October 2017",
+      "sha256": "1ba6f55dfe678d06d563acd6632f1f950a497d812270806021097b55cd81d3c4",
+      "title": "TLV62569 2-A High Efficiency Synchronous Buck Converter in SOT Package (SLVSDG1C)"
+    }
+  }
+}

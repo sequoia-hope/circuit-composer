@@ -19,6 +19,7 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub mod board_intent;
 pub mod expr;
 pub mod recipe;
 
@@ -44,6 +45,9 @@ pub struct Composition {
     /// pin solver's level rules judge connections by.
     #[serde(default)]
     pub rails: BTreeMap<String, Value>,
+    /// The board's own intent, over what its packages bring (`board_intent`).
+    #[serde(default)]
+    pub intent: Option<board_intent::Overlay>,
 }
 
 #[derive(Debug, Clone, Deserialize)]

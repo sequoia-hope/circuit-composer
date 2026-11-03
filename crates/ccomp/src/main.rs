@@ -114,6 +114,10 @@ enum Cmd {
         /// Also write each instance's binding here, as `INSTANCE.binding.json`.
         #[arg(long)]
         bindings: Option<PathBuf>,
+        /// Also write the board's intent file here: its packages' intent in board names, and
+        /// the composition's own `intent`.
+        #[arg(long)]
+        intent: Option<PathBuf>,
     },
     /// Place every part of a composed board: simulated annealing on wirelength, courtyard
     /// overlap and board area, with block cohesion, placement hints, rigid generated layouts,
@@ -672,7 +676,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 true,
             ))
         }
-        Cmd::Compose { composition, packages, output, bindings } => {
+        Cmd::Compose { composition, packages, output, bindings, intent: intent_out } => {
             let composition = ctx.or_board(composition, "a composition", |b| b.composition.clone())?;
             let packages = match packages {
                 Some(p) => p,
@@ -681,10 +685,18 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             };
             let text = std::fs::read_to_string(&composition).map_err(|e| format!("{}: {e}", composition.display()))?;
             let c: compose::Composition = serde_json::from_str(&text).map_err(|e| format!("{}: {e}", composition.display()))?;
-            let r = compose::compose(&c, &packages)?;
-            let value = serde_json::to_value(&r).unwrap();
+            let circuits = compose::circuits(&c, &packages)?;
+            let r = compose::compose_with(&c, &circuits);
+            let mut value = serde_json::to_value(&r).unwrap();
             if let Some(o) = output {
                 write_json(&o, &value)?;
+            }
+            let mut ok = r.ok;
+            if let Some(path) = intent_out.filter(|_| r.ok) {
+                let bi = compose::board_intent::board_intent(&c, &circuits, &r, &packages);
+                write_json(&path, &serde_json::to_value(&bi.intent).unwrap())?;
+                ok &= bi.ok;
+                value["intent"] = json!({ "ok": bi.ok, "path": path, "nets": bi.intent.nets.len(), "blocks": bi.intent.blocks.len(), "merged": bi.merged, "defaulted": bi.defaulted, "uncovered": bi.uncovered, "unplaced": bi.unplaced, "errors": bi.errors });
             }
             if let Some(dir) = bindings.filter(|_| r.ok) {
                 std::fs::create_dir_all(&dir).map_err(|e| format!("{}: {e}", dir.display()))?;
@@ -692,7 +704,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                     write_json(&dir.join(format!("{name}.binding.json")), &serde_json::to_value(b).unwrap())?;
                 }
             }
-            Ok((value, r.ok))
+            Ok((value, ok))
         }
         Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, placer, fill, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
             if let Some(p) = input_problem {

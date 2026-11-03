@@ -236,6 +236,7 @@
               ]
             },
             "strength": "soft",
+            "weight": 0.5,
             "provenance": {
               "source": "tlv62569_ds",
               "locator": "§10.1 p.13",

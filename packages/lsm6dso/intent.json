@@ -1,0 +1,194 @@
+{
+ "schema_version": "0.1",
+ "board": {
+  "name": "lsm6dso package: 6-axis IMU on I2C at 0x6A, VDD and VDDIO on one 3.3 V rail"
+ },
+ "sources": {
+  "lsm6dso_ds": {
+   "title": "LSM6DSO iNEMO inertial module: always-on 3D accelerometer and 3D gyroscope",
+   "location": "https://datasheet.lcsc.com/datasheet/pdf/9b8183d12f183970849d8eecce406049.pdf?productCode=C2655100",
+   "revision": "DS12140 - Rev 2 (PDF dated 2019-01-28)",
+   "sha256": "1074e39739595e97705507c23ba0e31d1587884810b18335822444e8b207acb8"
+  }
+ },
+ "nets": {
+  "VDD": {
+   "class": "POWER",
+   "voltage": {
+    "value": {
+     "peak_v": 3.6
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "VDD 1.71-3.6 V, VDDIO 1.62-3.6 V; this package runs both from one 3.3 V rail."
+    }
+   },
+   "current": {
+    "value": {
+     "continuous_a": 0.00055
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "IddHP: gyroscope and accelerometer in high-performance mode, 0.55 mA typ."
+    }
+   }
+  },
+  "GND": {
+   "class": "GROUND",
+   "current": {
+    "value": {
+     "continuous_a": 0.00055
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "IddHP: gyroscope and accelerometer in high-performance mode, 0.55 mA typ."
+    }
+   }
+  },
+  "SDA": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 3.6
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "I2C at VDDIO; inputs stay below VDDIO + 0.3 V (Table 7 p.15)."
+    }
+   },
+   "bandwidth": {
+    "value": {
+     "kind": "digital",
+     "max_hz": 400000
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.4.2 Table 6 p.14",
+     "kind": "datasheet",
+     "note": "Fast mode, 400 kHz."
+    }
+   }
+  },
+  "SCL": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 3.6
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "I2C at VDDIO."
+    }
+   },
+   "bandwidth": {
+    "value": {
+     "kind": "digital",
+     "max_hz": 400000
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.4.2 Table 6 p.14",
+     "kind": "datasheet",
+     "note": "Fast mode, 400 kHz."
+    }
+   }
+  },
+  "INT1": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 3.6
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "Push-pull at VDDIO."
+    }
+   },
+   "note": "No pull-up: high at power-on starts the part I3C-only (lsm6dso.int1.low_at_powerup)."
+  },
+  "INT2": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 3.6
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12",
+     "kind": "datasheet",
+     "note": "Push-pull at VDDIO."
+    }
+   }
+  }
+ },
+ "blocks": {
+  "imu": {
+   "type": "sensor",
+   "parts": [
+    "U1",
+    "C_VDD",
+    "C_VDDIO",
+    "R_SDA_PU",
+    "R_SCL_PU"
+   ],
+   "ports": {
+    "vdd": {
+     "kind": "supply",
+     "nets": [
+      "VDD"
+     ],
+     "direction": "in",
+     "voltage_v": 3.3,
+     "current_a": 0.00055
+    },
+    "i2c": {
+     "kind": "bus",
+     "nets": [
+      "SDA",
+      "SCL"
+     ],
+     "protocol": "i2c"
+    },
+    "gnd": {
+     "kind": "ground",
+     "nets": [
+      "GND"
+     ]
+    }
+   },
+   "note": "Placement rules (10 mm from force points, away from heat) are the floorplanner's separations."
+  }
+ },
+ "domains": {
+  "name": "lsm6dso",
+  "kind": "board",
+  "supplies": [
+   "VDD"
+  ],
+  "reference_ground": "GND",
+  "blocks": [
+   "imu"
+  ]
+ }
+}

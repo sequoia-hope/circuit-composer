@@ -1,0 +1,190 @@
+{
+ "schema_version": "0.1",
+ "board": {
+  "name": "mcp73831 package: 1S LiPo charger from USB 5 V, 213 mA, with a status LED"
+ },
+ "sources": {
+  "mcp73831_ds": {
+   "title": "MCP73831/2 Miniature Single-Cell, Fully Integrated Li-Ion, Li-Polymer Charge Management Controllers",
+   "location": "https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP73831-Family-Data-Sheet-DS20001984H.pdf",
+   "revision": "Revision H (June 2020)",
+   "sha256": "75297f2a5235599368381adfb63df2652cc22d757f171f388147b2ab3d32776f"
+  }
+ },
+ "nets": {
+  "VIN": {
+   "class": "POWER",
+   "voltage": {
+    "value": {
+     "peak_v": 6.0
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§1.0 p.3; §3.1 p.11",
+     "kind": "datasheet",
+     "note": "Operating VDD 3.75-6 V; 7.0 V absolute maximum. From USB this is 5 V."
+    }
+   },
+   "current": {
+    "value": {
+     "continuous_a": 0.213
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§5.1.2 p.15",
+     "kind": "datasheet",
+     "note": "IREG = 1000 V / 4.7 kohm = 213 mA, drawn from VIN while fast-charging; the status LED adds a few mA."
+    }
+   }
+  },
+  "VBAT": {
+   "class": "POWER",
+   "voltage": {
+    "value": {
+     "peak_v": 4.232
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§1.0 p.3",
+     "kind": "datasheet",
+     "note": "VREG for the -2 variant: 4.20 V typ, 4.232 V max."
+    }
+   },
+   "current": {
+    "value": {
+     "continuous_a": 0.213
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§5.1.2 p.15",
+     "kind": "datasheet",
+     "note": "The 213 mA fast-charge current into the cell. A load hung on VBAT draws more; the board's net says so."
+    }
+   },
+   "note": "Short, wide copper to the battery connector: drop here degrades the 0.75 % regulation (mcp73831.layout.battery_close)."
+  },
+  "GND": {
+   "class": "GROUND",
+   "current": {
+    "value": {
+     "continuous_a": 0.213
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§5.1.2 p.15",
+     "kind": "datasheet",
+     "note": "Charge current returns through VSS."
+    }
+   }
+  },
+  "PROG": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 1.0
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§5.1.2 p.15",
+     "kind": "datasheet",
+     "note": "IREG (mA) = 1000 V / RPROG (kohm): PROG sits at 1 V."
+    }
+   },
+   "note": "RPROG beside PROG, returning to VSS (mcp73831.layout.parts_adjacent); left open the charger shuts down (mcp73831.prog.disable)."
+  },
+  "STAT": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 6.0
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "§3.3 p.11; §1.0 p.4",
+     "kind": "datasheet",
+     "note": "STAT's high is VDD - 0.4 V typ: up to the 6 V input."
+    }
+   }
+  },
+  "STAT_LED": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 6.0
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "mcp73831_ds",
+     "locator": "Figure 6-1 p.17",
+     "kind": "datasheet",
+     "note": "LED anode at VIN through R_STAT."
+    }
+   }
+  }
+ },
+ "blocks": {
+  "charger": {
+   "type": "charger",
+   "parts": [
+    "U1",
+    "CIN",
+    "COUT",
+    "RPROG"
+   ],
+   "ports": {
+    "vin": {
+     "kind": "supply",
+     "nets": [
+      "VIN"
+     ],
+     "direction": "in",
+     "voltage_v": 5.0,
+     "current_a": 0.213
+    },
+    "vbat": {
+     "kind": "supply",
+     "nets": [
+      "VBAT"
+     ],
+     "direction": "out",
+     "voltage_v": 4.2,
+     "current_a": 0.213
+    },
+    "gnd": {
+     "kind": "ground",
+     "nets": [
+      "GND"
+     ]
+    }
+   },
+   "note": "CIN at VDD, COUT at VBAT, RPROG at PROG, all on the IC's side (mcp73831.layout.parts_adjacent)."
+  },
+  "status_led": {
+   "type": "indicator",
+   "parts": [
+    "R_STAT",
+    "D_STAT"
+   ]
+  }
+ },
+ "domains": {
+  "name": "mcp73831",
+  "kind": "board",
+  "supplies": [
+   "VIN",
+   "VBAT"
+  ],
+  "reference_ground": "GND",
+  "blocks": [
+   "charger",
+   "status_led"
+  ]
+ }
+}

@@ -38,5 +38,90 @@
   "LED": ["mcu.GPIO25", "R4.1"],
   "LED_A": ["R4.2", "D1.2"]
  },
- "no_connect": ["chg.STAT", "reg.EN"]
+ "no_connect": ["chg.STAT", "reg.EN"],
+ "intent": {
+  "layers": 4,
+  "sources": {
+   "rp2350_battery_brief": {
+    "title": "rp2350-battery: milestone 5's demo board (compose.json's note)",
+    "revision": "2026-11-02"
+   }
+  },
+  "nets": {
+   "VBUS": {
+    "current": {
+     "value": {
+      "continuous_a": 0.813
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_battery_brief",
+      "locator": "power budget",
+      "kind": "requirement",
+      "note": "The charger's 213 mA and, through D3, the buck's 600 mA input at full load: what the charger package alone does not know."
+     }
+    },
+    "note": "USB 5 V from J1 to the charger, D3 and Q1's gate."
+   },
+   "VBAT": {
+    "current": {
+     "value": {
+      "continuous_a": 0.6
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_battery_brief",
+      "locator": "power budget",
+      "kind": "requirement",
+      "note": "On battery the whole 3.3 V rail's input comes from the cell through Q1."
+     }
+    }
+   },
+   "CC1": {
+    "class": "SIGNAL",
+    "voltage": {
+     "value": {
+      "peak_v": 5.5
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_battery_brief",
+      "locator": "USB-C sink",
+      "kind": "requirement",
+      "note": "CC with Rd to ground; bounded here by VBUS, the highest a source's Rp pulls to."
+     }
+    }
+   },
+   "CC2": {
+    "class": "SIGNAL",
+    "voltage": {
+     "value": {
+      "peak_v": 5.5
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_battery_brief",
+      "locator": "USB-C sink",
+      "kind": "requirement",
+      "note": "As CC1."
+     }
+    }
+   }
+  },
+  "default_net": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 3.63
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "rp2350_battery_brief",
+     "locator": "logic rail",
+     "kind": "requirement",
+     "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package)."
+    }
+   }
+  }
+ }
 }

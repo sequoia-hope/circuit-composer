@@ -175,6 +175,7 @@ dependencies = [
 name = "compose"
 version = "0.1.0"
 dependencies = [
+ "intent",
  "serde",
  "serde_json",
 ]
