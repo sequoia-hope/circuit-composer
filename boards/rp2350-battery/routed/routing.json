@@ -1,4 +1,20 @@
 {
+  "clear_under": [
+    {
+      "layers": [
+        "F.Cu",
+        "In2.Cu"
+      ],
+      "margin_mm": 0.05,
+      "nets": [
+        "/USB_DP",
+        "/USB_DM"
+      ],
+      "planes": [
+        "In1.Cu"
+      ]
+    }
+  ],
   "generator": "circuit-composer 0.1.0",
   "max_lengths": [],
   "regions": [

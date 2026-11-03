@@ -29,7 +29,23 @@ pub struct Routing {
     pub regions: Vec<RRegion>,
     #[serde(default)]
     pub max_lengths: Vec<MaxLength>,
+    /// Nets no other net's via or hole may open a plane antipad under (ultraroute f179fcb).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub clear_under: Vec<ClearUnder>,
 }
+
+/// Keep other nets' antipads (a via's or hole's clearance in a plane) from under these nets'
+/// tracks: on `layers`, the planes on `planes`, by `margin_mm`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClearUnder {
+    pub nets: Vec<String>,
+    pub layers: Vec<String>,
+    pub planes: Vec<String>,
+    pub margin_mm: f64,
+}
+
+/// `clear_under`'s margin, mm: ultraroute measures 4 to 8 µm at 0, and the checker counts any gap.
+pub const CLEAR_UNDER_MARGIN: f64 = 0.05;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RRegion {
@@ -130,7 +146,8 @@ pub fn compile(intent: &IntentFile, board: &Board) -> Result<(Routing, Vec<Note>
         regions.push(RRegion { name: r.name.clone(), polygon, layers, rules });
     }
 
-    regions.extend(block_regions(intent, board, &mut notes));
+    let (block, clear_under) = block_regions(intent, board, &mut notes);
+    regions.extend(block);
 
     let mut max_lengths = Vec::new();
     for (name, n) in &intent.nets {
@@ -149,6 +166,7 @@ pub fn compile(intent: &IntentFile, board: &Board) -> Result<(Routing, Vec<Note>
         weight_mapping: format!("router weight = {WEIGHT_SCALE} x intent weight (intent weights are relative, in (0, 1])"),
         regions,
         max_lengths,
+        clear_under,
     };
     Ok((routing, notes))
 }
@@ -160,6 +178,20 @@ pub fn unreferenced_layers(intent: &IntentFile, board: &Board) -> Vec<String> {
     let ground = |net: &str| intent.nets.get(net).and_then(|n| n.class.as_deref()) == Some("GROUND");
     let grounded: Vec<bool> = board.layers.iter().map(|l| board.fills.iter().any(|f| &f.layer == l && ground(&f.net))).collect();
     (0..board.layers.len()).filter(|&i| !((i > 0 && grounded[i - 1]) || grounded.get(i + 1).copied().unwrap_or(false))).map(|i| board.layers[i].clone()).collect()
+}
+
+/// The referenced copper layers, grouped by the ground-filled layers beside them: (planes, layers).
+fn ground_groups(intent: &IntentFile, board: &Board, unref: &[String]) -> Vec<(Vec<String>, Vec<String>)> {
+    let ground = |net: &str| intent.nets.get(net).and_then(|n| n.class.as_deref()) == Some("GROUND");
+    let mut groups: Vec<(Vec<String>, Vec<String>)> = Vec::new();
+    for (i, l) in board.layers.iter().enumerate().filter(|(_, l)| !unref.contains(l)) {
+        let near: Vec<String> = [i.checked_sub(1), Some(i + 1)].into_iter().flatten().filter_map(|j| board.layers.get(j)).filter(|n| board.fills.iter().any(|f| &f.layer == *n && ground(&f.net))).cloned().collect();
+        match groups.iter_mut().find(|(g, _)| *g == near) {
+            Some((_, ls)) => ls.push(l.clone()),
+            None => groups.push((near, vec![l.clone()])),
+        }
+    }
+    groups
 }
 
 /// Rasterising step for a ground fill's voids, mm.
@@ -174,21 +206,13 @@ const VOID_RIM: f64 = 1.0;
 /// neighbouring fills together.
 fn ground_voids(intent: &IntentFile, board: &Board, outline: &[P], unref: &[String]) -> Vec<(Vec<P>, Vec<String>)> {
     let ground = |net: &str| intent.nets.get(net).and_then(|n| n.class.as_deref()) == Some("GROUND");
-    // Referenced layers grouped by the ground layers beside them.
-    let mut groups: Vec<(Vec<&str>, Vec<String>)> = Vec::new();
-    for (i, l) in board.layers.iter().enumerate().filter(|(_, l)| !unref.contains(l)) {
-        let near: Vec<&str> = [i.checked_sub(1), Some(i + 1)].into_iter().flatten().filter_map(|j| board.layers.get(j)).map(String::as_str).filter(|n| board.fills.iter().any(|f| f.layer == *n && ground(&f.net))).collect();
-        match groups.iter_mut().find(|(g, _)| *g == near) {
-            Some((_, ls)) => ls.push(l.clone()),
-            None => groups.push((near, vec![l.clone()])),
-        }
-    }
+    let groups = ground_groups(intent, board, unref);
     let Some((lo, hi)) = geom::bbox(outline.iter().copied()) else { return vec![] };
     let (nx, ny) = (((hi[0] - lo[0]) / VOID_STEP).ceil() as usize, ((hi[1] - lo[1]) / VOID_STEP).ceil() as usize);
     let edge_dist = |p: P| (0..outline.len()).map(|i| geom::point_seg_dist(p, outline[i], outline[(i + 1) % outline.len()])).fold(f64::INFINITY, f64::min);
     let mut out = Vec::new();
     for (near, layers) in groups {
-        let fills: Vec<(&[P], (P, P))> = board.fills.iter().filter(|f| ground(&f.net) && near.contains(&f.layer.as_str())).filter_map(|f| Some((f.polygon.as_slice(), geom::bbox(f.polygon.iter().copied())?))).collect();
+        let fills: Vec<(&[P], (P, P))> = board.fills.iter().filter(|f| ground(&f.net) && near.contains(&f.layer)).filter_map(|f| Some((f.polygon.as_slice(), geom::bbox(f.polygon.iter().copied())?))).collect();
         let covered = |p: P| fills.iter().any(|(poly, (a, b))| p[0] >= a[0] && p[0] <= b[0] && p[1] >= a[1] && p[1] <= b[1] && geom::inside(poly, p));
         let mut void = vec![false; nx * ny];
         for y in 0..ny {
@@ -238,15 +262,16 @@ fn ground_voids(intent: &IntentFile, board: &Board, outline: &[P], unref: &[Stri
 /// A hard constraint is a `never` rule; a soft one an `avoid`, its weight the constraint's (a via
 /// then costs `10 × weight` mm of track, a track `10 × weight` times its length). The other
 /// metrics are measured after routing, not routed to, and are noted as such.
-fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> Vec<RRegion> {
+fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> (Vec<RRegion>, Vec<ClearUnder>) {
     let mut out = Vec::new();
+    let mut clear = Vec::new();
     let outline = match &board.outline {
         Some(o) => o.clone(),
         None => {
             if intent.blocks.values().any(|b| b.placement_goal.as_ref().is_some_and(|g| !g.constraints.is_empty())) {
                 notes.push(Note { subject: "blocks".into(), message: "the board has no closed outline: block constraints not compiled to regions".into() });
             }
-            return out;
+            return (out, clear);
         }
     };
     let unref = unreferenced_layers(intent, board);
@@ -288,6 +313,13 @@ fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> V
             }
             // Over ground: on the layers a ground fill references, the nets keep out of its voids
             // too (a through-hole's clearance, a thermal relief, a keep-out).
+            if what == "over_ground" && hard {
+                // And other nets' vias keep their plane holes from under them (only a hard rule:
+                // the router has no price for it).
+                for (planes, on) in ground_groups(intent, board, &unref) {
+                    clear.push(ClearUnder { nets: nets.clone(), layers: on, planes, margin_mm: CLEAR_UNDER_MARGIN });
+                }
+            }
             if what == "over_ground" {
                 for (v, (polygon, on)) in voids.iter().enumerate() {
                     out.push(RRegion { name: format!("{name}:void{v}"), polygon: polygon.clone(), layers: Some(on.clone()), rules: vec![rule()] });
@@ -295,7 +327,7 @@ fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> V
             }
         }
     }
-    out
+    (out, clear)
 }
 
 pub const DRU_BEGIN: &str = "# --- circuit-composer: begin (generated by `ccomp compile`; edits here are overwritten)";
@@ -345,6 +377,7 @@ mod tests {
             weight_mapping: String::new(),
             regions: vec![],
             max_lengths: vec![MaxLength { nets: vec!["/XIN".into()], max_length_mm: mm, why: String::new() }],
+            clear_under: vec![],
         }
     }
 
@@ -374,7 +407,7 @@ mod tests {
         .unwrap();
         assert_eq!(unreferenced_layers(&intent, &board), ["In1.Cu", "B.Cu"]);
         let mut notes = vec![];
-        let rs = block_regions(&intent, &board, &mut notes);
+        let (rs, clear) = block_regions(&intent, &board, &mut notes);
         let by = |n: &str| rs.iter().find(|r| r.name == n).unwrap_or_else(|| panic!("no {n} in {:?}", rs.iter().map(|r| &r.name).collect::<Vec<_>>()));
         // Off the unreferenced layers, everywhere; only the nets on the board.
         let off = by("usb:over_ground:0");
@@ -385,6 +418,9 @@ mod tests {
         assert_eq!(v.layers.as_deref(), Some(&["F.Cu".to_string(), "In2.Cu".to_string()][..]));
         let (a, b) = (v.polygon[0], v.polygon[2]);
         assert!((a[0] - 6.0).abs() < 0.11 && (b[0] - 9.0).abs() < 0.11 && (a[1] - 1.0).abs() < 0.11 && (b[1] - 9.0).abs() < 0.11, "{a:?} {b:?}");
+        // Other nets' vias keep their In1 holes from under the hard over-ground net's tracks.
+        assert_eq!(clear.len(), 1);
+        assert_eq!((clear[0].nets.clone(), clear[0].layers.clone(), clear[0].planes.clone()), (vec!["/USB".to_string()], vec!["F.Cu".to_string(), "In2.Cu".to_string()], vec!["In1.Cu".to_string()]));
         // A soft no-vias rule is a price on vias.
         let nv = by("usb:no_vias:1");
         assert!(nv.rules[0].vias && nv.rules[0].kind == "avoid" && nv.rules[0].weight == Some(5.0));

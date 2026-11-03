@@ -13,7 +13,7 @@ the copper and the checks.
 | Place | `ccomp floorplan --intent` | Every part. Both regulators are their packages' generated layouts (rp2350 `qfn60-4layer`, tlv62569 `sot23-5-4layer`), moved as one, whose copper keeps other parts off. Nets with a length limit keep their pins' box under 0.75 of it. A part with a `near` pin turns its pad on that net toward it, and the line between them is kept clear of other courtyards |
 | Prepare | `tools/prepare_route.py --composed` | 4 copper layers, JLCPCB rules, a net class per net from its intent class, GND on In1.Cu and +3V3 on In2.Cu, the two layouts' copper applied and locked (core regulator: 14 tracks, 2 vias, a keep-out; TLV62569: 20 tracks, 6 vias), and a locked stub from each decoupling capacitor to its pin where one fits |
 | Compile | `ccomp compile` | `routing.json`: the rp2350 package's block constraints as regions (below) |
-| Route | ultraroute e3d5cce | easy2350's recipe without `--diff-pairs` (see "For ultraroute"), plus `--regions`, one thread |
+| Route | ultraroute f179fcb | easy2350's recipe (with `--diff-pairs`), plus `--regions`, one thread |
 | Check | `tools/verify_routed.py --refill`, `ccomp check package` | KiCad DRC, the regions, the buck checks (`verify.json`); the board against the rp2350 package by role (`rp2350.check.json`, `mcu.binding.json`) |
 
 ## The package's rules reach the router
@@ -28,8 +28,12 @@ the whole board:
 - **Over ground:** the nets keep off layers with no ground fill beside them (In1.Cu and B.Cu
   here). On the other layers (F.Cu, In2.Cu) they keep off the voids in the ground fill beside
   them, sent as rectangles: J1's shield and peg holes, the core regulator's In1 cut-out.
+  A hard one also gets a `clear_under` entry: no other net's via or hole may open its plane
+  antipad within 0.05 mm under these nets' tracks, so the router cannot make a void under them
+  either.
 
-29 regions in all, 0 broken on every seed.
+29 regions and one `clear_under` (USB_DP and USB_DM on F.Cu and In2.Cu, over In1.Cu), none broken
+on any seed.
 
 ## Decoupling: stubs, and room for them
 
@@ -49,24 +53,26 @@ seed). So the rp2350 package's circuit gives the crystal, XOUT's damping resisto
 series resistors and the flash `near` pins too (`package_circuit.py`'s `SIGNAL_NEAR`), and
 their lines are kept clear the same way.
 
-With the TLV62569 generated too (below):
+With the TLV62569 generated too (below), routed by ultraroute f179fcb with `clear_under` and
+`--diff-pairs`:
 
 | Seed | Route time | DRC errors | Unconnected | Region violations | Tracks | Vias | rp2350 rules pass / fail | Decoupling fails | Hard fails |
 |---|---|---|---|---|---|---|---|---|---|
-| 0 | 55.7 s | 0 | 0 | 0 | 432 | 92 | 50 / 13 | 2 | 0 |
-| 1 | 183.4 s | 0 | 0 | 0 | 436 | 100 | 51 / 12 | 1 | 0 |
-| 2 | 35.6 s | 0 | 0 | 0 | 433 | 98 | 52 / 11 | 1 | 0 |
-| 3 | 44.9 s | 0 | 0 | 0 | 424 | 98 | 52 / 11 | 1 | 0 |
+| 0 | 43.7 s | 0 | 0 | 0 | 377 | 91 | 54 / 9 | 1 | 0 |
+| 1 | 36.8 s | 0 | 0 | 0 | 395 | 92 | 52 / 11 | 2 | 0 |
+| 2 | 28.8 s | 0 | 0 | 0 | 430 | 101 | 50 / 13 | 1 | 0 |
+| 3 | 28.8 s | 0 | 0 | 0 | 393 | 94 | 51 / 12 | 1 | 0 |
 
 Before the decoupling stubs, the chain had 6 decoupling fails, 12 to 14 package fails, and a
 hard fail on seed 2 (USB_DP over a QSPI via's plane hole). With the stubs and the signal hints
-(and before the TLV62569 was generated) it had 13 to 15 package fails and none hard. Now it is
-11 to 13, none hard, and the crystal passes every check again. 8 of 10 stubs fit: C16 (pin 20)
-ends more than 4.9 mm away and C20 (pin 53) is blocked. The flash moved most: QSPI lines run
-18 to 32 mm against 11 to 17, partly without ground under them. The placement is legal at
-27.6 × 53.9 mm with 263 mm of wire. Seed 1's route took 183 s, the others 36 to 56 s.
+it had 13 to 15 package fails and none hard; with the TLV62569 generated, 11 to 13 (ultraroute
+e3d5cce, no `--diff-pairs`); now 9 to 13, none hard, and the crystal passes every check. 8 of
+10 stubs fit: C16 (pin 20) ends more than 4.9 mm away and C20 (pin 53) is blocked. The flash's
+QSPI lines are what fail most, partly without ground under them, and QSPI_SD2 is 16.6 mm
+against 13.2 on seed 1. The placement is legal at 27.6 × 53.9 mm with 263 mm of wire. The USB
+pair's skew is tuned from 9.4 mm to 4.2 to 6.8.
 
-The board here is seed 1. The router reports 4 connections failed and 0 open, all pads to
+The board here is seed 1. The router reports 7 connections failed and 0 open, all pads to
 their planes, which the pours join once KiCad refills them. DRC runs after that refill, and its
 warnings are silkscreen only.
 
@@ -77,23 +83,18 @@ and routed freely, its hot loop had ranged from 2.98 to 11.4 mm² with the place
 ground returns through the plane, since a SOT-23's GND pin sits beside SW across from VIN, and
 its divider is placed by the generator too (`packages/tlv62569/README.md`).
 
-## For ultraroute
+## Fixed in ultraroute
 
-Sent to the ultraroute session on 2026-11-03; it is taking all three. For 3 it proposes a
-top-level `clear_under` list (nets, layers, planes, margin_mm), which `ccomp compile` will emit
-once it lands.
+Reported to the ultraroute session on 2026-11-03 and fixed on its main at f179fcb:
 
-1. **Pair tuning ignores regions.** With `--diff-pairs`, `tune: /USB_DP//USB_DM skew 54.34 ->
-   0.16 mm` laid serpentines on USB_DM through the region `mcu/usb:over_ground:0:void0`, a
-   `never` rule (`regions: ... 2 pieces break its Never rule`). The 54 mm skew itself came from
-   one net of the pair detouring round the regions. route_board.sh leaves `--diff-pairs` out
-   until tuning keeps to the regions.
-2. **Large `must` polygons are slow.** A `must` region per layer set, shaped as the In1 ground
-   fill's outline (683 vertices), made prefanout take 156 s instead of 4 s and escape 0 of 26
-   pads. The compiler sends voids as small `never`/`avoid` rectangles instead.
-3. **Other nets' vias under a referenced net.** Keeping a net over ground also means keeping
-   other nets' vias (their plane clearance holes) out from under it. Seed 2's USB_DP fail is
-   this.
+1. **Pair tuning kept out of regions.** With `--diff-pairs`, e3d5cce's tuning laid 54 mm of
+   serpentine on USB_DM through a `never` region. Now no pass (tuning, `--tighten`) may break a
+   region on a board with `--regions`, and route_board.sh uses `--diff-pairs` again.
+2. **Large `must` polygons are fast.** A `must` region shaped as the In1 ground fill's outline
+   (683 vertices) made prefanout take 156 s and escape 0 of 26 pads; the raster is now per edge
+   band. The compiler still sends voids as rectangles.
+3. **`clear_under`.** Keeping a net over ground also means keeping other nets' vias (their plane
+   clearance holes) out from under it, as on seed 2 before. `routing.json` carries it now.
 
 ## Fixed on the way
 

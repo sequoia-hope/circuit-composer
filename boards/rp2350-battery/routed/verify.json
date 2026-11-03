@@ -5,15 +5,14 @@
   "drc_warnings": {
     "silk_overlap": 145,
     "silk_over_copper": 42,
-    "silk_edge_clearance": 2,
-    "track_dangling": 1
+    "silk_edge_clearance": 2
   },
   "length_violations": [],
   "region_violations": 0,
   "region_findings": [],
   "region_prices": {
-    "mcu/flash:over_ground:0:avoid": 18,
-    "mcu/usb:over_ground:1:avoid": 10
+    "mcu/flash:over_ground:0:avoid": 11,
+    "mcu/usb:over_ground:1:avoid": 5
   },
   "bucks": {
     "mcu/core_reg": {
@@ -34,8 +33,8 @@
     }
   },
   "copper": {
-    "tracks": 436,
-    "vias": 100,
+    "tracks": 395,
+    "vias": 92,
     "locked": 53
   }
 }

@@ -99,10 +99,10 @@ It sits between two sibling projects:
     from the inductor, can return ground through the plane (`gnd_return_vias`), and searches
     behind the switch pin's row (`back`). The TLV62569's layout (`packages/tlv62569/layouts/`)
     measures 3.53 mm² hot loop and 11.05 mm² output loop, and the battery board uses it: package
-    fails 11 to 13 of 63, none hard, on 4 seeds.
+    fails 9 to 13 of 63, none hard, on 4 seeds (ultraroute f179fcb, which reads `clear_under`:
+    other nets' vias keep their plane holes from under a hard over-ground net).
   - **Not yet:** room for every stub beside the chip (8 of 10 fit); the flash's QSPI lengths;
-    keeping other nets' vias from under a ground-referenced net (ultraroute); intent for the
-    remaining packages and the recipes; package schematic sheets.
+    intent for the remaining packages and the recipes; package schematic sheets.
 - **Research library:** `library/` holds 143 cited claims from 41 vendor app notes, datasheets
   and articles, on five topics:
   - buck layout,
