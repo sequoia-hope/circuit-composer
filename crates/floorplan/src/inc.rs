@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use super::{bbox_at, edge_miss, flush_miss, gap, net_cost, pair, rot, side, Pose, State, P};
+use super::{bbox_at, corridor, edge_miss, flush_miss, gap, net_cost, pair, rot, side, Pose, State, P};
 
 /// What a move changed, to undo it.
 struct Undo {
@@ -268,6 +268,17 @@ impl Inc {
             area = (x1 - x0) * (y1 - y0);
         }
         let flush: f64 = self.boxes.iter().enumerate().map(|(i, b)| flush_miss(pr, all, i, *b)).sum();
+        // Corridors depend on every part's place: whole-board, like the edges.
+        let lane: f64 = pr
+            .parts
+            .iter()
+            .enumerate()
+            .filter_map(|(i, p)| {
+                let (j, pin) = p.near.as_ref()?;
+                let own = p.near_pin.as_ref()?;
+                Some(corridor(pr, &self.boxes, i, self.pin(st, i, own), self.pin(st, *j, pin)))
+            })
+            .sum();
         let mut edge = 0.0;
         for &i in &self.edge_parts {
             edge += edge_miss(pr, st.sdf.as_ref(), all, i, &self.poses[i], self.boxes[i]);
@@ -292,7 +303,7 @@ impl Inc {
                 }
             }
         }
-        o.w_wire * self.wire + w_ov * (self.ov + self.outside + flush) + o.w_area * area + o.w_near * self.near + o.w_block * self.spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * self.fill
+        o.w_wire * self.wire + w_ov * (self.ov + self.outside + flush) + o.w_area * area + o.w_near * self.near + o.w_corridor * lane + o.w_block * self.spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * self.fill
     }
 
     fn net_len(&self, st: &State, k: usize) -> (f64, f64) {
@@ -350,8 +361,13 @@ impl Inc {
     fn near_of_part(&self, st: &State, i: usize) -> f64 {
         let Some((j, pin)) = &st.pr.parts[i].near else { return 0.0 };
         let t = self.pin(st, *j, pin);
-        let b = self.boxes[i];
-        let c = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
+        let c = match &st.pr.parts[i].near_pin {
+            Some(own) => self.pin(st, i, own),
+            None => {
+                let b = self.boxes[i];
+                ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0)
+            }
+        };
         ((c.0 - t.0).powi(2) + (c.1 - t.1).powi(2)).sqrt()
     }
 

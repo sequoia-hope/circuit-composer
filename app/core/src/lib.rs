@@ -149,6 +149,7 @@ impl Session {
                 pins: BTreeMap::new(),
                 block: None,
                 near: None,
+                near_pin: None,
                 edge: None,
                 fixed: Some(pose),
                 back: side == "back",

@@ -1,5 +1,5 @@
 {
- "note": "The package's circuit as the RP2350A reference board fits it (rp2350a_minimal, netlist read by tools/package_circuit.py). Parts by role; `reference_ref` is the board's designator; `near` is the chip pin a decoupling capacitor serves, a placement hint. Nets inside the package by role pin; ports are where it meets the board, named as the board names them. Ground and supply ports must be connected.",
+ "note": "The package's circuit as the RP2350A reference board fits it (rp2350a_minimal, netlist read by tools/package_circuit.py). Parts by role; `reference_ref` is the board's designator; `near` is the chip pin a part should sit beside, a placement hint: the pin a decoupling capacitor serves, or the one a crystal, a series resistor or the flash's clock wires to. Nets inside the package by role pin; ports are where it meets the board, named as the board names them. Ground and supply ports must be connected.",
  "variant": "RP2350A",
  "board": "qfn60",
  "source": "rp2350a_minimal",
@@ -132,7 +132,8 @@
    "value": "W25Q128JVS",
    "footprint": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",
    "reference_ref": "U3",
-   "reference_footprint": "Package_SO:SOIC-8_5.23x5.23mm_P1.27mm"
+   "reference_footprint": "Package_SO:SOIC-8_5.23x5.23mm_P1.27mm",
+   "near": "U1.56"
   },
   "L1": {
    "block": "core_reg",
@@ -188,21 +189,24 @@
    "symbol": "Device:R",
    "value": "27",
    "footprint": "Resistor_SMD:R_0402_1005Metric",
-   "reference_ref": "R8"
+   "reference_ref": "R8",
+   "near": "U1.51"
   },
   "R_USB_DP": {
    "block": "usb",
    "symbol": "Device:R",
    "value": "27",
    "footprint": "Resistor_SMD:R_0402_1005Metric",
-   "reference_ref": "R7"
+   "reference_ref": "R7",
+   "near": "U1.52"
   },
   "R_XOUT": {
    "block": "crystal",
    "symbol": "Device:R",
    "value": "1k",
    "footprint": "Resistor_SMD:R_0402_1005Metric",
-   "reference_ref": "R2"
+   "reference_ref": "R2",
+   "near": "U1.22"
   },
   "SW_BOOTSEL": {
    "block": "bootsel",
@@ -230,7 +234,8 @@
    "symbol": "Device:Crystal_GND24",
    "value": "ABM8-272-T3",
    "footprint": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
-   "reference_ref": "Y1"
+   "reference_ref": "Y1",
+   "near": "U1.21"
   }
  },
  "nets": {

@@ -20,6 +20,10 @@ import sys
 from package_nets import ANCHORS  # the package's own net names, by anchor pin
 
 
+
+# Signal-path placement hints, by role: the chip pin each part wires to (RP2350A numbers).
+SIGNAL_NEAR = {"XTAL": "U1.21", "R_XOUT": "U1.22", "R_USB_DP": "U1.52", "R_USB_DM": "U1.51", "FLASH": "U1.56"}
+
 def parse(path):
     text = re.sub(r"\s+", " ", open(path).read())
     comps = {}
@@ -78,6 +82,12 @@ def main():
         role = by_ref.get(d["cap"])
         if role and "near" not in parts[role] and role not in ("CIN", "COUT"):
             parts[role]["near"] = f"U1.{pin}"
+    # And the parts on the chip's short, fast nets: the crystal, XOUT's damping resistor, the USB
+    # series resistors, the flash's clock (the package's length limits; rp2350 hardware design
+    # guide). The floorplanner keeps the line from each to its pin clear.
+    for role, pin in SIGNAL_NEAR.items() if a.variant == "RP2350A" else ():
+        if role in parts and "near" not in parts[role]:
+            parts[role]["near"] = pin
     anchor_name = {pin: name for name, pin in ANCHORS.items()}
     internal, ports, problems = {}, {}, []
     for name, nodes in nets.items():
@@ -101,7 +111,7 @@ def main():
     used = {p for ps in list(internal.values()) + [v["pins"] for v in ports.values()] for p in ps}
     unconnected = sorted((p for p in pins if f"U1.{p}" not in used), key=lambda p: int(p) if p.isdigit() else 999)
     out = {
-        "note": f"The package's circuit as the {a.variant} reference board fits it ({a.source}, netlist read by tools/package_circuit.py). Parts by role; `reference_ref` is the board's designator; `near` is the chip pin a decoupling capacitor serves, a placement hint. Nets inside the package by role pin; ports are where it meets the board, named as the board names them. Ground and supply ports must be connected.",
+        "note": f"The package's circuit as the {a.variant} reference board fits it ({a.source}, netlist read by tools/package_circuit.py). Parts by role; `reference_ref` is the board's designator; `near` is the chip pin a part should sit beside, a placement hint: the pin a decoupling capacitor serves, or the one a crystal, a series resistor or the flash's clock wires to. Nets inside the package by role pin; ports are where it meets the board, named as the board names them. Ground and supply ports must be connected.",
         "variant": a.variant,
         "board": a.board,
         "source": a.source,

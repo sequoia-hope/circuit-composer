@@ -39,6 +39,11 @@ pub struct PartGeom {
     /// The pad this part should sit next to, as (part index, pin).
     #[serde(default)]
     pub near: Option<(usize, String)>,
+    /// This part's own pin that faces `near` (a decoupling capacitor's pad on the pin's net):
+    /// measured from it, not the courtyard's centre, and the straight line from it to `near`
+    /// kept clear of other courtyards (`corridor`), so a short stub can join them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub near_pin: Option<String>,
     #[serde(default)]
     pub edge: Option<Edge>,
     /// A part that does not move (a mounting hole, a connector placed by the mechanical design).
@@ -90,6 +95,42 @@ fn net_cost(o: &Options, net: &Net, hp: f64) -> f64 {
 
 fn w_limit() -> f64 {
     10.0
+}
+
+fn w_corridor() -> f64 {
+    5.0
+}
+
+/// Length of segment ab inside box b (Liang-Barsky).
+fn clipped(a: P, b: P, bx: &[f64; 4]) -> f64 {
+    let (dx, dy) = (b.0 - a.0, b.1 - a.1);
+    let (mut t0, mut t1) = (0.0f64, 1.0f64);
+    for (p, q) in [(-dx, a.0 - bx[0]), (dx, bx[2] - a.0), (-dy, a.1 - bx[1]), (dy, bx[3] - a.1)] {
+        if p.abs() < 1e-12 {
+            if q < 0.0 {
+                return 0.0;
+            }
+        } else {
+            let r = q / p;
+            if p < 0.0 {
+                t0 = t0.max(r);
+            } else {
+                t1 = t1.min(r);
+            }
+        }
+    }
+    if t1 > t0 {
+        (t1 - t0) * (dx * dx + dy * dy).sqrt()
+    } else {
+        0.0
+    }
+}
+
+/// How much of the line from part `i`'s `near_pin` (at `a`) to its `near` (at `b`) crosses the
+/// courtyards of parts other than those two, on `i`'s side of the board.
+fn corridor(pr: &Problem, boxes: &[[f64; 4]], i: usize, a: P, b: P) -> f64 {
+    let j = pr.parts[i].near.as_ref().map_or(usize::MAX, |n| n.0);
+    (0..pr.parts.len()).filter(|&k| k != i && k != j && pr.parts[k].back == pr.parts[i].back).map(|k| clipped(a, b, &boxes[k])).sum()
 }
 
 fn one() -> f64 {
@@ -148,6 +189,9 @@ pub struct Options {
     /// Per mm a net's pins' box runs over its `max_mm`.
     #[serde(default = "w_limit")]
     pub w_limit: f64,
+    /// Per mm of a `near_pin`'s line to its `near` that crosses another part's courtyard.
+    #[serde(default = "w_corridor")]
+    pub w_corridor: f64,
     /// How the placement starts: annealed from a random spread, or from the analytical placer's
     /// (then annealed cool, as a warm start is).
     #[serde(default)]
@@ -164,7 +208,7 @@ pub enum Placer {
 
 impl Default for Options {
     fn default() -> Self {
-        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), w_limit: w_limit(), placer: Placer::Sa }
+        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), w_limit: w_limit(), w_corridor: w_corridor(), placer: Placer::Sa }
     }
 }
 
@@ -568,6 +612,9 @@ pub struct Metrics {
     /// The overlapping pairs (and parts outside a set outline), worst first, at most 20.
     pub overlap_pairs: Vec<String>,
     pub near_mm: f64,
+    /// Length of `near_pin` lines crossing other courtyards, mm.
+    #[serde(default)]
+    pub corridor_mm: f64,
     /// The board's own area, mm²: a shaped outline's, not its box's.
     pub board_area_mm2: f64,
     /// How much of the board the parts' courtyards cover, front and back, 0 to 1. Keep-outs are
@@ -741,15 +788,22 @@ impl<'a> State<'a> {
             }
         }
         m.gap_mm = if counted > 0 { gaps / counted as f64 } else { 0.0 };
-        let mut near = 0.0;
+        let (mut near, mut lane) = (0.0, 0.0);
         for (i, p) in pr.parts.iter().enumerate() {
             if let Some((j, pin)) = &p.near {
                 let t = self.pin(&poses, *j, pin);
-                let c = ((boxes[i][0] + boxes[i][2]) / 2.0, (boxes[i][1] + boxes[i][3]) / 2.0);
+                let c = match &p.near_pin {
+                    Some(own) => self.pin(&poses, i, own),
+                    None => ((boxes[i][0] + boxes[i][2]) / 2.0, (boxes[i][1] + boxes[i][3]) / 2.0),
+                };
                 near += ((c.0 - t.0).powi(2) + (c.1 - t.1).powi(2)).sqrt();
+                if p.near_pin.is_some() {
+                    lane += corridor(pr, &boxes, i, c, t);
+                }
             }
         }
         m.near_mm = near;
+        m.corridor_mm = lane;
         let mut centres: BTreeMap<&str, (f64, f64, f64)> = BTreeMap::new();
         for (i, p) in pr.parts.iter().enumerate() {
             if let Some(b) = &p.block {
@@ -810,7 +864,7 @@ impl<'a> State<'a> {
             v(b).total_cmp(&v(a))
         });
         m.overlap_pairs.truncate(20);
-        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_block * spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * fill;
+        let cost = o.w_wire * wire + w_ov * (ov + outside) + o.w_area * m.area_mm2 + o.w_near * near + o.w_corridor * lane + o.w_block * spread + o.w_edge * edge + o.w_sep * (w_ov / o.w_overlap) * sep + o.w_fill * fill;
         (cost, m)
     }
 }
@@ -1136,6 +1190,10 @@ mod inc_tests {
             for net in pr.nets.iter_mut().step_by(3) {
                 net.max_mm = Some(5.0);
             }
+            // And every near hint measured from a pin, with its corridor.
+            for part in pr.parts.iter_mut().filter(|p| p.near.is_some()) {
+                part.near_pin = part.pins.keys().next().cloned();
+            }
             let (movables, of_part, in_group) = layout(&pr);
             let mut rng = Rng(7);
             let mv: Vec<Pose> = movables.iter().map(|_| Pose { x: rng.f() * 30.0, y: rng.f() * 30.0, rotation: 0.0 }).collect();
@@ -1270,7 +1328,7 @@ mod tests {
 
     fn part(r: &str, w: f64, h: f64) -> PartGeom {
         let pins = [("1".to_string(), (-w / 4.0, 0.0)), ("2".to_string(), (w / 4.0, 0.0))].into();
-        PartGeom { reference: r.into(), bbox: [-w / 2.0, -h / 2.0, w / 2.0, h / 2.0], pins, block: None, near: None, edge: None, fixed: None, back: false, through: vec![] }
+        PartGeom { reference: r.into(), bbox: [-w / 2.0, -h / 2.0, w / 2.0, h / 2.0], pins, block: None, near: None, near_pin: None, edge: None, fixed: None, back: false, through: vec![] }
     }
 
     #[test]
@@ -1298,6 +1356,23 @@ mod tests {
         assert!((c.x - u.x - off.0).abs() < 1e-3 && (c.y - u.y - off.1).abs() < 1e-3, "{u:?} {c:?}");
         assert!(p.metrics.edge_misses.is_empty(), "{:?}", p.metrics);
         assert_eq!(p.metrics.overlaps, 0);
+    }
+
+    #[test]
+    fn a_near_pins_line_is_kept_clear() {
+        // C1's pin 1 should face U1's pin 1, 4 mm away; R1 sits across the line, or beside it.
+        let mut parts = vec![part("U1", 1.0, 1.0), part("C1", 1.0, 0.5), part("R1", 1.0, 1.0)];
+        parts[1].near = Some((0, "1".into()));
+        parts[1].near_pin = Some("1".into());
+        let pr = Problem { parts, nets: vec![], groups: vec![], separations: vec![], options: Options::default(), outline: None, outline_polygon: None };
+        let at = |ry: f64| -> BTreeMap<String, Pose> {
+            [("U1".to_string(), Pose { x: 0.0, y: 0.0, rotation: 0.0 }), ("C1".to_string(), Pose { x: 4.0, y: 0.0, rotation: 0.0 }), ("R1".to_string(), Pose { x: 2.0, y: ry, rotation: 0.0 })].into()
+        };
+        let across = evaluate(&pr, &at(0.0)).unwrap();
+        assert!((across.corridor_mm - 1.0).abs() < 1e-9, "{}", across.corridor_mm);
+        // Pins at x = -0.25 (U1) and 3.75 (C1): 4 mm.
+        assert!((across.near_mm - 4.0).abs() < 1e-9, "{}", across.near_mm);
+        assert_eq!(evaluate(&pr, &at(3.0)).unwrap().corridor_mm, 0.0);
     }
 
     #[test]

@@ -83,6 +83,7 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
     let comp_parts = composed["parts"].as_object().ok_or("composed: no parts")?;
     let refs: Vec<String> = comp_parts.keys().filter(|r| !spec.exclude.contains(r)).cloned().collect();
     let index: BTreeMap<&str, usize> = refs.iter().enumerate().map(|(i, r)| (r.as_str(), i)).collect();
+    let net_of: BTreeMap<String, String> = composed["nets"].as_object().into_iter().flatten().flat_map(|(n, ps)| ps.as_array().into_iter().flatten().filter_map(move |p| Some((p.as_str()?.to_string(), n.clone())))).collect();
     let mut parts = Vec::new();
     for r in &refs {
         let p = b.parts.get(r).ok_or_else(|| format!("{r} is in the composition but not on {}", board.display()))?;
@@ -147,10 +148,14 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
             _ => None,
         });
         let near = cp["near"].as_str().and_then(|n| n.split_once('.')).and_then(|(d, pin)| index.get(d).map(|&j| (j, pin.to_string())));
+        // The part's own pin on the near pin's net: the pad that should face it.
+        let near_pin = cp["near"].as_str().and_then(|n| net_of.get(n)).and_then(|net| composed["nets"][net.as_str()].as_array()).and_then(|ps| {
+            ps.iter().filter_map(|x| x.as_str()?.split_once('.')).find(|(d, pin)| d == r && pins.contains_key(*pin)).map(|(_, pin)| pin.to_string())
+        });
         // Kept by the spec, or locked in the board (KiCad's lock, and Composer's when it saves):
         // where the board has it.
         let kept = (spec.keep.contains(r) || p.locked).then_some(floorplan::Pose { x: p.at[0], y: p.at[1], rotation: p.rotation });
-        parts.push(PartGeom { reference: r.clone(), bbox, pins, block, near, edge: spec.edges.get(r).cloned(), fixed: spec.fixed.get(r).copied().or(kept), back: spec.back.contains(r) || p.back, through });
+        parts.push(PartGeom { reference: r.clone(), bbox, pins, block, near, near_pin, edge: spec.edges.get(r).cloned(), fixed: spec.fixed.get(r).copied().or(kept), back: spec.back.contains(r) || p.back, through });
     }
     // Keep-outs: fixed parts with no pads, on the side they guard (both: a through-hole area).
     for k in &spec.keepouts {
@@ -159,7 +164,7 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
         let local = [x0 - cx, y0 - cy, x1 - cx, y1 - cy];
         let pose = Some(floorplan::Pose { x: cx, y: cy, rotation: 0.0 });
         let through = if k.side == "both" { vec![local] } else { vec![] };
-        parts.push(PartGeom { reference: format!("keepout:{}", k.name), bbox: local, pins: BTreeMap::new(), block: None, near: None, edge: None, fixed: pose, back: k.side == "back", through });
+        parts.push(PartGeom { reference: format!("keepout:{}", k.name), bbox: local, pins: BTreeMap::new(), block: None, near: None, near_pin: None, edge: None, fixed: pose, back: k.side == "back", through });
     }
     for r in spec.edges.keys().chain(spec.fixed.keys()).chain(spec.blocks.keys()).chain(spec.back.iter()).chain(spec.keep.iter()) {
         if !index.contains_key(r.as_str()) {
@@ -200,13 +205,13 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
             let c = ((a.0 + z.0) / 2.0, (a.1 + z.1) / 2.0);
             let (dx, dy) = ((a.0 - z.0).abs() / 2.0 + hw, (a.1 - z.1).abs() / 2.0 + hw);
             members.push((parts.len(), c, 0.0));
-            parts.push(PartGeom { reference: format!("copper:{}:track{k}", g.name), bbox: [-dx, -dy, dx, dy], pins: BTreeMap::new(), block: None, near: None, edge: None, fixed: None, back, through: vec![] });
+            parts.push(PartGeom { reference: format!("copper:{}:track{k}", g.name), bbox: [-dx, -dy, dx, dy], pins: BTreeMap::new(), block: None, near: None, near_pin: None, edge: None, fixed: None, back, through: vec![] });
         }
         for (k, v) in lay["layout"]["vias"].as_array().into_iter().flatten().enumerate() {
             let r = num(&v["size"]) / 2.0;
             let bbox = [-r, -r, r, r];
             members.push((parts.len(), (num(&v["at"][0]), num(&v["at"][1])), 0.0));
-            parts.push(PartGeom { reference: format!("copper:{}:via{k}", g.name), bbox, pins: BTreeMap::new(), block: None, near: None, edge: None, fixed: None, back: false, through: vec![bbox] });
+            parts.push(PartGeom { reference: format!("copper:{}:via{k}", g.name), bbox, pins: BTreeMap::new(), block: None, near: None, near_pin: None, edge: None, fixed: None, back: false, through: vec![bbox] });
         }
         groups.push(Rigid { name: g.name.clone(), anchor, members });
     }
