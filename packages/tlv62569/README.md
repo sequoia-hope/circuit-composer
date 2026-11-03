@@ -99,8 +99,6 @@ Verified:
 - `ccomp resolve intent.json` parses.
 
 Not verified:
-- **No layout yet.** `ccomp gen buck` cannot place this block today. It takes the FB pin's net
-  as the output net, and it has no roles for a divider (see below).
 - The inductor footprint is KiCad's `L_Sunlord_SWPA4020S`, not one drawn from the SXN catalogue.
   Its 1.1 × 3.7 mm pads at ±1.5 mm cover SXN's recommended 0.95 × 3.3 mm pads 2.1 mm apart (p.4).
 - The capacitors' DC-bias curves were not read, so their effective capacitance at 3.3-5.5 V is
@@ -108,23 +106,44 @@ Not verified:
 - Thermal behaviour is unchecked: RθJA is 188.2 °C/W (p.4), and the datasheet has no loss data
   for 3.3 V out from a 3.0-4.2 V input.
 
+## Layout
+
+`layouts/sot23-5-4layer/` is the block as `ccomp gen buck` places it: parts and copper by role in
+U1's frame (`layout.json`, applied by `tools/apply_layout.py`), `params.json`, `roles.json`, the
+test bench `fixture.kicad_pcb`/`.kicad_pro` (rp2350-battery's U5 and its block, on a 4-layer
+board with a solid In1 ground), `verify.json` (the verifier's measurements, KiCad DRC, the
+generator's estimate) and `block.svg`. `crates/verify/tests/package_layouts.rs` re-measures the
+bench on each test run.
+
+| | Hot loop mm² | Hot loop, pad centres mm² | Output loop mm² | Switch node mm² | FB clearance mm |
+|---|---|---|---|---|---|
+| Generated, measured | 3.54 | 1.72 | 11.05 | 5.21 | 2.67 |
+| Generator's estimate | 3.04 | | 9.81 | 5.92 | 3.52 |
+| Free-routed on rp2350-battery (3 placements) | 2.98 to 11.4 | | 12.8 to 16.2 | 5.1 | 0.87 |
+
+How it differs from the RP2350's core regulator, and from TI's DBV example (§10.2 Figure 20 p.13,
+`tlv62569.layout.dbv_example`):
+- **Ground through the plane** (`gnd_return_vias`). VIN (4) sits across the package from GND (2)
+  and SW (3), and GND is beside SW. A same-layer ground run from CIN back to pin 2 would box SW
+  in, so the GND pin gets a via just past its pad, CIN's and COUT's ground pads get two each, and
+  the loops close on In1 under the parts, as TI's layout does
+  (`tlv62569.layout.cap_ground`).
+- **The divider** sits by FB: RFB_BOT from FB to a ground via, RFB_TOP from FB to the VOUT sense,
+  CFF across RFB_TOP. Every FB run is at least 0.3 mm from switch-node copper
+  (`tlv62569.layout.fb_away_from_sw`; the generator's floor, borrowed from the rp2350 package).
+  The VOUT sense runs from COUT's pad on F.Cu here. When it does not fit, it is left to the
+  router, which TI's example routes on another layer.
+- **No switch-node keepout.** This datasheet does not ask for one, and In1 stays solid ground
+  under SW (`switch_node_underlap_mm2` is 5.24 and unconstrained here).
+- The search reaches 4 mm behind SW's row (`back`), so CIN can sit on VIN's side.
+
 ## For the buck generator and checker
 
-`ccomp check buck --intent packages/tlv62569/intent.json --block reg` should work on a placed
-board as it stands. `crates/verify/src/buck.rs` already takes the output net from the
-inductor's other pad. When FB is not on that net, it measures the feedback path from the FB pin
-to the nearest pad on the FB net, which is the divider. The run from COUT to RFB_TOP is not
-measured.
+`ccomp check buck` takes the output net from the inductor's other pad, and when FB sits behind a
+divider it measures the feedback path from the FB pin to the nearest divider pad. The run from
+COUT to RFB_TOP is not measured. `ccomp gen buck` takes `rfb_top`, `rfb_bot` and `cff` roles
+(above). Regenerate with:
 
-`ccomp gen buck` (`crates/blockgen/src/buck.rs`) would need these changes:
-1. Take `n_out` from the inductor's non-SW pad, not from `fb.net` (line 414). Today the check
-   "L1 has no pad on FB" stops it.
-2. Add optional roles to `BuckRoles` (`rfb_top`, `rfb_bot`, `cff`), and a step that places them
-   beside the FB pin. That step would route FB to the divider (short, clearance-checked), the
-   VOUT sense from COUT's pad to RFB_TOP, and RFB_BOT to GND.
-3. Handle a two-sided SOT-23 pinout. VIN (4) and FB (5) are on one side, and EN, GND and SW
-   (1-3) on the other, so CIN spans the package (VIN and GND are on opposite rows). The search
-   band "outside the switch pin's row" and the escape-then-straight-run copper assume one row of
-   adjacent pins, as on a QFN.
-4. Default to no switch-node keepout (`keepout_layer: null`). This datasheet does not ask for
-   one, and the milestone 5 board may be 2-layer.
+    ~/.claude/bin/reserve -c 8 -l "tlv62569 buck" -- bash -c 'RAYON_NUM_THREADS=$RESERVED_CORES \
+      python3 tools/bench_buck.py packages/tlv62569/layouts/sot23-5-4layer/fixture.kicad_pcb \
+      packages/tlv62569/layouts/sot23-5-4layer/roles.json OUT --params packages/tlv62569/layouts/sot23-5-4layer/params.json'

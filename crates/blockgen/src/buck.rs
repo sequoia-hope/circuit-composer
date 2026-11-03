@@ -29,6 +29,9 @@ pub struct Params {
     pub reach: f64,
     /// How far along the row either side of the switch pin, mm.
     pub along: f64,
+    /// How far behind the switch pin's row the parts may go too, mm: across a small package to
+    /// the far row (a SOT-23's VIN pin faces its SW pin), 0 for a QFN.
+    pub back: f64,
     pub rotations: Vec<f64>,
     /// Copper-to-copper clearance for every pair of nets, mm. `None`: the board's own net-class
     /// clearances from its `.kicad_pro`.
@@ -66,6 +69,19 @@ pub struct Params {
     pub keepout_layer: Option<String>,
     /// How far the keepout reaches past the switch-node copper, mm.
     pub keepout_margin: f64,
+    /// Why the keepout is there, with its citation (written into the layout).
+    pub keepout_reason: String,
+    /// How far from the FB pin's escape the divider's parts may go, mm.
+    pub divider_reach: f64,
+    /// COUT arrangements, best first, tried for a divider that fits.
+    pub divider_attempts: usize,
+    /// Divider poses kept per part.
+    pub divider_beam: usize,
+    /// Ground returns through the plane: a via at the IC's ground pin, vias at CIN's and COUT's
+    /// ground pads, and no ground runs on this layer. For a package whose ground pin sits beside
+    /// its switch pin across from VIN (a SOT-23 buck), where a same-layer ground run would box
+    /// the switch pin in. The loops then close along the plane, under the parts.
+    pub gnd_return_vias: bool,
 }
 
 impl Default for Params {
@@ -74,6 +90,7 @@ impl Default for Params {
             grid: 0.1,
             reach: 5.0,
             along: 4.0,
+            back: 0.0,
             rotations: vec![0.0, 90.0, 180.0, 270.0],
             clearance: None,
             power_widths: vec![0.4, 0.3, 0.2],
@@ -94,6 +111,11 @@ impl Default for Params {
             layer: "F.Cu".into(),
             keepout_layer: Some("In1.Cu".into()),
             keepout_margin: 0.2,
+            keepout_reason: "No copper under the switch node on the next layer (RP2350 datasheet §6.3.8 p.412, Figure 27)".into(),
+            divider_reach: 2.5,
+            divider_attempts: 40,
+            divider_beam: 6,
+            gnd_return_vias: false,
         }
     }
 }
@@ -405,13 +427,35 @@ struct State {
     est: Estimate,
 }
 
+// With BLOCKGEN_DEBUG set, each step prints why its poses were refused.
+static DEBUG: [std::sync::atomic::AtomicUsize; 3] = [std::sync::atomic::AtomicUsize::new(0), std::sync::atomic::AtomicUsize::new(0), std::sync::atomic::AtomicUsize::new(0)];
+fn debug_count(k: usize) {
+    DEBUG[k].fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+}
+fn debug_print(step: &str) {
+    if std::env::var_os("BLOCKGEN_DEBUG").is_some() {
+        let v: Vec<usize> = DEBUG.iter().map(|a| a.swap(0, std::sync::atomic::Ordering::Relaxed)).collect();
+        eprintln!("{step}: part clash {}, no copper option {}, copper clash {}", v[0], v[1], v[2]);
+    }
+}
+
 pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Generated, String> {
     let p = params;
     let ic_ref = roles.ic();
     let ic = board.parts.get(ic_ref).ok_or_else(|| format!("anchor {ic_ref} is not on the board"))?;
     let frame = Frame { at: ic.at, rotation: ic.rotation };
     let (vin, sw, pgnd, fb) = (pin(board, &frame, &roles.vin, p.escape)?, pin(board, &frame, &roles.sw, p.escape)?, pin(board, &frame, &roles.pgnd, p.escape)?, pin(board, &frame, &roles.fb, p.escape)?);
-    let (n_vin, n_sw, n_gnd, n_out) = (vin.net.clone(), sw.net.clone(), pgnd.net.clone(), fb.net.clone());
+    let (n_vin, n_sw, n_gnd, n_fb) = (vin.net.clone(), sw.net.clone(), pgnd.net.clone(), fb.net.clone());
+    // The output: the FB pin's own net, or, behind a divider, the inductor's other pad's.
+    let divider = match (&roles.rfb_bot, &roles.rfb_top) {
+        (Some(b), Some(t)) => Some([Some(Footprint::of(board, b)?), Some(Footprint::of(board, t)?), roles.cff.as_ref().map(|c| Footprint::of(board, c)).transpose()?]),
+        (None, None) => None,
+        _ => return Err("a divider needs both rfb_top and rfb_bot".into()),
+    };
+    let n_out = match divider {
+        None => n_fb.clone(),
+        Some(_) => Footprint::of(board, &roles.inductor)?.pads.iter().map(|q| q.net.clone()).find(|n| *n != n_sw).ok_or_else(|| format!("{} has no pad off the switch net", roles.inductor))?,
+    };
 
     // The anchor: its pads and courtyard are the fixed scene.
     let mut base = Scene::default();
@@ -424,6 +468,14 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
     if let Some(c) = &ic.courtyard {
         base.courts.push(c.iter().map(|q| frame.to_local(*q)).collect());
     }
+    // Through the plane: the ground pin's via, just past its escape.
+    let gvia = geom::add(pgnd.escape, geom::scale(geom::sub(pgnd.escape, pgnd.centre), (p.via_size / 2.0) / geom::dist(pgnd.escape, pgnd.centre)));
+    if p.gnd_return_vias {
+        base.shapes.push(Shape::new(&n_gnd, geom::circle(gvia, p.via_size / 2.0, 16)));
+        base.segs.push(Seg { net: n_gnd.clone(), a: pgnd.escape, b: gvia, w: pgnd.width });
+    }
+    // The ground side of a loop: the pin's escape, or through the plane to its via.
+    let gnd_tail: Vec<P> = if p.gnd_return_vias { vec![gvia, pgnd.escape, pgnd.centre] } else { vec![pgnd.escape, pgnd.centre] };
     // Pin escapes are copper too.
     for pn in [&vin, &sw, &pgnd, &fb] {
         base.segs.push(Seg { net: pn.net.clone(), a: pn.centre, b: pn.escape, w: pn.width });
@@ -447,7 +499,10 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
     let steps_a = (p.along / p.grid).round() as i64;
     let steps_o = (p.reach / p.grid).round() as i64;
     for i in -steps_a..=steps_a {
-        for j in 1..=steps_o {
+        for j in -((p.back / p.grid).round() as i64)..=steps_o {
+            if j == 0 {
+                continue;
+            }
             let at = geom::add(geom::add(sw.centre, geom::scale(along_dir, i as f64 * p.grid)), geom::scale(out_dir, j as f64 * p.grid));
             for &rotation in &p.rotations {
                 poses.push(Pose { at, rotation });
@@ -477,11 +532,18 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
                 poses.iter().filter_map(move |&pose| {
                     let placed = fp.placed(pose);
                     if !st.scene.part_ok(&placed, clr) {
+                        debug_count(0);
                         return None;
                     }
                     let mut options = eval(st, &placed);
+                    if options.is_empty() {
+                        debug_count(1);
+                    }
                     options.sort_by(|a, b| a.1.score.total_cmp(&b.1.score));
-                    let k = options.iter().position(|(segs, _)| st.scene.segs_ok(&placed, segs, clr))?;
+                    let Some(k) = options.iter().position(|(segs, _)| st.scene.segs_ok(&placed, segs, clr)) else {
+                        debug_count(2);
+                        return None;
+                    };
                     Some((si, pose, k, options[k].1))
                 })
             })
@@ -519,10 +581,12 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
     let beam = step(&[root], &fps[0], p.beam, &mut tried[0], &mut legal[0], &|_, placed| {
         let (Some(cv), Some(cg)) = (placed.pad(&n_vin), placed.pad(&n_gnd)) else { return vec![] };
         let (cv, cg) = (cv.centre, cg.centre);
-        let hot = geom::loop_area(&[vin.centre, vin.escape, cv, cg, pgnd.escape, pgnd.centre], 60);
+        let mut hl = vec![vin.centre, vin.escape, cv, cg];
+        hl.extend(&gnd_tail);
+        let hot = geom::loop_area(&hl, 60);
         let est = Estimate { hot_loop_area_mm2: hot, score: p.w_hot * hot, ..Default::default() };
         let options: Vec<(Vec<Seg>, Estimate)> =
-            p.power_widths.iter().map(|&w| (run(&vin, cv, w, p.neck).into_iter().chain(run(&pgnd, cg, w, p.neck)).collect(), est)).collect();
+            p.power_widths.iter().map(|&w| (run(&vin, cv, w, p.neck).into_iter().chain(if p.gnd_return_vias { vec![] } else { run(&pgnd, cg, w, p.neck) }).collect(), est)).collect();
         // The switch pin sits between VIN and PGND on many regulators: keep only poses that
         // leave it a way out, a narrowest-width run to the edge of the search band.
         let escapable = |segs: &[Seg]| {
@@ -538,6 +602,7 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
         options.into_iter().filter(|(segs, _)| escapable(segs)).collect()
     });
 
+    debug_print("cin");
     // Step 2: the inductor, scored on the switch node. The switch run may go straight, or
     // straight out from the pin first and then turn (as LX runs between CIN's pads on the RP2350
     // reference), every width; the step keeps the best-scoring option that fits.
@@ -586,6 +651,7 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
             .collect()
     });
 
+    debug_print("inductor");
     // Step 3: COUT, scored on the output loop. The feedback run is routed afterwards, best
     // candidates first, because it may need a bend: straight, or one corner from a grid.
     let cout_eval = |st: &State, placed: &Placed| -> Vec<(Vec<Seg>, Estimate)> {
@@ -596,14 +662,19 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
         let (co, cg2) = (co.centre, cg2.centre);
         let sw_segs: Vec<Seg> = st.scene.segs.iter().filter(|s| s.net == n_sw && s.a != sw.centre).cloned().collect();
         let mut lp = path_points(&sw, &sw_segs);
-        lp.extend([lo.centre, co, cg2, cg, pgnd.escape, pgnd.centre]);
+        if p.gnd_return_vias {
+            lp.extend([lo.centre, co, cg2]);
+        } else {
+            lp.extend([lo.centre, co, cg2, cg]);
+        }
+        lp.extend(&gnd_tail);
         let out = geom::loop_area(&lp, 60);
         let mut est = st.est;
         est.output_loop_area_mm2 = out;
         est.score = p.w_hot * est.hot_loop_area_mm2 + p.w_sw * est.switch_node_area_mm2 + p.w_out * out;
         p.power_widths
             .iter()
-            .map(|&w| (connection(&n_out, &[lo.centre, co], &[w]).into_iter().chain(connection(&n_gnd, &[cg2, cg], &[w])).collect(), est))
+            .map(|&w| (connection(&n_out, &[lo.centre, co], &[w]).into_iter().chain(if p.gnd_return_vias { vec![] } else { connection(&n_gnd, &[cg2, cg], &[w]) }).collect(), est))
             .collect()
     };
     let out_cands = candidates(&beam, &fps[2], &mut tried[2], &mut legal[2], &cout_eval);
@@ -613,9 +684,123 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
             corners.push(geom::add(geom::add(fb.escape, geom::scale(along_dir, i as f64 * 0.15)), geom::scale(out_dir, j as f64 * 0.2)));
         }
     }
+    // The divider: RFB_BOT (FB to ground), RFB_TOP (VOUT to FB), then CFF across RFB_TOP, each
+    // on a grid around the FB pin. Every FB-net run is straight or one bend, clear of the switch
+    // node by `fb_clearance_min`; the VOUT sense from COUT to RFB_TOP is drawn when it fits on
+    // this layer, and left to the router when not (TI's DBV layout runs it on another layer).
+    let fb_floor = p.fb_clearance_min;
+    let div_poses = |centre: P, reach: f64| -> Vec<Pose> {
+        let n = (reach / p.grid).round() as i64;
+        let mut out = Vec::new();
+        for i in -n..=n {
+            for j in -n..=n {
+                for &rotation in &p.rotations {
+                    out.push(Pose { at: [centre[0] + i as f64 * p.grid, centre[1] + j as f64 * p.grid], rotation });
+                }
+            }
+        }
+        out
+    };
+    // Shortest legal run from `from` to `to`: straight, or one right-angle bend either way.
+    let try_run = |scene: &Scene, placed: &Placed, net: &str, from: P, to: P, w: f64, extra: &[Seg]| -> Option<Vec<Seg>> {
+        let mut shapes = vec![vec![from, to], vec![from, [to[0], from[1]], to], vec![from, [from[0], to[1]], to]];
+        shapes.retain(|r| r.windows(2).all(|w| geom::dist(w[0], w[1]) > 1e-6) || r.len() == 2);
+        shapes.sort_by(|a, b| path_len(a).total_cmp(&path_len(b)));
+        shapes.into_iter().find_map(|r| {
+            let segs = connection(net, &r, &vec![w; r.len() - 1]);
+            let mut sc = scene.clone();
+            sc.segs.extend(extra.iter().cloned());
+            sc.segs_ok(placed, &segs, clr).then_some(segs)
+        })
+    };
+    let fb_clear = |segs: &[Seg], sw_copper: &[Vec<P>]| -> f64 {
+        segs.iter().filter(|s| s.net == n_fb).flat_map(|s| sw_copper.iter().map(move |c| geom::polyline_poly_dist(&[s.a, s.b], c))).fold(f64::INFINITY, f64::min)
+    };
+    let place_divider = |st: &State, sw_copper: &[Vec<P>]| -> Option<State> {
+        let [Some(bot), Some(top), cff] = divider.as_ref()? else { return None };
+        let fb_pin_line = [Seg { net: n_fb.clone(), a: fb.centre, b: fb.escape, w: fb.width }];
+        // Each partial: (state, FB copper so far, score).
+        let step_part = |parts: Vec<(State, Vec<Seg>, f64)>, fp: &Footprint, centre_of: &dyn Fn(&State) -> P, join: &dyn Fn(&State, &Placed, &[Seg]) -> Option<(Vec<Seg>, f64)>| -> Vec<(State, Vec<Seg>, f64)> {
+            let mut next: Vec<(State, Vec<Seg>, f64)> = Vec::new();
+            for (s0, fbs, score) in &parts {
+                for pose in div_poses(centre_of(s0), p.divider_reach) {
+                    let placed = fp.placed(pose);
+                    if !s0.scene.part_ok(&placed, clr) {
+                        continue;
+                    }
+                    let Some((segs, cost)) = join(s0, &placed, fbs) else { continue };
+                    let mut all: Vec<Seg> = fbs.clone();
+                    all.extend(segs.iter().filter(|g| g.net == n_fb).cloned());
+                    if fb_clear(&all, sw_copper) < fb_floor {
+                        continue;
+                    }
+                    let mut s = s0.clone();
+                    s.scene.commit(&placed, &segs);
+                    s.poses.push(pose);
+                    s.placed.push(placed);
+                    next.push((s, all, score + cost));
+                }
+            }
+            next.sort_by(|a, b| a.2.total_cmp(&b.2));
+            next.truncate(p.divider_beam);
+            next
+        };
+        let fb_join = |s: &State, placed: &Placed, fbs: &[Seg]| -> Option<(Vec<Seg>, f64)> {
+            let pad = placed.pad(&n_fb)?.centre;
+            // To the FB pin's escape, or to any FB copper already down (another divider pad).
+            let mut targets: Vec<P> = vec![fb.escape];
+            targets.extend(s.placed[3..].iter().filter_map(|q| q.pad(&n_fb)).map(|q| q.centre));
+            targets.sort_by(|a, b| geom::dist(*a, pad).total_cmp(&geom::dist(*b, pad)));
+            let _ = fbs;
+            targets.into_iter().find_map(|t| try_run(&s.scene, placed, &n_fb, t, pad, p.fb_width, &[]).map(|segs| {
+                let len: f64 = segs.iter().map(|g| geom::dist(g.a, g.b)).sum();
+                (segs, len)
+            }))
+        };
+        let start = vec![(st.clone(), fb_pin_line.to_vec(), 0.0)];
+        // RFB_BOT: on the FB node; its ground pad gets a via later.
+        let bots = step_part(start, bot, &|_| fb.escape, &|s, placed, fbs| {
+            placed.pad(&n_gnd)?;
+            fb_join(s, placed, fbs)
+        });
+        // RFB_TOP: on the FB node, and its VOUT pad sensed from COUT's.
+        let co = st.placed[2].pad(&n_out)?.centre;
+        let tops = step_part(bots, top, &|_| fb.escape, &|s, placed, fbs| {
+            let (mut segs, len) = fb_join(s, placed, fbs)?;
+            let vo = placed.pad(&n_out)?.centre;
+            match try_run(&s.scene, placed, &n_out, co, vo, p.fb_width, &segs) {
+                Some(sense) => {
+                    let l: f64 = sense.iter().map(|g| geom::dist(g.a, g.b)).sum();
+                    segs.extend(sense);
+                    Some((segs, len + 0.2 * l))
+                }
+                // Left to the router: priced, not refused.
+                None => Some((segs, len + 3.0)),
+            }
+        });
+        // CFF: across RFB_TOP, pad to pad.
+        let done = match cff {
+            None => tops,
+            Some(fp) => {
+                let n_top = 4;
+                step_part(tops, fp, &|s| s.placed[n_top].courtyard[0], &|s, placed, _| {
+                    let t = &s.placed[n_top];
+                    let a = try_run(&s.scene, placed, &n_fb, t.pad(&n_fb)?.centre, placed.pad(&n_fb)?.centre, p.fb_width, &[])?;
+                    let b = try_run(&s.scene, placed, &n_out, t.pad(&n_out)?.centre, placed.pad(&n_out)?.centre, p.fb_width, &a)?;
+                    let len: f64 = a.iter().chain(&b).map(|g| geom::dist(g.a, g.b)).sum();
+                    Some((a.into_iter().chain(b).collect(), len))
+                })
+            }
+        };
+        let (mut s, fbs, score) = done.into_iter().next()?;
+        s.est.feedback_clearance_mm = fb_clear(&fbs, sw_copper);
+        s.est.score += score;
+        Some(s)
+    };
     let mut done: Vec<State> = Vec::new();
+    let attempts = if divider.is_some() { p.divider_attempts } else { p.fb_attempts };
     // States are built lazily: the feedback run decides, so walk the whole list if needed.
-    for c in out_cands.into_iter().take(p.fb_attempts) {
+    for c in out_cands.into_iter().take(attempts) {
         if done.len() >= 8 {
             break;
         }
@@ -625,6 +810,10 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
         let sw_copper: Vec<Vec<P>> = std::iter::once(ls.poly.clone())
             .chain(st.scene.segs.iter().filter(|s| s.net == n_sw && s.a != sw.centre).map(|s| geom::capsule(s.a, s.b, s.w)))
             .collect();
+        if divider.is_some() {
+            done.extend(place_divider(&st, &sw_copper));
+            continue;
+        }
         let mut routes: Vec<Vec<P>> = vec![vec![fb.escape, co]];
         routes.extend(corners.iter().map(|&q| vec![fb.escape, q, co]));
         routes.sort_by(|a, b| path_len(a).total_cmp(&path_len(b)));
@@ -662,18 +851,28 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
         keepouts.push(LKeepout {
             layer: layer.clone(),
             polygon: geom::hull(&pts),
-            reason: "No copper under the switch node on the next layer (RP2350 datasheet §6.3.8 p.412, Figure 27)".into(),
+            reason: p.keepout_reason.clone(),
         });
     }
     // Ground vias beside CIN's ground pad, as close as they fit and clear of the keepout (a
     // via there could not reach the plane it is for).
     let mut scene = best.scene.clone();
-    let cg = best.placed[0].pad(&n_gnd).unwrap().clone();
     let mut vias: Vec<LVia> = Vec::new();
+    // CIN's ground pad gets `gnd_vias`; the divider's foot (RFB_BOT's ground pad) one.
+    let mut feet = vec![(best.placed[0].pad(&n_gnd).unwrap().clone(), p.gnd_vias)];
+    if divider.is_some() {
+        feet.extend(best.placed.get(3).and_then(|q| q.pad(&n_gnd)).map(|q| (q.clone(), 1)));
+    }
+    if p.gnd_return_vias {
+        feet.push((best.placed[2].pad(&n_gnd).unwrap().clone(), p.gnd_vias));
+        vias.push(LVia { at: gvia, size: p.via_size, drill: p.via_drill, net: "gnd".into() });
+    }
+    for (cg, want) in feet {
+    let had = vias.len();
     'rings: for k in 0..12 {
         let r = 0.5 + 0.1 * k as f64;
         for a in 0..24 {
-            if vias.len() >= p.gnd_vias {
+            if vias.len() >= had + want {
                 break 'rings;
             }
             let t = a as f64 / 24.0 * std::f64::consts::TAU;
@@ -690,6 +889,7 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
             }
         }
     }
+    }
 
     // The layout, by role.
     let role_of = |net: &str| -> String {
@@ -699,13 +899,15 @@ pub fn generate(board: &Board, roles: &BuckRoles, params: &Params) -> Result<Gen
             "sw"
         } else if net == n_gnd {
             "gnd"
-        } else {
+        } else if net == n_out {
             "out"
+        } else {
+            "fb"
         }
         .to_string()
     };
     let mut parts = BTreeMap::new();
-    for (role, pose) in ["cin", "inductor", "cout"].iter().zip(&best.poses) {
+    for (role, pose) in ["cin", "inductor", "cout", "rfb_bot", "rfb_top", "cff"].iter().zip(&best.poses) {
         parts.insert(role.to_string(), *pose);
     }
     let tracks: Vec<LTrack> = scene

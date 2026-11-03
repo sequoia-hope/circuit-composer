@@ -19,7 +19,11 @@ fn parse_limit(s: &str) -> Limit {
 }
 
 fn check_layout(name: &str) {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages/rp2350/layouts").join(name);
+    check_package_layout("rp2350", "core_reg", name);
+}
+
+fn check_package_layout(package: &str, block: &str, name: &str) {
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../packages").join(package).join("layouts").join(name);
     let board = pcb::Board::load(&dir.join("fixture.kicad_pcb")).unwrap();
     let roles: BTreeMap<String, String> = serde_json::from_str(&std::fs::read_to_string(dir.join("roles.json")).unwrap()).unwrap();
     let roles = BuckRoles::from_map(&roles).unwrap();
@@ -30,7 +34,7 @@ fn check_layout(name: &str) {
         .iter()
         .map(|(k, v)| (k.clone(), parse_limit(v.as_str().unwrap())))
         .collect();
-    let r = check(&board, "core_reg", &roles, &limits).unwrap();
+    let r = check(&board, block, &roles, &limits).unwrap();
     assert!(r.geometry.routed, "{name}: the block's copper joins every loop");
     for m in &r.measurements {
         assert_ne!(m.passed, Some(false), "{name}: {} = {} fails {:?}", m.check, m.measured, m.limit);
@@ -60,4 +64,9 @@ fn rp2350_core_reg_qfn80_4layer() {
 #[test]
 fn rp2350_core_reg_qfn80_2layer() {
     check_layout("qfn80-2layer");
+}
+
+#[test]
+fn tlv62569_reg_sot23_5_4layer() {
+    check_package_layout("tlv62569", "reg", "sot23-5-4layer");
 }

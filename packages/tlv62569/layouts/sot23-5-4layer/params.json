@@ -1,0 +1,40 @@
+{
+  "along": 4.0,
+  "back": 4.0,
+  "beam": 40,
+  "beam_inductor": 160,
+  "clearance": null,
+  "diversity": 0.3,
+  "divider_attempts": 40,
+  "divider_beam": 6,
+  "divider_reach": 2.5,
+  "escape": 0.2,
+  "fb_attempts": 20000,
+  "fb_clearance_min": 0.3,
+  "fb_width": 0.2,
+  "gnd_return_vias": true,
+  "gnd_vias": 2,
+  "grid": 0.1,
+  "keepout_layer": null,
+  "keepout_margin": 0.2,
+  "keepout_reason": "",
+  "layer": "F.Cu",
+  "neck": 0.6,
+  "power_widths": [
+    0.5,
+    0.4,
+    0.3
+  ],
+  "reach": 5.0,
+  "rotations": [
+    0.0,
+    90.0,
+    180.0,
+    270.0
+  ],
+  "via_drill": 0.3,
+  "via_size": 0.6,
+  "w_hot": 1.0,
+  "w_out": 0.5,
+  "w_sw": 0.5
+}

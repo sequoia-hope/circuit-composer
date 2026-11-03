@@ -249,7 +249,7 @@ def main():
         for r in spec.get("rigid", []):
             layout = Path(a.root) / r["layout"]
             pkg_roles = json.load(open(layout.parent / "roles.json"))
-            roles = {k: f"{r['anchor']}.{v.split('.', 1)[1]}" if v.startswith("U1.") else v for k, v in pkg_roles.items()}
+            roles = {k: f"{r['anchor']}.{v.split('.', 1)[1]}" if "." in v else v for k, v in pkg_roles.items()}
             roles.update(r.get("roles", {}))
             rf = Path(t) / f"{r['name']}.roles.json"
             rf.write_text(json.dumps(roles))

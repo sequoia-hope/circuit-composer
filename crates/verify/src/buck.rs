@@ -41,6 +41,14 @@ pub struct BuckRoles {
     /// whose low-side switch is inside the IC and returns through `pgnd`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub diode: Option<String>,
+    /// The output divider, when FB sits behind one: the resistor from VOUT to FB, the one from FB
+    /// to ground, and the feed-forward capacitor across the top one. The generator places them.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rfb_top: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rfb_bot: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cff: Option<String>,
 }
 
 impl BuckRoles {
@@ -56,6 +64,9 @@ impl BuckRoles {
             cout: get("cout")?,
             inductor: get("inductor")?,
             diode: m.get("diode").cloned(),
+            rfb_top: m.get("rfb_top").cloned(),
+            rfb_bot: m.get("rfb_bot").cloned(),
+            cff: m.get("cff").cloned(),
         })
     }
 

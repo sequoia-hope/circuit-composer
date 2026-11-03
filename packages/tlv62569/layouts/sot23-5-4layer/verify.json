@@ -1,0 +1,40 @@
+{
+ "block": "reg",
+ "board": "fixture.kicad_pcb",
+ "measurements": {
+  "hot_loop_area_mm2": 3.5351,
+  "hot_loop_area_placed_mm2": 1.7189,
+  "output_loop_area_mm2": 11.05,
+  "switch_node_area_mm2": 5.2107,
+  "feedback_clearance_mm": 2.6653,
+  "switch_node_underlap_mm2": 5.2396
+ },
+ "limits": {
+  "feedback_clearance_mm": ">= 0.3"
+ },
+ "kicad_drc": {
+  "errors": [],
+  "open_between_block_parts": [],
+  "note": "KiCad 9 DRC on the fixture (rp2350-battery's U5 and its block, in a 30 mm square outline round U5); library-footprint warnings and the anchor's other unconnected pins are expected on a test bench and left out"
+ },
+ "generator": {
+  "estimate": {
+   "feedback_clearance_mm": 3.519823439544263,
+   "hot_loop_area_mm2": 3.042719479115812,
+   "output_loop_area_mm2": 9.809099999999997,
+   "score": 17.114976807009626,
+   "switch_node_area_mm2": 5.91808232904924
+  },
+  "tried": [
+   29160,
+   1166400,
+   4665600
+  ],
+  "legal": [
+   6066,
+   210621,
+   62817
+  ],
+  "seconds_on_8_cores": 135.4
+ }
+}
