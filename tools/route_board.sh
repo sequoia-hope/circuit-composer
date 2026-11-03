@@ -30,7 +30,7 @@ $CCOMP compose "$(get composition)" -o "$OUT/composed.json" --intent "$OUT/inten
 $CCOMP -b "$BOARD" floorplan --composed "$OUT/composed.json" --intent "$OUT/intent.json" -o "$OUT/placement.json" > "$OUT/floorplan.out" \
   || { echo "floorplan not legal: $OUT/floorplan.out" >&2; exit 1; }
 python3 tools/apply_placement.py "$PCB" "$OUT/placement.json" -o "$OUT/placed.kicad_pcb" > "$OUT/placed.out" 2> /dev/null
-python3 tools/prepare_route.py "$OUT/placed.kicad_pcb" --intent "$OUT/intent.json" --spec "$SPEC" --pro "$PRO" \
+python3 tools/prepare_route.py "$OUT/placed.kicad_pcb" --intent "$OUT/intent.json" --composed "$OUT/composed.json" --spec "$SPEC" --pro "$PRO" \
   -o "$OUT/route-in" > "$OUT/prepare.out" 2> /dev/null || { cat "$OUT/prepare.out"; exit 1; }
 IN="$OUT/route-in/$NAME"
 $CCOMP compile "$OUT/intent.json" --pcb "$IN.kicad_pcb" -o "$OUT/route-in/routing.json" \

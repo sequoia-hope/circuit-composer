@@ -88,9 +88,14 @@ It sits between two sibling projects:
     into keeping off layers with no ground beside them and off the voids in the ground fill
     beside the others. Hard constraints are `never`, soft ones a weighted `avoid`. `ccomp floorplan
     --intent` keeps a length-limited net's pins' box under 0.75 of its limit. Against the
-    rp2350 package the battery board went from 22 fails of 63 (2 hard) to 12 to 14, with no
-    hard fail on 3 of 4 seeds.
-  - **Not yet:** decoupling paths as a placement cost; keeping other nets' vias from under a
+    rp2350 package the battery board went from 22 fails of 63 (2 hard) to 13 to 15, with no
+    hard fail on any of 4 seeds.
+  - **Decoupling:** `prepare_route.py --composed` draws and locks each decoupling capacitor's stub
+    to its pin, and the floorplanner leaves room for it: a `near` hint is measured from the
+    part's pad on that net, and other courtyards across the line to the pin are priced. The
+    battery board's decoupling fails went from 6 to 1 to 3.
+  - **Not yet:** room for every stub beside the chip (7 of 10 fit); the flash's QSPI lengths;
+    keeping other nets' vias from under a
     ground-referenced net (ultraroute); the buck generator for off-chip regulators (the
     battery board's TLV62569 is routed freely: 2.98 mm² hot loop against 1.03 for the generated
     core regulator); intent for the remaining packages and the recipes; package schematic

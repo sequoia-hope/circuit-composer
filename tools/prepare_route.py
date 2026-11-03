@@ -17,6 +17,9 @@ that .kicad_dru).
 - **Rigid blocks:** every `rigid` entry of the floorplan spec has its generated layout's
   tracks, vias and keep-outs applied at its anchor by `apply_layout.py`, all locked. The
   layout's chip pins (`U1.49`) are the anchor's.
+- **Decoupling stubs:** with `--composed`, each capacitor a `decoupling_path_mm` constraint names
+  gets a locked track to the pin it decouples (its `near`), when one fits within the limit:
+  placement puts it close, but a router wires it into the net anywhere.
 - **Planes:** a zone over the whole board per `--plane LAYER=NET`, by default the ground net on
   In1.Cu and the POWER net with the most pads on In2.Cu.
 
@@ -80,6 +83,111 @@ def netclass(name, track, clearance, via, drill, priority):
     }
 
 
+# A stub keeps this much from other nets' copper, mm: the widest class clearance here.
+STUB_CLEARANCE = 0.15
+
+
+def stub_paths(p, q):
+    """Paths from p to q, shortest first: straight; the two right-angle bends; the two
+    45-degree-then-straight bends."""
+    (px, py), (qx, qy) = p, q
+    dx, dy = qx - px, qy - py
+    d = min(abs(dx), abs(dy))
+    sx, sy = math.copysign(d, dx), math.copysign(d, dy)
+    out = [[p, q], [p, (qx, py), q], [p, (px, qy), q], [p, (px + sx, py + sy), q], [p, (qx - sx, qy - sy), q]]
+    length = lambda path: sum(math.dist(a, b) for a, b in zip(path, path[1:]))
+    return sorted(([pt for i, pt in enumerate(path) if i == 0 or math.dist(pt, path[i - 1]) > 1e-6] for path in out), key=length)
+
+
+def decoupling_stubs(b, intent, composed):
+    """For each power pin a `decoupling_path_mm` constraint covers: a track on the pin's layer
+    from the pin to its capacitor's pad on the same net (the capacitor whose `near` is that pin),
+    the first shape of `stub_paths` that clears every other net's pads, tracks and vias and every
+    rule area, and is within the limit. Locked, so the router builds the net round it."""
+    if composed is None:
+        return {"skipped": "no --composed"}
+    near = {ref: p["near"] for ref, p in composed["parts"].items() if p.get("near")}
+    wanted = {}
+    for bid, blk in intent.get("blocks", {}).items():
+        for c in (blk.get("placement_goal") or {}).get("constraints", []):
+            v = c["value"]
+            if v["metric"] == "decoupling_path_mm" and v["op"] == "<=":
+                for ref in v.get("parts", []):
+                    wanted[ref] = v["limit"]
+    obstacles = []  # (net, shape on F.Cu or None for any layer, layers)
+    for fp in b.GetFootprints():
+        for pad in fp.Pads():
+            obstacles.append((pad.GetNetCode(), pad))
+    for t in b.GetTracks():
+        obstacles.append((t.GetNetCode(), t))
+    areas = [z for z in b.Zones() if z.GetIsRuleArea() and z.GetDoNotAllowTracks()]
+    made, missed = {}, {}
+    for ref, limit in sorted(wanted.items()):
+        if ref not in near:
+            missed[ref] = "no near pin"
+            continue
+        chip, pin = near[ref].split(".")
+        pp = b.FindFootprintByReference(chip).FindPadByNumber(pin)
+        cap = b.FindFootprintByReference(ref)
+        cp = next((q for q in cap.Pads() if q.GetNetCode() == pp.GetNetCode()), None)
+        layer = pcbnew.B_Cu if cap.IsFlipped() else pcbnew.F_Cu
+        if cp is None or not pp.IsOnLayer(layer):
+            missed[ref] = "not on one layer with its pin"
+            continue
+        width = min(pp.GetSize().x, pp.GetSize().y, int(CLASSES["POWER"][0] * NM))
+        P = (pp.GetPosition().x / NM, pp.GetPosition().y / NM)
+        Q = (cp.GetPosition().x / NM, cp.GetPosition().y / NM)
+        # Or first out of the pin along its long axis, away from the chip, clear of its
+        # neighbours' ends, then on to the capacitor.
+        long_x = pp.GetSize().x > pp.GetSize().y
+        a_rad = math.radians(pp.GetOrientationDegrees())
+        axis = (math.cos(a_rad), -math.sin(a_rad)) if long_x else (math.sin(a_rad), math.cos(a_rad))
+        centre = (pp.GetParentFootprint().GetPosition().x / NM, pp.GetParentFootprint().GetPosition().y / NM)
+        if (P[0] - centre[0]) * axis[0] + (P[1] - centre[1]) * axis[1] < 0:
+            axis = (-axis[0], -axis[1])
+        half = max(pp.GetSize().x, pp.GetSize().y) / NM / 2
+        paths = stub_paths(P, Q)
+        for extra in (0.05, 0.3, 0.6):
+            e = half + STUB_CLEARANCE + width / NM / 2 + extra
+            E = (P[0] + axis[0] * e, P[1] + axis[1] * e)
+            paths += [[P] + rest for rest in stub_paths(E, Q)]
+        paths.sort(key=lambda path: sum(math.dist(u, v) for u, v in zip(path, path[1:])))
+        for path in paths:
+            if sum(math.dist(u, v) for u, v in zip(path, path[1:])) > limit:
+                missed[ref] = f"no stub within {limit} mm"
+                break
+            segs = []
+            for u, v in zip(path, path[1:]):
+                t = pcbnew.PCB_TRACK(b)
+                t.SetStart(pcbnew.VECTOR2I(int(round(u[0] * NM)), int(round(u[1] * NM))))
+                t.SetEnd(pcbnew.VECTOR2I(int(round(v[0] * NM)), int(round(v[1] * NM))))
+                t.SetWidth(int(width))
+                t.SetLayer(layer)
+                t.SetNetCode(pp.GetNetCode())
+                segs.append(t)
+            clear = int(STUB_CLEARANCE * NM)
+            def hits(t):
+                shape = t.GetEffectiveShape()
+                for net, item in obstacles:
+                    if net == pp.GetNetCode() or not item.IsOnLayer(layer):
+                        continue
+                    other = item.GetEffectiveShape(layer) if isinstance(item, pcbnew.PAD) else item.GetEffectiveShape()
+                    if shape.Collide(other, clear):
+                        return True
+                return any(z.IsOnLayer(layer) and z.Outline().Collide(t.GetStart()) or z.IsOnLayer(layer) and z.Outline().Collide(t.GetEnd()) for z in areas)
+            if any(hits(t) for t in segs):
+                continue
+            for t in segs:
+                t.SetLocked(True)
+                b.Add(t)
+                obstacles.append((t.GetNetCode(), t))
+            made[ref] = {"pin": near[ref], "mm": round(sum(math.dist(u, v) for u, v in zip(path, path[1:])), 3), "bends": len(path) - 2}
+            break
+        else:
+            missed[ref] = "every shape blocked"
+    return {"made": made, "missed": missed}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("board")
@@ -89,6 +197,7 @@ def main():
     ap.add_argument("--pro", help="a .kicad_pro to start from (default: the one beside BOARD)")
     ap.add_argument("--layers", type=int)
     ap.add_argument("--plane", action="append", default=[], help="LAYER=NET, a zone over the whole board")
+    ap.add_argument("--composed", help="the composed board (`ccomp compose -o`): its parts' `near` pins, for the decoupling stubs")
     ap.add_argument("-o", "--output", required=True)
     a = ap.parse_args()
 
@@ -147,6 +256,11 @@ def main():
             res = run([sys.executable, str(HERE / "apply_layout.py"), str(pcb), str(layout), str(rf), "-o", str(pcb)])
             rigid.append({"name": r["name"], "anchor": r["anchor"], "tracks": res["tracks"], "vias": res["vias"], "keepouts": res["keepouts"]})
 
+    # Each decoupling capacitor's stub to its pin, locked.
+    b = pcbnew.LoadBoard(str(pcb))
+    stubs = decoupling_stubs(b, intent, json.load(open(a.composed)) if a.composed else None)
+    b.Save(str(pcb))
+
     # Planes over the board.
     b = pcbnew.LoadBoard(str(pcb))
     planes = dict(p.split("=", 1) for p in a.plane)
@@ -185,7 +299,7 @@ def main():
     pro.write_text(json.dumps(project, indent=2) + "\n")  # pcbnew's save rewrites it without the classes
 
     print(json.dumps({"ok": True, "board": str(pcb), "layers": layers, "classes": used, "nets_classed": len(ns["netclass_patterns"]),
-                      "widened": widened, "planes": planes, "rigid": rigid}, indent=1))
+                      "widened": widened, "planes": planes, "rigid": rigid, "stubs": stubs}, indent=1))
 
 
 if __name__ == "__main__":

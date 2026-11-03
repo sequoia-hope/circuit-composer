@@ -695,6 +695,7 @@
       "block": "usb",
       "footprint": "Resistor_SMD:R_0402_1005Metric",
       "instance": "mcu",
+      "near": "U4.51",
       "role": "R_USB_DM",
       "symbol": "Device:R",
       "value": "27"
@@ -703,6 +704,7 @@
       "block": "usb",
       "footprint": "Resistor_SMD:R_0402_1005Metric",
       "instance": "mcu",
+      "near": "U4.52",
       "role": "R_USB_DP",
       "symbol": "Device:R",
       "value": "27"
@@ -711,6 +713,7 @@
       "block": "crystal",
       "footprint": "Resistor_SMD:R_0402_1005Metric",
       "instance": "mcu",
+      "near": "U4.22",
       "role": "R_XOUT",
       "symbol": "Device:R",
       "value": "1k"
@@ -853,6 +856,7 @@
       "block": "flash",
       "footprint": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",
       "instance": "mcu",
+      "near": "U4.56",
       "role": "FLASH",
       "symbol": "Memory_Flash:W25Q128JVS",
       "value": "W25Q128JVS"
@@ -879,6 +883,7 @@
       "block": "crystal",
       "footprint": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
       "instance": "mcu",
+      "near": "U4.21",
       "role": "XTAL",
       "symbol": "Device:Crystal_GND24",
       "value": "ABM8-272-T3"

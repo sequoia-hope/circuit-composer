@@ -3,17 +3,18 @@
   "unconnected": {},
   "drc_errors": {},
   "drc_warnings": {
-    "silk_overlap": 153,
-    "silk_over_copper": 44,
-    "silk_edge_clearance": 6,
-    "track_dangling": 1
+    "silk_overlap": 160,
+    "silk_over_copper": 45,
+    "silk_edge_clearance": 3,
+    "via_dangling": 1
   },
   "length_violations": [],
   "region_violations": 0,
   "region_findings": [],
   "region_prices": {
-    "mcu/flash:over_ground:0:avoid": 11,
-    "mcu/usb:over_ground:1:avoid": 1
+    "mcu/crystal:over_ground:1:avoid": 1,
+    "mcu/flash:over_ground:0:avoid": 37,
+    "mcu/usb:over_ground:1:avoid": 3
   },
   "bucks": {
     "mcu/core_reg": {
@@ -25,17 +26,17 @@
       "switch_node_underlap_mm2": 0.0
     },
     "reg/reg": {
-      "hot_loop_area_mm2": 4.1351,
-      "hot_loop_area_placed_mm2": 6.1546,
-      "output_loop_area_mm2": 21.5131,
-      "switch_node_area_mm2": 5.077,
-      "feedback_clearance_mm": 2.7649,
-      "switch_node_underlap_mm2": 5.0784
+      "hot_loop_area_mm2": 11.4092,
+      "hot_loop_area_placed_mm2": 3.9204,
+      "output_loop_area_mm2": 4.2605,
+      "switch_node_area_mm2": 5.0797,
+      "feedback_clearance_mm": 2.7648,
+      "switch_node_underlap_mm2": 5.078
     }
   },
   "copper": {
-    "tracks": 401,
-    "vias": 92,
-    "locked": 16
+    "tracks": 406,
+    "vias": 100,
+    "locked": 25
   }
 }
