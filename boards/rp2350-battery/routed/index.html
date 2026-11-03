@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rp2350-battery routed</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #ffffff; --line: #e2e5ea; --fg: #14171c; --muted: #5f6875; --up: #1a9c5b; --warn: #b7791f;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0e1116; --card: #171b22; --line: #262c36; --fg: #e6e9ee; --muted: #8b94a3; --up: #35c07d; --warn: #d9a441; }
+}
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 1.5rem; margin: 0 0 .3rem; }
+p { color: var(--muted); margin: .3rem 0 1rem; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+figure { margin: 0; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+figure img { width: 100%; height: auto; background: #fff; border-radius: 6px; }
+figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+table { border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin: 0 0 20px; }
+td, th { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: left; font-variant-numeric: tabular-nums; }
+.ok { color: var(--up); font-weight: 600; } .warn { color: var(--warn); font-weight: 600; }
+code { font-size: .9em; }
+</style>
+</head>
+<body>
+<main>
+<h1>rp2350-battery, composed and routed</h1>
+<p>Composed from packages (rp2350, mcp73831, tlv62569, lsm6dso), placed by <code>ccomp floorplan</code>, given a
+4-layer stack-up by <code>tools/prepare_route.py</code> and routed by ultraroute (<code>tools/route_board.sh</code>).
+The RP2350's core regulator is the package's generated layout, locked. See <code>README.md</code> beside this page.</p>
+<table id="checks"><tbody><tr><td>Loading verify.json…</td></tr></tbody></table>
+<div class="grid">
+  <figure><img src="top.svg" alt="Front and back copper with silkscreen"><figcaption>F.Cu (red), B.Cu (blue), silkscreen</figcaption></figure>
+  <figure><img src="In1.Cu.svg" alt="Inner layer 1, the GND plane"><figcaption>In1.Cu: GND plane</figcaption></figure>
+  <figure><img src="In2.Cu.svg" alt="Inner layer 2, the 3.3 V plane"><figcaption>In2.Cu: +3V3 plane</figcaption></figure>
+</div>
+</main>
+<script>
+fetch("verify.json").then(r => r.json()).then(v => {
+  const n = o => Object.values(o || {}).reduce((a, b) => a + b, 0);
+  const row = (k, val, good) => `<tr><th>${k}</th><td class="${good ? "ok" : "warn"}">${val}</td></tr>`;
+  const b = v.bucks || {};
+  const loop = k => b[k] ? `${b[k].hot_loop_area_mm2.toFixed(2)} mm²` : "–";
+  document.querySelector("#checks tbody").innerHTML =
+    row("Verdict", v.ok ? "pass" : "fail", v.ok) +
+    row("KiCad DRC errors (after refill)", n(v.drc_errors), !n(v.drc_errors)) +
+    row("Unconnected", n(v.unconnected), !n(v.unconnected)) +
+    row("Region violations", v.region_violations, v.region_violations === 0) +
+    row("Locked copper kept", v.copper.locked, true) +
+    row("RP2350 core regulator hot loop (generated, locked)", loop("mcu/core_reg"), true) +
+    row("TLV62569 hot loop (routed freely, no generated layout yet)", loop("reg/reg"), false);
+  return fetch("rp2350.check.json").then(r => r.json()).then(c => {
+    document.querySelector("#checks tbody").innerHTML += row("rp2350 package rules, by role", `${c.counts.pass} pass, ${c.counts.fail} fail`, !c.counts.fail);
+  });
+}).catch(() => { document.querySelector("#checks tbody").innerHTML = "<tr><td>verify.json did not load</td></tr>"; });
+</script>
+</body>
+</html>

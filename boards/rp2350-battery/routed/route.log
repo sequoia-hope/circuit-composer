@@ -1,0 +1,17 @@
+memory: 865 MB estimated (4155072 nodes at 0.035 mm, 9 classes, 1 searching the whole board), 17286 MB allowed by 60% of available memory
+prefanout: 3 parts, 13 inward, 37 of 37 escaped (0 failed), 37 vias, skipped 0 no-net 13 pth 1 exposed 47 escaped, 6.2 s
+planes: 52 of 53 pads off their planes joined, 6.2 s
+pairs: 2 pairs, 2 of 2 runs coupled, 19.5 mm, 9.7 s
+negotiated 64 of 67 connections in 5 rounds, 20 vias, 12.7 s
+rip-up: 3 tries, 0 kept, 0 ripped; lost 3 with no way through, 0 to copper it may not rip, 0 no better; 13.1 s
+shove pass 1: 4 trapped tried, 4 routed out, 4 kept, 3 -> 0 open, 15.6 s
+vias: 11 of 46 dropped, 8 of 193 tries kept, 18.0 s
+pulled tight: 452 -> 369 segments, 314 -> 321 mm, 18.1 s
+dropped 0 doubled, pruned 59 dangling, open 0 -> 0, 18.1 s
+tune: /USB_DP//USB_DM skew 0.63 -> 0.00 mm
+tune: /mcu_USB_DP_PIN//mcu_USB_DM_PIN skew 2.75 -> 0.15 mm
+routed 0 more, 3 failed, 0 open, 18.1 s
+split 2 tracks where others end on them
+neck: /+3V3 0.2 mm wide for 0.28 mm into C16-1, thinner than the 0.56 mm pin it feeds: no wider leg reaches the pin
+dropped 2 pour fills new copper cuts; KiCad refills them
+memory: peak 479 MB

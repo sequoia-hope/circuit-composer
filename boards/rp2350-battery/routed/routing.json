@@ -1,0 +1,7 @@
+{
+  "generator": "circuit-composer 0.1.0",
+  "max_lengths": [],
+  "regions": [],
+  "version": 1,
+  "weight_mapping": "router weight = 10 x intent weight (intent weights are relative, in (0, 1])"
+}

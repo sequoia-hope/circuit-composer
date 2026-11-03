@@ -66,9 +66,30 @@ It sits between two sibling projects:
     - A footprint locked in the board (KiCad's lock) stays put: `ccomp floorplan` fixes it, and
       the app reads each part's lock from the board it opens and writes it back when it saves.
     - The demo board is in `boards/rp2350-battery/`: USB-C, a charger, load sharing, a buck,
-      the RP2350 and an IMU. It composes and floorplans legally at 39 × 31 mm.
-  - **Not yet:** design rules and stack-up for composed boards; routing them; package
-    schematic sheets; the buck generator for off-chip regulators.
+      the RP2350 and an IMU. It composes and floorplans legally at 40 × 32 mm.
+    - A rigid layout's tracks and vias keep other parts off them, as its parts do. A part keeps
+      the margin from a side an edge connector sits flush on, and separations rise in weight
+      through the anneal, like overlaps, so the end keeps them.
+  - **Board intent:** `ccomp compose --intent` writes the composed board's intent file: each
+    package's `intent.json` in board names (its nets found through their pins, its parts
+    through the binding, blocks and domains named `INSTANCE/NAME`), nets two packages share
+    merged to the stricter values, then the composition's own `intent` (board nets no package
+    covers, a default for the rest). KiCad's net names, as `compose_kicad.py` labels them. The
+    charger and IMU packages carry intent files now; the battery board's validates against its
+    netlist, 42 of 42 nets.
+  - **Routing composed boards:** `tools/prepare_route.py` gives a placed board its stack-up
+    (4 layers), the fab rules, a net class per net from its intent, planes, a current-width rule
+    where a net's current needs one (IPC-2221), and each rigid block's generated copper, locked.
+    `tools/route_board.sh` runs it all from the composition through ultraroute to the seam
+    checks. The battery board routes in about 20 s with 0 DRC errors and 0 unconnected on 4 of
+    4 seeds (`boards/rp2350-battery/routed/`). Against the rp2350 package's own rules it
+    fails 22 of 63, 2 of them hard (USB over +3V3): the router is not yet given what the package
+    knows.
+  - **Not yet:** the packages' layout rules as routing constraints (regions, layers, vias,
+    hard length limits in their intent); the buck generator for off-chip regulators (the
+    battery board's TLV62569 is routed freely: 2.98 mm² hot loop against 1.03 for the generated
+    core regulator); intent for the remaining packages and the recipes; package schematic
+    sheets.
 - **Research library:** `library/` holds 143 cited claims from 41 vendor app notes, datasheets
   and articles, on five topics:
   - buck layout,
@@ -172,11 +193,14 @@ Composing and floorplanning (milestone 5):
 
 ```sh
 python3 tools/circuit_check.py packages/*/schematic/circuit.*.json --kicad 9   # symbols, footprints, pins
-$ccomp compose boards/rp2350-battery/compose.json -o composed.json
+$ccomp compose boards/rp2350-battery/compose.json -o composed.json --intent intent.json   # + the board's intent
 python3 tools/compose_kicad.py composed.json OUT_DIR                           # schematic, ERC, board
 $ccomp floorplan OUT_DIR/BOARD.kicad_pcb --composed composed.json --spec boards/rp2350-battery/floorplan.json -o placement.json
 $ccomp floorplan ... --evaluate PLACED.kicad_pcb                               # score a person's placement
 python3 tools/apply_placement.py OUT_DIR/BOARD.kicad_pcb placement.json -o placed.kicad_pcb   # + KiCad DRC
+python3 tools/prepare_route.py placed.kicad_pcb --intent intent.json --spec boards/rp2350-battery/floorplan.json \
+    --pro OUT_DIR/BOARD.kicad_pro -o ROUTE_IN                                  # stack-up, rules, classes, planes, locked blocks
+ULTRAROUTE=PATH tools/route_board.sh rp2350-battery OUT [SEED]                 # all of it, routed and checked
 ```
 
 Recomposing an existing board:
