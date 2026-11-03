@@ -77,6 +77,19 @@ pub struct Net {
     pub pins: Vec<(usize, String)>,
     #[serde(default = "one")]
     pub weight: f64,
+    /// The longest the pins' box may be, half-perimeter mm: a length limit brought down to what
+    /// a placement can promise. Beyond it each mm costs `w_limit`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_mm: Option<f64>,
+}
+
+/// A net's weighted wire term: its pins' box, and the excess over its limit.
+fn net_cost(o: &Options, net: &Net, hp: f64) -> f64 {
+    net.weight * hp + net.max_mm.map_or(0.0, |m| o.w_limit * (hp - m).max(0.0))
+}
+
+fn w_limit() -> f64 {
+    10.0
 }
 
 fn one() -> f64 {
@@ -132,6 +145,9 @@ pub struct Options {
     pub fill: f64,
     #[serde(default = "w_fill")]
     pub w_fill: f64,
+    /// Per mm a net's pins' box runs over its `max_mm`.
+    #[serde(default = "w_limit")]
+    pub w_limit: f64,
     /// How the placement starts: annealed from a random spread, or from the analytical placer's
     /// (then annealed cool, as a warm start is).
     #[serde(default)]
@@ -148,7 +164,7 @@ pub enum Placer {
 
 impl Default for Options {
     fn default() -> Self {
-        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), placer: Placer::Sa }
+        Options { seed: 1, moves: 400_000, clearance: 0.0, margin: 0.5, w_wire: 1.0, w_area: 0.05, w_near: 3.0, w_block: 0.3, w_edge: 5.0, w_sep: 5.0, w_overlap: 20.0, fill: fill(), w_fill: w_fill(), w_limit: w_limit(), placer: Placer::Sa }
     }
 }
 
@@ -631,7 +647,7 @@ impl<'a> State<'a> {
                 b = [b[0].min(p.0), b[1].min(p.1), b[2].max(p.0), b[3].max(p.1)];
             }
             if net.pins.len() > 1 {
-                wire += net.weight * ((b[2] - b[0]) + (b[3] - b[1]));
+                wire += net_cost(o, net, (b[2] - b[0]) + (b[3] - b[1]));
                 m.wire_mm += (b[2] - b[0]) + (b[3] - b[1]);
             }
         }
@@ -1115,7 +1131,11 @@ mod inc_tests {
     fn the_cached_cost_is_the_full_cost() {
         for board in ["rp2350-battery", "easy2350", "bolt-earring"] {
             let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join(format!("../../app/web/public/examples/{board}/problem.json"));
-            let pr: Problem = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+            let mut pr: Problem = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+            // Some nets length-limited, so the cached limit term is checked too.
+            for net in pr.nets.iter_mut().step_by(3) {
+                net.max_mm = Some(5.0);
+            }
             let (movables, of_part, in_group) = layout(&pr);
             let mut rng = Rng(7);
             let mv: Vec<Pose> = movables.iter().map(|_| Pose { x: rng.f() * 30.0, y: rng.f() * 30.0, rotation: 0.0 }).collect();
@@ -1256,7 +1276,7 @@ mod tests {
     #[test]
     fn a_chain_packs_without_overlap() {
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
-        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
@@ -1269,7 +1289,7 @@ mod tests {
     fn rigid_groups_keep_their_shape_and_edges_face_out() {
         let mut parts = vec![part("U1", 3.0, 3.0), part("C1", 1.0, 0.5), part("J1", 4.0, 2.0)];
         parts[2].edge = Some(Edge { side: None, facing: (0.0, 1.0) });
-        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0 }];
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0, max_mm: None }];
         let groups = vec![Rigid { name: "core".into(), anchor: 0, members: vec![(1, (0.0, -2.5), 0.0)] }];
         let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 40_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
@@ -1278,6 +1298,16 @@ mod tests {
         assert!((c.x - u.x - off.0).abs() < 1e-3 && (c.y - u.y - off.1).abs() < 1e-3, "{u:?} {c:?}");
         assert!(p.metrics.edge_misses.is_empty(), "{:?}", p.metrics);
         assert_eq!(p.metrics.overlaps, 0);
+    }
+
+    #[test]
+    fn a_limited_net_pays_for_its_excess() {
+        let o = Options::default();
+        let mut net = Net { name: "N".into(), pins: vec![], weight: 1.0, max_mm: Some(4.0) };
+        assert_eq!(net_cost(&o, &net, 3.0), 3.0);
+        assert_eq!(net_cost(&o, &net, 6.0), 6.0 + o.w_limit * 2.0);
+        net.max_mm = None;
+        assert_eq!(net_cost(&o, &net, 6.0), 6.0);
     }
 
     #[test]
@@ -1299,7 +1329,7 @@ mod tests {
     fn a_polygon_outline_holds_the_parts() {
         // A triangle: twelve small parts must all end up inside it.
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.0, 0.5)).collect();
-        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
         let tri = vec![(0.0, 0.0), (20.0, 0.0), (10.0, 15.0)];
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 60_000, ..Default::default() }, outline: None, outline_polygon: Some(tri) };
         let p = solve(&pr);
@@ -1312,7 +1342,7 @@ mod tests {
         // each other; filling, they keep room between them, and the halo leaves half the free board
         // to share out.
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
-        let nets: Vec<Net> = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let nets: Vec<Net> = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
         let solved = |fill: f64| {
             let pr = Problem { parts: parts.clone(), nets: nets.clone(), groups: vec![], separations: vec![], options: Options { moves: 60_000, fill, ..Default::default() }, outline: Some([0.0, 0.0, 30.0, 30.0]), outline_polygon: None };
             solve(&pr).metrics
@@ -1332,7 +1362,7 @@ mod tests {
     fn the_analytical_placer_alone_is_legal() {
         // No annealing at all: gradient descent, then legalising.
         let parts: Vec<_> = (0..12).map(|i| part(&format!("R{i}"), 1.6, 0.8)).collect();
-        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
+        let nets = (0..11).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
         let pr = Problem { parts, nets, groups: vec![], separations: vec![], options: Options { moves: 0, placer: Placer::Analytic, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
         assert_eq!(p.metrics.overlaps, 0, "{:?}", p.metrics);
@@ -1347,7 +1377,7 @@ mod tests {
     fn the_analytical_placer_keeps_groups_and_edges() {
         let mut parts = vec![part("U1", 3.0, 3.0), part("C1", 1.0, 0.5), part("J1", 4.0, 2.0)];
         parts[2].edge = Some(Edge { side: None, facing: (0.0, 1.0) });
-        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0 }];
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (2, "1".into())], weight: 1.0, max_mm: None }];
         let groups = vec![Rigid { name: "core".into(), anchor: 0, members: vec![(1, (0.0, -2.5), 0.0)] }];
         let pr = Problem { parts, nets, groups, separations: vec![], options: Options { moves: 20_000, placer: Placer::Analytic, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);
@@ -1379,9 +1409,9 @@ mod tests {
         let mut j2 = part("J2", 4.0, 2.5);
         j2.edge = Some(Edge { side: None, facing: (0.0, 1.0) });
         parts.extend([j1, j2]);
-        let mut nets: Vec<Net> = (0..9).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0 }).collect();
-        nets.push(Net { name: "A".into(), pins: vec![(0, "1".into()), (10, "1".into())], weight: 1.0 });
-        nets.push(Net { name: "B".into(), pins: vec![(9, "2".into()), (11, "1".into())], weight: 1.0 });
+        let mut nets: Vec<Net> = (0..9).map(|i| Net { name: format!("N{i}"), pins: vec![(i, "2".into()), (i + 1, "1".into())], weight: 1.0, max_mm: None }).collect();
+        nets.push(Net { name: "A".into(), pins: vec![(0, "1".into()), (10, "1".into())], weight: 1.0, max_mm: None });
+        nets.push(Net { name: "B".into(), pins: vec![(9, "2".into()), (11, "1".into())], weight: 1.0, max_mm: None });
         let ellipse: Vec<P> = (0..72).map(|k| (k as f64 * std::f64::consts::TAU / 72.0).sin_cos()).map(|(s, c)| (14.0 * c, 10.0 * s)).collect();
         for placer in [Placer::Sa, Placer::Analytic] {
             let pr = Problem { parts: parts.clone(), nets: nets.clone(), groups: vec![], separations: vec![], options: Options { moves: 60_000, placer, ..Default::default() }, outline: None, outline_polygon: Some(ellipse.clone()) };
@@ -1403,7 +1433,7 @@ mod tests {
         for (i, p) in parts.iter_mut().enumerate() {
             p.block = Some(if i < 2 { "sw".into() } else { "xtal".into() });
         }
-        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (3, "1".into())], weight: 1.0 }];
+        let nets = vec![Net { name: "A".into(), pins: vec![(0, "1".into()), (3, "1".into())], weight: 1.0, max_mm: None }];
         let seps = vec![Separation { a: "sw".into(), b: "xtal".into(), min_mm: 5.0, note: None }];
         let pr = Problem { parts, nets, groups: vec![], separations: seps, options: Options { moves: 40_000, ..Default::default() }, outline: None, outline_polygon: None };
         let p = solve(&pr);

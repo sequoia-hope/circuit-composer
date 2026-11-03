@@ -166,6 +166,10 @@ enum Cmd {
         /// Solve this saved problem (`--problem` output) instead of building one.
         #[arg(long, conflicts_with_all = ["pcb", "composed", "spec", "nets_from_board", "outline_from_board", "evaluate"])]
         input_problem: Option<PathBuf>,
+        /// The board's intent (default: the board's `intent.json`, if it has one): each net's
+        /// `max_length` limits its pins' box, at `LIMIT_BOX` of the length.
+        #[arg(long)]
+        intent: Option<PathBuf>,
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
@@ -706,7 +710,7 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             Ok((value, ok))
         }
-        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, placer, fill, evaluate, problem, nets_from_board, outline_from_board, input_problem, output } => {
+        Cmd::Floorplan { pcb: board, composed, spec, root, seed, moves, placer, fill, evaluate, problem, nets_from_board, outline_from_board, input_problem, intent: intent_path, output } => {
             if let Some(p) = input_problem {
                 let mut pr: floorplan::Problem = serde_json::from_value(read_json_value(&p)?).map_err(|e| format!("{}: {e}", p.display()))?;
                 if let Some(s) = seed {
@@ -772,6 +776,14 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
                 });
             }
             let mut pr = floorplan_cmd::problem(&board, &comp, &spec, &root)?;
+            let intent_path = match intent_path {
+                Some(p) => Some(p),
+                None if ctx.active() => Some(ctx.board()?.intent.clone()).filter(|p| p.exists()),
+                None => None,
+            };
+            if let Some(p) = intent_path {
+                floorplan_cmd::limit_nets(&mut pr, &intent::load(&p)?);
+            }
             if let Some(s) = seed {
                 pr.options.seed = s;
             }

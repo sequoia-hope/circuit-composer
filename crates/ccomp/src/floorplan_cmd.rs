@@ -172,7 +172,7 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
         if ps.len() < 2 || ps.len() > spec.max_net_pins || spec.skip_nets.contains(name) {
             continue;
         }
-        nets.push(Net { name: name.clone(), pins: ps, weight: 1.0 });
+        nets.push(Net { name: name.clone(), pins: ps, weight: 1.0, max_mm: None });
     }
     let mut groups = Vec::new();
     for g in &spec.rigid {
@@ -218,4 +218,19 @@ pub fn problem(board: &Path, composed: &Value, spec: &Spec, root: &Path) -> Resu
     }
     let options = serde_json::from_value(options).map_err(|e| format!("spec options: {e}"))?;
     Ok(Problem { parts, nets, groups, separations: spec.separations.clone(), options, outline: spec.outline, outline_polygon: spec.outline_polygon.clone() })
+}
+
+/// A placement promises a net's pins' box, not its route, and routes run longer than the box:
+/// a length limit becomes a box of this fraction of it.
+pub const LIMIT_BOX: f64 = 0.75;
+
+/// Each net's `max_length` (hard or soft) from the board's intent, as a limit on its pins' box.
+/// The intent names nets as KiCad does; the composition as composed (`/mcu/XIN`, `/mcu_XIN`).
+pub fn limit_nets(pr: &mut Problem, intent: &intent::IntentFile) {
+    for net in &mut pr.nets {
+        let n = intent.nets.get(&net.name).or_else(|| intent.nets.get(&compose::board_intent::kicad_net_name(&net.name)));
+        if let Some(l) = n.and_then(|n| n.max_length.as_ref()) {
+            net.max_mm = Some(LIMIT_BOX * l.value.mm);
+        }
+    }
 }

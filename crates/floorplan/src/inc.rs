@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use super::{bbox_at, edge_miss, flush_miss, gap, pair, rot, side, Pose, State, P};
+use super::{bbox_at, edge_miss, flush_miss, gap, net_cost, pair, rot, side, Pose, State, P};
 
 /// What a move changed, to undo it.
 struct Undo {
@@ -306,7 +306,7 @@ impl Inc {
             b = [b[0].min(p.0), b[1].min(p.1), b[2].max(p.0), b[3].max(p.1)];
         }
         let hp = (b[2] - b[0]) + (b[3] - b[1]);
-        (net.weight * hp, hp)
+        (net_cost(&st.pr.options, net, hp), hp)
     }
 
     fn pin(&self, st: &State, i: usize, pin: &str) -> P {

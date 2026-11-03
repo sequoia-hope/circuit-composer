@@ -46,7 +46,7 @@ fn project_mode_runs_what_explicit_paths_run() {
         v.as_object_mut().unwrap().remove("seconds");
         v
     };
-    let explicit = ccomp(&r, &[&base[..], &["boards/rp2350-battery/composed.kicad_pcb", "--composed", "boards/rp2350-battery/composed.json", "--spec", "boards/rp2350-battery/floorplan.json"]].concat());
+    let explicit = ccomp(&r, &[&base[..], &["boards/rp2350-battery/composed.kicad_pcb", "--composed", "boards/rp2350-battery/composed.json", "--spec", "boards/rp2350-battery/floorplan.json", "--intent", "boards/rp2350-battery/intent.json"]].concat());
     assert_eq!(timeless(ccomp(&r, &[&["-b", "rp2350-battery"], &base[..]].concat())), timeless(explicit));
 }
 
