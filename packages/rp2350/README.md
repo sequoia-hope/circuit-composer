@@ -83,7 +83,10 @@ What the measurements found:
   these lengths it is unlikely to matter. The rule is kept as `contested`.
 
 The length limits in `intent.json` are soft and set at the longer of the two references: what
-the vendor achieved, not a datasheet limit.
+the vendor achieved, not a datasheet limit. QSPI's unreferenced length is treated the same way:
+its ceiling is the QFN-80 board's worst net, 9.22 mm, not zero. The design guide asks QSPI only
+for short, direct connections, and that board works with every QSPI net partly on B.Cu. The
+crystal and USB keep zero; for USB the guide does ask for unbroken ground.
 
 ## Judging a board by role
 
@@ -105,9 +108,9 @@ unverifiable, not failed. A package part with no board part bound to it is repor
 
 | Board | Hard failures | Soft failures | Notes |
 |---|---|---|---|
-| RP2350A Minimal (`reference/rp2350a_minimal/check.json`) | 0 | 3 | USB chip side and 0.8 mm of QSPI_SS over cut ground |
-| RP2350B Minimal (`reference/rp2350b_minimal/check.json`) | 0 | 8 | the second memory's bottom-side stubs; its decoupling caps are not bound (their roles are QFN-60 pins) |
-| easy2350 (`boards/easy2350/rp2350.check.json`) | 2 | 8 | USB_DP/DM run 6.1 and 8.5 mm on B.Cu over the +3V3 plane, not ground. QSPI runs 4–6 mm longer than the reference and mostly over +3V3 |
+| RP2350A Minimal (`reference/rp2350a_minimal/check.json`) | 0 | 2 | USB chip side over cut ground |
+| RP2350B Minimal (`reference/rp2350b_minimal/check.json`) | 0 | 2 | USB chip side over cut ground; its decoupling caps are not bound (their roles are QFN-60 pins) |
+| easy2350 (`boards/easy2350/rp2350.check.json`) | 2 | 6 | USB_DP/DM run 6.1 and 8.5 mm on B.Cu over the +3V3 plane, not ground. QSPI runs 4–6 mm longer than the reference, and SCLK, SD0 and SD3 have 9.9–13 mm over +3V3 |
 
 The BOOTSEL resistor's distance to the flash was 3.0 mm in 0.2.0's first draft. Both reference
 boards measure 3.9–4.1 mm, so the soft limit is now 4.1 mm, what the vendor achieves.

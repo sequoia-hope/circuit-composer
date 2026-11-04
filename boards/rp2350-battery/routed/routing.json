@@ -7,8 +7,8 @@
       ],
       "margin_mm": 0.05,
       "nets": [
-        "/USB_DP",
-        "/USB_DM"
+        "/USB_D+",
+        "/USB_D-"
       ],
       "planes": [
         "In1.Cu"
@@ -611,8 +611,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]
@@ -645,8 +645,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]
@@ -679,8 +679,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]
@@ -713,8 +713,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]
@@ -747,8 +747,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]
@@ -781,8 +781,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]
@@ -815,8 +815,8 @@
         {
           "kind": "never",
           "nets": [
-            "/USB_DP",
-            "/USB_DM"
+            "/USB_D+",
+            "/USB_D-"
           ]
         }
       ]

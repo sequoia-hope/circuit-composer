@@ -260,12 +260,21 @@
           "qspi_sd2": { "rp2350a_minimal": 13.05, "rp2350b_minimal": 13.2 },
           "qspi_sd3": { "rp2350a_minimal": 12.48, "rp2350b_minimal": 10.42 },
           "qspi_ss_to_r": { "rp2350a_minimal": 20.1, "rp2350b_minimal": 20.87 }
+        },
+        "unreferenced_length_mm_reference": {
+          "qspi_sclk": { "rp2350a_minimal": 0.0, "rp2350b_minimal": 8.56 },
+          "qspi_sd0": { "rp2350a_minimal": 0.0, "rp2350b_minimal": 7.3 },
+          "qspi_sd1": { "rp2350a_minimal": 0.0, "rp2350b_minimal": 8.48 },
+          "qspi_sd2": { "rp2350a_minimal": 0.0, "rp2350b_minimal": 9.215 },
+          "qspi_sd3": { "rp2350a_minimal": 0.0, "rp2350b_minimal": 8.61 },
+          "qspi_ss": { "rp2350a_minimal": 0.82, "rp2350b_minimal": 0.0 },
+          "flash_ss": { "rp2350a_minimal": 0.0, "rp2350b_minimal": 5.96 }
         }
       },
       "citation": { "source": "rp2350_hdg", "locator": "§3.1 p.10" },
       "status": "promoted",
       "evidence": {
-        "note": "QFN-80 board: the optional second memory U204 sits on the bottom directly under U202 and its stubs run on B.Cu, so every QSPI net has about 6 mm of track with no ground beside it and 1.3-3.1 mm of top track over cut ground; QFN-60 has none of that (reference/*/measured.json, return_paths)."
+        "note": "QFN-80 board: the optional second memory U204 sits on the bottom directly under U202 and its stubs run on B.Cu, so every QSPI net has about 6 mm of track with no ground beside it and 1.3-3.1 mm of top track over cut ground; QFN-60 has none of that (reference/*/measured.json, return_paths). The guide does not ask for an unbroken ground under QSPI, and the QFN-80 board works, so the intent ceiling is its worst net (9.215 mm, set at 9.22), not zero."
       },
       "enforced_by": ["intent max_length on QSPI nets", "verifier unreferenced_length_mm"]
     },

@@ -454,11 +454,11 @@
       },
       {
         "netclass": "DIFF_HS",
-        "pattern": "/USB_DM"
+        "pattern": "/USB_D+"
       },
       {
         "netclass": "DIFF_HS",
-        "pattern": "/USB_DP"
+        "pattern": "/USB_D-"
       },
       {
         "netclass": "POWER",

@@ -13,14 +13,16 @@ the copper and the checks.
 | Place | `ccomp floorplan --intent` | Every part. Both regulators are their packages' generated layouts (rp2350 `qfn60-4layer`, tlv62569 `sot23-5-4layer`), moved as one, whose copper keeps other parts off. Nets with a length limit keep their pins' box under 0.75 of it. A part with a `near` pin turns its pad on that net toward it, and the line between them is kept clear of other courtyards |
 | Prepare | `tools/prepare_route.py --composed` | 4 copper layers, JLCPCB rules, a net class per net from its intent class, GND on In1.Cu and +3V3 on In2.Cu, the two layouts' copper applied and locked (core regulator: 14 tracks, 2 vias, a keep-out; TLV62569: 20 tracks, 6 vias), and a locked stub from each decoupling capacitor to its pin where one fits |
 | Compile | `ccomp compile` | `routing.json`: the rp2350 package's block constraints as regions (below) |
-| Route | ultraroute f179fcb | easy2350's recipe (with `--diff-pairs`), plus `--regions`, one thread |
+| Route | ultraroute 89f1161 | easy2350's recipe (with `--diff-pairs`), plus `--regions`, one thread |
 | Check | `tools/verify_routed.py --refill`, `ccomp check package` | KiCad DRC, the regions, the buck checks (`verify.json`); the board against the rp2350 package by role (`rp2350.check.json`, `mcu.binding.json`) |
 
 ## The package's rules reach the router
 
 The rp2350 package states what its blocks need as constraints its checker measures: no vias on the
-crystal nets (soft, weight 0.7), and USB, crystal and QSPI tracks over ground. USB_DP and USB_DM
-are hard; the rest are soft, at weight 0.5 to 0.7. `ccomp compile` turns them into regions over
+crystal nets (soft, weight 0.7), USB and crystal tracks over ground, and QSPI's under 9.22 mm
+off ground per net. USB_DP and USB_DM are hard; the rest are soft, at weight 0.5 to 0.7. QSPI's
+ceiling compiles to the same regions as a zero would, as an `avoid`: the router cannot route to a
+budget, so it is priced towards ground and the ceiling judged after. `ccomp compile` turns them into regions over
 the whole board:
 
 - **No vias:** a via rule on the nets. Hard: `never`. Soft: `avoid`, each via costing 10 × weight
@@ -32,7 +34,7 @@ the whole board:
   antipad within 0.05 mm under these nets' tracks, so the router cannot make a void under them
   either.
 
-29 regions and one `clear_under` (USB_DP and USB_DM on F.Cu and In2.Cu, over In1.Cu), none broken
+29 regions and one `clear_under` (USB_D+ and USB_D- on F.Cu and In2.Cu, over In1.Cu), none broken
 on any seed.
 
 ## Decoupling: stubs, and room for them
@@ -72,9 +74,33 @@ QSPI lines are what fail most, partly without ground under them, and QSPI_SD2 is
 against 13.2 on seed 1. The placement is legal at 27.6 × 53.9 mm with 263 mm of wire. The USB
 pair's skew is tuned from 9.4 mm to 4.2 to 6.8.
 
-The board here is seed 1. The router reports 7 connections failed and 0 open, all pads to
-their planes, which the pours join once KiCad refills them. DRC runs after that refill, and its
-warnings are silkscreen only.
+## The USB pair's names, and no skew rule
+
+From ultraroute 89f1161 a differential pair is length-tuned only under a `.kicad_dru` skew rule,
+and KiCad 9 knows a pair only by a last character of P/N or +/-. `USB_DP`/`USB_DM` is no pair to
+KiCad, so the composition now names them `USB_D+`/`USB_D-` (the package's ports keep their
+names), and `ccomp compile` writes a skew rule for any pair whose nets share a `match_group`
+with a tolerance in mm (`(constraint skew (max ..) (within_diff_pairs))`, `A.inDiffPair('/USB_D')`).
+
+This board gives the pair no match group. KiCad and 89f1161 measure skew over each whole net, and
+on USB-C each line joins two pins (D+ on A6 and B6, D- on A7 and B7, interleaved), so the jumpers
+alone make the nets differ by 5 to 8 mm. With a 0.15 mm rule the router tuned 7.9 mm down to 2.7
+to 5.7 and KiCad's DRC failed it (`skew_out_of_range`) on every seed; full-speed USB at 12 Mb/s
+does not need the matching anyway. The pair is routed and left as routed.
+
+Routed by ultraroute 89f1161, the same placement, four router seeds:
+
+| Seed | Route time | DRC errors | Unconnected | Region violations | Tracks | Vias | rp2350 rules pass / fail | Decoupling fails | Hard fails |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 38.5 s | 0 | 0 | 0 | 412 | 95 | 53 / 10 | 3 | 0 |
+| 2 | 29.3 s | 0 | 0 | 0 | 412 | 92 | 57 / 6 | 2 | 0 |
+| 3 | 28.1 s | 0 | 0 | 0 | 378 | 90 | 58 / 5 | 2 | 0 |
+| 4 | 39.3 s | 0 | 0 | 0 | 475 | 101 | 58 / 5 | 1 | 0 |
+
+The board here is seed 1, kept as the seed shown though it is the worst of the four: its QSPI_SD3
+detours to 28.7 mm. The router reports 7 connections failed and 0 open, all pads to their planes,
+which the pours join once KiCad refills them. DRC runs after that refill, and its warnings are
+silkscreen only.
 
 **The two bucks are generated now.** The RP2350's core regulator: hot loop 1.03 mm² on every
 seed. The TLV62569 (`packages/tlv62569/layouts/sot23-5-4layer`): hot loop 3.53 mm², output loop
@@ -108,9 +134,28 @@ The crossing cost does what it is for (QSPI 8.25 to 7.0 on average) but costs th
 so it is off by default; a board turns it on in its spec's options. The soft `clear_under` did not
 help and is not emitted. None of the 12 boards had a DRC error, a region violation or a hard fail.
 
-What is left is a choice the package makes: the rp2350 package states QSPI over ground as soft
-(measured from the reference boards). Made hard, it would compile to `never` on B.Cu and to
-`clear_under`, and the router would have to find room on F.Cu.
+## QSPI's ceiling: 9.22 mm off ground, not zero
+
+The zero was the QFN-60 reference board's result, not Raspberry Pi's requirement: the design
+guide asks QSPI only for short, direct connections (§3.1), and the QFN-80 reference board leaves
+7.3 to 9.2 mm of every QSPI net off ground (about 6 mm on B.Cu under its optional second memory)
+and works. So the package's ceiling is now that board's worst net, as its length limits are the
+longer reference, and the crystal and USB keep zero (the guide does ask USB for unbroken ground).
+The reference boards now have 2 soft fails each (USB's chip side), easy2350 6 soft and 2 hard.
+
+Same placements and router seed, ultraroute f179fcb:
+
+| | Package fails (mean) | QSPI | Crystal |
+|---|---|---|---|
+| Zero, as before | 12.75 (10, 16, 14, 11) | 8.25 | 1.25 |
+| Ceiling, compiled to no regions | 8.25 (8, 9, 8, 8) | 4.25 | 1.25 |
+| Ceiling, compiled to `avoid` regions (now) | 7.25 (5, 11, 7, 6) | 3.0 | 1.25 |
+
+Without the regions the router ran QSPI up to 42 mm over +3V3 on one board, so the price stays.
+What still fails on QSPI is mostly length, 10 of 12: FLASH_SS runs 3.3 to 4.1 mm against 2.7 on
+every placement, and one or two data lines detour (SD2 16.6 and 20.9 mm against 13.2, SCLK 11.8
+and 14.0 against 11.1). Two are off ground past the ceiling: SD2 19.6 mm and SCLK 13.2.
+The f179fcb per-seed table above was judged with the zero; the 89f1161 table with the ceiling.
 
 ## Fixed in ultraroute
 

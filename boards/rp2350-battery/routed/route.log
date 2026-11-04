@@ -1,4 +1,4 @@
-memory: 1010 MB estimated (4851068 nodes at 0.035 mm, 9 classes, 1 searching the whole board), 15853 MB allowed by 60% of available memory
+memory: 1010 MB estimated (4851068 nodes at 0.035 mm, 9 classes, 1 searching the whole board), 6191 MB allowed by 60% of available memory
 regions: mcu/crystal:no_vias:0: 1 rules
 regions: mcu/crystal:over_ground:1: 1 rules
 regions: mcu/crystal:over_ground:1:void0: 1 rules
@@ -28,26 +28,29 @@ regions: mcu/usb:over_ground:1:void2: 1 rules
 regions: mcu/usb:over_ground:1:void3: 1 rules
 regions: mcu/usb:over_ground:1:void4: 1 rules
 regions: mcu/usb:over_ground:1:void5: 1 rules
-regions: clear under /USB_DM+/USB_DP: no other net's antipad within 0.049999999999999996 mm
-prefanout: 3 parts, 13 inward, 30 of 30 escaped (0 failed), 30 vias, skipped 0 no-net 13 pth 1 exposed 54 escaped, 4.8 s
-planes: 44 of 46 pads off their planes joined, 4.8 s
-pairs: 2 pairs, 2 of 2 runs coupled, 17.7 mm of their 17.6, 0 matched uncoupled, 18.6 s
-first: 2 nets, 3 routed, 2 failed, 0 vias, 19.9 s
-negotiated 53 of 59 connections in 9 rounds, 26 vias, 25.7 s
-rip-up: 10 tries, 2 kept, 2 ripped; lost 8 with no way through, 0 to copper it may not rip, 0 no better; 28.5 s
-shove pass 1: 4 trapped tried, 4 routed out, 4 kept, 4 -> 0 open, 33.6 s
-vias: 14 of 50 dropped, 10 of 134 tries kept, 36.7 s
-pulled tight: 805 -> 300 segments, 342 -> 326 mm, 36.8 s
-smoothed 2 steps of staircases
-dropped 1 doubled, pruned 10 dangling, open 0 -> 0, 36.8 s
-tune: /USB_DP//USB_DM skew 9.38 -> 4.18 mm
-tune: /mcu_USB_DP_PIN//mcu_USB_DM_PIN skew 1.16 -> 1.16 mm
-routed 0 more, 7 failed, 0 open, 36.8 s
-mended 12 joints where round ends only overlapped
-mended 11 pad joints where a track's end only reached the pad's edge
-mended 2 vias whose lands only clipped a pad of their net
-bridged 8 places where a track only grazed its net's copper
-split 4 tracks where others end on them
-dropped 7 doubled and pruned 1 dangling after the mends
+regions: clear under /USB_D++/USB_D-: no other net's antipad within 0.049999999999999996 mm
+prefanout: 3 parts, 13 inward, 30 of 30 escaped (0 failed), 30 vias, skipped 0 no-net 13 pth 1 exposed 54 escaped, 3.7 s
+planes: 44 of 46 pads off their planes joined, 3.8 s
+pairs: 2 pairs, 2 of 2 runs coupled, 17.9 mm of their 17.8, 0 matched uncoupled, 9.5 s
+first: 2 nets, 3 routed, 1 failed, 0 vias, 10.1 s
+negotiated 53 of 59 connections in 9 rounds, 31 vias, 14.2 s
+rip-up: 10 tries, 2 kept, 2 ripped; lost 8 with no way through, 0 to copper it may not rip, 0 no better; 15.3 s
+shove pass 1: 4 trapped tried, 4 routed out, 3 kept, 4 -> 1 open, 24.0 s
+shove pass 2: 1 trapped tried, 1 routed out, 0 kept, 1 -> 1 open, 28.1 s
+shove pass 3: 1 trapped tried, 1 routed out, 0 kept, 1 -> 1 open, 32.6 s
+shove pass 4: 1 trapped tried, 1 routed out, 1 kept, 1 -> 0 open, 35.9 s
+vias: 19 of 58 dropped, 14 of 148 tries kept, 38.4 s
+pulled tight: 850 -> 332 segments, 368 -> 372 mm, 38.4 s
+smoothed 1 steps of staircases
+dropped 1 doubled, pruned 11 dangling, open 0 -> 0, 38.5 s
+tune: /USB_D+//USB_D- skew 8.20 mm, not tuned: no skew rule
+tune: /mcu_USB_DP_PIN//mcu_USB_DM_PIN skew 5.21 mm, not tuned: no skew rule
+routed 0 more, 7 failed, 0 open, 38.5 s
+mended 7 joints where round ends only overlapped
+mended 10 pad joints where a track's end only reached the pad's edge
+mended 1 vias whose lands only clipped a pad of their net
+bridged 4 places where a track only grazed its net's copper
+split 1 tracks where others end on them
+dropped 0 doubled and pruned 1 dangling after the mends
 dropped 2 pour fills new copper cuts; KiCad refills them
-memory: peak 883 MB
+memory: peak 929 MB

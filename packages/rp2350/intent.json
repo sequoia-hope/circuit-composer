@@ -967,7 +967,7 @@
             "value": {
               "metric": "unreferenced_length_mm",
               "op": "<=",
-              "limit": 0,
+              "limit": 9.22,
               "nets": [
                 "QSPI_SCLK",
                 "QSPI_SD0",
@@ -983,7 +983,7 @@
               "source": "rp2350_hdg",
               "locator": "\u00a73.1 p.10",
               "kind": "datasheet",
-              "note": "Crosstalk; the QFN-60 reference meets it except 0.8 mm of QSPI_SS, the QFN-80 one does not (rules rp2350.qspi.short_direct)."
+              "note": "The guide asks only for short, direct connections, not an unbroken ground. Ceiling at the longer of the two references, as for the lengths: the QFN-80 board leaves 7.3-9.2 mm of each net unreferenced (about 6 mm on B.Cu under its second memory, 1.3-3.1 mm on F.Cu; QSPI_SD2 the worst) and works. The QFN-60 board leaves 0.8 mm of QSPI_SS (rules rp2350.qspi.short_direct)."
             },
             "weight": 0.7
           }

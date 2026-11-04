@@ -3,7 +3,8 @@
 //!
 //! - `routing.json` for ultraroute's `--regions`: region polygons in board millimetres with
 //!   per-layer `must`/`prefer`/`avoid`/`never` rules on nets, and per-net length limits.
-//! - KiCad custom rules (`.kicad_dru`): the length limits, so KiCad's DRC checks the same numbers.
+//! - KiCad custom rules (`.kicad_dru`): the length limits, so KiCad's DRC checks the same numbers,
+//!   and each differential pair's skew limit, which ultraroute (89f1161 on) tunes the pair to.
 //!
 //! Class selectors are expanded to explicit net lists from the intent file, so the output never
 //! depends on the KiCad project having a net class of the same name.
@@ -32,6 +33,31 @@ pub struct Routing {
     /// Nets no other net's via or hole may open a plane antipad under (ultraroute f179fcb).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub clear_under: Vec<ClearUnder>,
+    /// Differential pairs' skew limits. For a person reading the file: the router reads them from
+    /// the `.kicad_dru` rules.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub skews: Vec<Skew>,
+}
+
+/// A differential pair's skew limit: the nets, and the base name KiCad's `inDiffPair` knows the
+/// pair by.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Skew {
+    pub nets: Vec<String>,
+    pub pair: String,
+    pub max_skew_mm: f64,
+    #[serde(default)]
+    pub why: String,
+}
+
+/// The base name KiCad 9 knows two nets by as a differential pair: the names differ only in a
+/// last character of `P`/`N` or `+`/`-` (`/USB_D+`, `/USB_D-` is `/USB_D`). `USB_DP`/`USB_DM` is
+/// no pair to KiCad.
+pub fn kicad_pair_base(a: &str, b: &str) -> Option<String> {
+    let (ha, la) = a.split_at(a.len().checked_sub(1)?);
+    let (hb, lb) = b.split_at(b.len().checked_sub(1)?);
+    let pair = matches!((la, lb), ("P", "N") | ("N", "P") | ("+", "-") | ("-", "+"));
+    (pair && ha == hb && !ha.is_empty()).then(|| ha.to_string())
 }
 
 /// Keep other nets' antipads (a via's or hole's clearance in a plane) from under these nets'
@@ -160,6 +186,36 @@ pub fn compile(intent: &IntentFile, board: &Board) -> Result<(Routing, Vec<Note>
         max_lengths.push(MaxLength { nets: vec![name.clone()], max_length_mm: a.value.mm, why });
     }
 
+    // A differential pair whose nets share a match group with a length tolerance: a skew limit.
+    let mut skews: Vec<Skew> = Vec::new();
+    for (name, n) in &intent.nets {
+        let Some(other) = n.impedance.as_ref().filter(|i| i.value.mode == intent::ImpedanceMode::Differential).and_then(|i| i.value.pair.as_ref()) else { continue };
+        if other.as_str() < name.as_str() && intent.nets.contains_key(other) {
+            continue; // the pair once, from its first net
+        }
+        let group = |n: &intent::NetIntent| n.match_group.as_ref().map(|g| (g.value.group.clone(), g.value.tolerance_mm, g.value.tolerance_ps, g.provenance.clone()));
+        let Some((g, mm, ps, prov)) = group(n) else { continue };
+        let subject = format!("pair {name}, {other}");
+        if intent.nets.get(other).and_then(group).map(|o| o.0) != Some(g.clone()) {
+            notes.push(Note { subject, message: format!("{other} is not in match group {g}; no skew rule") });
+            continue;
+        }
+        let Some(mm) = mm else {
+            notes.push(Note { subject, message: format!("match group {g} gives {ps:?} ps, not mm; no skew rule") });
+            continue;
+        };
+        if !board.pads.iter().any(|p| &p.net == name) || !board.pads.iter().any(|p| &p.net == other) {
+            notes.push(Note { subject, message: "not on the board; no skew rule".into() });
+            continue;
+        }
+        let Some(pair) = kicad_pair_base(name, other) else {
+            notes.push(Note { subject, message: "not a pair to KiCad (names must end P/N or +/-): no skew rule, so the router will not tune it".into() });
+            continue;
+        };
+        let why = prov.map_or(String::new(), |p| format!("{} {}", p.source, p.locator.unwrap_or_default()).trim().to_string());
+        skews.push(Skew { nets: vec![name.clone(), other.clone()], pair, max_skew_mm: mm, why });
+    }
+
     let routing = Routing {
         version: 1,
         generator: format!("circuit-composer {}", env!("CARGO_PKG_VERSION")),
@@ -167,6 +223,7 @@ pub fn compile(intent: &IntentFile, board: &Board) -> Result<(Routing, Vec<Note>
         regions,
         max_lengths,
         clear_under,
+        skews,
     };
     Ok((routing, notes))
 }
@@ -258,6 +315,10 @@ fn ground_voids(intent: &IntentFile, board: &Board, outline: &[P], unref: &[Stri
 /// - `unreferenced_length_mm <= 0` on nets: none of their track on a layer with no ground fill
 ///   beside it (`unreferenced_layers`), and on the other layers none over a void in the ground
 ///   fill beside them (`ground_voids`).
+/// - `unreferenced_length_mm` under a ceiling above zero: the same regions, always `avoid`. The
+///   router cannot route to a budget, so it is priced towards ground and the ceiling judged after
+///   (rp2350's QSPI: without the regions its nets ran up to 42 mm over +3V3, 8.25 package fails
+///   against 7.25 over 4 placements).
 ///
 /// A hard constraint is a `never` rule; a soft one an `avoid`, its weight the constraint's (a via
 /// then costs `10 × weight` mm of track, a track `10 × weight` times its length). The other
@@ -282,9 +343,10 @@ fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> (
             let m = &c.value;
             let subject = format!("block {id}");
             let zero_max = matches!(m.op, BoundOp::Le) && m.limit <= 0.0;
+            let ceiling = matches!(m.op, BoundOp::Le) && m.limit > 0.0;
             let (what, vias, layers) = match m.metric {
                 Metric::ViaCount if zero_max => ("no_vias", true, None),
-                Metric::UnreferencedLengthMm if zero_max => ("over_ground", false, Some(unref.clone())),
+                Metric::UnreferencedLengthMm if zero_max || ceiling => ("over_ground", false, Some(unref.clone())),
                 Metric::ViaCount | Metric::UnreferencedLengthMm | Metric::TraceLengthMm | Metric::DecouplingPathMm | Metric::PartDistanceMm | Metric::ClearanceMm => {
                     notes.push(Note { subject, message: format!("{:?} {:?} {}: measured after routing, not routed to", m.metric, m.op, m.limit) });
                     continue;
@@ -297,10 +359,12 @@ fn block_regions(intent: &IntentFile, board: &Board, notes: &mut Vec<Note>) -> (
                 notes.push(Note { subject, message: format!("{what}: none of its nets ({}) is on the board", m.nets.join(", ")) });
                 continue;
             }
-            let hard = c.strength == Strength::Hard;
+            // A hard ceiling above zero is an avoid at full weight.
+            let hard = c.strength == Strength::Hard && zero_max;
             let weight = match (hard, c.weight) {
                 (true, _) => None,
                 (false, Some(w)) => Some(w * WEIGHT_SCALE),
+                (false, None) if c.strength == Strength::Hard => Some(WEIGHT_SCALE),
                 (false, None) => {
                     notes.push(Note { subject, message: format!("{what}: a soft constraint with no weight; left out") });
                     continue;
@@ -348,6 +412,15 @@ pub fn merge_dru(existing: Option<&str>, routing: &Routing) -> String {
             ));
         }
     }
+    // One pair per rule; `within_diff_pairs` keeps KiCad from comparing it with other pairs.
+    for s in &routing.skews {
+        block.push_str(&format!(
+            "(rule \"cc skew {}\"\n  (condition \"A.inDiffPair('{}')\")\n  (constraint skew (max {}mm) (within_diff_pairs)))\n",
+            s.pair,
+            s.pair,
+            fmt_mm(s.max_skew_mm)
+        ));
+    }
     block.push_str(DRU_END);
     block.push('\n');
     match existing {
@@ -379,6 +452,7 @@ mod tests {
             regions: vec![],
             max_lengths: vec![MaxLength { nets: vec!["/XIN".into()], max_length_mm: mm, why: String::new() }],
             clear_under: vec![],
+            skews: vec![Skew { nets: vec!["/USB_D+".into(), "/USB_D-".into()], pair: "/USB_D".into(), max_skew_mm: 0.15, why: String::new() }],
         }
     }
 
@@ -402,7 +476,8 @@ mod tests {
             "nets": { "GND": { "class": "GROUND" }, "/USB": { "class": "DIFF_HS" } },
             "blocks": { "usb": { "type": "usb", "parts": [], "placement_goal": { "constraints": [
                 { "value": { "metric": "unreferenced_length_mm", "op": "<=", "limit": 0.0, "nets": ["/USB", "/GONE"] }, "strength": "hard" },
-                { "value": { "metric": "via_count", "op": "<=", "limit": 0.0, "nets": ["/USB"] }, "strength": "soft", "weight": 0.5 }
+                { "value": { "metric": "via_count", "op": "<=", "limit": 0.0, "nets": ["/USB"] }, "strength": "soft", "weight": 0.5 },
+                { "value": { "metric": "unreferenced_length_mm", "op": "<=", "limit": 9.0, "nets": ["/USB"] }, "strength": "hard" }
             ] } } }
         }))
         .unwrap();
@@ -425,6 +500,10 @@ mod tests {
         // A soft no-vias rule is a price on vias.
         let nv = by("usb:no_vias:1");
         assert!(nv.rules[0].vias && nv.rules[0].kind == "avoid" && nv.rules[0].weight == Some(5.0));
+        // A ceiling above zero, even a hard one, is a price towards ground, and moves no vias.
+        let up = by("usb:over_ground:2");
+        assert!(up.rules[0].kind == "avoid" && up.rules[0].weight == Some(10.0));
+        assert!(by("usb:over_ground:2:void0").rules[0].kind == "avoid");
     }
 
     #[test]
@@ -436,6 +515,16 @@ mod tests {
         assert!(twice.contains("(max 12.5mm)") && !twice.contains("(max 10mm)"));
         assert_eq!(twice.matches(DRU_BEGIN).count(), 1);
         assert!(twice.contains("track_width (min 0.2mm)"));
+        assert!(twice.contains("(condition \"A.inDiffPair('/USB_D')\")\n  (constraint skew (max 0.15mm) (within_diff_pairs))"));
+    }
+
+    #[test]
+    fn kicad_knows_pairs_by_their_last_character() {
+        assert_eq!(kicad_pair_base("/USB_D+", "/USB_D-").as_deref(), Some("/USB_D"));
+        assert_eq!(kicad_pair_base("/LVDS_N", "/LVDS_P").as_deref(), Some("/LVDS_"));
+        assert_eq!(kicad_pair_base("/USB_DP", "/USB_DM"), None);
+        assert_eq!(kicad_pair_base("/A+", "/B-"), None);
+        assert_eq!(kicad_pair_base("+", "-"), None);
     }
 }
 
