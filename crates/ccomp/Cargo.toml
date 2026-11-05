@@ -18,6 +18,7 @@ pinsolve = { path = "../pinsolve" }
 compose = { path = "../compose" }
 floorplan = { path = "../floorplan" }
 shape = { path = "../shape" }
+board-interface = { git = "https://github.com/sequoia-hope/board-interface", tag = "v0.1.0" }
 serde = "1"
 serde_json = "1"
 clap = { version = "4", features = ["derive"] }

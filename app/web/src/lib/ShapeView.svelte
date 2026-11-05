@@ -4,9 +4,23 @@
   // the result; mounting holes; keep-outs. The document is shape.json, evaluated by the core
   // (crates/shape), and "Use as board outline" hands the result to the floorplanner.
   import { onMount } from 'svelte';
-  import { shape_evaluate, shape_generators, shape_import } from '../core/composer_core.js';
+  import { shape_evaluate, shape_generators, shape_import, shape_take_over } from '../core/composer_core.js';
 
   let { doc: shapeDoc = $bindable(), applied, onapply, onchange } = $props();
+
+  const DRIVER_LABELS = { waffle: 'Waffle Iron', kicad: 'KiCad', composer: 'Circuit Composer' };
+  const locked = $derived(Boolean(shapeDoc.sync && (shapeDoc.sync.driver !== 'composer' || shapeDoc.sync.synced)));
+  const driverName = $derived(DRIVER_LABELS[shapeDoc.sync?.driver] || shapeDoc.sync?.driver || 'Waffle Iron');
+  let unlocking = $state(false);
+  const unlockWarning = $derived.by(() => {
+    const parts = [`Upstream constraints from ${driverName} do not carry across, and Composer takes over the drive on the next publish.`];
+    const aside = shapeDoc.sync?.recipe_aside;
+    if (aside && ((aside.features?.length || 0) > 0 || (aside.corner_radius || 0) > 0 || (aside.symmetry?.kind && aside.symmetry.kind !== 'none'))) {
+      const names = (aside.features || []).map((f) => f.name).join(', ');
+      parts.push(`The set-aside Composer recipe${names ? ` (${names})` : ''} will be discarded.`);
+    }
+    return parts.join(' ');
+  });
 
   const generators = JSON.parse(shape_generators());
   let selected = $state(shapeDoc.features.length ? { kind: 'feature', i: 0 } : null);
@@ -40,9 +54,25 @@
     const s = undo.pop();
     if (!s) return;
     shapeDoc = JSON.parse(s);
+    unlocking = false;
     if (selected?.kind === 'feature' && selected.i >= shapeDoc.features.length) selected = null;
     evaluate();
     onchange?.();
+  }
+
+  function takeOver() {
+    try {
+      const res = JSON.parse(shape_take_over(JSON.stringify(shapeDoc)));
+      undo.push(JSON.stringify(shapeDoc));
+      if (undo.length > 200) undo.shift();
+      shapeDoc = res.doc;
+      unlocking = false;
+      selected = shapeDoc.features.length ? { kind: 'feature', i: 0 } : null;
+      evaluate();
+      onchange?.();
+    } catch (e) {
+      alert(String(e));
+    }
   }
 
   // ---- adding things, at the middle of the view
@@ -146,7 +176,7 @@
 
   // Handles of the selected item: [x, y, onDrag(x, y)].
   function handles() {
-    if (!selected || !item) return [];
+    if (locked || !selected || !item) return [];
     if (selected.kind === 'hole') {
       return [[item.x, item.y, (x, y) => { item.x = x; item.y = y; }]];
     }
@@ -306,6 +336,13 @@
     canvas.focus();
     const [px, py] = at(e);
     const [x, y] = toBoard(px, py);
+    if (locked) {
+      selected = pick(x, y);
+      drag = { kind: 'pan', last: [px, py] };
+      canvas.setPointerCapture(e.pointerId);
+      draw();
+      return;
+    }
     // A handle of the selected item first.
     for (const [hx, hy, set] of handles()) {
       const [sx, sy] = toScreen(hx, hy);
@@ -368,6 +405,20 @@
       case 'rect': case 'circle': g.x = was.x + dx; g.y = was.y + dy; break;
       case 'slot': g.x1 = was.x1 + dx; g.y1 = was.y1 + dy; g.x2 = was.x2 + dx; g.y2 = was.y2 + dy; break;
       case 'polygon': g.points = was.points.map((p) => [p[0] + dx, p[1] + dy]); break;
+      case 'path': {
+        const dnx = Math.round(dx * 1e6), dny = Math.round(dy * 1e6);
+        const sh = (p) => ({ x: p.x + dnx, y: p.y + dny });
+        g.elements = was.elements.map((el) => ({
+          ...el,
+          kind: {
+            ...el.kind,
+            ...(el.kind.start ? { start: sh(el.kind.start) } : {}),
+            ...(el.kind.end ? { end: sh(el.kind.end) } : {}),
+            ...(el.kind.center ? { center: sh(el.kind.center) } : {}),
+          },
+        }));
+        break;
+      }
       case 'generator': {
         const gen = genOf(g);
         const def = (n) => was.params[n] ?? gen?.params.find((p) => p.name === n)?.default ?? 0;
@@ -394,7 +445,7 @@
   function key(e) {
     if (e.target.closest('input, textarea, select')) return;
     if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); undoLast(); }
-    else if ((e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(); }
+    else if (!locked && (e.key === 'Delete' || e.key === 'Backspace') && selected) { e.preventDefault(); remove(); }
     else if (e.key === 'f' || e.key === 'F') fit();
     else if (e.key === 'Escape') { selected = null; draw(); }
   }
@@ -430,31 +481,52 @@
 
 <div class="shape">
   <div class="list">
+    {#if locked}
+      <div class="lock-box" role="status">
+        <div class="lock-head">
+          <span>Outline controlled by {driverName}</span>
+          {#if !unlocking}
+            <button onclick={() => (unlocking = true)}>Unlock…</button>
+          {/if}
+        </div>
+        {#if unlocking}
+          <p class="lock-warn">{unlockWarning}</p>
+          <div class="actions">
+            <button class="danger" onclick={takeOver}>Take over</button>
+            <button onclick={() => (unlocking = false)}>Cancel</button>
+          </div>
+        {/if}
+      </div>
+    {/if}
     <div class="adds">
-      <button onclick={addRect} title="Add a rectangle">▭ Rect</button>
-      <button onclick={addCircle} title="Add a circle">◯ Circle</button>
-      <button onclick={addSlot} title="Add a slot (a stadium)">⊂⊃ Slot</button>
-      <button onclick={addPolygon} title="Add a polygon: drag its points, shift-click an edge to add one">⬠ Polygon</button>
-      {#each generators as g}<button onclick={() => addGenerator(g)} title={g.help}>✦ {g.title}</button>{/each}
-      <label class="file" title="Import closed shapes from an SVG or DXF drawing">⇪ Import<input type="file" accept=".svg,.dxf" onchange={importDrawing} /></label>
+      <button disabled={locked} onclick={addRect} title="Add a rectangle">▭ Rect</button>
+      <button disabled={locked} onclick={addCircle} title="Add a circle">◯ Circle</button>
+      <button disabled={locked} onclick={addSlot} title="Add a slot (a stadium)">⊂⊃ Slot</button>
+      <button disabled={locked} onclick={addPolygon} title="Add a polygon: drag its points, shift-click an edge to add one">⬠ Polygon</button>
+      {#each generators as g}<button disabled={locked} onclick={() => addGenerator(g)} title={g.help}>✦ {g.title}</button>{/each}
+      <label class="file" class:disabled={locked} title="Import closed shapes from an SVG or DXF drawing">⇪ Import<input type="file" accept=".svg,.dxf" disabled={locked} onchange={importDrawing} /></label>
     </div>
     <h3>Outline <span>applied top to bottom</span></h3>
     <ul>
-      {#each shapeDoc.features as f, i}
-        <li class:sel={selected?.kind === 'feature' && selected.i === i} class:hidden={f.hidden}>
-          <button class="op {f.op}" title={f.op === 'subtract' ? 'Cuts away: click to add instead' : 'Adds: click to cut away instead'}
-            onclick={() => edit((d) => (d.features[i].op = f.op === 'subtract' ? 'add' : 'subtract'))}>{f.op === 'subtract' ? '−' : '+'}</button>
-          <button class="name" onclick={() => (selected = { kind: 'feature', i })}>{f.name} <small>{f.geom.type === 'generator' ? f.geom.name : f.geom.type}</small></button>
-          <button class="eye" title={f.hidden ? 'Show' : 'Hide'} onclick={() => edit((d) => (d.features[i].hidden = !f.hidden))}>{f.hidden ? '◌' : '●'}</button>
-        </li>
+      {#if locked && !shapeDoc.features.length}
+        <li class="synced"><span class="name">synced outline <small>{driverName}</small></span></li>
       {:else}
-        <li class="empty">No outline yet: the floorplanner sizes the board. Add a shape to set one.</li>
-      {/each}
+        {#each shapeDoc.features as f, i}
+          <li class:sel={selected?.kind === 'feature' && selected.i === i} class:hidden={f.hidden}>
+            <button class="op {f.op}" disabled={locked} title={f.op === 'subtract' ? 'Cuts away: click to add instead' : 'Adds: click to cut away instead'}
+              onclick={() => !locked && edit((d) => (d.features[i].op = f.op === 'subtract' ? 'add' : 'subtract'))}>{f.op === 'subtract' ? '−' : '+'}</button>
+            <button class="name" onclick={() => (selected = { kind: 'feature', i })}>{f.name} <small>{f.geom.type === 'generator' ? f.geom.name : f.geom.type}</small></button>
+            <button class="eye" disabled={locked} title={f.hidden ? 'Show' : 'Hide'} onclick={() => !locked && edit((d) => (d.features[i].hidden = !f.hidden))}>{f.hidden ? '◌' : '●'}</button>
+          </li>
+        {:else}
+          <li class="empty">No outline yet: the floorplanner sizes the board. Add a shape to set one.</li>
+        {/each}
+      {/if}
     </ul>
     <h3>Holes and keep-outs</h3>
     <div class="adds">
-      <button onclick={addHole}>◎ Hole</button>
-      <button onclick={addKeepout}>▨ Keep-out</button>
+      <button disabled={locked} onclick={addHole}>◎ Hole</button>
+      <button disabled={locked} onclick={addKeepout}>▨ Keep-out</button>
     </div>
     <ul>
       {#each shapeDoc.holes || [] as h, i}
@@ -487,24 +559,30 @@
       {#if selected.kind === 'hole'}
         <h2>Hole {selected.i + 1}</h2>
         {#each [['x', 'x'], ['y', 'y'], ['d', 'drill ⌀'], ['clearance', 'clearance']] as [k, label]}
-          <label class="row">{label}<input type="number" step="0.1" value={num(item[k])} onchange={(e) => edit((d) => (d.holes[selected.i][k] = +e.target.value))} /></label>
+          <label class="row">{label}<input type="number" step="0.1" disabled={locked} value={num(item[k])} onchange={(e) => edit((d) => (d.holes[selected.i][k] = +e.target.value))} /></label>
         {/each}
-        <label class="row">plated<input type="checkbox" checked={item.plated} onchange={(e) => edit((d) => (d.holes[selected.i].plated = e.target.checked))} /></label>
+        <label class="row">plated<input type="checkbox" disabled={locked} checked={item.plated} onchange={(e) => edit((d) => (d.holes[selected.i].plated = e.target.checked))} /></label>
       {:else}
-        <input class="title" value={item.name} onchange={(e) => edit((d) => ((selected.kind === 'feature' ? d.features : d.keepouts)[selected.i].name = e.target.value))} />
+        <input class="title" disabled={locked} value={item.name} onchange={(e) => edit((d) => ((selected.kind === 'feature' ? d.features : d.keepouts)[selected.i].name = e.target.value))} />
         {#if selected.kind === 'keepout'}
           <label class="row">side
-            <select value={item.side} onchange={(e) => edit((d) => (d.keepouts[selected.i].side = e.target.value))}>
+            <select disabled={locked} value={item.side} onchange={(e) => edit((d) => (d.keepouts[selected.i].side = e.target.value))}>
               <option value="both">both</option><option value="front">front</option><option value="back">back</option>
             </select>
+          </label>
+          <label class="row">max height
+            <input type="number" min="0" step="0.1" placeholder="none" disabled={locked} value={item.max_height ?? ''}
+              onchange={(e) => edit((d) => { const raw = e.target.value.trim(); d.keepouts[selected.i].max_height = raw === '' ? undefined : Math.max(0, +raw); })} />
           </label>
         {/if}
         {#if FIELDS[item.geom.type]}
           {#each FIELDS[item.geom.type] as [k, label]}
-            <label class="row">{label}<input type="number" step="0.1" value={num(item.geom[k])} onchange={(e) => setGeom(k, +e.target.value)} /></label>
+            <label class="row">{label}<input type="number" step="0.1" disabled={locked} value={num(item.geom[k])} onchange={(e) => setGeom(k, +e.target.value)} /></label>
           {/each}
         {:else if item.geom.type === 'polygon'}
-          <p class="hint">{item.geom.points.length} points. Drag a point to move it; shift-click an edge to add one.</p>
+          <p class="hint">{item.geom.points.length} points.{locked ? '' : ' Drag a point to move it; shift-click an edge to add one.'}</p>
+        {:else if item.geom.type === 'path'}
+          <p class="hint">{item.geom.elements.length} exact curve segment{item.geom.elements.length === 1 ? '' : 's'}.{locked ? '' : ' Drag the shape to move it.'}</p>
         {:else if genOf(item.geom)}
           {@const gen = genOf(item.geom)}
           <p class="hint">{gen.help}</p>
@@ -512,34 +590,39 @@
             {@const v = item.geom.params[p.name] ?? p.default}
             <div class="param">
               <label for="p-{p.name}">{p.name} <small>{p.help}</small></label>
-              <input type="number" step={p.step} value={num(v)} onchange={(e) => { paramDragging = false; setParam(p.name, +e.target.value); paramDragging = false; }} />
-              <input id="p-{p.name}" type="range" min={p.min} max={p.max} step={p.step} value={v}
+              <input type="number" step={p.step} disabled={locked} value={num(v)} onchange={(e) => { paramDragging = false; setParam(p.name, +e.target.value); paramDragging = false; }} />
+              <input id="p-{p.name}" type="range" min={p.min} max={p.max} step={p.step} disabled={locked} value={v}
                 oninput={(e) => setParam(p.name, +e.target.value)} onchange={() => (paramDragging = false)} />
             </div>
           {/each}
-          <button onclick={() => edit((d) => (d.features[selected.i].geom.params = {}))}>Reset to defaults</button>
+          {#if !locked}
+            <button onclick={() => edit((d) => (d.features[selected.i].geom.params = {}))}>Reset to defaults</button>
+          {/if}
         {/if}
-        {#if selected.kind === 'feature'}
+        {#if selected.kind === 'feature' && !locked}
           <div class="actions">
             <button onclick={() => move(-1)} title="Earlier">↑</button>
             <button onclick={() => move(1)} title="Later">↓</button>
           </div>
         {/if}
       {/if}
-      <div class="actions"><button class="danger" onclick={remove}>Delete <kbd>Del</kbd></button></div>
+      {#if !locked}
+        <div class="actions"><button class="danger" onclick={remove}>Delete <kbd>Del</kbd></button></div>
+      {/if}
     {:else}
       <h2>Whole board</h2>
-      <label class="row">corner radius<input type="number" min="0" step="0.1" value={num(shapeDoc.corner_radius)} onchange={(e) => edit((d) => (d.corner_radius = Math.max(0, +e.target.value)))} /></label>
+      <label class="row">thickness<input type="number" min="0.1" step="0.1" disabled={locked} value={num(shapeDoc.thickness ?? 1.6)} onchange={(e) => edit((d) => (d.thickness = Math.max(0.1, +e.target.value || 1.6)))} /></label>
+      <label class="row">corner radius<input type="number" min="0" step="0.1" disabled={locked} value={num(shapeDoc.corner_radius)} onchange={(e) => edit((d) => (d.corner_radius = Math.max(0, +e.target.value)))} /></label>
       <label class="row">symmetry
-        <select value={symmetry.kind} onchange={(e) => edit((d) => (d.symmetry = { centre: symmetry.centre || [0, 0], kind: e.target.value }))}>
+        <select disabled={locked} value={symmetry.kind} onchange={(e) => edit((d) => (d.symmetry = { centre: symmetry.centre || [0, 0], kind: e.target.value }))}>
           <option value="none">none</option><option value="mirror_x">mirror left–right</option><option value="mirror_y">mirror top–bottom</option><option value="half_turn">half turn</option>
         </select>
       </label>
       {#if symmetry.kind !== 'none'}
-        <label class="row">centre x<input type="number" step="0.5" value={num(symmetry.centre[0])} onchange={(e) => edit((d) => (d.symmetry.centre = [+e.target.value, symmetry.centre[1]]))} /></label>
-        <label class="row">centre y<input type="number" step="0.5" value={num(symmetry.centre[1])} onchange={(e) => edit((d) => (d.symmetry.centre = [symmetry.centre[0], +e.target.value]))} /></label>
+        <label class="row">centre x<input type="number" step="0.5" disabled={locked} value={num(symmetry.centre[0])} onchange={(e) => edit((d) => (d.symmetry.centre = [+e.target.value, symmetry.centre[1]]))} /></label>
+        <label class="row">centre y<input type="number" step="0.5" disabled={locked} value={num(symmetry.centre[1])} onchange={(e) => edit((d) => (d.symmetry.centre = [symmetry.centre[0], +e.target.value]))} /></label>
       {/if}
-      <p class="hint">Click a shape to edit it; drag it to move it, or its handles to resize. Alt turns off the 0.1 mm snap. Wheel zooms, drag the background to pan, <kbd>F</kbd> fits, <kbd>Ctrl Z</kbd> undoes.</p>
+      <p class="hint">{locked ? `Outline controlled by ${driverName}. Unlock to take over editing in Composer.` : 'Click a shape to edit it; drag it to move it, or its handles to resize. Alt turns off the 0.1 mm snap. Wheel zooms, drag the background to pan,'} {#if !locked}<kbd>F</kbd> fits, <kbd>Ctrl Z</kbd> undoes.{/if}</p>
     {/if}
   </div>
 </div>
@@ -549,10 +632,16 @@
   .list, .props { overflow-y: auto; padding: 10px 12px; background: var(--panel); }
   .list { border-right: 1px solid var(--line); }
   .props { border-left: 1px solid var(--line); }
+  .lock-box { margin-bottom: 10px; padding: 8px 9px; border: 1px solid color-mix(in srgb, var(--lock) 45%, var(--line)); border-radius: 6px; background: color-mix(in srgb, var(--lock) 10%, var(--bg)); font-size: 12px; }
+  .lock-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; color: var(--ink); font-weight: 600; }
+  .lock-head button { font-size: 11.5px; padding: 2px 7px; flex: none; }
+  .lock-warn { margin: 6px 0 0; color: var(--muted); font-size: 11.5px; line-height: 1.4; }
   .adds { display: flex; flex-wrap: wrap; gap: 4px; }
   .adds button, .file { font-size: 12px; padding: 3px 7px; }
   .file { border: 1px solid var(--line); border-radius: 6px; cursor: pointer; background: var(--bg); position: relative; overflow: hidden; }
+  .file.disabled { opacity: 0.45; cursor: default; }
   .file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .file.disabled input { pointer-events: none; }
   h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 14px 0 6px; }
   h3 span { text-transform: none; letter-spacing: 0; font-weight: 400; }
   ul { list-style: none; margin: 0; padding: 0; }

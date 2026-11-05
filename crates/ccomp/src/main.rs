@@ -173,8 +173,12 @@ enum Cmd {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
-    /// A board's shape (`shape.json`): its outline, holes and keep-outs, evaluated to polygons.
+    /// A board's shape (`shape.json`): its outline, holes and keep-outs, evaluated to polygons,
+    /// plus `board-interface` sync commands (`publish`, `status`, `pull`, `take-over`).
+    #[command(args_conflicts_with_subcommands = true, subcommand_precedence_over_arg = true)]
     Shape {
+        #[command(subcommand)]
+        op: Option<ShapeOp>,
         /// The shape document; the board's with `--project` / `--board`.
         shape: Option<PathBuf>,
         /// List the parametric generators and their parameters instead.
@@ -262,6 +266,53 @@ enum LibraryOp {
         /// Words in the statement.
         #[arg(long)]
         text: Option<String>,
+    },
+}
+
+#[derive(Subcommand)]
+enum ShapeOp {
+    /// Write `interface/<board>/board-shape.{dxf,json}` under the project through `board-interface`.
+    Publish {
+        /// The shape document; defaults to the board's `shape.json` with `--project` / `--board`.
+        #[arg(long)]
+        shape: Option<PathBuf>,
+        /// Target interface directory or `board-shape.json` path (default:
+        /// `<project>/interface/<board>/`).
+        #[arg(long)]
+        interface: Option<PathBuf>,
+        /// Revision string for `author.source` (defaults to `git rev-parse HEAD` or `"working-tree"`).
+        #[arg(long)]
+        source: Option<String>,
+        /// RFC 3339 timestamp for `author.at` (defaults to caller's UTC clock).
+        #[arg(long)]
+        at: Option<String>,
+    },
+    /// Compare against a followed `board-shape.{dxf,json}` through `board_interface::compare`.
+    Status {
+        /// The shape document; defaults to the board's `shape.json` with `--project` / `--board`.
+        #[arg(long)]
+        shape: Option<PathBuf>,
+        /// Followed interface directory, `.json`, `.dxf`, or stem (default: `shape.json`'s
+        /// `sync.following`, else `<project>/interface/<board>/`).
+        #[arg(long)]
+        interface: Option<PathBuf>,
+    },
+    /// Pull a followed `board-shape.{dxf,json}` as read-only synced geometry into `shape.json`.
+    Pull {
+        /// The shape document; defaults to the board's `shape.json` with `--project` / `--board`.
+        #[arg(long)]
+        shape: Option<PathBuf>,
+        /// Followed interface directory, `.json`, `.dxf`, or stem (default: `shape.json`'s
+        /// `sync.following`, else `<project>/interface/<board>/`).
+        #[arg(long)]
+        interface: Option<PathBuf>,
+    },
+    /// Explicitly unlock a pulled outline, keeping its IDs and taking over the drive.
+    #[command(visible_alias = "takeover")]
+    TakeOver {
+        /// The shape document; defaults to the board's `shape.json` with `--project` / `--board`.
+        #[arg(long)]
+        shape: Option<PathBuf>,
     },
 }
 
@@ -812,7 +863,10 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             }
             solve_and_report(&pr, output.as_deref())
         }
-        Cmd::Shape { shape: path, generators, import, output } => {
+        Cmd::Shape { op, shape: path, generators, import, output } => {
+            if let Some(sub) = op {
+                return run_shape_op(sub, &mut ctx);
+            }
             let value = if generators {
                 serde_json::to_value(shape::generators::GENERATORS).unwrap()
             } else if let Some(drawing) = import {
@@ -1196,8 +1250,374 @@ fn relative(target: &Path, dir: &Path) -> String {
 }
 
 fn write_json(path: &Path, value: &Value) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("{}: {e}", parent.display()))?;
+        }
+    }
     let text = serde_json::to_string_pretty(value).unwrap() + "\n";
     std::fs::write(path, text).map_err(|e| format!("{}: {e}", path.display()))
+}
+
+fn run_shape_op(op: ShapeOp, ctx: &mut Ctx) -> Result<(Value, bool), String> {
+    match op {
+        ShapeOp::Publish {
+            shape,
+            interface,
+            source,
+            at,
+        } => {
+            let shape_path = ctx.or_board(shape, "a shape file", |b| b.shape.clone())?;
+            let mut doc: shape::ShapeDoc = serde_json::from_value(read_json_value(&shape_path)?)
+                .map_err(|e| format!("{}: {e}", shape_path.display()))?;
+
+            let board_name = if ctx.active() {
+                ctx.board()?.name.clone()
+            } else {
+                shape_path
+                    .parent()
+                    .and_then(|p| p.file_name())
+                    .map(|n| n.to_string_lossy().into_owned())
+                    .unwrap_or_else(|| "board".into())
+            };
+
+            let (dxf_path, json_path) = match interface {
+                Some(p) => resolve_interface_pair_for_write(&p),
+                None if ctx.active() => {
+                    let b = ctx.board()?;
+                    let dir = b.project.join("interface").join(&b.name);
+                    (dir.join("board-shape.dxf"), dir.join("board-shape.json"))
+                }
+                None => {
+                    return Err("give --interface, or --project / --board".into());
+                }
+            };
+
+            let on_disk = if json_path.is_file() || dxf_path.is_file() {
+                Some(read_interface_record(&dxf_path, &json_path)?)
+            } else {
+                None
+            };
+
+            let owned_followed;
+            let (followed_state, publishing_to_followed) =
+                if let Some(fol_str) = doc.sync.as_ref().and_then(|s| s.following.clone()) {
+                    let (fol_dxf, fol_json) =
+                        resolve_followed_from_str(&fol_str, shape_path.parent());
+                    let same_target = paths_refer_to_same_interface(&fol_json, &json_path);
+                    match read_interface_record(&fol_dxf, &fol_json) {
+                        Ok(rec) => {
+                            owned_followed = rec;
+                            (shape::FollowedState::Readable(&owned_followed), same_target)
+                        }
+                        Err(error) => (
+                            shape::FollowedState::Unreadable {
+                                path: fol_str,
+                                error,
+                            },
+                            same_target,
+                        ),
+                    }
+                } else {
+                    (shape::FollowedState::None, false)
+                };
+
+            let author_source = source.unwrap_or_else(|| {
+                let search_dir = shape_path.parent().unwrap_or(Path::new("."));
+                git_head_or_working_tree(search_dir)
+            });
+            let timestamp = at.unwrap_or_else(utc_now_rfc3339);
+
+            let outcome = match shape::prepare_publish_with_followed(
+                &mut doc,
+                &board_name,
+                &author_source,
+                &timestamp,
+                on_disk.as_ref(),
+                followed_state,
+                publishing_to_followed,
+            ) {
+                Ok(out) => out,
+                Err(refusal) => {
+                    return Ok((json!({ "ok": false, "error": refusal }), false));
+                }
+            };
+
+            match outcome {
+                shape::PublishOutcome::Unchanged {
+                    revision,
+                    geometry_hash,
+                    warnings,
+                } => Ok((
+                    json!({
+                        "ok": true,
+                        "wrote": false,
+                        "unchanged": true,
+                        "board": board_name,
+                        "revision": revision,
+                        "geometry_hash": geometry_hash,
+                        "dxf": dxf_path,
+                        "manifest": json_path,
+                        "warnings": warnings,
+                    }),
+                    true,
+                )),
+                shape::PublishOutcome::Write {
+                    dxf,
+                    manifest_json,
+                    record,
+                    warnings,
+                } => {
+                    if let Some(parent) = dxf_path.parent() {
+                        if !parent.as_os_str().is_empty() {
+                            std::fs::create_dir_all(parent)
+                                .map_err(|e| format!("{}: {e}", parent.display()))?;
+                        }
+                    }
+                    std::fs::write(&dxf_path, dxf)
+                        .map_err(|e| format!("{}: {e}", dxf_path.display()))?;
+                    std::fs::write(&json_path, manifest_json)
+                        .map_err(|e| format!("{}: {e}", json_path.display()))?;
+                    write_json(&shape_path, &serde_json::to_value(&doc).unwrap())?;
+
+                    Ok((
+                        json!({
+                            "ok": true,
+                            "wrote": true,
+                            "unchanged": false,
+                            "board": record.manifest.board,
+                            "revision": record.manifest.revision,
+                            "parent": record.manifest.parent,
+                            "driver": record.manifest.driver,
+                            "last_handover": record.manifest.last_handover,
+                            "geometry_hash": record.manifest.geometry_hash,
+                            "approximate": record.manifest.approximate,
+                            "dxf": dxf_path,
+                            "manifest": json_path,
+                            "shape": shape_path,
+                            "warnings": warnings,
+                        }),
+                        true,
+                    ))
+                }
+            }
+        }
+        ShapeOp::Status { shape, interface } => {
+            let shape_path = ctx.or_board(shape, "a shape file", |b| b.shape.clone())?;
+            let doc: shape::ShapeDoc = serde_json::from_value(read_json_value(&shape_path)?)
+                .map_err(|e| format!("{}: {e}", shape_path.display()))?;
+            let board_name = if ctx.active() {
+                ctx.board()?.name.clone()
+            } else {
+                String::new()
+            };
+
+            let (dxf_path, json_path) =
+                resolve_followed_interface(interface, &doc, shape_path.parent(), ctx)?;
+            let theirs = read_interface_record(&dxf_path, &json_path)?;
+            let st = match shape::status(&doc, &board_name, &theirs) {
+                Ok(s) => s,
+                Err(msg) => return Ok((json!({ "ok": false, "error": msg }), false)),
+            };
+
+            Ok((
+                json!({
+                    "ok": true,
+                    "in_sync": st.comparison.classification == board_interface::Classification::InSync,
+                    "classification": st.comparison.classification,
+                    "driver": st.driver,
+                    "base_revision": st.base_revision,
+                    "theirs_revision": st.theirs_revision,
+                    "thickness_changed": st.comparison.thickness_changed,
+                    "changes": st.comparison.changes,
+                    "rematched": st.comparison.rematched,
+                    "uncertain": st.comparison.uncertain,
+                    "dxf": dxf_path,
+                    "manifest": json_path,
+                }),
+                true,
+            ))
+        }
+        ShapeOp::Pull { shape, interface } => {
+            let shape_path = ctx.or_board(shape, "a shape file", |b| b.shape.clone())?;
+            let mut doc: shape::ShapeDoc = if shape_path.is_file() {
+                serde_json::from_value(read_json_value(&shape_path)?)
+                    .map_err(|e| format!("{}: {e}", shape_path.display()))?
+            } else {
+                shape::ShapeDoc::default()
+            };
+
+            let (dxf_path, json_path) =
+                resolve_followed_interface(interface, &doc, shape_path.parent(), ctx)?;
+            let record = read_interface_record(&dxf_path, &json_path)?;
+            let recorded_following = std::fs::canonicalize(&json_path)
+                .unwrap_or_else(|_| json_path.clone())
+                .display()
+                .to_string();
+            let outcome = shape::pull(&mut doc, &record, Some(recorded_following));
+            write_json(&shape_path, &serde_json::to_value(&doc).unwrap())?;
+
+            Ok((
+                json!({
+                    "ok": true,
+                    "shape": shape_path,
+                    "dxf": dxf_path,
+                    "manifest": json_path,
+                    "revision": outcome.revision,
+                    "driver": outcome.driver,
+                    "locked": shape::is_locked(&doc),
+                    "geometry_hash": outcome.geometry_hash,
+                    "approximate": outcome.approximate,
+                    "warnings": outcome.warnings,
+                }),
+                true,
+            ))
+        }
+        ShapeOp::TakeOver { shape } => {
+            let shape_path = ctx.or_board(shape, "a shape file", |b| b.shape.clone())?;
+            let mut doc: shape::ShapeDoc = serde_json::from_value(read_json_value(&shape_path)?)
+                .map_err(|e| format!("{}: {e}", shape_path.display()))?;
+            let outcome = match shape::take_over(&mut doc) {
+                Ok(out) => out,
+                Err(refusal) => return Ok((json!({ "ok": false, "error": refusal }), false)),
+            };
+            write_json(&shape_path, &serde_json::to_value(&doc).unwrap())?;
+
+            Ok((
+                json!({
+                    "ok": true,
+                    "shape": shape_path,
+                    "driver": board_interface::Driver::Composer,
+                    "previous_driver": outcome.previous_driver,
+                    "from_revision": outcome.from_revision,
+                    "kept_ids": outcome.kept_ids,
+                    "warnings": outcome.warnings,
+                }),
+                true,
+            ))
+        }
+    }
+}
+
+fn resolve_followed_interface(
+    given: Option<PathBuf>,
+    doc: &shape::ShapeDoc,
+    shape_dir: Option<&Path>,
+    ctx: &mut Ctx,
+) -> Result<(PathBuf, PathBuf), String> {
+    if let Some(p) = given {
+        return Ok(resolve_interface_pair_for_read(&p));
+    }
+    if let Some(f) = doc.sync.as_ref().and_then(|s| s.following.as_deref()) {
+        return Ok(resolve_followed_from_str(f, shape_dir));
+    }
+    if ctx.active() {
+        let b = ctx.board()?;
+        let dir = b.project.join("interface").join(&b.name);
+        return Ok((dir.join("board-shape.dxf"), dir.join("board-shape.json")));
+    }
+    Err("give --interface, or --project / --board".into())
+}
+
+fn resolve_followed_from_str(fol: &str, base_dir: Option<&Path>) -> (PathBuf, PathBuf) {
+    let p = Path::new(fol);
+    let direct = resolve_interface_pair_for_read(p);
+    if direct.0.is_file() || direct.1.is_file() || p.is_absolute() {
+        return direct;
+    }
+    if let Some(dir) = base_dir {
+        let rel = resolve_interface_pair_for_read(&dir.join(p));
+        if rel.0.is_file() || rel.1.is_file() {
+            return rel;
+        }
+    }
+    direct
+}
+
+fn paths_refer_to_same_interface(a_json: &Path, b_json: &Path) -> bool {
+    if a_json == b_json {
+        return true;
+    }
+    match (std::fs::canonicalize(a_json), std::fs::canonicalize(b_json)) {
+        (Ok(ca), Ok(cb)) => ca == cb,
+        _ => false,
+    }
+}
+
+fn resolve_interface_pair_for_read(p: &Path) -> (PathBuf, PathBuf) {
+    if p.is_dir() {
+        return (p.join("board-shape.dxf"), p.join("board-shape.json"));
+    }
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if ext == "json" || ext == "dxf" {
+        return (p.with_extension("dxf"), p.with_extension("json"));
+    }
+    let stem_json = p.with_extension("json");
+    let stem_dxf = p.with_extension("dxf");
+    if stem_json.is_file() || stem_dxf.is_file() {
+        (stem_dxf, stem_json)
+    } else {
+        (p.join("board-shape.dxf"), p.join("board-shape.json"))
+    }
+}
+
+fn resolve_interface_pair_for_write(p: &Path) -> (PathBuf, PathBuf) {
+    let ext = p
+        .extension()
+        .and_then(|e| e.to_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if ext == "json" || ext == "dxf" {
+        (p.with_extension("dxf"), p.with_extension("json"))
+    } else {
+        (p.join("board-shape.dxf"), p.join("board-shape.json"))
+    }
+}
+
+fn read_interface_record(dxf_path: &Path, json_path: &Path) -> Result<board_interface::Record, String> {
+    let dxf = std::fs::read(dxf_path).map_err(|e| format!("{}: {e}", dxf_path.display()))?;
+    let manifest = std::fs::read(json_path).map_err(|e| format!("{}: {e}", json_path.display()))?;
+    board_interface::read(&dxf, &manifest)
+        .map_err(|e| format!("{}: {e}", json_path.display()))
+}
+
+fn git_head_or_working_tree(dir: &Path) -> String {
+    std::process::Command::new("git")
+        .arg("-C")
+        .arg(dir)
+        .args(["rev-parse", "HEAD"])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "working-tree".into())
+}
+
+fn utc_now_rfc3339() -> String {
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() as i64)
+        .unwrap_or(0);
+    let days = secs.div_euclid(86_400);
+    let rem = secs.rem_euclid(86_400);
+    let (hour, min, sec) = (rem / 3600, (rem % 3600) / 60, rem % 60);
+    let z = days + 719_468;
+    let era = (if z >= 0 { z } else { z - 146_096 }) / 146_097;
+    let doe = (z - era * 146_097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146_096) / 365;
+    let y = (yoe as i64) + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = if m <= 2 { y + 1 } else { y };
+    format!("{year:04}-{m:02}-{d:02}T{hour:02}:{min:02}:{sec:02}Z")
 }
 
 fn read_json_value(p: &Path) -> Result<Value, String> {

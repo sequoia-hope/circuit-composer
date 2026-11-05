@@ -489,6 +489,23 @@ mod wasm {
         Ok(serde_json::to_string(&f).unwrap())
     }
 
+    /// Unlock a pulled `shape.json` (`shape::take_over`), returning `{ doc, outcome }` as JSON.
+    #[wasm_bindgen]
+    pub fn shape_take_over(doc_json: &str) -> Result<String, JsValue> {
+        let mut doc: shape::ShapeDoc = serde_json::from_str(doc_json).map_err(err)?;
+        let outcome = shape::take_over(&mut doc).map_err(err)?;
+        Ok(serde_json::json!({ "doc": doc, "outcome": outcome }).to_string())
+    }
+
+    /// Pull a `board-shape.{dxf,json}` pair into `shape.json`, returning `{ doc, outcome }`.
+    #[wasm_bindgen]
+    pub fn shape_pull(doc_json: &str, dxf: &str, manifest_json: &str) -> Result<String, JsValue> {
+        let mut doc: shape::ShapeDoc = serde_json::from_str(doc_json).map_err(err)?;
+        let record = shape::board_interface::read(dxf.as_bytes(), manifest_json.as_bytes()).map_err(err)?;
+        let outcome = shape::pull(&mut doc, &record, None);
+        Ok(serde_json::json!({ "doc": doc, "outcome": outcome }).to_string())
+    }
+
     #[wasm_bindgen]
     impl Board {
         /// From `ccomp floorplan --problem` output.
