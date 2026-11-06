@@ -17,7 +17,7 @@ Circuit Composer turns board design into composition: chips are ingested once in
 2. Recognizer: matches netlist subgraphs to block types and net classes; the agent confirms against datasheets.
 3. Block library: generators (buck, half-bridge, crystal, connector protection) plus the eval-board miner.
 4. Floorplanner: places blocks as soft regions, separates aggressors from victims, honours the domain tree, outputs board size.
-5. Constraint compiler: emits KiCad net classes, rule areas and custom rules, plus router cost grids.
+5. Constraint compiler: emits KiCad net classes, rule areas and custom rules, plus router regions.
 6. Router: separate project; finishes everything not locked.
 7. Verifier: fast physics proxies first, full EM simulation last; failures route back to the right stage.
 
@@ -105,11 +105,11 @@ Every tool is a command-line program that reads files and writes files plus a JS
 | Block generator | Block intent, package rules, parts | Locked sub-layout (KiCad design block) + score report |
 | Eval-board miner | Vendor KiCad or Gerber files, datasheet | Extracted block layout + measured scores, as a template |
 | Floorplanner | Intent file, block footprints, mechanical outline or none | Block placements, domain regions, board outline |
-| Constraint compiler | Intent file, floorplan | KiCad net classes, rule areas, custom rules file; router cost grids |
-| Router | Partly routed board, cost grids, constraints | Fully routed board |
+| Constraint compiler | Intent file, floorplan | KiCad net classes, rule areas, custom rules file; `routing.json` (regions, length limits, nets kept clear under) |
+| Router | Partly routed board, `routing.json`, KiCad rules | Fully routed board |
 | Verifier | Routed board, intent file | Per-check results with location, severity and the stage to fix |
 
-**Router handoff.** The router receives a KiCad board with every part placed, critical blocks routed and locked, ground and power pours drawn, keepouts marked, plus one cost grid per net class (`must`, `prefer`, `avoid`, `never` as cost values per cell per layer). The router may not move parts or touch locked copper.
+**Router handoff.** The router receives a KiCad board with every part placed, critical blocks routed and locked, ground and power pours drawn, keepouts marked, plus `routing.json`, passed to ultraroute as `--regions`. It holds polygon regions per layer, each naming its nets and a mode (`must`, `prefer`, `avoid` with a weight, `never`); `max_lengths` per net; and `clear_under`, nets under which no other net's via or hole may open a plane antipad. Differential-pair skew limits go in the `.kicad_dru` rules, which the router reads. The router may not move parts or touch locked copper.
 
 **Verifier result format.** Each finding names: the check, the nets or blocks involved, a location, a measured value against its limit, and a `fix_stage` (`intent`, `floorplan`, `block`, or `route`) so the agent knows where to loop back.
 
@@ -146,25 +146,29 @@ Each milestone ends with something verified end to end, not a partial layer acro
 
 1. **Intent schema v0.** Rust types, JSON Schema, validator. Hand-annotate one real board from the benchmark corpus; add only fields some tool reads.
 2. **One buck regulator, end to end.** Generator (enumerate arrangements, score hot-loop area, switch-node area, feedback clearance), fast-tier verifier checks, comparison against the vendor eval-board layout. Publish as the first package.
-3. **Router integration.** Constraint compiler emits KiCad rules and cost grids; router consumes a partly routed board with locked blocks.
+3. **Router integration.** Constraint compiler emits KiCad rules and `routing.json` regions; router consumes a partly routed board with locked blocks.
 4. **RP2350 package.** Mined from the design guide and reference board; family variants; ports.
 5. **Floorplanner and composer.** Compose a small board from packages, for example a battery-powered RP2350 board with charger, regulator, IMU and LEDs.
-6. **Sweep.** Ingest one narrow group from LCSC (synchronous bucks in one common package), then ESP32 and nRF families.
-7. **Stretch target.** The farming-robot brushless motor controller: switching supply, three half-bridges, current sensing, digital.
+6. **Recognizer v0 and the corpus run.** From a KiCad board or netlist (refdes, values, footprints, pad nets, net names, and part numbers where present; the corpus has none), write an intent file whose every attribute is marked recognised, with a confidence and its evidence. Start with ground and power rails, switch nodes, crystals and clocks, USB and other named pairs, feedback and sense nodes, analog inputs and high-voltage nets. Run it over the PCBench corpus (1182 boards) and hand-check a 50-board sample for precision. Corpus-derived data lives outside this repository until licensing is settled.
+7. **Sweep.** Ingest one narrow group from LCSC (synchronous bucks in one common package), then ESP32 and nRF families.
+8. **Stretch target.** The farming-robot brushless motor controller: switching supply, three half-bridges, current sensing, digital.
 
 ## Decisions log
 
 | Decision | Why |
 | --- | --- |
-| Router is a separate project | Keeps it general; the handoff is a partly routed board plus cost grids |
+| Router is a separate project | Keeps it general; the handoff is a partly routed board plus KiCad rules and `routing.json` |
 | Intent lives in a sidecar keyed to KiCad names | KiCad stays the geometry source of truth; boards still open normally |
 | Categories are presets over attributes | New circuit types (LiDAR, TENS, EV inverter) fit without schema changes |
 | Critical blocks are generated, not routed | Switching loops are a small search, not an open routing problem |
 | Claims keep contradictions | Manufacturer guidance is sometimes wrong; simulation settles disputes |
 | Packages are per family, versioned, open source | Ingest once, compose cheaply, shareable on GitHub |
+| Router constraints are polygon regions, not cost grids | Smaller, exact at the edges, and what ultraroute built (f179fcb) |
+| Recognizer before more hand-annotated boards | Four related boards can't show the schema generalises; the corpus run can |
+| One verifier, shared with ultraroute, grown from `crates/verify` | Two checkers drift apart; kept independent of the block generators so a wrong model can't pass its own output |
 
 **Open questions**
 
-- [ ] File format for the intent file: JSON, TOML, or KiCad-style S-expressions?
+- [x] File format for the intent file: JSON, with a JSON Schema generated from the Rust types.
 - [ ] Which EM solver for the slow tier (openEMS or other)?
-- [ ] How the router represents locked copper and cost grids internally
+- [x] How the router represents locked copper and constraints: polygon regions, not per-cell grids (`--regions routing.json`, ultraroute f179fcb).
