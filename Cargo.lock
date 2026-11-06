@@ -85,8 +85,8 @@ source = "git+https://github.com/sequoia-hope/board-draw?rev=b45cc3f689dc7b5086b
 
 [[package]]
 name = "board-interface"
-version = "0.2.1"
-source = "git+https://github.com/sequoia-hope/board-interface?tag=v0.2.1#3cbcb80356052bc5da4272c20b79e7af8b485b6b"
+version = "0.2.2"
+source = "git+https://github.com/sequoia-hope/board-interface?tag=v0.2.2#cf831a8ffbcf8945ec3ba5a9e2e2a97d83a2ce59"
 dependencies = [
  "serde",
  "serde_json",
