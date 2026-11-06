@@ -6,6 +6,7 @@
 //! footprint names, which pad is on which net, and net names. Pin functions are used when the
 //! netlist has them (a schematic export does; the PCBench corpus does not).
 
+mod current;
 pub mod names;
 pub mod parts;
 
@@ -70,6 +71,18 @@ struct NetFacts {
     voltage: Option<(f64, String)>,
     impedance: Option<(Impedance, String)>,
     bandwidth: Option<(BandwidthKind, String)>,
+    /// The estimate, its confidence and what it rests on.
+    current: Option<(Current, f64, Vec<String>)>,
+}
+
+/// A regulator as the current estimate sees it: what it draws from, what it feeds, and the most
+/// its parts allow.
+struct Reg {
+    part: String,
+    switching: bool,
+    input: Option<String>,
+    output: String,
+    rating: Option<(f64, String)>,
 }
 
 struct Cx<'a> {
@@ -82,6 +95,7 @@ struct Cx<'a> {
     facts: BTreeMap<String, NetFacts>,
     blocks: BTreeMap<String, Block>,
     disputes: Vec<String>,
+    regs: Vec<Reg>,
 }
 
 impl<'a> Cx<'a> {
@@ -201,7 +215,7 @@ pub fn recognise(nl: &Netlist, board: &str, location: &str) -> Recognised {
             nodes.insert(name.as_str(), ns);
         }
     }
-    let mut cx = Cx { nl, kinds, nodes, grounds: BTreeSet::new(), guesses: BTreeMap::new(), facts: BTreeMap::new(), blocks: BTreeMap::new(), disputes: Vec::new() };
+    let mut cx = Cx { nl, kinds, nodes, grounds: BTreeSet::new(), guesses: BTreeMap::new(), facts: BTreeMap::new(), blocks: BTreeMap::new(), disputes: Vec::new(), regs: Vec::new() };
 
     grounds(&mut cx);
     rails_by_name(&mut cx);
@@ -212,6 +226,7 @@ pub fn recognise(nl: &Netlist, board: &str, location: &str) -> Recognised {
     feedback(&mut cx);
     by_name_and_function(&mut cx);
     small_blocks(&mut cx);
+    current::estimate(&mut cx);
 
     let mut report = Report::default();
     for (k, _) in cx.kinds.values() {
@@ -230,6 +245,9 @@ pub fn recognise(nl: &Netlist, board: &str, location: &str) -> Recognised {
             }
             if let Some((z, why)) = f.impedance {
                 net.impedance = Some(soft(z, g.confidence, vec![why]));
+            }
+            if let Some((c, conf, why)) = f.current {
+                net.current = Some(soft(c, conf, why));
             }
             if let Some((b, why)) = f.bandwidth {
                 net.bandwidth = Some(soft(Bandwidth { kind: b, max_hz: None }, g.confidence, vec![why]));
@@ -427,6 +445,13 @@ fn inductors(cx: &mut Cx) {
         if cout.is_empty() {
             continue;
         }
+        // An LC filter into a connector and nothing else, unnamed, is an output stage (a class-D
+        // amplifier's speaker filter), not a converter feeding a rail.
+        let named_rail = names::rail_voltage(rail).is_some() || names::is_supply_word(rail);
+        let feeds_ics = cx.parts_on(rail).iter().any(|r| matches!(cx.kind(r), Kind::Ic | Kind::Led | Kind::Transistor));
+        if !named_rail && !feeds_ics && !cx.kinds_on(rail, Kind::Connector).is_empty() {
+            continue;
+        }
         let mut ev = vec![cx.why(l), format!("{} has no capacitor to ground and drives {l}", names::norm(sw)), format!("{} has {} capacitor(s) to ground", names::norm(rail), cout.len())];
         let mut conf: f64 = 0.8;
         if names::switch_name(sw) || cx.functions(sw).iter().any(|(_, _, f)| names::switch_name(f)) {
@@ -436,6 +461,8 @@ fn inductors(cx: &mut Cx) {
         // A diode from the switch node to ground is a buck's catch diode; to another decoupled
         // rail, a boost's output diode.
         let mut kind = "buck";
+        let mut boost_out = None;
+        let mut buck_in = None;
         let mut members: Vec<&str> = vec![l];
         members.extend(cout.iter().copied());
         for d in cx.kinds_on(sw, Kind::Diode) {
@@ -446,6 +473,7 @@ fn inductors(cx: &mut Cx) {
                 }
                 Some(o) if !cx.caps_to_ground(o).is_empty() => {
                     kind = "boost";
+                    boost_out = Some(o);
                     members.push(d);
                     ev.push(format!("{d} carries the switch node to {}, a decoupled rail", names::norm(o)));
                 }
@@ -477,6 +505,7 @@ fn inductors(cx: &mut Cx) {
                                 roles.insert("cin".into(), c.to_string());
                             }
                             members.extend(cin);
+                            buck_in = Some(n);
                             cx.guess(n, "POWER", 0.7, vec![format!("{ic}'s decoupled input beside switch node {}", names::norm(sw))]);
                             break;
                         }
@@ -487,7 +516,14 @@ fn inductors(cx: &mut Cx) {
         if let Some(c) = cout.first() {
             roles.insert("cout".into(), c.to_string());
         }
-        cx.guess(rail, "POWER", 0.75, vec![format!("{kind} output: {l} into {} capacitor(s) to ground", cout.len())]);
+        let side = if kind == "buck" { "output" } else { "input" };
+        cx.guess(rail, "POWER", 0.75, vec![format!("{kind} {side}: {l} and {} capacitor(s) to ground", cout.len())]);
+        let rating = parts::inductor_class(&cx.nl.components[l].footprint).map(|(a, mm)| (a, format!("{l}'s body, about {mm} mm, carries about {a} A")));
+        let (input, output) = match (kind, boost_out) {
+            ("boost", Some(o)) => (Some(rail.to_string()), o.to_string()),
+            _ => (buck_in.map(str::to_string), rail.to_string()),
+        };
+        cx.regs.push(Reg { part: l.to_string(), switching: true, input, output, rating });
         cx.block(kind, l, members, roles, conf - 0.1, ev);
     }
 }
@@ -588,6 +624,7 @@ fn small_blocks(cx: &mut Cx) {
         match cx.kind(r) {
             Kind::Ic if parts::names_family(&value, parts::LDO_FAMILIES) => {
                 let mut members = vec![r];
+                let mut rails = Vec::new();
                 for n in cx.part_nets(r) {
                     if cx.grounds.contains(n) {
                         continue;
@@ -595,8 +632,13 @@ fn small_blocks(cx: &mut Cx) {
                     let caps = cx.caps_to_ground(n);
                     if !caps.is_empty() {
                         members.extend(caps);
+                        rails.push(n);
                         cx.guess(n, "POWER", 0.8, vec![format!("a decoupled pin of regulator {r} ({value})")]);
                     }
+                }
+                if let Some((input, output)) = ldo_sides(cx, &rails) {
+                    let rating = parts::ldo_rating(&value).map(|a| (a, format!("{r} ({value}) is rated {a} A")));
+                    cx.regs.push(Reg { part: r.to_string(), switching: false, input: Some(input.to_string()), output: output.to_string(), rating });
                 }
                 cx.block("ldo", r, members, BTreeMap::new(), 0.85, vec![format!("{r}'s value {value:?} names a linear regulator family")]);
             }
@@ -639,6 +681,26 @@ fn small_blocks(cx: &mut Cx) {
     }
 }
 
+/// Which of a linear regulator's two decoupled rails is its input: the higher voltage by name,
+/// else the one a connector or an input-like name feeds.
+fn ldo_sides<'a>(cx: &Cx, rails: &[&'a str]) -> Option<(&'a str, &'a str)> {
+    let [a, b] = rails else { return None };
+    match (names::rail_voltage(a), names::rail_voltage(b)) {
+        (Some(va), Some(vb)) if va > vb => return Some((a, b)),
+        (Some(va), Some(vb)) if vb > va => return Some((b, a)),
+        _ => {}
+    }
+    let inputish = |n: &str| {
+        let norm = names::norm(n);
+        ["VBUS", "VIN", "VBAT", "BAT", "VUSB", "VRAW", "RAW", "12V", "+5V", "5V", "VSYS"].iter().any(|k| norm.contains(k)) || !cx.kinds_on(n, Kind::Connector).is_empty()
+    };
+    match (inputish(a), inputish(b)) {
+        (true, false) => Some((a, b)),
+        (false, true) => Some((b, a)),
+        _ => None,
+    }
+}
+
 // ---------------------------------------------------------------------------------------------
 // Comparison against intent a person wrote
 
@@ -663,6 +725,9 @@ pub struct Comparison {
     /// Blocks per type: (recognised, in the truth, recognised whose parts overlap a truth
     /// block of the same type).
     pub blocks: BTreeMap<String, (usize, usize, usize)>,
+    /// `(net, recognised continuous A, recognised peak A, truth continuous A)` for every net both
+    /// give a current.
+    pub currents: Vec<(String, f64, Option<f64>, f64)>,
 }
 
 /// Scores a recognised intent against one written by hand, net by net (names compared without a
@@ -690,6 +755,12 @@ pub fn compare(ours: &IntentFile, truth: &IntentFile) -> Comparison {
                 c.disagreements.push(format!("{n}: (none) → {b}"));
             }
             (None, None) => {}
+        }
+    }
+    let tcur: BTreeMap<String, f64> = truth.nets.iter().filter_map(|(n, i)| Some((key(n), i.current.as_ref()?.value.continuous_a))).collect();
+    for (n, i) in &ours.nets {
+        if let (Some(a), Some(b)) = (i.current.as_ref(), tcur.get(&key(n))) {
+            c.currents.push((key(n), a.value.continuous_a, a.value.peak_a, *b));
         }
     }
     let types: BTreeSet<&str> = ours.blocks.values().chain(truth.blocks.values()).map(|b| b.kind.as_str()).collect();
@@ -780,6 +851,16 @@ mod tests {
         assert!(r.intent.blocks.contains_key("mcu_U2"));
         assert!(r.intent.blocks.contains_key("indicator_D2"));
         assert!(r.intent.blocks.contains_key("usb_J1"));
+
+        // Currents: +5V feeds the microcontroller and the LED; the buck's input and switch node
+        // carry it (no input voltage named, so taken equal); the ground returns it.
+        let amps = |n: &str| r.intent.nets[n].current.as_ref().map(|c| c.value.continuous_a);
+        assert_eq!(amps("+5V"), Some(0.06));
+        assert_eq!(amps("VIN"), Some(0.06));
+        assert_eq!(amps("Net-(U1-SW)"), Some(0.06));
+        assert_eq!(amps("GND"), Some(0.06));
+        let p = r.intent.nets["+5V"].current.as_ref().unwrap().provenance.as_ref().unwrap();
+        assert!(p.evidence.iter().any(|e| e.contains("microcontroller")), "{:?}", p.evidence);
 
         // Every guess is soft, recognised, and cites its evidence.
         for (n, i) in &r.intent.nets {

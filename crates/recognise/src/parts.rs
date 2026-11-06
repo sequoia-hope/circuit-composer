@@ -155,6 +155,119 @@ pub fn names_family(value: &str, families: &[&str]) -> bool {
     families.iter().any(|f| v.split(|c: char| !c.is_ascii_alphanumeric() && c != '-').any(|w| w.starts_with(f)))
 }
 
+/// A linear regulator's rated output current, from its family: `AMS1117` 1 A, `78L05` 0.1 A.
+pub fn ldo_rating(value: &str) -> Option<f64> {
+    let v = value.to_ascii_uppercase();
+    if v.contains("78L") || v.contains("79L") {
+        return Some(0.1);
+    }
+    if v.contains("78M") || v.contains("79M") {
+        return Some(0.5);
+    }
+    const RATINGS: &[(&str, f64)] = &[
+        ("AMS1117", 1.0), ("LM1117", 0.8), ("LD1117", 0.8), ("NCP1117", 1.0), ("LT1117", 0.8), ("AP2112", 0.6), ("AP2210", 0.3), ("AP7361", 1.0), ("AP7365", 0.6),
+        ("XC6206", 0.2), ("XC6210", 0.7), ("XC6220", 0.7), ("MCP1700", 0.25), ("MCP1702", 0.25), ("MCP1703", 0.25), ("MCP1754", 0.15), ("MIC5205", 0.15),
+        ("MIC5219", 0.5), ("MIC5504", 0.3), ("LP2985", 0.15), ("LP2992", 0.25), ("LP5907", 0.25), ("LP2950", 0.1), ("LP38", 0.8), ("TLV70", 0.2), ("TLV75", 0.5),
+        ("TPS7A", 0.5), ("TPS73", 0.15), ("LM317", 1.5), ("LM2937", 0.5), ("LM3940", 1.0), ("RT9013", 0.5), ("RT9193", 0.3), ("HT73", 0.25), ("HT75", 0.1),
+        ("SPX3819", 0.5), ("ME6211", 0.5), ("ME6206", 0.3), ("L78", 1.0), ("LM78", 1.0), ("MC78", 1.0), ("UA78", 1.0), ("L79", 1.0), ("LM79", 1.0), ("7805", 1.0),
+        ("7812", 1.0), ("7833", 1.0), ("7905", 1.0), ("LT1763", 0.5), ("LT3042", 0.2), ("ADP150", 0.15), ("ADP7118", 0.2), ("BD433", 0.5),
+    ];
+    RATINGS.iter().find(|(f, _)| names_family(&v, &[f])).map(|(_, a)| *a)
+}
+
+/// A current in a value string: `500mA`, `1.1A`, `PTC 2A`.
+pub fn amps(value: &str) -> Option<f64> {
+    let v = value.to_ascii_uppercase();
+    let b = v.as_bytes();
+    for i in 0..b.len() {
+        if b[i] != b'A' || (i + 1 < b.len() && b[i + 1].is_ascii_alphabetic()) {
+            continue;
+        }
+        let (end, mult) = if i > 0 && b[i - 1] == b'M' { (i - 1, 1e-3) } else { (i, 1.0) };
+        let start = v[..end].rfind(|c: char| !(c.is_ascii_digit() || c == '.')).map_or(0, |j| j + 1);
+        if let Ok(x) = v[start..end].parse::<f64>() {
+            if x > 0.0 {
+                return Some(x * mult);
+            }
+        }
+    }
+    None
+}
+
+/// A power inductor's current class from its footprint's size: the corpus gives no saturation
+/// current, but a part's body size bounds it. Returns amps and the size it read.
+pub fn inductor_class(footprint: &str) -> Option<(f64, f64)> {
+    let fp = footprint.rsplit(':').next().unwrap_or(footprint).to_ascii_uppercase();
+    let num = |s: &str| s.parse::<f64>().ok();
+    let mut size: Option<f64> = None;
+    // `4.5X4.5`, `5X5MM`.
+    let b = fp.as_bytes();
+    for (i, c) in fp.char_indices() {
+        if c != 'X' || i == 0 || !b[i - 1].is_ascii_digit() {
+            continue;
+        }
+        let start = fp[..i].rfind(|c: char| !(c.is_ascii_digit() || c == '.')).map_or(0, |j| j + 1);
+        let rest: String = fp[i + 1..].chars().take_while(|c| c.is_ascii_digit() || *c == '.').collect();
+        if let (Some(a), Some(b)) = (num(&fp[start..i]), num(&rest)) {
+            if a <= 30.0 && b <= 30.0 {
+                size = Some(a.max(b));
+                break;
+            }
+        }
+    }
+    // `CDRH4D22`: the number before `D` is the body in mm.
+    if size.is_none() {
+        if let Some(i) = fp.find("CDRH") {
+            let n: String = fp[i + 4..].chars().take_while(|c| c.is_ascii_digit()).collect();
+            size = num(&n);
+        }
+    }
+    if size.is_none() {
+        const CODES: &[(&str, f64)] = &[("0402", 1.0), ("0603", 1.6), ("0805", 2.0), ("1008", 2.5), ("1206", 3.2), ("1210", 3.2), ("1812", 4.5), ("2016", 2.0), ("2520", 2.5)];
+        size = CODES.iter().find(|(c, _)| fp.contains(c)).map(|(_, s)| *s);
+    }
+    // A vendor series code `4040`, `6045`, `7045`: the body's side in tenths of a mm, first.
+    if size.is_none() {
+        let digits: Vec<char> = fp.chars().collect();
+        for w in digits.windows(4) {
+            if w.iter().all(|c| c.is_ascii_digit()) {
+                let side: f64 = format!("{}{}", w[0], w[1]).parse().unwrap();
+                if (20.0..=99.0).contains(&side) {
+                    size = Some(side / 10.0);
+                    break;
+                }
+            }
+        }
+    }
+    let s = size?;
+    let a = match s {
+        s if s < 1.8 => 0.3,
+        s if s < 2.6 => 0.8,
+        s if s < 3.5 => 1.5,
+        s if s < 4.6 => 2.0,
+        s if s < 6.5 => 3.0,
+        s if s < 8.5 => 5.0,
+        _ => 8.0,
+    };
+    Some((a, s))
+}
+
+/// What a part draws from a rail it is on, coarsely: the corpus has no datasheets, so a
+/// microcontroller, a radio SoC, an addressable LED and an indicator each get a typical figure.
+pub fn load(kind: Kind, value: &str) -> Option<(f64, &'static str)> {
+    let v = value.to_ascii_uppercase();
+    match kind {
+        Kind::Ic if v.contains("ESP32") || v.contains("ESP8266") || v.starts_with("ESP-") => Some((0.35, "a Wi-Fi SoC, about 350 mA averaged over transmit")),
+        Kind::Ic if names_family(value, MCU_FAMILIES) => Some((0.05, "a microcontroller, about 50 mA")),
+        Kind::Ic => Some((0.01, "an IC, about 10 mA")),
+        Kind::Led if ["WS2812", "SK6812", "APA102", "SK9822", "ARGB", "NEOPIXEL", "WS2813", "APA106"].iter().any(|k| v.contains(k)) => {
+            Some((0.04, "an addressable LED, about 40 mA at full white"))
+        }
+        Kind::Led => Some((0.01, "an LED, about 10 mA")),
+        _ => None,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -190,6 +303,14 @@ mod tests {
         assert_eq!(classify("L9", "8.2nH", "IND_0402").0, Kind::Other);
         assert_eq!(classify("L1", "4.7uH", "L_1210").0, Kind::Inductor);
         assert!(names_family("AMS1117-3.3", LDO_FAMILIES));
+        assert_eq!(ldo_rating("AMS1117-3.3"), Some(1.0));
+        assert_eq!(ldo_rating("L78L05"), Some(0.1));
+        assert_eq!(ldo_rating("AP7361C-33FGE"), Some(1.0));
+        assert!(close(amps("500mA"), 0.5) && close(amps("PTC 1.1A"), 1.1) && amps("SMAJ5.0").is_none());
+        assert_eq!(inductor_class("Inductor_SMD:L_Taiyo-Yuden_MD-4040"), Some((2.0, 4.0)));
+        assert_eq!(inductor_class("L_4.5X4.5"), Some((2.0, 4.5)));
+        assert_eq!(inductor_class("INDUCTOR-CDRH2D18-LD"), Some((0.8, 2.0)));
+        assert_eq!(inductor_class("Inductor_SMD:L_1210_3225Metric"), Some((1.5, 3.2)));
         assert!(names_family("ATmega328P-AU", MCU_FAMILIES));
     }
 }
