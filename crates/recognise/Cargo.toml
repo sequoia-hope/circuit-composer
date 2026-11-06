@@ -1,0 +1,17 @@
+[package]
+name = "recognise"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+# The recogniser: draft intent from a netlist alone (parts, values, footprints, pads and net
+# names), every guess marked `recognised` with a confidence and its evidence. It is how a board
+# nobody annotated, or a corpus of them, gets intent.
+
+[dependencies]
+intent = { path = "../intent" }
+pcb = { path = "../pcb" }
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = "1"

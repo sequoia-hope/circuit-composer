@@ -9,6 +9,7 @@ license.workspace = true
 [dependencies]
 intent = { path = "../intent" }
 pcb = { path = "../pcb" }
+recognise = { path = "../recognise" }
 verify = { path = "../verify" }
 blockgen = { path = "../blockgen" }
 compile = { path = "../compile" }

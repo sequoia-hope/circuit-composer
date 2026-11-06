@@ -108,6 +108,13 @@ pub struct Provenance {
     /// The reasoning in a sentence, when the citation alone does not carry it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    /// For `recognised`: how likely the guess is right, in [0, 1].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub confidence: Option<f64>,
+    /// For `recognised`: what the guess rests on, one fact each (`net name GND`,
+    /// `Y1 is a crystal (refdes Y, value 12MHz)`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub evidence: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -123,6 +130,9 @@ pub enum ClaimKind {
     Requirement,
     /// Filled in from a class preset; never satisfies a hard constraint.
     Preset,
+    /// Guessed by the recogniser from the netlist; never satisfies a hard constraint until a
+    /// person or a datasheet confirms it.
+    Recognised,
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -136,6 +146,9 @@ pub struct NetIntent {
     /// are required and supplies soft defaults for the rest.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub class: Option<String>,
+    /// Where `class` came from, when it was recognised rather than written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub class_provenance: Option<Provenance>,
     /// How much noise the net emits.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub aggressor: Option<Attr<Noise>>,
@@ -303,6 +316,9 @@ pub struct Block {
     /// External interface, keyed by port name.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub ports: BTreeMap<String, Port>,
+    /// Where the block came from, when it was recognised rather than written or composed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provenance: Option<Provenance>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }

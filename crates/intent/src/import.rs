@@ -52,6 +52,8 @@ pub fn from_easy_pcb_nets_csv(text: &str, csv_location: &str, board: &str, netli
             kind: ClaimKind::Requirement,
             date: None,
             note: get(c_why).map(str::to_string),
+            confidence: None,
+            evidence: Vec::new(),
         };
         let num = |c: Option<usize>, what: &str, notes: &mut Vec<ImportNote>| -> Option<f64> {
             let s = get(c)?;

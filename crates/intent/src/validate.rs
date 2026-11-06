@@ -107,6 +107,11 @@ impl Ctx<'_> {
         } else if !self.intent.sources.contains_key(&p.source) {
             self.error("unknown_source", subject, id, Some(field), format!("provenance cites `{}`, which is not in `sources`", p.source));
         }
+        if let Some(c) = p.confidence {
+            if !(0.0..=1.0).contains(&c) {
+                self.error("bad_confidence", subject, id, Some(field), format!("confidence {c} is outside [0, 1]"));
+            }
+        }
     }
 
     fn check_attr<T>(&mut self, subject: &'static str, id: &str, field: &str, a: &Attr<T>) {
@@ -118,6 +123,13 @@ impl Ctx<'_> {
                     Some(p) if p.kind == ClaimKind::Preset => {
                         self.error("hard_from_preset", subject, id, Some(field), "a preset default cannot be a hard constraint".into())
                     }
+                    Some(p) if p.kind == ClaimKind::Recognised => self.error(
+                        "hard_from_recognition",
+                        subject,
+                        id,
+                        Some(field),
+                        "a recognised guess cannot be a hard constraint until it is confirmed".into(),
+                    ),
                     Some(_) => {}
                 }
                 if a.weight.is_some() {
@@ -229,6 +241,9 @@ fn check_net(cx: &mut Ctx, name: &str, net: &NetIntent) {
             }
         },
     }
+    if let Some(p) = &net.class_provenance {
+        cx.check_provenance(S, name, "class", p);
+    }
 
     if let Some(a) = &net.aggressor {
         cx.check_attr(S, name, "aggressor", a);
@@ -316,6 +331,9 @@ fn check_blocks(cx: &mut Ctx, summary: &mut Summary) {
     const S: &str = "block";
     let mut owner: BTreeMap<&str, &str> = BTreeMap::new();
     for (id, b) in &cx.intent.blocks {
+        if let Some(p) = &b.provenance {
+            cx.check_provenance(S, id, "provenance", p);
+        }
         if let Some(t) = presets::block_type(&b.kind) {
             for role in t.roles {
                 if !b.roles.contains_key(*role) {

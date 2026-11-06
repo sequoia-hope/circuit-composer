@@ -106,6 +106,8 @@ pub fn resolve(net: &NetIntent) -> NetIntent {
             kind: ClaimKind::Preset,
             date: None,
             note: None,
+            confidence: None,
+            evidence: Vec::new(),
         }),
     };
     if out.aggressor.is_none() {

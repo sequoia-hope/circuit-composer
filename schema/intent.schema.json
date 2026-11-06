@@ -530,6 +530,17 @@
           "description": "External interface, keyed by port name.",
           "type": "object"
         },
+        "provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Where the block came from, when it was recognised rather than written or composed."
+        },
         "roles": {
           "additionalProperties": {
             "type": "string"
@@ -615,6 +626,11 @@
         {
           "const": "preset",
           "description": "Filled in from a class preset; never satisfies a hard constraint.",
+          "type": "string"
+        },
+        {
+          "const": "recognised",
+          "description": "Guessed by the recogniser from the netlist; never satisfies a hard constraint until a\nperson or a datasheet confirms it.",
           "type": "string"
         }
       ]
@@ -973,6 +989,17 @@
             "null"
           ]
         },
+        "class_provenance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Provenance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Where `class` came from, when it was recognised rather than written."
+        },
         "current": {
           "anyOf": [
             {
@@ -1265,12 +1292,27 @@
     "Provenance": {
       "additionalProperties": false,
       "properties": {
+        "confidence": {
+          "description": "For `recognised`: how likely the guess is right, in [0, 1].",
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
         "date": {
           "description": "When the claim was made or checked, ISO 8601.",
           "type": [
             "string",
             "null"
           ]
+        },
+        "evidence": {
+          "description": "For `recognised`: what the guess rests on, one fact each (`net name GND`,\n`Y1 is a crystal (refdes Y, value 12MHz)`).",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
         },
         "kind": {
           "$ref": "#/$defs/ClaimKind"

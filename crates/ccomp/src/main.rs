@@ -101,6 +101,12 @@ enum Cmd {
         #[command(subcommand)]
         from: Import,
     },
+    /// Draft intent from a netlist alone, every guess marked `recognised` with a confidence and
+    /// its evidence.
+    Recognise {
+        #[command(subcommand)]
+        op: RecogniseOp,
+    },
     /// A board from package instances, its own parts and the nets joining them: one flat
     /// circuit (parts by designator, nets by pin) and a binding per instance.
     Compose {
@@ -454,6 +460,33 @@ enum Gen {
         /// Write the layout here.
         #[arg(short, long)]
         output: Option<PathBuf>,
+    },
+}
+
+#[derive(Subcommand)]
+enum RecogniseOp {
+    /// One board: a `.kicad_pcb` (pads and net names only), or a netlist or schematic (which
+    /// add pin functions).
+    Board {
+        input: PathBuf,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+        /// Intent written by hand for the same board, to score the recognised one against.
+        #[arg(long)]
+        compare: Option<PathBuf>,
+    },
+    /// Every board in a corpus: `DIR/<id>/<file>`. Writes `OUT/<id>/intent.json` and
+    /// `report.json` per board, and `OUT/summary.json` over all of them.
+    Corpus {
+        dir: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        /// The board file in each folder.
+        #[arg(long, default_value = "board.kicad_pcb")]
+        file: String,
+        /// Only the first N boards, in id order.
+        #[arg(long)]
+        limit: Option<usize>,
     },
 }
 
@@ -944,6 +977,28 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             let hits = lib.query(&library::Query { set, status, attribute, scope, id, text });
             Ok((json!({ "count": hits.len(), "claims": hits }), true))
         }
+        Cmd::Recognise { op: RecogniseOp::Board { input, output, compare } } => {
+            let netlist = recognise_input(&input)?;
+            let name = input.file_stem().and_then(|s| s.to_str()).unwrap_or("board").to_string();
+            let location = match &output {
+                Some(o) => relative(&input, o.parent().unwrap_or(Path::new("."))),
+                None => input.display().to_string(),
+            };
+            let r = recognise::recognise(&netlist, &name, &location);
+            if let Some(o) = &output {
+                write_json(o, &serde_json::to_value(&r.intent).unwrap())?;
+            }
+            let mut out = json!({ "ok": true, "report": r.report });
+            if output.is_none() {
+                out["intent"] = serde_json::to_value(&r.intent).unwrap();
+            }
+            if let Some(t) = compare {
+                let truth: intent::model::IntentFile = serde_json::from_value(read_json_value(&t)?).map_err(|e| format!("{}: {e}", t.display()))?;
+                out["comparison"] = serde_json::to_value(recognise::compare(&r.intent, &truth)).unwrap();
+            }
+            Ok((out, true))
+        }
+        Cmd::Recognise { op: RecogniseOp::Corpus { dir, out, file, limit } } => recognise_corpus(&dir, &out, &file, limit),
         Cmd::Import { from: Import::EasyPcb { nets_csv, netlist, output } } => {
             let board = ctx.board.clone().ok_or("give the board's name with --board")?;
             let text = std::fs::read_to_string(&nets_csv).map_err(|e| format!("{}: {e}", nets_csv.display()))?;
@@ -958,6 +1013,87 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             Ok((json!({ "ok": true, "wrote": output, "nets": file.nets.len(), "notes": notes }), true))
         }
     }
+}
+
+/// A netlist for the recogniser: from a board's pads, or from a netlist or schematic.
+fn recognise_input(input: &Path) -> Result<Netlist, String> {
+    if input.extension().is_some_and(|e| e == "kicad_pcb") {
+        let board = pcb::Board::load(input)?;
+        Ok(recognise::netlist_from_board(&board))
+    } else {
+        Netlist::load(input).map_err(|e| e.to_string())
+    }
+}
+
+/// `ccomp recognise corpus`: every board, then totals over them. A board that fails to load is
+/// listed, not fatal.
+fn recognise_corpus(dir: &Path, out: &Path, file: &str, limit: Option<usize>) -> Result<(Value, bool), String> {
+    let mut ids: Vec<String> = std::fs::read_dir(dir)
+        .map_err(|e| format!("{}: {e}", dir.display()))?
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().join(file).is_file())
+        .filter_map(|e| e.file_name().to_str().map(str::to_string))
+        .collect();
+    ids.sort();
+    ids.truncate(limit.unwrap_or(usize::MAX));
+
+    let mut failed = BTreeMap::new();
+    let (mut nets, mut named, mut classified) = (0usize, 0usize, 0usize);
+    let mut classes: BTreeMap<String, usize> = BTreeMap::new();
+    let mut boards_with: BTreeMap<String, usize> = BTreeMap::new();
+    let mut blocks: BTreeMap<String, usize> = BTreeMap::new();
+    let mut parts: BTreeMap<String, usize> = BTreeMap::new();
+    // Confidence in tenths, per class: how sure the guesses are.
+    let mut confidence: BTreeMap<String, [usize; 11]> = BTreeMap::new();
+    for id in &ids {
+        let path = dir.join(id).join(file);
+        let netlist = match recognise_input(&path) {
+            Ok(n) => n,
+            Err(e) => {
+                failed.insert(id.clone(), e);
+                continue;
+            }
+        };
+        let r = recognise::recognise(&netlist, id, &path.display().to_string());
+        let dest = out.join(id);
+        write_json(&dest.join("intent.json"), &serde_json::to_value(&r.intent).unwrap())?;
+        write_json(&dest.join("report.json"), &serde_json::to_value(&r.report).unwrap())?;
+        nets += r.report.nets;
+        named += r.report.named;
+        for (c, n) in &r.report.classes {
+            classified += n;
+            *classes.entry(c.clone()).or_default() += n;
+            *boards_with.entry(c.clone()).or_default() += 1;
+        }
+        for (b, n) in &r.report.blocks {
+            *blocks.entry(b.clone()).or_default() += n;
+        }
+        for (k, n) in &r.report.parts {
+            *parts.entry(serde_json::to_value(k).unwrap().as_str().unwrap_or("?").to_string()).or_default() += n;
+        }
+        for n in r.intent.nets.values() {
+            if let (Some(c), Some(p)) = (&n.class, &n.class_provenance) {
+                let tenth = (p.confidence.unwrap_or(0.0) * 10.0).round().clamp(0.0, 10.0) as usize;
+                confidence.entry(c.clone()).or_insert([0; 11])[tenth] += 1;
+            }
+        }
+    }
+    let summary = json!({
+        "recogniser": format!("v{}", recognise::VERSION),
+        "boards": ids.len(),
+        "recognised": ids.len() - failed.len(),
+        "failed": failed,
+        "nets": nets,
+        "named": named,
+        "classified": classified,
+        "classes": classes,
+        "boards_with_class": boards_with,
+        "blocks": blocks,
+        "parts": parts,
+        "confidence_tenths": confidence,
+    });
+    write_json(&out.join("summary.json"), &summary)?;
+    Ok((summary, true))
 }
 
 /// `ccomp recipe`: every recipe in brief, or one expanded.

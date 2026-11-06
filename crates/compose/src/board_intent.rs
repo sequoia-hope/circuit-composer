@@ -383,7 +383,7 @@ fn map_block(p: &Place, b: &Block, package: &str) -> Result<Block, String> {
         g
     });
     let ports = b.ports.iter().map(|(k, port)| (k.clone(), intent::Port { nets: nets(&port.nets), ..port.clone() })).collect();
-    Ok(Block { kind: b.kind.clone(), package: Some(package.to_string()), parts, roles, placement_goal, ports, note: b.note.clone() })
+    Ok(Block { kind: b.kind.clone(), package: Some(package.to_string()), parts, roles, placement_goal, ports, provenance: None, note: b.note.clone() })
 }
 
 fn map_domain(p: &Place, d: &Domain, blocks: &BTreeMap<String, Block>) -> Domain {
