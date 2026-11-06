@@ -462,6 +462,7 @@ fn inductors(cx: &mut Cx) {
         // rail, a boost's output diode.
         let mut kind = "buck";
         let mut boost_out = None;
+        let mut boost_diode = None;
         let mut buck_in = None;
         let mut members: Vec<&str> = vec![l];
         members.extend(cout.iter().copied());
@@ -474,6 +475,7 @@ fn inductors(cx: &mut Cx) {
                 Some(o) if !cx.caps_to_ground(o).is_empty() => {
                     kind = "boost";
                     boost_out = Some(o);
+                    boost_diode = Some(d);
                     members.push(d);
                     ev.push(format!("{d} carries the switch node to {}, a decoupled rail", names::norm(o)));
                 }
@@ -513,8 +515,27 @@ fn inductors(cx: &mut Cx) {
                 }
             }
         }
-        if let Some(c) = cout.first() {
-            roles.insert("cout".into(), c.to_string());
+        // A buck's inductor side is its output; a boost's is its input, and its output is past
+        // the diode. A role whose part isn't found is left out rather than guessed.
+        match (boost_out, boost_diode) {
+            (Some(o), Some(d)) => {
+                if let Some(c) = cout.first() {
+                    roles.insert("cin".into(), c.to_string());
+                }
+                if let Some(n) = cx.nodes[o].iter().find(|n| n.reference == d) {
+                    roles.insert("vout".into(), format!("{d}.{}", n.pin));
+                }
+                let out_caps = cx.caps_to_ground(o);
+                if let Some(c) = out_caps.first() {
+                    roles.insert("cout".into(), c.to_string());
+                }
+                members.extend(out_caps);
+            }
+            _ => {
+                if let Some(c) = cout.first() {
+                    roles.insert("cout".into(), c.to_string());
+                }
+            }
         }
         let side = if kind == "buck" { "output" } else { "input" };
         cx.guess(rail, "POWER", 0.75, vec![format!("{kind} {side}: {l} and {} capacitor(s) to ground", cout.len())]);
@@ -825,6 +846,29 @@ mod tests {
                 ("Net-(D2-A)", &[("D2", "2"), ("R3", "2")]),
             ],
         )
+    }
+
+    /// A boost: the inductor's side is the input (cin), the output is past the diode (cout,
+    /// vout), as in an LED backlight boost off +5V.
+    #[test]
+    fn boost_roles_take_the_output_past_the_diode() {
+        let n = nl(
+            &[("U1", "MT3608", "SOT-23-6"), ("L1", "22uH", "L_0805"), ("D1", "SS14", "D_SMA"), ("C1", "10u", "C_0805"), ("C2", "22u", "C_0805"), ("R1", "10R", "R_0603")],
+            &[
+                ("+5V", &[("L1", "1"), ("C1", "1"), ("U1", "5")]),
+                ("Net-(U1-SW)", &[("L1", "2"), ("U1", "1"), ("D1", "2")]),
+                ("LEDA", &[("D1", "1"), ("C2", "1"), ("R1", "1")]),
+                ("Net-(R1-Pad2)", &[("R1", "2"), ("U1", "3")]),
+                ("GND", &[("C1", "2"), ("C2", "2"), ("U1", "2")]),
+            ],
+        );
+        let r = recognise(&n, "t", "test");
+        let b = &r.intent.blocks["boost_L1"];
+        assert_eq!(b.roles["cin"], "C1");
+        assert_eq!(b.roles["cout"], "C2");
+        assert_eq!(b.roles["vout"], "D1.1");
+        assert_eq!(b.roles["pgnd"], "U1.2");
+        assert!(b.parts.contains(&"C2".to_string()));
     }
 
     #[test]
