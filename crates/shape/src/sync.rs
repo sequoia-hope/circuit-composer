@@ -8,7 +8,6 @@ use board_interface::{
     Record, SCHEMA_VERSION, compare, hash, within, write,
 };
 use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 
 use crate::curves::{evaluate_curves, nm_to_mm, side_from_bi, slugify};
 use crate::{Feature, Geom, Hole, Keepout, Op, ShapeDoc, Symmetry, SymmetryKind};
@@ -823,27 +822,9 @@ pub fn prepare_publish_with_followed(
         }
     }
 
-    // Assign `revision`: equal to `geometry_hash` unless `parent == Some(geometry_hash)` (a
-    // handover publish with zero geometry edits), where `revision` must be distinct from `parent`
-    // so subsequent publishes do not collide on `parent` in `board_interface::compare`.
-    candidate.manifest.revision = if parent.as_deref() == Some(geom_hash.as_str()) {
-        let mut h = Sha256::new();
-        h.update(b"composer-handover\0");
-        h.update(parent.as_deref().unwrap_or_default().as_bytes());
-        h.update(b"\0");
-        h.update(geom_hash.as_bytes());
-        h.update(b"\0");
-        h.update(at.as_bytes());
-        let digest = h.finalize();
-        let mut hex = String::with_capacity(64);
-        for b in digest {
-            use std::fmt::Write as _;
-            let _ = write!(&mut hex, "{b:02x}");
-        }
-        format!("sha256:{hex}")
-    } else {
-        geom_hash
-    };
+    // The revision derives from the geometry hash, driver, parent and last handover
+    // (board-interface v0.2.0), so a handover with no geometry edit still differs from its parent.
+    board_interface::seal(&mut candidate);
 
     let (dxf, manifest_json) = write(&candidate);
 
