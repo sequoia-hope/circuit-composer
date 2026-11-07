@@ -1,0 +1,1985 @@
+{
+  "added_pins": {},
+  "bindings": {
+    "chg": {
+      "chip": "U1",
+      "note": "Written by ccomp compose for instance chg of board rp2350-matrix.",
+      "package": "mcp73831@0.1.0",
+      "parts": {
+        "CIN": "C1",
+        "COUT": "C2",
+        "D_STAT": "D1",
+        "RPROG": "R4",
+        "R_STAT": "R6"
+      },
+      "variant": "MCP73831T-2ACI-OT"
+    },
+    "mcu": {
+      "chip": "U3",
+      "note": "Written by ccomp compose for instance mcu of board rp2350-matrix.",
+      "package": "rp2350@0.2.0",
+      "parts": {
+        "CFILT": "C3",
+        "CIN": "C4",
+        "CL_XIN": "C5",
+        "CL_XOUT": "C6",
+        "COUT": "C7",
+        "C_DVDD_23": "C8",
+        "C_DVDD_39": "C9",
+        "C_DVDD_6": "C10",
+        "C_FLASH": "C11",
+        "C_IOVDD_1": "C12",
+        "C_IOVDD_11": "C13",
+        "C_IOVDD_20": "C14",
+        "C_IOVDD_30": "C15",
+        "C_IOVDD_38": "C16",
+        "C_IOVDD_45_ADC": "C17",
+        "C_OTP_QSPI": "C18",
+        "FLASH": "U2",
+        "L1": "L1",
+        "RFILT": "R7",
+        "R_BOOTSEL": "R8",
+        "R_CS1_LINK": "R9",
+        "R_RUN": "R10",
+        "R_SS_LINK": "R11",
+        "R_SS_PULLUP": "R12",
+        "R_USB_DM": "R13",
+        "R_USB_DP": "R14",
+        "R_XOUT": "R15",
+        "SW_BOOTSEL": "SW1",
+        "SW_RUN": "SW2",
+        "XTAL": "Y1"
+      },
+      "variant": "RP2350A"
+    },
+    "reg": {
+      "chip": "U4",
+      "note": "Written by ccomp compose for instance reg of board rp2350-matrix.",
+      "package": "tlv62569@0.1.0",
+      "parts": {
+        "CFF": "C19",
+        "CIN": "C20",
+        "COUT": "C21",
+        "L1": "L2",
+        "RFB_BOT": "R16",
+        "RFB_TOP": "R17",
+        "R_EN": "R18"
+      },
+      "variant": "TLV62569DBV"
+    }
+  },
+  "board": "rp2350-matrix",
+  "errors": [],
+  "joined": {},
+  "nets": {
+    "+3V3": [
+      "C4.1",
+      "C11.1",
+      "C12.1",
+      "C13.1",
+      "C14.1",
+      "C15.1",
+      "C16.1",
+      "C17.1",
+      "C18.1",
+      "C19.1",
+      "C21.1",
+      "L2.2",
+      "R7.1",
+      "R12.1",
+      "R17.1",
+      "U2.8",
+      "U3.1",
+      "U3.11",
+      "U3.20",
+      "U3.30",
+      "U3.38",
+      "U3.44",
+      "U3.45",
+      "U3.49",
+      "U3.53",
+      "U3.54"
+    ],
+    "/chg/PROG": [
+      "R4.1",
+      "U1.5"
+    ],
+    "/chg/STAT": [
+      "R6.2",
+      "U1.1"
+    ],
+    "/chg/STAT_LED": [
+      "D1.1",
+      "R6.1"
+    ],
+    "/leds/D10_DO": [
+      "LED10.2",
+      "LED11.4"
+    ],
+    "/leds/D11_DO": [
+      "LED11.2",
+      "LED12.4"
+    ],
+    "/leds/D12_DO": [
+      "LED12.2",
+      "LED13.4"
+    ],
+    "/leds/D13_DO": [
+      "LED13.2",
+      "LED14.4"
+    ],
+    "/leds/D14_DO": [
+      "LED14.2",
+      "LED15.4"
+    ],
+    "/leds/D15_DO": [
+      "LED15.2",
+      "LED16.4"
+    ],
+    "/leds/D16_DO": [
+      "LED16.2",
+      "LED17.4"
+    ],
+    "/leds/D17_DO": [
+      "LED17.2",
+      "LED18.4"
+    ],
+    "/leds/D18_DO": [
+      "LED18.2",
+      "LED19.4"
+    ],
+    "/leds/D19_DO": [
+      "LED19.2",
+      "LED20.4"
+    ],
+    "/leds/D1_DO": [
+      "LED1.2",
+      "LED2.4"
+    ],
+    "/leds/D20_DO": [
+      "LED20.2",
+      "LED21.4"
+    ],
+    "/leds/D21_DO": [
+      "LED21.2",
+      "LED22.4"
+    ],
+    "/leds/D22_DO": [
+      "LED22.2",
+      "LED23.4"
+    ],
+    "/leds/D23_DO": [
+      "LED23.2",
+      "LED24.4"
+    ],
+    "/leds/D24_DO": [
+      "LED24.2",
+      "LED25.4"
+    ],
+    "/leds/D25_DO": [
+      "LED25.2",
+      "LED26.4"
+    ],
+    "/leds/D26_DO": [
+      "LED26.2",
+      "LED27.4"
+    ],
+    "/leds/D27_DO": [
+      "LED27.2",
+      "LED28.4"
+    ],
+    "/leds/D28_DO": [
+      "LED28.2",
+      "LED29.4"
+    ],
+    "/leds/D29_DO": [
+      "LED29.2",
+      "LED30.4"
+    ],
+    "/leds/D2_DO": [
+      "LED2.2",
+      "LED3.4"
+    ],
+    "/leds/D30_DO": [
+      "LED30.2",
+      "LED31.4"
+    ],
+    "/leds/D31_DO": [
+      "LED31.2",
+      "LED32.4"
+    ],
+    "/leds/D32_DO": [
+      "LED32.2",
+      "LED33.4"
+    ],
+    "/leds/D33_DO": [
+      "LED33.2",
+      "LED34.4"
+    ],
+    "/leds/D34_DO": [
+      "LED34.2",
+      "LED35.4"
+    ],
+    "/leds/D35_DO": [
+      "LED35.2",
+      "LED36.4"
+    ],
+    "/leds/D36_DO": [
+      "LED36.2",
+      "LED37.4"
+    ],
+    "/leds/D37_DO": [
+      "LED37.2",
+      "LED38.4"
+    ],
+    "/leds/D38_DO": [
+      "LED38.2",
+      "LED39.4"
+    ],
+    "/leds/D39_DO": [
+      "LED39.2",
+      "LED40.4"
+    ],
+    "/leds/D3_DO": [
+      "LED3.2",
+      "LED4.4"
+    ],
+    "/leds/D40_DO": [
+      "LED40.2",
+      "LED41.4"
+    ],
+    "/leds/D41_DO": [
+      "LED41.2",
+      "LED42.4"
+    ],
+    "/leds/D42_DO": [
+      "LED42.2",
+      "LED43.4"
+    ],
+    "/leds/D43_DO": [
+      "LED43.2",
+      "LED44.4"
+    ],
+    "/leds/D44_DO": [
+      "LED44.2",
+      "LED45.4"
+    ],
+    "/leds/D45_DO": [
+      "LED45.2",
+      "LED46.4"
+    ],
+    "/leds/D46_DO": [
+      "LED46.2",
+      "LED47.4"
+    ],
+    "/leds/D47_DO": [
+      "LED47.2",
+      "LED48.4"
+    ],
+    "/leds/D48_DO": [
+      "LED48.2",
+      "LED49.4"
+    ],
+    "/leds/D49_DO": [
+      "LED49.2",
+      "LED50.4"
+    ],
+    "/leds/D4_DO": [
+      "LED4.2",
+      "LED5.4"
+    ],
+    "/leds/D50_DO": [
+      "LED50.2",
+      "LED51.4"
+    ],
+    "/leds/D51_DO": [
+      "LED51.2",
+      "LED52.4"
+    ],
+    "/leds/D52_DO": [
+      "LED52.2",
+      "LED53.4"
+    ],
+    "/leds/D53_DO": [
+      "LED53.2",
+      "LED54.4"
+    ],
+    "/leds/D54_DO": [
+      "LED54.2",
+      "LED55.4"
+    ],
+    "/leds/D55_DO": [
+      "LED55.2",
+      "LED56.4"
+    ],
+    "/leds/D56_DO": [
+      "LED56.2",
+      "LED57.4"
+    ],
+    "/leds/D57_DO": [
+      "LED57.2",
+      "LED58.4"
+    ],
+    "/leds/D58_DO": [
+      "LED58.2",
+      "LED59.4"
+    ],
+    "/leds/D59_DO": [
+      "LED59.2",
+      "LED60.4"
+    ],
+    "/leds/D5_DO": [
+      "LED5.2",
+      "LED6.4"
+    ],
+    "/leds/D60_DO": [
+      "LED60.2",
+      "LED61.4"
+    ],
+    "/leds/D61_DO": [
+      "LED61.2",
+      "LED62.4"
+    ],
+    "/leds/D62_DO": [
+      "LED62.2",
+      "LED63.4"
+    ],
+    "/leds/D63_DO": [
+      "LED63.2",
+      "LED64.4"
+    ],
+    "/leds/D6_DO": [
+      "LED6.2",
+      "LED7.4"
+    ],
+    "/leds/D7_DO": [
+      "LED7.2",
+      "LED8.4"
+    ],
+    "/leds/D8_DO": [
+      "LED8.2",
+      "LED9.4"
+    ],
+    "/leds/D9_DO": [
+      "LED9.2",
+      "LED10.4"
+    ],
+    "/mcu/DVDD": [
+      "C7.1",
+      "C8.1",
+      "C9.1",
+      "C10.1",
+      "L1.1",
+      "U3.23",
+      "U3.39",
+      "U3.50",
+      "U3.6"
+    ],
+    "/mcu/FLASH_SS": [
+      "R9.2",
+      "R11.2",
+      "R12.2",
+      "U2.1"
+    ],
+    "/mcu/GPIO0": [
+      "R9.1",
+      "U3.2"
+    ],
+    "/mcu/N_R_RUN_1": [
+      "R10.1",
+      "SW2.1"
+    ],
+    "/mcu/QSPI_SCLK": [
+      "U2.6",
+      "U3.56"
+    ],
+    "/mcu/QSPI_SD0": [
+      "U2.5",
+      "U3.57"
+    ],
+    "/mcu/QSPI_SD1": [
+      "U2.2",
+      "U3.59"
+    ],
+    "/mcu/QSPI_SD2": [
+      "U2.3",
+      "U3.58"
+    ],
+    "/mcu/QSPI_SD3": [
+      "U2.7",
+      "U3.55"
+    ],
+    "/mcu/QSPI_SS": [
+      "R8.1",
+      "R11.1",
+      "U3.60"
+    ],
+    "/mcu/RUN": [
+      "SW2.2",
+      "U3.26"
+    ],
+    "/mcu/USB_DM_PIN": [
+      "R13.2",
+      "U3.51"
+    ],
+    "/mcu/USB_DP_PIN": [
+      "R14.2",
+      "U3.52"
+    ],
+    "/mcu/VREG_AVDD": [
+      "C3.1",
+      "R7.2",
+      "U3.46"
+    ],
+    "/mcu/VREG_LX": [
+      "L1.2",
+      "U3.48"
+    ],
+    "/mcu/XIN": [
+      "C5.1",
+      "U3.21",
+      "Y1.1"
+    ],
+    "/mcu/XOUT": [
+      "R15.1",
+      "U3.22"
+    ],
+    "/mcu/XOUT_XTAL": [
+      "C6.1",
+      "R15.2",
+      "Y1.3"
+    ],
+    "/mcu/~USB_BOOT": [
+      "R8.2",
+      "SW1.2"
+    ],
+    "/reg/EN": [
+      "R18.2",
+      "U4.1"
+    ],
+    "/reg/FB": [
+      "C19.2",
+      "R16.1",
+      "R17.2",
+      "U4.5"
+    ],
+    "/reg/SW": [
+      "L2.1",
+      "U4.3"
+    ],
+    "CC1": [
+      "J1.A5",
+      "R1.1"
+    ],
+    "CC2": [
+      "J1.B5",
+      "R2.1"
+    ],
+    "GND": [
+      "C1.2",
+      "C2.2",
+      "C3.2",
+      "C4.2",
+      "C5.2",
+      "C6.2",
+      "C7.2",
+      "C8.2",
+      "C9.2",
+      "C10.2",
+      "C11.2",
+      "C12.2",
+      "C13.2",
+      "C14.2",
+      "C15.2",
+      "C16.2",
+      "C17.2",
+      "C18.2",
+      "C20.2",
+      "C21.2",
+      "C101.2",
+      "C102.2",
+      "C103.2",
+      "C104.2",
+      "C105.2",
+      "C106.2",
+      "C107.2",
+      "C108.2",
+      "C109.2",
+      "C110.2",
+      "C111.2",
+      "C112.2",
+      "C113.2",
+      "C114.2",
+      "C115.2",
+      "C116.2",
+      "J1.A1",
+      "J1.A12",
+      "J1.B1",
+      "J1.B12",
+      "J1.S1",
+      "J2.2",
+      "J3.2",
+      "LED1.3",
+      "LED2.3",
+      "LED3.3",
+      "LED4.3",
+      "LED5.3",
+      "LED6.3",
+      "LED7.3",
+      "LED8.3",
+      "LED9.3",
+      "LED10.3",
+      "LED11.3",
+      "LED12.3",
+      "LED13.3",
+      "LED14.3",
+      "LED15.3",
+      "LED16.3",
+      "LED17.3",
+      "LED18.3",
+      "LED19.3",
+      "LED20.3",
+      "LED21.3",
+      "LED22.3",
+      "LED23.3",
+      "LED24.3",
+      "LED25.3",
+      "LED26.3",
+      "LED27.3",
+      "LED28.3",
+      "LED29.3",
+      "LED30.3",
+      "LED31.3",
+      "LED32.3",
+      "LED33.3",
+      "LED34.3",
+      "LED35.3",
+      "LED36.3",
+      "LED37.3",
+      "LED38.3",
+      "LED39.3",
+      "LED40.3",
+      "LED41.3",
+      "LED42.3",
+      "LED43.3",
+      "LED44.3",
+      "LED45.3",
+      "LED46.3",
+      "LED47.3",
+      "LED48.3",
+      "LED49.3",
+      "LED50.3",
+      "LED51.3",
+      "LED52.3",
+      "LED53.3",
+      "LED54.3",
+      "LED55.3",
+      "LED56.3",
+      "LED57.3",
+      "LED58.3",
+      "LED59.3",
+      "LED60.3",
+      "LED61.3",
+      "LED62.3",
+      "LED63.3",
+      "LED64.3",
+      "Q2.2",
+      "R1.2",
+      "R2.2",
+      "R3.2",
+      "R4.2",
+      "R10.2",
+      "R16.2",
+      "SW1.1",
+      "U1.2",
+      "U2.4",
+      "U3.47",
+      "U3.61",
+      "U4.2",
+      "Y1.2",
+      "Y1.4"
+    ],
+    "LED_DATA": [
+      "Q2.1",
+      "U3.27"
+    ],
+    "LED_DIN": [
+      "LED1.4",
+      "Q2.3",
+      "R5.2"
+    ],
+    "SWCLK": [
+      "J3.1",
+      "U3.24"
+    ],
+    "SWDIO": [
+      "J3.3",
+      "U3.25"
+    ],
+    "USB_D+": [
+      "J1.A6",
+      "J1.B6",
+      "R14.1"
+    ],
+    "USB_D-": [
+      "J1.A7",
+      "J1.B7",
+      "R13.1"
+    ],
+    "VBAT": [
+      "C2.1",
+      "J2.1",
+      "Q1.3",
+      "U1.3"
+    ],
+    "VBUS": [
+      "C1.1",
+      "D1.2",
+      "D3.2",
+      "J1.A4",
+      "J1.A9",
+      "J1.B4",
+      "J1.B9",
+      "Q1.1",
+      "R3.1",
+      "U1.4"
+    ],
+    "VSYS": [
+      "C20.1",
+      "C101.1",
+      "C102.1",
+      "C103.1",
+      "C104.1",
+      "C105.1",
+      "C106.1",
+      "C107.1",
+      "C108.1",
+      "C109.1",
+      "C110.1",
+      "C111.1",
+      "C112.1",
+      "C113.1",
+      "C114.1",
+      "C115.1",
+      "C116.1",
+      "D3.1",
+      "LED1.1",
+      "LED2.1",
+      "LED3.1",
+      "LED4.1",
+      "LED5.1",
+      "LED6.1",
+      "LED7.1",
+      "LED8.1",
+      "LED9.1",
+      "LED10.1",
+      "LED11.1",
+      "LED12.1",
+      "LED13.1",
+      "LED14.1",
+      "LED15.1",
+      "LED16.1",
+      "LED17.1",
+      "LED18.1",
+      "LED19.1",
+      "LED20.1",
+      "LED21.1",
+      "LED22.1",
+      "LED23.1",
+      "LED24.1",
+      "LED25.1",
+      "LED26.1",
+      "LED27.1",
+      "LED28.1",
+      "LED29.1",
+      "LED30.1",
+      "LED31.1",
+      "LED32.1",
+      "LED33.1",
+      "LED34.1",
+      "LED35.1",
+      "LED36.1",
+      "LED37.1",
+      "LED38.1",
+      "LED39.1",
+      "LED40.1",
+      "LED41.1",
+      "LED42.1",
+      "LED43.1",
+      "LED44.1",
+      "LED45.1",
+      "LED46.1",
+      "LED47.1",
+      "LED48.1",
+      "LED49.1",
+      "LED50.1",
+      "LED51.1",
+      "LED52.1",
+      "LED53.1",
+      "LED54.1",
+      "LED55.1",
+      "LED56.1",
+      "LED57.1",
+      "LED58.1",
+      "LED59.1",
+      "LED60.1",
+      "LED61.1",
+      "LED62.1",
+      "LED63.1",
+      "LED64.1",
+      "Q1.2",
+      "R5.1",
+      "R18.1",
+      "U4.4"
+    ]
+  },
+  "ok": true,
+  "parts": {
+    "C1": {
+      "block": "charger",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "chg",
+      "lcsc": "C15850",
+      "mpn": "CL21A106KAYNNNE",
+      "role": "CIN",
+      "symbol": "Device:C",
+      "value": "10u"
+    },
+    "C10": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.6",
+      "role": "C_DVDD_6",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C101": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED2.1",
+      "role": "C1",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C102": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED6.1",
+      "role": "C2",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C103": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED10.1",
+      "role": "C3",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C104": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED14.1",
+      "role": "C4",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C105": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED18.1",
+      "role": "C5",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C106": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED22.1",
+      "role": "C6",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C107": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED26.1",
+      "role": "C7",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C108": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED30.1",
+      "role": "C8",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C109": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED34.1",
+      "role": "C9",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C11": {
+      "block": "flash",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "C_FLASH",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C110": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED38.1",
+      "role": "C10",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C111": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED42.1",
+      "role": "C11",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C112": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED46.1",
+      "role": "C12",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C113": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED50.1",
+      "role": "C13",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C114": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED54.1",
+      "role": "C14",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C115": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED58.1",
+      "role": "C15",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C116": {
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "leds",
+      "lcsc": "C1525",
+      "mpn": "CL05B104KO5NNNC",
+      "near": "LED62.1",
+      "role": "C16",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C12": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.1",
+      "role": "C_IOVDD_1",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C13": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.11",
+      "role": "C_IOVDD_11",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C14": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.20",
+      "role": "C_IOVDD_20",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C15": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.30",
+      "role": "C_IOVDD_30",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C16": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.38",
+      "role": "C_IOVDD_38",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C17": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.44",
+      "role": "C_IOVDD_45_ADC",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C18": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.53",
+      "role": "C_OTP_QSPI",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "C19": {
+      "block": "reg",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C1576",
+      "mpn": "0402CG6R8C500NT",
+      "role": "CFF",
+      "symbol": "Device:C",
+      "value": "6.8p"
+    },
+    "C2": {
+      "block": "charger",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "chg",
+      "lcsc": "C15850",
+      "mpn": "CL21A106KAYNNNE",
+      "role": "COUT",
+      "symbol": "Device:C",
+      "value": "10u"
+    },
+    "C20": {
+      "block": "reg",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "reg",
+      "lcsc": "C15850",
+      "mpn": "CL21A106KAYNNNE",
+      "role": "CIN",
+      "symbol": "Device:C",
+      "value": "10u"
+    },
+    "C21": {
+      "block": "reg",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "instance": "reg",
+      "lcsc": "C45783",
+      "mpn": "CL21A226MAQNNNE",
+      "role": "COUT",
+      "symbol": "Device:C",
+      "value": "22u"
+    },
+    "C3": {
+      "block": "core_reg",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "CFILT",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C4": {
+      "block": "core_reg",
+      "footprint": "RP2350_60QFN_minimal:C_0402_1005Metric_small_pads",
+      "instance": "mcu",
+      "role": "CIN",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C5": {
+      "block": "crystal",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "CL_XIN",
+      "symbol": "Device:C",
+      "value": "15p"
+    },
+    "C6": {
+      "block": "crystal",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "role": "CL_XOUT",
+      "symbol": "Device:C",
+      "value": "15p"
+    },
+    "C7": {
+      "block": "core_reg",
+      "footprint": "RP2350_60QFN_minimal:C_0402_1005Metric_small_pads",
+      "instance": "mcu",
+      "role": "COUT",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C8": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.23",
+      "role": "C_DVDD_23",
+      "symbol": "Device:C",
+      "value": "4.7u"
+    },
+    "C9": {
+      "block": "mcu",
+      "footprint": "Capacitor_SMD:C_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.39",
+      "role": "C_DVDD_39",
+      "symbol": "Device:C",
+      "value": "100n"
+    },
+    "D1": {
+      "block": "status_led",
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "instance": "chg",
+      "lcsc": "C2286",
+      "mpn": "KT-0603R",
+      "role": "D_STAT",
+      "symbol": "Device:LED",
+      "value": "RED"
+    },
+    "D3": {
+      "footprint": "Diode_SMD:D_SOD-123",
+      "lcsc": "C8598",
+      "note": "VBUS to VSYS while USB is present",
+      "symbol": "Device:D_Schottky",
+      "value": "B5819W"
+    },
+    "J1": {
+      "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+      "lcsc": "C165948",
+      "note": "USB 2.0 receptacle, device role. Its shield pin is S1 in KiCad 9 libraries (SH in 10); this board is written with 9",
+      "symbol": "Connector:USB_C_Receptacle_USB2.0_16P",
+      "value": "USB-C"
+    },
+    "J2": {
+      "footprint": "Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal",
+      "lcsc": "C295747",
+      "note": "1S LiPo, pin 1 positive",
+      "symbol": "Connector_Generic:Conn_01x02",
+      "value": "BATT"
+    },
+    "J3": {
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "note": "SWCLK, GND, SWDIO as on the Raspberry Pi Debug Probe",
+      "symbol": "Connector_Generic:Conn_01x03",
+      "value": "SWD"
+    },
+    "L1": {
+      "block": "core_reg",
+      "footprint": "RP2350_60QFN_minimal:L_pol_2016",
+      "instance": "mcu",
+      "role": "L1",
+      "symbol": "Device:L",
+      "value": "3.3u"
+    },
+    "L2": {
+      "block": "reg",
+      "footprint": "Inductor_SMD:L_Sunlord_SWPA4020S",
+      "instance": "reg",
+      "lcsc": "C135262",
+      "mpn": "SMNR4020-2.2UH",
+      "role": "L1",
+      "symbol": "Device:L",
+      "value": "2.2u"
+    },
+    "LED1": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D1",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED10": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D10",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED11": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D11",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED12": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D12",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED13": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D13",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED14": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D14",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED15": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D15",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED16": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D16",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED17": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D17",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED18": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D18",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED19": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D19",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED2": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D2",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED20": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D20",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED21": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D21",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED22": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D22",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED23": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D23",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED24": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D24",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED25": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D25",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED26": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D26",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED27": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D27",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED28": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D28",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED29": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D29",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED3": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D3",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED30": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D30",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED31": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D31",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED32": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D32",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED33": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D33",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED34": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D34",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED35": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D35",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED36": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D36",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED37": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D37",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED38": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D38",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED39": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D39",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED4": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D4",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED40": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D40",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED41": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D41",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED42": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D42",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED43": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D43",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED44": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D44",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED45": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D45",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED46": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D46",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED47": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D47",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED48": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D48",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED49": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D49",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED5": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D5",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED50": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D50",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED51": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D51",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED52": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D52",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED53": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D53",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED54": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D54",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED55": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D55",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED56": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D56",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED57": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D57",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED58": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D58",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED59": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D59",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED6": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D6",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED60": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D60",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED61": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D61",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED62": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D62",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED63": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D63",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED64": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D64",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED7": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D7",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED8": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D8",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "LED9": {
+      "footprint": "parts:LED_WS2816C-1313",
+      "instance": "leds",
+      "lcsc": "C42417612",
+      "mpn": "WS2816C-1313/4P",
+      "role": "D9",
+      "symbol": "LED:WS2812B",
+      "value": "WS2816C-1313"
+    },
+    "Q1": {
+      "footprint": "Package_TO_SOT_SMD:SOT-23",
+      "lcsc": "C15127",
+      "note": "Load sharing: drain at the cell, source at VSYS, gate at VBUS. Off while USB is present; on (and its body diode already conducting) on battery",
+      "symbol": "Transistor_FET:AO3401A",
+      "value": "AO3401A"
+    },
+    "Q2": {
+      "footprint": "Package_TO_SOT_SMD:SOT-323_SC-70",
+      "instance": "shift",
+      "lcsc": "C5224279",
+      "mpn": "BSS138W-7-F-ES",
+      "role": "Q1",
+      "symbol": "Transistor_FET:BSS138",
+      "value": "BSS138W"
+    },
+    "R1": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C25905",
+      "note": "CC1 pull-down: a sink (USB Type-C spec, Rd = 5.1 k)",
+      "symbol": "Device:R",
+      "value": "5.1k"
+    },
+    "R10": {
+      "block": "reset",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_RUN",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R11": {
+      "block": "flash",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_SS_LINK",
+      "symbol": "Device:R",
+      "value": "0"
+    },
+    "R12": {
+      "block": "flash",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_SS_PULLUP",
+      "symbol": "Device:R",
+      "value": "DNF"
+    },
+    "R13": {
+      "block": "usb",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.51",
+      "role": "R_USB_DM",
+      "symbol": "Device:R",
+      "value": "27"
+    },
+    "R14": {
+      "block": "usb",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.52",
+      "role": "R_USB_DP",
+      "symbol": "Device:R",
+      "value": "27"
+    },
+    "R15": {
+      "block": "crystal",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "near": "U3.22",
+      "role": "R_XOUT",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R16": {
+      "block": "reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C25741",
+      "mpn": "0402WGF1003TCE",
+      "role": "RFB_BOT",
+      "symbol": "Device:R",
+      "value": "100k"
+    },
+    "R17": {
+      "block": "reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C27009",
+      "mpn": "0402WGF4533TCE",
+      "role": "RFB_TOP",
+      "symbol": "Device:R",
+      "value": "453k"
+    },
+    "R18": {
+      "block": "reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "reg",
+      "lcsc": "C26083",
+      "mpn": "0402WGF1004TCE",
+      "role": "R_EN",
+      "symbol": "Device:R",
+      "value": "1M"
+    },
+    "R2": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C25905",
+      "note": "CC2 pull-down",
+      "symbol": "Device:R",
+      "value": "5.1k"
+    },
+    "R3": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "lcsc": "C25741",
+      "note": "Pulls Q1's gate low when USB is unplugged",
+      "symbol": "Device:R",
+      "value": "100k"
+    },
+    "R4": {
+      "block": "charger",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "chg",
+      "lcsc": "C25900",
+      "mpn": "0402WGF4701TCE",
+      "role": "RPROG",
+      "symbol": "Device:R",
+      "value": "4.7k"
+    },
+    "R5": {
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "shift",
+      "lcsc": "C11702",
+      "mpn": "0402WGF1001TCE",
+      "near": "Q2.3",
+      "role": "R_PU",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R6": {
+      "block": "status_led",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "chg",
+      "lcsc": "C25117",
+      "mpn": "0402WGF4700TCE",
+      "role": "R_STAT",
+      "symbol": "Device:R",
+      "value": "470"
+    },
+    "R7": {
+      "block": "core_reg",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "RFILT",
+      "symbol": "Device:R",
+      "value": "33"
+    },
+    "R8": {
+      "block": "bootsel",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_BOOTSEL",
+      "symbol": "Device:R",
+      "value": "1k"
+    },
+    "R9": {
+      "block": "flash",
+      "footprint": "Resistor_SMD:R_0402_1005Metric",
+      "instance": "mcu",
+      "role": "R_CS1_LINK",
+      "symbol": "Device:R",
+      "value": "DNF"
+    },
+    "SW1": {
+      "block": "bootsel",
+      "footprint": "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816",
+      "instance": "mcu",
+      "role": "SW_BOOTSEL",
+      "symbol": "Switch:SW_Push",
+      "value": "SW_Push"
+    },
+    "SW2": {
+      "block": "reset",
+      "footprint": "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816",
+      "instance": "mcu",
+      "role": "SW_RUN",
+      "symbol": "Switch:SW_Push",
+      "value": "SW_Push"
+    },
+    "U1": {
+      "block": "charger",
+      "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+      "instance": "chg",
+      "lcsc": "C424093",
+      "mpn": "MCP73831T-2ACI/OT",
+      "role": "U1",
+      "symbol": "Battery_Management:MCP73831-2-OT",
+      "value": "MCP73831T-2ACI/OT"
+    },
+    "U2": {
+      "block": "flash",
+      "footprint": "Package_SO:SOIC-8_5.3x5.3mm_P1.27mm",
+      "instance": "mcu",
+      "near": "U3.56",
+      "role": "FLASH",
+      "symbol": "Memory_Flash:W25Q128JVS",
+      "value": "W25Q128JVS"
+    },
+    "U3": {
+      "block": "mcu",
+      "footprint": "RP2350_60QFN_minimal:RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias",
+      "instance": "mcu",
+      "role": "U1",
+      "symbol": "MCU_RaspberryPi_RP2350:RP2350_60QFN",
+      "value": "RP2350_60QFN"
+    },
+    "U4": {
+      "block": "reg",
+      "footprint": "Package_TO_SOT_SMD:SOT-23-5",
+      "instance": "reg",
+      "lcsc": "C141836",
+      "mpn": "TLV62569DBVR",
+      "role": "U1",
+      "symbol": "Regulator_Switching:TLV62569DBV",
+      "value": "TLV62569DBV"
+    },
+    "Y1": {
+      "block": "crystal",
+      "footprint": "Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm",
+      "instance": "mcu",
+      "near": "U3.21",
+      "role": "XTAL",
+      "symbol": "Device:Crystal_GND24",
+      "value": "ABM8-272-T3"
+    }
+  },
+  "taps": {},
+  "unconnected_ports": [
+    "mcu.GPIO0",
+    "mcu.GPIO1",
+    "mcu.GPIO10",
+    "mcu.GPIO11",
+    "mcu.GPIO12",
+    "mcu.GPIO13",
+    "mcu.GPIO14",
+    "mcu.GPIO15",
+    "mcu.GPIO17",
+    "mcu.GPIO18",
+    "mcu.GPIO19",
+    "mcu.GPIO2",
+    "mcu.GPIO20",
+    "mcu.GPIO21",
+    "mcu.GPIO22",
+    "mcu.GPIO23",
+    "mcu.GPIO24",
+    "mcu.GPIO25",
+    "mcu.GPIO26_ADC0",
+    "mcu.GPIO27_ADC1",
+    "mcu.GPIO28_ADC2",
+    "mcu.GPIO29_ADC3",
+    "mcu.GPIO3",
+    "mcu.GPIO4",
+    "mcu.GPIO5",
+    "mcu.GPIO6",
+    "mcu.GPIO7",
+    "mcu.GPIO8",
+    "mcu.GPIO9",
+    "mcu.RUN"
+  ]
+}

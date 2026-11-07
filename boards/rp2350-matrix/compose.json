@@ -1,0 +1,385 @@
+{
+ "board": "rp2350-matrix",
+ "note": "ultraroute's quick demo board: rp2350-battery's USB-C sink, MCP73831 charger, load sharing (Q1, D3) and TLV62569 buck feeding the RP2350A, which drives an 8 x 8 serpentine chain of WS2816C-1313 LEDs on GPIO16 through an inverting BSS138 level shifter to VSYS (the chain's DI wants 0.7 VDD, above 3.3 V at a LiPo's 4.2 V). Every part is on the top side. SWD on J3. Written by make.py.",
+ "instances": {
+  "mcu": {
+   "package": "rp2350@0.2.0",
+   "variant": "RP2350A"
+  },
+  "chg": {
+   "package": "mcp73831@0.1.0",
+   "variant": "MCP73831T-2ACI-OT"
+  },
+  "reg": {
+   "package": "tlv62569@0.1.0",
+   "variant": "TLV62569DBV"
+  },
+  "shift": {
+   "recipe": "nfet_level_shift",
+   "reversed": [
+    "R_PU"
+   ],
+   "designators": {
+    "Q1": "Q2",
+    "R_PU": "R5"
+   }
+  },
+  "leds": {
+   "recipe": "led_chain",
+   "params": {
+    "n": 64,
+    "cap_every": 4,
+    "cap_first": 2
+   },
+   "designators": {
+    "D1": "LED1",
+    "D2": "LED2",
+    "D3": "LED3",
+    "D4": "LED4",
+    "D5": "LED5",
+    "D6": "LED6",
+    "D7": "LED7",
+    "D8": "LED8",
+    "D9": "LED9",
+    "D10": "LED10",
+    "D11": "LED11",
+    "D12": "LED12",
+    "D13": "LED13",
+    "D14": "LED14",
+    "D15": "LED15",
+    "D16": "LED16",
+    "D17": "LED17",
+    "D18": "LED18",
+    "D19": "LED19",
+    "D20": "LED20",
+    "D21": "LED21",
+    "D22": "LED22",
+    "D23": "LED23",
+    "D24": "LED24",
+    "D25": "LED25",
+    "D26": "LED26",
+    "D27": "LED27",
+    "D28": "LED28",
+    "D29": "LED29",
+    "D30": "LED30",
+    "D31": "LED31",
+    "D32": "LED32",
+    "D33": "LED33",
+    "D34": "LED34",
+    "D35": "LED35",
+    "D36": "LED36",
+    "D37": "LED37",
+    "D38": "LED38",
+    "D39": "LED39",
+    "D40": "LED40",
+    "D41": "LED41",
+    "D42": "LED42",
+    "D43": "LED43",
+    "D44": "LED44",
+    "D45": "LED45",
+    "D46": "LED46",
+    "D47": "LED47",
+    "D48": "LED48",
+    "D49": "LED49",
+    "D50": "LED50",
+    "D51": "LED51",
+    "D52": "LED52",
+    "D53": "LED53",
+    "D54": "LED54",
+    "D55": "LED55",
+    "D56": "LED56",
+    "D57": "LED57",
+    "D58": "LED58",
+    "D59": "LED59",
+    "D60": "LED60",
+    "D61": "LED61",
+    "D62": "LED62",
+    "D63": "LED63",
+    "D64": "LED64",
+    "C1": "C101",
+    "C2": "C102",
+    "C3": "C103",
+    "C4": "C104",
+    "C5": "C105",
+    "C6": "C106",
+    "C7": "C107",
+    "C8": "C108",
+    "C9": "C109",
+    "C10": "C110",
+    "C11": "C111",
+    "C12": "C112",
+    "C13": "C113",
+    "C14": "C114",
+    "C15": "C115",
+    "C16": "C116"
+   }
+  }
+ },
+ "parts": {
+  "J1": {
+   "symbol": "Connector:USB_C_Receptacle_USB2.0_16P",
+   "value": "USB-C",
+   "footprint": "Connector_USB:USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+   "lcsc": "C165948",
+   "note": "USB 2.0 receptacle, device role. Its shield pin is S1 in KiCad 9 libraries (SH in 10); this board is written with 9"
+  },
+  "R1": {
+   "symbol": "Device:R",
+   "value": "5.1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "lcsc": "C25905",
+   "note": "CC1 pull-down: a sink (USB Type-C spec, Rd = 5.1 k)"
+  },
+  "R2": {
+   "symbol": "Device:R",
+   "value": "5.1k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "lcsc": "C25905",
+   "note": "CC2 pull-down"
+  },
+  "J2": {
+   "symbol": "Connector_Generic:Conn_01x02",
+   "value": "BATT",
+   "footprint": "Connector_JST:JST_PH_S2B-PH-SM4-TB_1x02-1MP_P2.00mm_Horizontal",
+   "lcsc": "C295747",
+   "note": "1S LiPo, pin 1 positive"
+  },
+  "Q1": {
+   "symbol": "Transistor_FET:AO3401A",
+   "value": "AO3401A",
+   "footprint": "Package_TO_SOT_SMD:SOT-23",
+   "lcsc": "C15127",
+   "note": "Load sharing: drain at the cell, source at VSYS, gate at VBUS. Off while USB is present; on (and its body diode already conducting) on battery"
+  },
+  "R3": {
+   "symbol": "Device:R",
+   "value": "100k",
+   "footprint": "Resistor_SMD:R_0402_1005Metric",
+   "lcsc": "C25741",
+   "note": "Pulls Q1's gate low when USB is unplugged"
+  },
+  "D3": {
+   "symbol": "Device:D_Schottky",
+   "value": "B5819W",
+   "footprint": "Diode_SMD:D_SOD-123",
+   "lcsc": "C8598",
+   "note": "VBUS to VSYS while USB is present"
+  },
+  "J3": {
+   "symbol": "Connector_Generic:Conn_01x03",
+   "value": "SWD",
+   "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+   "note": "SWCLK, GND, SWDIO as on the Raspberry Pi Debug Probe"
+  }
+ },
+ "nets": {
+  "GND": [
+   "mcu.GND",
+   "chg.GND",
+   "reg.GND",
+   "shift.GND",
+   "leds.GND",
+   "J1.A1",
+   "J1.A12",
+   "J1.B1",
+   "J1.B12",
+   "J1.S1",
+   "R1.2",
+   "R2.2",
+   "J2.2",
+   "R3.2",
+   "J3.2"
+  ],
+  "VBUS": [
+   "chg.VIN",
+   "J1.A4",
+   "J1.A9",
+   "J1.B4",
+   "J1.B9",
+   "D3.2",
+   "Q1.1",
+   "R3.1"
+  ],
+  "VBAT": [
+   "chg.VBAT",
+   "J2.1",
+   "Q1.3"
+  ],
+  "VSYS": [
+   "reg.VIN",
+   "Q1.2",
+   "D3.1",
+   "shift.VOUT",
+   "leds.VDD"
+  ],
+  "+3V3": [
+   "reg.VOUT",
+   "mcu.+3V3"
+  ],
+  "CC1": [
+   "J1.A5",
+   "R1.1"
+  ],
+  "CC2": [
+   "J1.B5",
+   "R2.1"
+  ],
+  "USB_D+": [
+   "mcu.USB_DP",
+   "J1.A6",
+   "J1.B6"
+  ],
+  "USB_D-": [
+   "mcu.USB_DM",
+   "J1.A7",
+   "J1.B7"
+  ],
+  "SWCLK": [
+   "mcu.SWCLK",
+   "J3.1"
+  ],
+  "SWDIO": [
+   "mcu.SWD",
+   "J3.3"
+  ],
+  "LED_DATA": [
+   "mcu.GPIO16",
+   "shift.IN"
+  ],
+  "LED_DIN": [
+   "shift.OUT",
+   "leds.DIN"
+  ]
+ },
+ "no_connect": [
+  "chg.STAT",
+  "reg.EN",
+  "leds.DOUT"
+ ],
+ "intent": {
+  "layers": 4,
+  "sources": {
+   "rp2350_matrix_brief": {
+    "title": "rp2350-matrix: ultraroute's quick demo board (compose.json's note)",
+    "revision": "2026-11-07"
+   }
+  },
+  "nets": {
+   "VBUS": {
+    "current": {
+     "value": {
+      "continuous_a": 1.213
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "power budget",
+      "kind": "requirement",
+      "note": "The charger's 213 mA and, through D3, the buck's 0.6 A and the LEDs' 0.4 A."
+     }
+    },
+    "note": "USB 5 V from J1 to the charger, D3 and Q1's gate."
+   },
+   "VBAT": {
+    "current": {
+     "value": {
+      "continuous_a": 1.0
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "power budget",
+      "kind": "requirement",
+      "note": "On battery the cell feeds the buck (0.6 A) and the LEDs, which firmware holds to 0.4 A, through Q1."
+     }
+    }
+   },
+   "CC1": {
+    "class": "SIGNAL",
+    "voltage": {
+     "value": {
+      "peak_v": 5.5
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "USB-C sink",
+      "kind": "requirement",
+      "note": "CC with Rd to ground; bounded here by VBUS, the highest a source's Rp pulls to."
+     }
+    }
+   },
+   "CC2": {
+    "class": "SIGNAL",
+    "voltage": {
+     "value": {
+      "peak_v": 5.5
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "USB-C sink",
+      "kind": "requirement",
+      "note": "As CC1."
+     }
+    }
+   },
+   "VSYS": {
+    "current": {
+     "value": {
+      "continuous_a": 1.0
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "power budget",
+      "kind": "requirement",
+      "note": "The buck's 0.6 A input at full load and the 64 LEDs, held to 0.4 A by firmware (6 mA each on average: the buck's locked reference layout feeds VIN at 0.5 mm, sized for less)."
+     }
+    },
+    "voltage": {
+     "value": {
+      "peak_v": 5.5
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "power path",
+      "kind": "requirement",
+      "note": "VBUS through D3 or the cell through Q1."
+     }
+    }
+   },
+   "LED_DIN": {
+    "class": "SIGNAL",
+    "voltage": {
+     "value": {
+      "peak_v": 5.5
+     },
+     "strength": "hard",
+     "provenance": {
+      "source": "rp2350_matrix_brief",
+      "locator": "level shifter",
+      "kind": "requirement",
+      "note": "Pulled up to VSYS."
+     }
+    }
+   }
+  },
+  "default_net": {
+   "class": "SIGNAL",
+   "voltage": {
+    "value": {
+     "peak_v": 3.63
+    },
+    "strength": "hard",
+    "provenance": {
+     "source": "rp2350_matrix_brief",
+     "locator": "logic rail",
+     "kind": "requirement",
+     "note": "Every other net is 3.3 V logic on the RP2350's IOVDD (3.63 V max, rp2350 package)."
+    }
+   }
+  }
+ }
+}
