@@ -1,0 +1,6 @@
+{
+ "note": "ultraroute's quick demo board, written by make.py (compose.json, floorplan.json) and compose_kicad.py (kicad/).",
+ "composed": "composed.json",
+ "floorplan": "floorplan.json",
+ "pcb": "kicad/rp2350-matrix.kicad_pcb"
+}

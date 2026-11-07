@@ -1,0 +1,481 @@
+{
+ "note": "The matrix demo at 6.0 mm LED pitch: the LEDs fixed on the grid, serpentine (odd rows turned 180 so each DO faces the next DI), the rest floorplanned in the 30.0 mm strip below. USB-C on the bottom edge, the battery connector beside it. Nothing on the back. Written by make.py.",
+ "outline": [
+  0.0,
+  0.0,
+  48.0,
+  78.0
+ ],
+ "fixed": {
+  "LED1": {
+   "x": 3.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED2": {
+   "x": 9.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED3": {
+   "x": 15.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED4": {
+   "x": 21.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED5": {
+   "x": 27.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED6": {
+   "x": 33.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED7": {
+   "x": 39.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED8": {
+   "x": 45.0,
+   "y": 3.0,
+   "rotation": 0.0
+  },
+  "LED9": {
+   "x": 45.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED10": {
+   "x": 39.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED11": {
+   "x": 33.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED12": {
+   "x": 27.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED13": {
+   "x": 21.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED14": {
+   "x": 15.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED15": {
+   "x": 9.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED16": {
+   "x": 3.0,
+   "y": 9.0,
+   "rotation": 180.0
+  },
+  "LED17": {
+   "x": 3.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED18": {
+   "x": 9.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED19": {
+   "x": 15.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED20": {
+   "x": 21.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED21": {
+   "x": 27.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED22": {
+   "x": 33.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED23": {
+   "x": 39.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED24": {
+   "x": 45.0,
+   "y": 15.0,
+   "rotation": 0.0
+  },
+  "LED25": {
+   "x": 45.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED26": {
+   "x": 39.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED27": {
+   "x": 33.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED28": {
+   "x": 27.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED29": {
+   "x": 21.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED30": {
+   "x": 15.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED31": {
+   "x": 9.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED32": {
+   "x": 3.0,
+   "y": 21.0,
+   "rotation": 180.0
+  },
+  "LED33": {
+   "x": 3.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED34": {
+   "x": 9.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED35": {
+   "x": 15.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED36": {
+   "x": 21.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED37": {
+   "x": 27.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED38": {
+   "x": 33.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED39": {
+   "x": 39.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED40": {
+   "x": 45.0,
+   "y": 27.0,
+   "rotation": 0.0
+  },
+  "LED41": {
+   "x": 45.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED42": {
+   "x": 39.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED43": {
+   "x": 33.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED44": {
+   "x": 27.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED45": {
+   "x": 21.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED46": {
+   "x": 15.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED47": {
+   "x": 9.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED48": {
+   "x": 3.0,
+   "y": 33.0,
+   "rotation": 180.0
+  },
+  "LED49": {
+   "x": 3.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED50": {
+   "x": 9.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED51": {
+   "x": 15.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED52": {
+   "x": 21.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED53": {
+   "x": 27.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED54": {
+   "x": 33.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED55": {
+   "x": 39.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED56": {
+   "x": 45.0,
+   "y": 39.0,
+   "rotation": 0.0
+  },
+  "LED57": {
+   "x": 45.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED58": {
+   "x": 39.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED59": {
+   "x": 33.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED60": {
+   "x": 27.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED61": {
+   "x": 21.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED62": {
+   "x": 15.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED63": {
+   "x": 9.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "LED64": {
+   "x": 3.0,
+   "y": 45.0,
+   "rotation": 180.0
+  },
+  "C101": {
+   "x": 9.0,
+   "y": 4.7,
+   "rotation": 0.0
+  },
+  "C102": {
+   "x": 33.0,
+   "y": 4.7,
+   "rotation": 0.0
+  },
+  "C103": {
+   "x": 39.0,
+   "y": 10.7,
+   "rotation": 0.0
+  },
+  "C104": {
+   "x": 15.0,
+   "y": 10.7,
+   "rotation": 0.0
+  },
+  "C105": {
+   "x": 9.0,
+   "y": 16.7,
+   "rotation": 0.0
+  },
+  "C106": {
+   "x": 33.0,
+   "y": 16.7,
+   "rotation": 0.0
+  },
+  "C107": {
+   "x": 39.0,
+   "y": 22.7,
+   "rotation": 0.0
+  },
+  "C108": {
+   "x": 15.0,
+   "y": 22.7,
+   "rotation": 0.0
+  },
+  "C109": {
+   "x": 9.0,
+   "y": 28.7,
+   "rotation": 0.0
+  },
+  "C110": {
+   "x": 33.0,
+   "y": 28.7,
+   "rotation": 0.0
+  },
+  "C111": {
+   "x": 39.0,
+   "y": 34.7,
+   "rotation": 0.0
+  },
+  "C112": {
+   "x": 15.0,
+   "y": 34.7,
+   "rotation": 0.0
+  },
+  "C113": {
+   "x": 9.0,
+   "y": 40.7,
+   "rotation": 0.0
+  },
+  "C114": {
+   "x": 33.0,
+   "y": 40.7,
+   "rotation": 0.0
+  },
+  "C115": {
+   "x": 39.0,
+   "y": 46.7,
+   "rotation": 0.0
+  },
+  "C116": {
+   "x": 15.0,
+   "y": 46.7,
+   "rotation": 0.0
+  }
+ },
+ "edges": {
+  "J1": {
+   "side": "bottom",
+   "facing": [
+    0,
+    1
+   ]
+  },
+  "J2": {
+   "side": "bottom",
+   "facing": [
+    0,
+    1
+   ]
+  }
+ },
+ "rigid": [
+  {
+   "name": "core_reg",
+   "anchor": "U3",
+   "layout": "packages/rp2350/layouts/qfn60-4layer/layout.json",
+   "roles": {
+    "cin": "C4",
+    "cout": "C7",
+    "inductor": "L1"
+   }
+  },
+  {
+   "name": "reg",
+   "anchor": "U4",
+   "layout": "packages/tlv62569/layouts/sot23-5-4layer/layout.json",
+   "roles": {
+    "cin": "C20",
+    "cout": "C21",
+    "inductor": "L2",
+    "rfb_top": "R17",
+    "rfb_bot": "R16",
+    "cff": "C19"
+   }
+  }
+ ],
+ "blocks": {
+  "J1": "usb_in",
+  "R1": "usb_in",
+  "R2": "usb_in",
+  "Q1": "power_path",
+  "R3": "power_path",
+  "D3": "power_path",
+  "J3": "swd"
+ },
+ "separations": [
+  {
+   "a": "reg/reg",
+   "b": "mcu/crystal",
+   "min_mm": 5,
+   "note": "crystal.routing.keepout: no switching nodes near the crystal"
+  }
+ ],
+ "keepouts": [
+  {
+   "name": "LED field",
+   "rect": [
+    0.0,
+    0.0,
+    48.0,
+    47.5
+   ],
+   "side": "both"
+  }
+ ]
+}
