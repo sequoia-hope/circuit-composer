@@ -12,8 +12,8 @@ that .kicad_dru).
 - **Stack-up:** the copper layer count (`--layers`, else the intent's `board.layers`, else 4).
 - **Rules:** a fab preset, the one easy2350 was routed and checked with (JLCPCB, 4 layers).
 - **Net classes:** each net in the class its intent names, the class's track and clearance from
-  `CLASSES`. A net whose intent carries more current than its class's track can take
-  (IPC-2221, outer layer, 1 oz, 10 C rise) gets a `.kicad_dru` rule for the wider track.
+  `CLASSES`. Widths for a net's current come from `ccomp compile`, as `routing.json` widths and
+  `.kicad_dru` rules (a hard minimum only for a figure a person or document stands behind).
 - **Rigid blocks:** every `rigid` entry of the floorplan spec has its layout's tracks, vias,
   keep-outs and pours applied at its anchor by `apply_layout.py`, all locked and wrapped in a
   KiCad group named for the entry, which the router keeps whole. The
@@ -60,12 +60,6 @@ CLASSES = {
     "GROUND": (0.25, 0.12, 0.6, 0.3),
     "SWITCH": (0.4, 0.12, 0.6, 0.3),
 }
-
-
-def ipc2221_width_mm(amps, rise_c=10.0, oz=1.0, k=0.048):
-    """Track width for a current on an outer layer: A = (I / (k dT^0.44))^(1/0.725) mil^2."""
-    area_mil2 = (amps / (k * rise_c ** 0.44)) ** (1 / 0.725)
-    return area_mil2 / (1.378 * oz) * 0.0254
 
 
 def run(cmd):
@@ -226,19 +220,8 @@ def main():
     ns["netclass_assignments"] = None
     pro.write_text(json.dumps(project, indent=2) + "\n")
 
-    # Current: a wider track than the class gives, as a custom rule.
-    widened, lines = {}, ["(version 1)", ""]
-    for net, n in sorted(nets.items()):
-        amps = (n.get("current") or {}).get("value", {}).get("continuous_a")
-        if not amps or n.get("class") in ("GROUND",):
-            continue
-        need = ipc2221_width_mm(amps)
-        have = CLASSES[n.get("class", "Default")][0]
-        if need > have:
-            w = math.ceil(need * 100) / 100
-            widened[net] = w
-            lines += [f"# {net} carries {amps} A (intent). IPC-2221, outer 1 oz, 10 C rise: {need:.3f} mm.",
-                      f'(rule "current width {net}"', f"  (condition \"A.NetName == '{net}'\")", f"  (constraint track_width (min {w}mm)))", ""]
+    # Current-sized widths are `ccomp compile`'s: it writes them into this file's generated block.
+    lines = ["(version 1)", ""]
     dru.write_text("\n".join(lines))
 
     # Stack-up, then each rigid block's copper.
@@ -300,7 +283,7 @@ def main():
     pro.write_text(json.dumps(project, indent=2) + "\n")  # pcbnew's save rewrites it without the classes
 
     print(json.dumps({"ok": True, "board": str(pcb), "layers": layers, "classes": used, "nets_classed": len(ns["netclass_patterns"]),
-                      "widened": widened, "planes": planes, "rigid": rigid, "stubs": stubs}, indent=1))
+                      "planes": planes, "rigid": rigid, "stubs": stubs}, indent=1))
 
 
 if __name__ == "__main__":

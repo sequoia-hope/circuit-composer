@@ -3,15 +3,19 @@
 //!
 //! - `routing.json` for ultraroute's `--regions`: region polygons in board millimetres with
 //!   per-layer `must`/`prefer`/`avoid`/`never` rules on nets, and per-net length limits.
+//!   Per-net track widths from the nets' currents: a `min_mm` the router must keep, from a
+//!   figure a person or a document stands behind, and an `opt_mm` it widens to after routing
+//!   where there is room (ultraroute e54f7e9), from any figure, a recognised one included.
 //! - KiCad custom rules (`.kicad_dru`): the length limits, so KiCad's DRC checks the same numbers,
-//!   and each differential pair's skew limit, which ultraroute (89f1161 on) tunes the pair to.
+//!   each differential pair's skew limit, which ultraroute (89f1161 on) tunes the pair to, and the
+//!   widths as `track_width (min ..) (opt ..)`.
 //!
 //! Class selectors are expanded to explicit net lists from the intent file, so the output never
 //! depends on the KiCad project having a net class of the same name.
 
 use std::collections::BTreeMap;
 
-use intent::{BoundOp, IntentFile, Metric, RegionKind, RuleMode, Selector, Strength};
+use intent::{BoundOp, ClaimKind, IntentFile, Metric, RegionKind, RuleMode, Selector, Strength};
 use pcb::geom::{self, P};
 use pcb::Board;
 use serde::{Deserialize, Serialize};
@@ -37,7 +41,43 @@ pub struct Routing {
     /// the `.kicad_dru` rules.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub skews: Vec<Skew>,
+    /// Track widths from the nets' currents.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub widths: Vec<Width>,
 }
+
+/// A net's track width from the current it carries. `min_mm` is a hard rule, routed to like a
+/// class width; `opt_mm` is reached after routing by widening tracks in place where there is room,
+/// so it never costs a connection. Either may be absent, not both. The router keeps the net's
+/// class width as the floor.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Width {
+    pub nets: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min_mm: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub opt_mm: Option<f64>,
+    /// The kind of figure the widths come from (`requirement`, `datasheet`, `recognised`...), so
+    /// a router can score widths from guesses apart from those someone stands behind.
+    #[serde(default)]
+    pub basis: String,
+    #[serde(default)]
+    pub why: String,
+}
+
+/// Track width for a current on an outer layer, 1 oz copper, 10 C rise: IPC-2221's
+/// `A = (I / (k dT^0.44))^(1/0.725)` mil², k = 0.048. Rounded up to 0.01 mm.
+pub fn ipc2221_width_mm(amps: f64) -> f64 {
+    let area_mil2 = (amps / (0.048 * 10f64.powf(0.44))).powf(1.0 / 0.725);
+    (area_mil2 / 1.378 * 0.0254 * 100.0).ceil() / 100.0
+}
+
+/// Widths under this are never the binding limit: every fab preset's narrowest track is wider.
+pub const NEGLIGIBLE_WIDTH_MM: f64 = 0.1;
+
+/// The recogniser's current figures under this confidence are not sized from (its "no load
+/// recognised" upper bounds sit at 0.2).
+pub const RECOGNISED_MIN_CONFIDENCE: f64 = 0.35;
 
 /// A differential pair's skew limit: the nets, and the base name KiCad's `inDiffPair` knows the
 /// pair by.
@@ -216,6 +256,8 @@ pub fn compile(intent: &IntentFile, board: &Board) -> Result<(Routing, Vec<Note>
         skews.push(Skew { nets: vec![name.clone(), other.clone()], pair, max_skew_mm: mm, why });
     }
 
+    let widths = widths(intent, &mut notes);
+
     let routing = Routing {
         version: 1,
         generator: format!("circuit-composer {}", env!("CARGO_PKG_VERSION")),
@@ -224,8 +266,43 @@ pub fn compile(intent: &IntentFile, board: &Board) -> Result<(Routing, Vec<Note>
         max_lengths,
         clear_under,
         skews,
+        widths,
     };
     Ok((routing, notes))
+}
+
+/// Each net's widths from its `current`. A hard figure from a requirement, datasheet, expert or
+/// simulation sets `min_mm` from the continuous current and `opt_mm` from the larger of continuous
+/// and peak (a designer's peak is a worst-case draw). Any other figure sets `opt_mm` from the
+/// continuous current only: the recogniser's peak is what the source could deliver. A recognised figure under [`RECOGNISED_MIN_CONFIDENCE`] is left out,
+/// and so are ground nets, which are planes, and widths too narrow to matter.
+fn widths(intent: &IntentFile, notes: &mut Vec<Note>) -> Vec<Width> {
+    let mut out = Vec::new();
+    for (name, n) in &intent.nets {
+        let Some(c) = &n.current else { continue };
+        if n.class.as_deref() == Some("GROUND") {
+            continue;
+        }
+        let prov = c.provenance.as_ref();
+        let kind = prov.map(|p| p.kind);
+        if kind == Some(ClaimKind::Recognised) && prov.and_then(|p| p.confidence).unwrap_or(0.0) < RECOGNISED_MIN_CONFIDENCE {
+            notes.push(Note { subject: format!("net {name}"), message: format!("recognised current under confidence {RECOGNISED_MIN_CONFIDENCE}: no width") });
+            continue;
+        }
+        let trusted = c.strength == Strength::Hard && matches!(kind, Some(ClaimKind::Requirement | ClaimKind::Datasheet | ClaimKind::Expert | ClaimKind::Simulated));
+        let (cont, peak) = (c.value.continuous_a, c.value.peak_a.unwrap_or(0.0).max(c.value.continuous_a));
+        let min = trusted.then(|| ipc2221_width_mm(cont)).filter(|w| *w > NEGLIGIBLE_WIDTH_MM);
+        let opt = Some(ipc2221_width_mm(if trusted { peak } else { cont })).filter(|w| *w > NEGLIGIBLE_WIDTH_MM && min.is_none_or(|m| w > &m));
+        if min.is_none() && opt.is_none() {
+            continue;
+        }
+        let basis = kind.map_or("none".to_string(), |k| format!("{k:?}").to_lowercase());
+        let source = prov.map_or("no provenance".to_string(), |p| format!("{} ({basis})", p.source));
+        let peak_text = c.value.peak_a.map_or(String::new(), |p| format!(", {p} A peak"));
+        let why = format!("{cont} A continuous{peak_text}, from {source}; IPC-2221 outer layer, 1 oz, 10 C rise");
+        out.push(Width { nets: vec![name.clone()], min_mm: min, opt_mm: opt, basis, why });
+    }
+    out
 }
 
 /// Copper layers no neighbouring layer gives a ground return: no fill of a GROUND-class net on
@@ -421,6 +498,13 @@ pub fn merge_dru(existing: Option<&str>, routing: &Routing) -> String {
             fmt_mm(s.max_skew_mm)
         ));
     }
+    for w in &routing.widths {
+        let limits = [w.min_mm.map(|v| format!("(min {}mm)", fmt_mm(v))), w.opt_mm.map(|v| format!("(opt {}mm)", fmt_mm(v)))];
+        let limits: Vec<String> = limits.into_iter().flatten().collect();
+        for net in &w.nets {
+            block.push_str(&format!("(rule \"cc width {net}\"\n  (condition \"A.NetName == '{net}'\")\n  (constraint track_width {}))\n", limits.join(" ")));
+        }
+    }
     block.push_str(DRU_END);
     block.push('\n');
     match existing {
@@ -453,6 +537,7 @@ mod tests {
             max_lengths: vec![MaxLength { nets: vec!["/XIN".into()], max_length_mm: mm, why: String::new() }],
             clear_under: vec![],
             skews: vec![Skew { nets: vec!["/USB_D+".into(), "/USB_D-".into()], pair: "/USB_D".into(), max_skew_mm: 0.15, why: String::new() }],
+            widths: vec![Width { nets: vec!["VBUS".into()], min_mm: Some(0.3), opt_mm: Some(0.5), basis: "requirement".into(), why: String::new() }],
         }
     }
 
@@ -516,6 +601,42 @@ mod tests {
         assert_eq!(twice.matches(DRU_BEGIN).count(), 1);
         assert!(twice.contains("track_width (min 0.2mm)"));
         assert!(twice.contains("(condition \"A.inDiffPair('/USB_D')\")\n  (constraint skew (max 0.15mm) (within_diff_pairs))"));
+        assert!(twice.contains("(rule \"cc width VBUS\"\n  (condition \"A.NetName == 'VBUS'\")\n  (constraint track_width (min 0.3mm) (opt 0.5mm)))"));
+    }
+
+    #[test]
+    fn currents_become_widths_hard_only_when_someone_stands_behind_them() {
+        let intent: IntentFile = serde_json::from_value(serde_json::json!({
+            "schema_version": "0.1",
+            "board": { "name": "t" },
+            "nets": {
+                "VBUS": { "class": "POWER", "current": { "value": { "continuous_a": 1.0, "peak_a": 2.0 }, "strength": "hard",
+                    "provenance": { "source": "budget", "kind": "requirement" } } },
+                "+5V": { "class": "POWER", "current": { "value": { "continuous_a": 1.5, "peak_a": 3.0 }, "strength": "soft",
+                    "provenance": { "source": "recogniser", "kind": "recognised", "confidence": 0.35 } } },
+                "+12V": { "class": "POWER", "current": { "value": { "continuous_a": 8.0 }, "strength": "soft",
+                    "provenance": { "source": "recogniser", "kind": "recognised", "confidence": 0.2 } } },
+                "GND": { "class": "GROUND", "current": { "value": { "continuous_a": 3.0 }, "strength": "hard",
+                    "provenance": { "source": "budget", "kind": "requirement" } } },
+                "+3V3": { "class": "POWER", "current": { "value": { "continuous_a": 0.05 }, "strength": "hard",
+                    "provenance": { "source": "budget", "kind": "requirement" } } }
+            }
+        }))
+        .unwrap();
+        let mut notes = vec![];
+        let w = widths(&intent, &mut notes);
+        let by = |n: &str| w.iter().find(|x| x.nets == [n.to_string()]);
+        let vbus = by("VBUS").unwrap();
+        assert_eq!((vbus.min_mm, vbus.opt_mm), (Some(ipc2221_width_mm(1.0)), Some(ipc2221_width_mm(2.0))));
+        assert_eq!(vbus.basis, "requirement");
+        // Recognised: a width to widen to, never one to keep, from the continuous current (its
+        // peak is the source's capacity).
+        let five = by("+5V").unwrap();
+        assert_eq!((five.min_mm, five.opt_mm, five.basis.as_str()), (None, Some(ipc2221_width_mm(1.5)), "recognised"));
+        assert!(by("+12V").is_none() && notes.iter().any(|n| n.subject == "net +12V"));
+        assert!(by("GND").is_none() && by("+3V3").is_none());
+        // 1 A: about 0.30 mm on an outer layer at 10 C.
+        assert!((ipc2221_width_mm(1.0) - 0.30).abs() < 0.02, "{}", ipc2221_width_mm(1.0));
     }
 
     #[test]
