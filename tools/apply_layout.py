@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """Apply a generated block layout (`ccomp gen ...` output) to a KiCad board with pcbnew.
 
-    apply_layout.py BOARD GEN_JSON ROLES_JSON -o OUT [--fixture [--copper-layers N]]
+    apply_layout.py BOARD GEN_JSON ROLES_JSON -o OUT [--group NAME] [--fixture [--copper-layers N]]
 
 ROLES_JSON maps roles to parts and pads, e.g. {"vin": "U1.49", ..., "cin": "C14"}. Parts are
-placed in the anchor's frame and locked; tracks, vias and keepouts are added and locked; zones
-are refilled. With --fixture the board is first reduced to a test bench: only the anchor and
+placed in the anchor's frame and locked; tracks, vias, keepouts and pours (a reference layout's,
+from `extract_layout.py`) are added and locked; zones are refilled. Everything placed is wrapped
+in a KiCad group, NAME or `<block type>_<anchor>`, replacing one of that name: the router keeps
+a group whole, its pours as planes other nets keep clear of and its parts still.
+With --fixture the board is first reduced to a test bench: only the anchor and
 the block's parts, no copper, and a solid GND plane on the first inner layer (on B.Cu for a
 2-layer board), so the block is measured alone. --copper-layers sets the bench's layer count,
 so a 4-layer bench can be made from a 2-layer reference board.
@@ -60,6 +63,7 @@ def main():
     ap.add_argument("gen")
     ap.add_argument("roles")
     ap.add_argument("-o", "--output", required=True)
+    ap.add_argument("--group", help="the group's name (default: <block type>_<anchor>)")
     ap.add_argument("--fixture", action="store_true")
     ap.add_argument("--copper-layers", type=int, help="with --fixture: the bench's copper layer count")
     a = ap.parse_args()
@@ -107,8 +111,10 @@ def main():
         z.SetZoneName("fixture GND plane")
         board.Add(z)
 
+    members = [anchor]
     for role, pose in layout["parts"].items():
         fp = board.FindFootprintByReference(roles[role])
+        members.append(fp)
         fp.SetOrientationDegrees(anchor.GetOrientationDegrees() + pose["rotation"])
         fp.SetPosition(v(to_board(anchor, pose["at"])))
         fp.SetLocked(True)
@@ -124,6 +130,7 @@ def main():
         tr.SetNet(nets[t["net"]])
         tr.SetLocked(True)
         board.Add(tr)
+        members.append(tr)
     for vi in layout["vias"]:
         via = pcbnew.PCB_VIA(board)
         via.SetPosition(v(to_board(anchor, vi["at"])))
@@ -134,6 +141,7 @@ def main():
         via.SetNet(nets[vi["net"]])
         via.SetLocked(True)
         board.Add(via)
+        members.append(via)
     for k in layout["keepouts"]:
         z = pcbnew.ZONE(board)
         z.SetIsRuleArea(True)
@@ -151,12 +159,43 @@ def main():
             outline.Append(q.x, q.y)
         z.SetLocked(True)
         board.Add(z)
+        members.append(z)
+    group = a.group or f"{layout['block_type']}_{anchor_ref}"
+    for k in layout.get("pours", []):
+        z = pcbnew.ZONE(board)
+        on_layer(z, layer_id[k["layer"]])
+        z.SetNet(nets[k["net"]])
+        z.SetAssignedPriority(k["priority"])
+        z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if k.get("connection") == "solid" else pcbnew.ZONE_CONNECTION_THERMAL)
+        z.SetMinThickness(int(round(k["min_width"] * NM)))
+        if k.get("clearance"):
+            z.SetLocalClearance(int(round(k["clearance"] * NM)))
+        z.SetZoneName(f"{group}_{k['net']}_{k['priority']}")
+        outline = z.Outline()
+        outline.NewOutline()
+        for p in k["polygon"]:
+            q = v(to_board(anchor, p))
+            outline.Append(q.x, q.y)
+        z.SetLocked(True)
+        board.Add(z)
+        members.append(z)
+
+    for g in list(board.Groups()):
+        if g.GetName() == group:
+            g.RemoveAll()
+            board.Remove(g)
+    g = pcbnew.PCB_GROUP(board)
+    g.SetName(group)
+    for m in members:
+        g.AddItem(m)
+    board.Add(g)
 
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     board.Save(a.output)
     print(json.dumps({"ok": True, "wrote": a.output, "fixture": a.fixture, "removed": removed,
                       "placed": {roles[r]: p for r, p in layout["parts"].items()},
-                      "tracks": len(layout["tracks"]), "vias": len(layout["vias"]), "keepouts": len(layout["keepouts"])}))
+                      "tracks": len(layout["tracks"]), "vias": len(layout["vias"]), "keepouts": len(layout["keepouts"]),
+                      "pours": len(layout.get("pours", [])), "group": group}))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@
 # BOARD is a name under boards/ with a composition, a floorplan spec and compose_kicad.py's board
 # (`ccomp -b BOARD boards` lists them); its KiCad project's .kicad_pro is the rules' starting
 # point. Every step's output stays in OUT_DIR; verify.json there is the verdict. The router is the
-# ultraroute binary named by $ULTRAROUTE (89f1161 or later), with easy2350's recipe plus --regions. Book cores for it:
+# ultraroute binary named by $ULTRAROUTE (4d304e2 or later), with easy2350's recipe plus --regions. Book cores for it:
 #   ~/.claude/bin/reserve -c 2 -l "route BOARD" -- tools/route_board.sh ...
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
@@ -35,9 +35,11 @@ python3 tools/prepare_route.py "$OUT/placed.kicad_pcb" --intent "$OUT/intent.jso
 IN="$OUT/route-in/$NAME"
 $CCOMP compile "$OUT/intent.json" --pcb "$IN.kicad_pcb" -o "$OUT/route-in/routing.json" \
   --dru "$IN.kicad_dru" --dru-base "$IN.kicad_dru" > "$OUT/compile.out"
-# Needs ultraroute 89f1161 or later: its pair tuning keeps to the regions, it reads routing.json's
-# clear_under (f179fcb), and it tunes a pair to the .kicad_dru skew rule ccomp compile writes for
-# it. KiCad knows a pair only by a P/N or +/- suffix: a pair named otherwise is left untuned.
+# Needs ultraroute 4d304e2 or later: it holds a group's parts, pours, tracks and vias (a rigid
+# block's layout), and reads routing.json's widths (e54f7e9). Never pass --strip-all: it strips a
+# block's locked tracks too. Its pair tuning keeps to the regions (89f1161), it reads
+# routing.json's clear_under (f179fcb), and it tunes a pair to the .kicad_dru skew rule ccomp
+# compile writes for it. KiCad knows a pair only by a P/N or +/- suffix: a pair named otherwise is left untuned.
 (cd "$OUT/route-in" && "$ULTRAROUTE" route "$NAME.kicad_pcb" -o "$OUT/routed.kicad_pcb" --strip --negotiate --rip-up \
   --tighten --prefanout --diff-pairs --shove-plough region --shove-reach 0.5 --shove-repair 20 --shove-ties \
   --shove-passes 60 --shove-patience 8 --planes In1.Cu,In2.Cu --cell 0.035 --prefanout-order round \

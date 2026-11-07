@@ -39,6 +39,17 @@ bench on each test run.
 | `qfn60-2layer` | RP2350A Minimal's parts | 1.025 | 1.904 | 2.343 | 0.415 | 3.15 | 3.47 |
 | `qfn80-4layer` | RP2350B Minimal's parts, 4 layers | 1.031 | 1.927 | 2.416 | 0.415 | 3.20 | 3.43 (RP2350B Minimal) |
 | `qfn80-2layer` | RP2350B Minimal's parts | 1.031 | 1.927 | 2.416 | 0.415 | 3.20 | 3.43 |
+| `qfn60-reference` | RP2350A Minimal's parts | 1.064 | 2.349 | 2.452 | 0.365 | 3.46 | 3.47 |
+| `qfn80-reference` | RP2350B Minimal's parts | 1.056 | 2.304 | 2.454 | 0.386 | 3.43 | 3.43 |
+
+The two `reference` layouts are Raspberry Pi's own regulator copper, lifted from the minimal
+boards by `tools/extract_layout.py`. Each includes the parts' positions, the pours on the
+regulator's nets (VIN, LX, core output, the local ground return), and the tracks and vias that
+join them, in U1's frame. On their benches they measure what the boards measure. Use one when a
+board should carry the vendor's layout rather than the generator's: the pours are what a router
+keeps as planes. `apply_layout.py` wraps whatever it places in a KiCad group, `--group NAME`
+(`prepare_route.py` passes the rigid block's name). ultraroute treats a group as a block: it
+holds the parts still and keeps other nets off the group's pours.
 
 Score = hot loop + 0.5 × switch node + 0.5 × output loop. The QFN-80 comparison also measures
 rp2350-motor-controller rev A's regulator (3.39). It matches Raspberry Pi's layout except for a

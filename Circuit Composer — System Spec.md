@@ -109,7 +109,7 @@ Every tool is a command-line program that reads files and writes files plus a JS
 | Router | Partly routed board, `routing.json`, KiCad rules | Fully routed board |
 | Verifier | Routed board, intent file | Per-check results with location, severity and the stage to fix |
 
-**Router handoff.** The router receives a KiCad board with every part placed, critical blocks routed and locked, ground and power pours drawn, keepouts marked, plus `routing.json`, passed to ultraroute as `--regions`. It holds polygon regions per layer, each naming its nets and a mode (`must`, `prefer`, `avoid` with a weight, `never`); `max_lengths` per net; and `clear_under`, nets under which no other net's via or hole may open a plane antipad. Differential-pair skew limits go in the `.kicad_dru` rules, which the router reads. The router may not move parts or touch locked copper.
+**Router handoff.** The router receives a KiCad board with every part placed, critical blocks routed and locked, ground and power pours drawn, keepouts marked, plus `routing.json`, passed to ultraroute as `--regions`. It holds polygon regions per layer, each naming its nets and a mode (`must`, `prefer`, `avoid` with a weight, `never`); `max_lengths` per net; and `clear_under`, nets under which no other net's via or hole may open a plane antipad. Differential-pair skew limits go in the `.kicad_dru` rules, which the router reads. A rigid block arrives as a KiCad group of its parts and its locked copper, pours included: the router holds the parts still and keeps other nets off the group's pours. The router may not move parts or touch locked copper.
 
 **Verifier result format.** Each finding names: the check, the nets or blocks involved, a location, a measured value against its limit, and a `fix_stage` (`intent`, `floorplan`, `block`, or `route`) so the agent knows where to loop back.
 
@@ -166,6 +166,7 @@ Each milestone ends with something verified end to end, not a partial layer acro
 | Router constraints are polygon regions, not cost grids | Smaller, exact at the edges, and what ultraroute built (f179fcb) |
 | Recognizer before more hand-annotated boards | Four related boards can't show the schema generalises; the corpus run can |
 | One verifier, shared with ultraroute, grown from `crates/verify` | Two checkers drift apart; kept independent of the block generators so a wrong model can't pass its own output |
+| A rigid block reaches the router as a KiCad group | No new format: ultraroute already keeps a group's parts still and its pours clear; vendor reference copper (`extract_layout.py`) can travel with it |
 
 **Open questions**
 

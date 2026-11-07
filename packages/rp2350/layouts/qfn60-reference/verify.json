@@ -1,0 +1,33 @@
+{
+ "block": "core_reg",
+ "board": "fixture.kicad_pcb",
+ "copper_layers": 2,
+ "measurements": {
+  "hot_loop_area_mm2": 1.0637,
+  "hot_loop_area_placed_mm2": 1.0637,
+  "output_loop_area_mm2": 2.4522,
+  "switch_node_area_mm2": 2.3486,
+  "feedback_clearance_mm": 0.365,
+  "switch_node_underlap_mm2": 2.3676
+ },
+ "limits": {
+  "feedback_clearance_mm": ">= 0.3"
+ },
+ "not_applicable": {
+  "switch_node_underlap_mm2": "2-layer board: the layer under LX is the bottom ground, kept solid as on Raspberry Pi's 2-layer minimal boards; the cut-out rule (rp2350.vreg.lx_cutout) is for boards with inner layers"
+ },
+ "kicad_drc": {
+  "errors": [],
+  "open_between_block_parts": [],
+  "footprint_notes": [
+   "Footprint component type doesn't match footprint pads (expected 'Through hole'; actual 'SMD')"
+  ],
+  "note": "KiCad 9.0.8 DRC on the fixture; library-footprint warnings and the anchor's other unconnected pins are expected on a test bench and left out. Footprint notes are the vendor footprint's own attributes, flagged on Raspberry Pi's board too"
+ },
+ "reference": {
+  "source": "rp2350a_minimal",
+  "board": "RP2350_60QFN_minimal.kicad_pcb",
+  "sha256": "745e4b3a7bbf0beaf65f7dbc56808ce764420eaf4c26e9cce1fa314cfb0c3b2b",
+  "note": "Raspberry Pi's own regulator copper, lifted from the RP2350A Minimal Board by tools/extract_layout.py: its parts' positions, its pours, and the tracks and vias that join them, in U1's frame"
+ }
+}

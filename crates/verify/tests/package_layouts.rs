@@ -66,6 +66,17 @@ fn rp2350_core_reg_qfn80_2layer() {
     check_layout("qfn80-2layer");
 }
 
+/// Raspberry Pi's own regulator copper, pours and all, lifted from the minimal boards.
+#[test]
+fn rp2350_core_reg_qfn60_reference() {
+    check_layout("qfn60-reference");
+}
+
+#[test]
+fn rp2350_core_reg_qfn80_reference() {
+    check_layout("qfn80-reference");
+}
+
 #[test]
 fn tlv62569_reg_sot23_5_4layer() {
     check_package_layout("tlv62569", "reg", "sot23-5-4layer");

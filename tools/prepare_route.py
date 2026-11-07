@@ -14,8 +14,9 @@ that .kicad_dru).
 - **Net classes:** each net in the class its intent names, the class's track and clearance from
   `CLASSES`. A net whose intent carries more current than its class's track can take
   (IPC-2221, outer layer, 1 oz, 10 C rise) gets a `.kicad_dru` rule for the wider track.
-- **Rigid blocks:** every `rigid` entry of the floorplan spec has its generated layout's
-  tracks, vias and keep-outs applied at its anchor by `apply_layout.py`, all locked. The
+- **Rigid blocks:** every `rigid` entry of the floorplan spec has its layout's tracks, vias,
+  keep-outs and pours applied at its anchor by `apply_layout.py`, all locked and wrapped in a
+  KiCad group named for the entry, which the router keeps whole. The
   layout's chip pins (`U1.49`) are the anchor's.
 - **Decoupling stubs:** with `--composed`, each capacitor a `decoupling_path_mm` constraint names
   gets a locked track to the pin it decouples (its `near`), when one fits within the limit:
@@ -253,8 +254,8 @@ def main():
             roles.update(r.get("roles", {}))
             rf = Path(t) / f"{r['name']}.roles.json"
             rf.write_text(json.dumps(roles))
-            res = run([sys.executable, str(HERE / "apply_layout.py"), str(pcb), str(layout), str(rf), "-o", str(pcb)])
-            rigid.append({"name": r["name"], "anchor": r["anchor"], "tracks": res["tracks"], "vias": res["vias"], "keepouts": res["keepouts"]})
+            res = run([sys.executable, str(HERE / "apply_layout.py"), str(pcb), str(layout), str(rf), "-o", str(pcb), "--group", r["name"]])
+            rigid.append({"name": r["name"], "anchor": r["anchor"], "tracks": res["tracks"], "vias": res["vias"], "keepouts": res["keepouts"], "pours": res["pours"], "group": res["group"]})
 
     # Each decoupling capacitor's stub to its pin, locked.
     b = pcbnew.LoadBoard(str(pcb))

@@ -18,7 +18,7 @@ package = "QFN-60 7x7 mm, 0.4 mm pitch"
 footprint = "RP2350-QFN-60-1EP_7x7_P0.4mm_EP3.4x3.4mm_ThermalVias"
 gpio = 30
 flash = "external"
-layouts = ["qfn60-4layer", "qfn60-2layer"]
+layouts = ["qfn60-4layer", "qfn60-2layer", "qfn60-reference"]
 
 [[variants]]
 name = "RP2350B"
@@ -26,7 +26,7 @@ package = "QFN-80 10x10 mm, 0.4 mm pitch"
 gpio = 48
 flash = "external"
 footprint = "RP2350_80QFN"
-layouts = ["qfn80-4layer", "qfn80-2layer"]
+layouts = ["qfn80-4layer", "qfn80-2layer", "qfn80-reference"]
 # The core regulator's pins move from 47-50 to 62-65 and keep their order: PGND, LX, VIN, FB.
 
 [sources]

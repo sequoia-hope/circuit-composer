@@ -192,7 +192,9 @@ $ccomp gen buck board.kicad_pcb --intent boards/easy2350/intent.json --block cor
 
 # Generate, apply to a test bench with pcbnew, verify, and run KiCad's DRC
 ~/.claude/bin/reserve -c 8 -l "buck bench" -- python3 tools/bench_buck.py BOARD ROLES.json OUT_DIR
-python3 tools/apply_layout.py BOARD gen.json ROLES.json -o OUT.kicad_pcb [--fixture]
+python3 tools/apply_layout.py BOARD gen.json ROLES.json -o OUT.kicad_pcb [--group NAME] [--fixture]
+# A vendor board's own regulator copper (parts, pours, joining tracks and vias) as a layout
+python3 tools/extract_layout.py REFERENCE.kicad_pcb ROLES.json -o layout.json --source rp2350a_minimal
 python3 tools/compare_buck.py packages/rp2350/layouts/qfn60-4layer/compare.spec.json OUT_DIR
 ```
 
