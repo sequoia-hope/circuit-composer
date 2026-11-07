@@ -254,11 +254,38 @@ pub fn inductor_class(footprint: &str) -> Option<(f64, f64)> {
 
 /// What a part draws from a rail it is on, coarsely: the corpus has no datasheets, so a
 /// microcontroller, a radio SoC, an addressable LED and an indicator each get a typical figure.
+/// FPGA families by part-number prefix, and the core current of a typical design: well above
+/// static, well below a full fabric at speed.
+pub const FPGA_FAMILIES: &[(&str, f64, &str)] = &[
+    ("LFE5", 0.5, "an ECP5 FPGA's core, about 500 mA in a typical design"),
+    ("XC7A", 0.6, "an Artix-7 FPGA's core, about 600 mA in a typical design"),
+    ("XC7S", 0.3, "a Spartan-7 FPGA's core, about 300 mA in a typical design"),
+    ("XC6S", 0.3, "a Spartan-6 FPGA's core, about 300 mA in a typical design"),
+    ("XC7Z", 0.8, "a Zynq-7000's core, about 800 mA in a typical design"),
+    ("EP4CE", 0.3, "a Cyclone IV FPGA's core, about 300 mA in a typical design"),
+    ("10CL", 0.3, "a Cyclone 10 LP FPGA's core, about 300 mA in a typical design"),
+    ("10M", 0.1, "a MAX 10 FPGA's core, about 100 mA in a typical design"),
+    ("GW1N", 0.05, "a Gowin GW1N FPGA's core, about 50 mA in a typical design"),
+    ("ICE40", 0.02, "an iCE40 FPGA's core, about 20 mA in a typical design"),
+    ("ICE5", 0.02, "an iCE40 UltraPlus FPGA's core, about 20 mA in a typical design"),
+];
+
+/// Plug-in stepper driver modules, by value: they sit in a socket, so a board may call them a
+/// connector or a U-part.
+pub const STEPPER_MODULES: &[&str] = &["DRV8825", "A4988", "TMC2", "STEPSTICK", "POLOLU"];
+
+/// An FPGA's core current, if `value` names one.
+pub fn fpga(value: &str) -> Option<(f64, &'static str)> {
+    let v = value.to_ascii_uppercase();
+    FPGA_FAMILIES.iter().find(|(p, _, _)| v.starts_with(p)).map(|(_, a, why)| (*a, *why))
+}
+
 pub fn load(kind: Kind, value: &str) -> Option<(f64, &'static str)> {
     let v = value.to_ascii_uppercase();
     match kind {
         Kind::Ic if v.contains("ESP32") || v.contains("ESP8266") || v.starts_with("ESP-") => Some((0.35, "a Wi-Fi SoC, about 350 mA averaged over transmit")),
         Kind::Ic if names_family(value, MCU_FAMILIES) => Some((0.05, "a microcontroller, about 50 mA")),
+        Kind::Ic | Kind::Connector if STEPPER_MODULES.iter().any(|k| v.contains(k)) => Some((0.4, "a plug-in stepper driver, about 400 mA from its motor supply")),
         Kind::Ic => Some((0.01, "an IC, about 10 mA")),
         Kind::Led if ["WS2812", "SK6812", "APA102", "SK9822", "ARGB", "NEOPIXEL", "WS2813", "APA106"].iter().any(|k| v.contains(k)) => {
             Some((0.04, "an addressable LED, about 40 mA at full white"))

@@ -711,14 +711,22 @@ fn ldo_sides<'a>(cx: &Cx, rails: &[&'a str]) -> Option<(&'a str, &'a str)> {
         (Some(va), Some(vb)) if vb > va => return Some((b, a)),
         _ => {}
     }
+    // An input's name says so (VIN, VBAT); a supply voltage or a connector only suggests it, and
+    // an output rail can have both (+5V to a header).
     let inputish = |n: &str| {
         let norm = names::norm(n);
-        ["VBUS", "VIN", "VBAT", "BAT", "VUSB", "VRAW", "RAW", "12V", "+5V", "5V", "VSYS"].iter().any(|k| norm.contains(k)) || !cx.kinds_on(n, Kind::Connector).is_empty()
+        if ["VBUS", "VIN", "VBAT", "BAT", "VUSB", "VRAW", "RAW", "VSYS"].iter().any(|k| norm.contains(k)) {
+            2
+        } else if ["12V", "+5V", "5V"].iter().any(|k| norm.contains(k)) || !cx.kinds_on(n, Kind::Connector).is_empty() {
+            1
+        } else {
+            0
+        }
     };
-    match (inputish(a), inputish(b)) {
-        (true, false) => Some((a, b)),
-        (false, true) => Some((b, a)),
-        _ => None,
+    match inputish(a).cmp(&inputish(b)) {
+        std::cmp::Ordering::Greater => Some((a, b)),
+        std::cmp::Ordering::Less => Some((b, a)),
+        std::cmp::Ordering::Equal => None,
     }
 }
 
@@ -846,6 +854,40 @@ mod tests {
                 ("Net-(D2-A)", &[("D2", "2"), ("R3", "2")]),
             ],
         )
+    }
+
+    /// Off-board loads: a servo, a FET-switched motor and a Raspberry Pi on a regulated +5V, fed
+    /// from a barrel jack that is the source and draws nothing.
+    #[test]
+    fn connectors_off_the_board_are_loads() {
+        let n = nl(
+            &[
+                ("J1", "Barrel_Jack", "BarrelJack_Horizontal"),
+                ("U1", "AMS1117-5.0", "SOT-223-3"),
+                ("C1", "10u", "C_0805"),
+                ("C2", "10u", "C_0805"),
+                ("J2", "Servo", "PinHeader_1x03"),
+                ("J3", "Motor", "PinHeader_1x02"),
+                ("Q1", "AO3400", "SOT-23"),
+                ("J4", "RPi_GPIO", "PinSocket_2x20"),
+            ],
+            &[
+                ("VIN", &[("J1", "1"), ("U1", "3"), ("C1", "1")]),
+                ("+5V", &[("U1", "2"), ("C2", "1"), ("J2", "2"), ("J3", "1"), ("J4", "2"), ("J4", "4")]),
+                ("SERVO_PWM", &[("J2", "1")]),
+                ("Net-(J3-Pad2)", &[("J3", "2"), ("Q1", "3")]),
+                ("GND", &[("J1", "2"), ("U1", "1"), ("C1", "2"), ("C2", "2"), ("J2", "3"), ("Q1", "2"), ("J4", "6")]),
+            ],
+        );
+        let r = recognise(&n, "t", "test");
+        let c = r.intent.nets["+5V"].current.as_ref().unwrap();
+        // 0.2 servo + 0.5 motor + 0.5 Pi, capped at the AMS1117's 1 A.
+        assert!((c.value.continuous_a - 1.0).abs() < 1e-9, "{:?} {:?}", c.value, c.provenance);
+        let ev = &c.provenance.as_ref().unwrap().evidence;
+        assert!(ev.iter().any(|e| e.contains("servo")) && ev.iter().any(|e| e.contains("motor")) && ev.iter().any(|e| e.contains("Raspberry Pi")), "{ev:?}");
+        assert!(ev.iter().any(|e| e.starts_with("capped: U1")), "{ev:?}");
+        // The LDO passes it to its input; the jack is the source and draws nothing.
+        assert!((r.intent.nets["VIN"].current.as_ref().unwrap().value.continuous_a - 1.0).abs() < 1e-9);
     }
 
     /// A boost: the inductor's side is the input (cin), the output is past the diode (cout,

@@ -5,6 +5,11 @@
 //! one current. A group's current is the sum of its loads (a typical figure per part kind) and of
 //! the inputs of the regulators it feeds, capped by the ratings of the fuses, regulators and USB
 //! connectors that bound it. A group with no recognised load gets its source's rating instead.
+//!
+//! Connectors are loads too when they hand a rail off the board: a servo or motor, a Raspberry Pi
+//! on its header, a plug-in stepper driver, a module on an expansion bus. Which connector is the
+//! rail's source and which its loads is judged from what feeds the rail (a regulator's output
+//! has none for a source) and from the connectors' shapes.
 
 use super::*;
 
@@ -131,14 +136,42 @@ pub(super) fn estimate(cx: &mut Cx) {
                         drawn = cx.kinds_on(far, Kind::Led).into_iter().filter(|l| seen.insert(l)).collect();
                     }
                 }
+                // An FPGA draws its core current from its lowest rail, at 1.2 V or under.
+                let core = g.nets.iter().filter_map(|n| names::rail_voltage(n)).any(|v| v > 0.0 && v <= 1.25);
                 for d in drawn {
-                    if let Some((a, what)) = parts::load(cx.kind(d), &cx.nl.components[d].value) {
+                    let value = &cx.nl.components[d].value;
+                    let load = match parts::fpga(value) {
+                        Some(c) if core => Some(c),
+                        Some(_) => Some((0.05, "an FPGA's I/O and auxiliary supply, about 50 mA")),
+                        // Connectors are counted by `offboard_loads`, which knows a source from a load.
+                        None if cx.kind(d) == Kind::Connector => None,
+                        // A stepper module draws its motor current from its highest rail only.
+                        None if parts::STEPPER_MODULES.iter().any(|k| value.to_ascii_uppercase().contains(k)) => {
+                            let top = cx.part_nets(d).into_iter().filter_map(|n| names::rail_voltage(n).map(|v| (v, n))).max_by(|a, b| a.0.total_cmp(&b.0));
+                            match top {
+                                Some((_, n)) if !g.nets.iter().any(|x| x == n) => Some((0.01, "a stepper module's logic supply, about 10 mA")),
+                                _ => parts::load(cx.kind(d), value),
+                            }
+                        }
+                        None => parts::load(cx.kind(d), value),
+                    };
+                    if let Some((a, what)) = load {
                         let e = g.loads.entry(what).or_default();
                         e.0 += 1;
                         e.1 += a;
                     }
                 }
             }
+        }
+    }
+
+    // Off-board loads: a connector on a rail that something else feeds.
+    let fed_by_reg: BTreeSet<usize> = cx.regs.iter().filter_map(|r| group_of.get(&r.output).copied()).collect();
+    for (g, group) in groups.iter_mut() {
+        for (a, what) in offboard_loads(cx, &group.nets, fed_by_reg.contains(g)) {
+            let e = group.loads.entry(what).or_default();
+            e.0 += 1;
+            e.1 += a;
         }
     }
 
@@ -197,6 +230,84 @@ pub(super) fn estimate(cx: &mut Cx) {
             cx.facts.entry(gnd).or_default().current = Some((Current { continuous_a: round2(total), peak_a: None }, 0.3, ev));
         }
     }
+}
+
+/// Words in a connector's value or footprint that mark it as where power comes in.
+const POWER_ENTRY: &[&str] = &["BARREL", "DC_JACK", "DCJACK", "JACK_DC", "PWR", "POWER", "BATT", "BAT_", "XT30", "XT60", "XT90", "DEANS", "USB", "SCREW", "TERMINAL"];
+
+/// The typical draw of each connector that takes a rail of `nets` off the board. On a rail no
+/// regulator feeds, one connector is the source, and is not counted: one named for power entry,
+/// else a host header (20 pins or more: the board is a shield, HAT or cape), else the one with the
+/// fewest pins. A Raspberry Pi header on a board with its own power entry is the Pi's supply, not
+/// the board's.
+fn offboard_loads(cx: &Cx, nets: &[String], fed: bool) -> Vec<(f64, &'static str)> {
+    let rail: BTreeSet<&str> = nets.iter().map(String::as_str).collect();
+    let mut conns: Vec<&str> = Vec::new();
+    for n in nets {
+        for c in cx.kinds_on(n, Kind::Connector) {
+            if !conns.contains(&c) {
+                conns.push(c);
+            }
+        }
+    }
+    let text = |c: &str| {
+        let p = &cx.nl.components[c];
+        format!("{} {}", p.value, p.footprint).to_ascii_uppercase()
+    };
+    let pins = |c: &str| cx.nodes.values().flatten().filter(|x| x.reference == c).count();
+    // A pin on a net a transistor switches (its drain, collector): a motor, solenoid or strip.
+    let switched = |c: &str| {
+        cx.part_nets(c).into_iter().any(|n| !rail.contains(n) && !cx.grounds.contains(n) && !cx.kinds_on(n, Kind::Transistor).is_empty() && cx.parts_on(n).len() <= 4)
+    };
+    let returns = |c: &str| cx.part_nets(c).into_iter().any(|n| cx.grounds.contains(n));
+    let candidates: Vec<&str> = conns.iter().copied().filter(|c| returns(c) || switched(c)).collect();
+    let entry = |c: &str| POWER_ENTRY.iter().any(|k| text(c).contains(k));
+    // Named for the Pi, or a 2x20 header with half its pins in use (only wired pads are counted).
+    let is_pi = |c: &str| ["RPI", "RASPBERRY"].iter().any(|k| text(c).contains(k)) || (text(c).contains("2X20") && pins(c) >= 20);
+    let board_entry = cx.kinds.iter().any(|(r, (k, _))| *k == Kind::Connector && entry(r));
+    let sources: Vec<&str> = candidates.iter().copied().filter(|c| !(board_entry && is_pi(c))).collect();
+    let source = if fed {
+        None
+    } else {
+        sources
+            .iter()
+            .copied()
+            .find(|c| entry(c))
+            .or_else(|| sources.iter().copied().filter(|c| pins(c) >= 20).max_by_key(|c| pins(c)))
+            .or_else(|| sources.iter().copied().min_by_key(|c| pins(c)))
+    };
+    let mut out = Vec::new();
+    for c in candidates {
+        if Some(c) == source {
+            continue;
+        }
+        let t = text(c);
+        let n = pins(c);
+        let signals = cx.part_nets(c).into_iter().filter(|x| !rail.contains(x) && !cx.grounds.contains(x)).count();
+        // A servo is named as one, on the header or its signal net; a bare 3-pin header with one
+        // signal is as often a sensor.
+        let servo = t.contains("SERVO") || cx.part_nets(c).into_iter().any(|x| !rail.contains(x) && ["SERVO", "PWM", "SRV"].iter().any(|k| names::norm(x).contains(k)));
+        out.push(if let Some(l) = parts::load(Kind::Connector, &cx.nl.components[c].value) {
+            l
+        } else if switched(c) {
+            (0.5, "a switched off-board load (a motor or solenoid), about 500 mA")
+        } else if servo && n <= 4 {
+            (0.2, "a hobby servo, about 200 mA moving")
+        } else if is_pi(c) {
+            // The Pi draws on its 5 V pins (2 and 4); its 3V3 pins are its own regulator's output.
+            if !nets.iter().any(|n| cx.nodes[n.as_str()].iter().any(|x| x.reference == c && (x.pin == "2" || x.pin == "4"))) {
+                continue;
+            }
+            (0.5, "a Raspberry Pi on its 40-pin header, about 500 mA")
+        } else if signals > 0 && n >= 4 {
+            (0.1, "a module on an expansion header, about 100 mA")
+        } else if signals > 0 {
+            (0.01, "a sensor on a small header, about 10 mA")
+        } else {
+            (0.1, "an unknown load on a power output connector, about 100 mA (a guess)")
+        });
+    }
+    out
 }
 
 /// A group's estimate: the typical draw summed from its loads, and the most its source allows.
