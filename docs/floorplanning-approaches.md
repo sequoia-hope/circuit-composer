@@ -114,7 +114,7 @@ while relative order is kept ([Ren, Pan, Alpert and Villarrubia, DAC 2005](https
 extended with legalization in TCAD 2007). It is a migration and legalization method: it takes a
 good placement and spreads it, and has no wirelength objective of its own. ultraroute built it
 (`copper-morph::diffuse`) and measured no gain: spreading by routing demand made every board worse
-to route (bluebuzz-1024 10 open connections unspread, 29 spread). Its ROADMAP gives the reasons:
+to route (on one 6-layer board, 10 open connections unspread, 29 spread). Its ROADMAP gives the reasons:
 pin demand near fine-pitch parts put peak density at 2.4–7 against a target of 0.8, so nearly
 every part moved its full limit, and a moved board started its route afresh in the same time
 budget. Fast, deterministic, no data. Evidence: chip-only in the literature, negative so far on our
