@@ -52,6 +52,7 @@ one from loose connections. For that, each part or package also needs:
 | **Interface rules** | I2C: one pull-up pair per bus, value by bus capacitance and speed; addresses unique on a bus | Adding the support circuitry a connection implies |
 | **Electrical domains** | IOVDD 3.3 V, so a 5 V STAT line needs a divider or shifter | Refusing or fixing incompatible connections |
 | **Board-level recipes** | USB-C sink (CC pull-downs, ESD), 1S LiPo with load sharing, an LED chain | Blocks a person names by function |
+| **Power contracts** (proposed) | RP2350 IOVDD: 1.62–3.63 V, its draw at a stated clock; NCP730 OUT: 3.247–3.373 V from IN at up to 150 mA, 480 mV dropout max at 150 mA | The supply rule: choosing a regulator for each rail, with alternatives (system spec, Supply selection) |
 | **Placement hints and layouts** | already there: `near`, rigid generated layouts, separations | The floorplanner |
 
 The pin solver is a small constraint problem: interfaces to controller instances, signals to
@@ -183,6 +184,16 @@ and AI-filled items are tinted until accepted. Opening an instance shows its pac
 read-only. The KiCad schematic is an output (`tools/compose_kicad.py`, a box per block). It is
 viewed in pcbview, not edited here.
 
+**Supplies panel (proposed).** One row per rail: its voltage, what feeds it, its budget (typical
+and maximum, each draw with its source, recognised figures marked), and the provider. Opening a
+rail lists every candidate the supply rule considered, in rank order. Each shows pass or fail
+with its reasons ("dropout: 2.52 V at a 3.0 V cell, below VREG_AVDD's and USB_OTP_VDD's
+3.135 V"), its loss at
+typical load, parts, area, whether a verified layout exists, and stock. Choosing one writes the
+rail's `supply` into the loose composition and solves again. The graph and the floorplan
+follow, as recipe parameters do today. A chosen option that fails stays chosen, with its
+failures in Checks.
+
 ### 2. Board (the main one)
 
 The floorplan canvas. Layers you can toggle:
@@ -245,6 +256,16 @@ A table rather than a canvas:
 - the domain tree;
 - protection paths as ordered lists;
 - each value's citations into the library, with disputes shown as disputes.
+
+### 6. Library (proposed)
+
+The database itself, read-only, browsable without a board open: every package (variants, pins
+and their functions, interfaces, power contracts, rules with citations, layouts with their
+verify reports and bench numbers, sourcing and stock dates), every recipe (parameters, choices,
+ports, its circuit for the chosen parameters), the interface types and the stocked parts. Filters
+by what a thing provides or needs ("3.3 V out, ≥ 300 mA, from 3.0–4.2 V") run the supply
+rule's own checks, so the library and the Supplies panel never disagree. From a package or
+recipe, **Add to board** puts it in the loose composition.
 
 ### Checks (always visible)
 
@@ -535,7 +556,15 @@ Separate from the app's milestones A–F, in this order:
      LED chain or a pull-up the rules add, borrows a drawn part's geometry by footprint and
      starts on the pin it sits near. With the drawn placement and the solved pins, the battery
      board has 294 mm of wire against the drawn board's 241 mm. Refined, it has 226 mm.
-5. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
+5. **Supply selection** (proposed 2026-11-07; system spec, Supply selection):
+   - power contracts in `ports.json` for the twelve packages and the power recipes, cited;
+   - the supply rule in the pin solver and `ccomp check supplies`, so that rp2350-battery's
+     `loose.json` composes without its `reg` instance and shows the TLV62569 and NCP730 with
+     their reasons;
+   - then in the app the Supplies panel and the Library workspace;
+   - then more providers where the rule shows a gap (a buck-boost, so a cell runs to empty at
+     3.3 V).
+6. **The parts browser**: LCSC/JLC first, then KiCad libraries and GitHub boards, then the other
    suppliers as plug-ins.
 
 ## Open questions

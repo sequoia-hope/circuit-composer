@@ -94,6 +94,33 @@ packages/rp2350/
 
 **RP2350 worked example.** Inputs: the RP2350 datasheet, the hardware design guide PDF, and Raspberry Pi's minimal reference KiCad board. Output: the folder above, with the reference layout mined as the first template and the core regulator as the first verified sub-block.
 
+## Supply selection
+
+**Status: proposed 2026-11-07, not yet built.** The goal: a person names the chips and where power comes in, and classical algorithms fill in every regulator between them, with the alternatives shown. Today a loose composition names its regulator instance by hand, and the pin solver's only rule that adds circuitry is the I2C pull-up rule. This adds a second one for power. It needs three things the packages don't yet hold in a matchable form.
+
+**1. Power contracts on ports.** A power port's function in `ports.json` (and a recipe port) gains a `power` object, every figure cited like the rest of the package. `nominal_v` stays as the logic-level solver reads it.
+
+- **`power_in`**: `v`, the recommended operating range (the RP2350's IOVDD, 1.62–3.63 V); `draw_a`, `{typ, max, when}`, at a stated condition (the RP2350 at 150 MHz with both cores running). A port with no cited draw takes the recogniser's part-based figure (`recognise::parts::load`), marked recognised, never hard.
+- **`power_out`**: `from`, the input port it is fed from; `topology` (`ldo`, `buck`, `boost`, `buck_boost`, `charger`, `switch`, `diode`); `v_out`, the regulated range (the NCP730's 3.247–3.373 V); `i_max_a`; `vin`, the input range over which it runs (the `from` port's `v`); and how it behaves below regulation: `dropout_v` at a current for an LDO, `r_on_ohm` for a buck at 100 % duty or a switch, `off_below_v` for one that turns off. Optional: `efficiency` at a stated load and input, `iq_a`.
+- **`enable`**: the port that turns it on and what to do with it when nothing drives it (`tie: VIN` when the datasheet allows it; the TLV62569's EN must not float).
+
+**2. Sources.** A rail fed from outside the board is a source: a recipe port with `volts` and `i_max_a` (`usb_c_sink`'s VBUS, 4.75–5.5 V, 0.5 A at default USB power), or a connector under the loose composition's `sources` (`"VBAT": {"v": [3.0, 4.2], "kind": "lipo", "via": "J2.1"}`). The ranges are the person's to narrow: a cell cut off at 3.5 V is `[3.5, 4.2]`.
+
+**3. The supply rule.** It runs in the pin solver after the connections are solved, so it sees every consumer. For each rail the loose composition names (`rails`, today `{"+3V3": 3.3}`, which may become `{"v": 3.3, "from": "VSYS", "supply": "tlv62569"}`) that has consumers and no `power_out` on it:
+
+- **Budget.** It sums the rail's draws, typical and maximum. A downstream regulator counts as its output power over its efficiency at its lowest input (or its output current for an LDO). Rails are worked from the loads up, so a chain (USB to a charger to a cell, then a buck) is costed end to end.
+- **Candidates.** Every package variant and recipe with a `power_out` whose `v_out` lies inside every consumer's `v` on the rail.
+- **Checks, each with its reason when it fails:**
+  - its `vin` covers the input rail's whole range;
+  - `i_max_a` ≥ the rail's maximum draw;
+  - across the input range, the output stays inside every consumer's `v`, counting where it leaves regulation: an LDO follows `VIN − dropout`, a buck at 100 % duty `VIN − I·r_on`. This is the check that decides a LiPo board: whether a 3.3 V regulator is acceptable depends on what its consumers accept at the bottom of the cell, not on whether it stays in regulation. On an RP2350 rail the floor is 3.135 V (VREG_AVDD and USB_OTP_VDD), so an NCP730 (up to 480 mV dropout) fails on a cell taken to 3.0 V, and the result says so;
+  - its dissipation against the package's cited θJA and junction limit, when both are cited (otherwise a warning that it wasn't checked).
+- **Ranking**, in order: passes every check; has a verified layout for the board's layer count; lower power lost at typical load at the input's nominal voltage (within 10 % counts as a tie); fewer parts; smaller area; every part in stock at the board's assembler. The order is fixed and stated so that a person can see why one option ranks above another.
+- **Result.** The best option is added to the solved composition as an instance (`as`, else `reg_<rail>`), its EN handled as its `enable` says, like the I2C rule's `added`. The solver result gains `supplies`: per rail, its budget and every candidate with pass or fail, its reasons, its loss, parts and area. The app reads this. A rail's `supply` in the loose composition pins the choice. A pinned option that fails a check is still placed, with the check as an error.
+- **Checking a drawn board.** `ccomp check supplies` runs the same budget and checks against a hand-drawn composition's own regulators, so `compose.json` boards are checked too.
+
+**Out of scope for now:** the rule fills one regulator between named rails; it doesn't invent intermediate rails or power paths (load sharing stays a recipe the person names). Also out of scope: settable outputs (a buck's divider computed for any voltage, as recipes compute values), power sequencing, and modes (a consumer whose need holds only when USB is present).
+
 ## Tool interfaces
 
 Every tool is a command-line program that reads files and writes files plus a JSON result. The agent never parses free-form logs.
@@ -168,6 +195,7 @@ Each milestone ends with something verified end to end, not a partial layer acro
 | One verifier, shared with ultraroute, grown from `crates/verify` | Two checkers drift apart; kept independent of the block generators so a wrong model can't pass its own output |
 | Current-sized widths: `min_mm` only from a figure someone stands behind, `opt_mm` from any | The 50-board hand check found recognised currents within 2× on only 59 of 171 nets, mostly low; an `opt_mm` that is wrong costs no connection (ultraroute e54f7e9) |
 | A rigid block reaches the router as a KiCad group | No new format: ultraroute already keeps a group's parts still and its pours clear; vendor reference copper (`extract_layout.py`) can travel with it |
+| Supplies are chosen by a fixed-order rule over cited power contracts (proposed) | Classical and explainable: every option shows the check it failed, and a person's choice overrides the rank without hiding a failing check |
 
 **Open questions**
 
