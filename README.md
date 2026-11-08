@@ -7,7 +7,7 @@ constraint definition and physical design planning. The full design is in
 
 It sits between two sibling projects:
 
-- **[easy_pcb](../easy_pcb)** runs a board from requirements to fab outputs with the
+- **[Boardroom](../boardroom)** (formerly easy_pcb) runs a board from requirements to fab outputs with the
   `pcb-design` skill. Its phase-3 classification (`design/nets.csv`) imports into an intent file,
   and its worked example, easy2350, is the first annotated board here.
 - **[ultraroute](../ultraroute)** is the router. It takes this project's output: a KiCad board
@@ -162,14 +162,14 @@ $ccomp classes                                         # net class presets and b
 $ccomp netlist path/to/board.kicad_sch                 # the netlist as JSON (runs kicad-cli)
 $ccomp validate boards/easy2350/intent.json            # pass/fail, findings per net and block
 $ccomp resolve boards/easy2350/intent.json             # nets with preset defaults filled in
-$ccomp import easy-pcb ../easy_pcb/examples/easy2350/design/nets.csv \
-    --board easy2350 --netlist ../easy_pcb/examples/easy2350/hw/easy2350/a/easy2350.kicad_sch \
-    -o draft.json                                      # draft intent from easy_pcb
+$ccomp import easy-pcb ../boardroom/examples/easy2350/design/nets.csv \
+    --board easy2350 --netlist ../boardroom/examples/easy2350/hw/easy2350/a/easy2350.kicad_sch \
+    -o draft.json                                      # draft intent from Boardroom
 ```
 
 Any command can work on a board in a project instead of being given every path:
 `--project DIR` (`-C`) and `--board NAME` (`-b`) fill in the inputs it was not given from the
-board's files. Boards live under `compose/<board>/` in an easy_pcb project and under
+board's files. Boards live under `compose/<board>/` in a Boardroom project and under
 `boards/<board>/` here, each optionally with a `board.json` naming where its files are
 (`crates/ccomp/src/project.rs`). Outputs are still written only with `-o`.
 
@@ -214,7 +214,7 @@ Composing and floorplanning (milestone 5):
 ```sh
 python3 tools/circuit_check.py packages/*/schematic/circuit.*.json --kicad 9   # symbols, footprints, pins
 $ccomp compose boards/rp2350-battery/compose.json -o composed.json --intent intent.json   # + the board's intent
-python3 tools/compose_kicad.py composed.json OUT_DIR                           # schematic, ERC, board
+python3 tools/compose_kicad.py composed.json OUT_DIR --easy-pcb ../boardroom    # schematic, ERC, board
 $ccomp floorplan OUT_DIR/BOARD.kicad_pcb --composed composed.json --spec boards/rp2350-battery/floorplan.json -o placement.json
 $ccomp floorplan ... --evaluate PLACED.kicad_pcb                               # score a person's placement
 python3 tools/apply_placement.py OUT_DIR/BOARD.kicad_pcb placement.json -o placed.kicad_pcb   # + KiCad DRC

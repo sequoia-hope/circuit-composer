@@ -2,7 +2,7 @@
 """Write a composed board (`ccomp compose -o composed.json`) as a KiCad project: schematic,
 board and library tables, through easy_pcb's KiCad writer.
 
-    compose_kicad.py COMPOSED.json OUT_DIR [--packages packages] [--easy-pcb ~/Software/easy_pcb]
+    compose_kicad.py COMPOSED.json OUT_DIR [--packages packages] [--easy-pcb DIR]
 
 The schematic is drawn by rule, not by hand: one dashed box per instance and block (the
 board's own parts in a box of their own), each pin a short wire and a net label, unused pins
@@ -12,6 +12,9 @@ its `kicad/` folder are copied into OUT_DIR/lib and named in the project's libra
 The board is the schematic pushed with easy_pcb's update_pcb: every footprint with its nets,
 stacked at the origin for the floorplanner. KiCad's ERC runs on the result; its report is
 written beside it. Prints one JSON result.
+
+The writer is easy_pcb's, now in Boardroom: `--easy-pcb` or `$EASY_PCB` names that checkout
+(the folder holding `.claude/skills/pcb-design`). There is no default.
 """
 import argparse
 import json
@@ -35,10 +38,15 @@ def main():
     ap.add_argument("composed")
     ap.add_argument("out")
     ap.add_argument("--packages", default="packages")
-    ap.add_argument("--easy-pcb", default=os.path.expanduser("~/Software/easy_pcb"))
+    ap.add_argument("--easy-pcb", default=os.environ.get("EASY_PCB"), help="the Boardroom (easy_pcb) checkout whose KiCad writer to use; else $EASY_PCB")
     ap.add_argument("--lib", action="append", default=[], help="a folder of the board's own .kicad_sym files and .pretty libraries")
     a = ap.parse_args()
-    sys.path.insert(0, str(Path(a.easy_pcb) / ".claude/skills/pcb-design/scripts"))
+    if not a.easy_pcb:
+        sys.exit("name the Boardroom (easy_pcb) checkout with --easy-pcb DIR or $EASY_PCB")
+    scripts = Path(a.easy_pcb).expanduser() / ".claude/skills/pcb-design/scripts"
+    if not (scripts / "kicad_write.py").is_file():
+        sys.exit(f"no KiCad writer at {scripts / 'kicad_write.py'}: --easy-pcb must name a Boardroom (easy_pcb) checkout")
+    sys.path.insert(0, str(scripts))
     import kicad_write as kw  # noqa: E402
 
     comp = json.load(open(a.composed))

@@ -133,6 +133,11 @@ recorded on both claims, including a package's `rules.json`.
 
 `ccomp compile INTENT --pcb BOARD -o routing.json --dru OUT.kicad_dru --dru-base BOARD.kicad_dru`
 writes ultraroute's regions file and KiCad length rules, keeping the board's own rules.
+It also writes track widths sized from each net's current, in `routing.json` `widths` and as
+`.kicad_dru` `track_width (min ..) (opt ..)` rules. Only a hard current claim from a
+requirement, datasheet, expert or simulation sets the hard `min_mm`; any other current (a
+recognised one included) sets only `opt_mm`, which the router widens to where there is room.
+To make a width hard, give the net a hard, cited current.
 `ccomp check regions BOARD --routing routing.json` lists copper that breaks a region rule. Run it
 on a router's output before accepting it.
 
