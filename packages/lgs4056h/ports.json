@@ -2,6 +2,21 @@
  "note": "Pins by number; what each function means, its supply and default net class. DFN2x2-8 numbering from Table 3.2 (p.3) and the right-hand (DFN) drawing of Picture 3 (p.3); the left-hand drawing there labels VCC '3', a typo (Table 3.2 and the DFN drawing say 4). The KiCad symbol Battery_Management:TP4056-42-ESOP8 has the same nine numbers and functions (checked pin by pin); its names differ for two pins: ~{STDBY} is the LGS4056H's DONE (pin 6) and EPAD its PAD (9).",
  "functions": {
   "VCC": {
+   "power": {
+    "v": [
+     4.0,
+     6.5
+    ],
+    "draw_a": {
+     "typ": 0.00015,
+     "when": "VCC = 5 V, CE high, BAT suspended (TJ = 25 C); no figure is given while charging, and no maximum"
+    },
+    "note": "Charging range: charging starts above the VCC threshold, 4.0 V typical rising (3.9 V falling), and stops above the input overvoltage protection, 6.5 V typical (Table 4 p.4). Neither has a tolerance; VCC operation voltage is given only as 5 V typical. The chip withstands 4-24 V at its input (Features p.1) and 28 V absolute maximum (Table 3.1 p.3), but does not charge above VOVP. With CE low it draws 40 uA typ (Table 4 p.4)",
+    "citation": {
+     "source": "lgs4056h_ds",
+     "locator": "Table 4 p.4; Features p.1; Table 3.1 p.3"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
@@ -15,6 +30,28 @@
    }
   },
   "BAT": {
+   "power": {
+    "from": "VCC",
+    "topology": "charger",
+    "v_out": [
+     4.2,
+     4.2
+    ],
+    "i_max_a": 0.05,
+    "r_on_ohm": 1.2,
+    "off_below_v": 3.9,
+    "enable": {
+     "function": "CE",
+     "on_when_open": false,
+     "tie": "VCC",
+     "note": "High enables charging, low shuts it down; the datasheet says connect it to VCC or an MCU and gives no default for an open pin (Table 3.2 p.3). The package circuit ties it to VCC"
+    },
+    "note": "LGS4056HDA, 4.20 V. v_out: VCV 4.20 V typical at TJ = 25 C, with no tolerance printed (Table 4 p.4); Figure 9.e (p.10) plots a typical 4.19-4.21 V over temperature, not a limit, so it is not used. i_max_a is the charge current this circuit programs: below 300 mA I_BAT = 900 / R_PROG (mA, kohm; Table 3.2 p.3, Set Output Current p.7) with the package circuit's 18 kohm = 900 / 18 = 50 mA; the datasheet tabulates only 1-9 kohm (Table 4 p.4) and gives no tolerance. Below regulation the PMOS pass device's RDS(ON) is 1200 mOhm typical, no maximum (Table 4 p.4); p.7 says 1 A charging needs more than 1.2 V of input-output difference. It stops below the VCC falling threshold, 3.9 V typical (Table 4 p.4). No theta_ja is given for any package; the over-temperature protection is at TJ 150 C typ (Table 4 p.4) and the features quote a -40 to 85 C junction range (p.1) against an operating temperature of -40 to 125 C (Table 3.1 p.3), so no tj_max is given here. Linear: no efficiency figure. No separate iq_a: the chip's draw is on VCC",
+    "citation": {
+     "source": "lgs4056h_ds",
+     "locator": "Table 3.2 p.3; Table 4 p.4; Set Output Current p.7"
+    }
+   },
    "kind": "power_out",
    "class": "POWER",
    "nominal_v": [
@@ -39,7 +76,7 @@
   "PROG": {
    "kind": "analog_in",
    "class": "ANALOG",
-   "note": "Charge current set and monitor: a 1 % resistor RPROG to GND. I_BAT = 1000 / R_PROG above 300 mA, I_BAT = 900 / R_PROG below 300 mA (mA, kohm; i.e. (VPROG / RPROG) x 900 with VPROG 1 V in constant current). 1 k = 1 A, 2 k = 0.5 A, 9 k = 0.1 A. Floating PROG (RPROG removed) shuts the charger down. Absolute maximum 6 V. High impedance: keep the RPROG trace short",
+   "note": "Charge current set and monitor: a 1 % resistor RPROG to GND. I_BAT = 1000 / R_PROG above 300 mA, I_BAT = 900 / R_PROG below 300 mA (mA, kohm; i.e. (VPROG / RPROG) x 1000 or x 900, with VPROG 1 V in constant current). 1 k = 1 A, 2 k = 0.5 A, 9 k = 0.1 A. Floating PROG (RPROG removed) shuts the charger down. Absolute maximum 6 V. High impedance: keep the RPROG trace short",
    "citation": {
     "source": "lgs4056h_ds",
     "locator": "Table 3.2 p.3; Set Output Current p.7; CE Controlled Charging p.8; p.11"

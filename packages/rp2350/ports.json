@@ -108,6 +108,25 @@
    }
   },
   "IOVDD": {
+   "power": {
+    "v": [
+     1.62,
+     3.63
+    ],
+    "draw_a": {
+     "typ": 0.000453,
+     "when": "hello_usb (pico-examples) at default clocks (150 MHz), all supplies 3.3 V, room temperature, flash on QSPI, USB to a host",
+     "citation": {
+      "source": "rp2350_ds",
+      "locator": "§14.9.7.3 Table 1693, p.1343"
+     }
+    },
+    "note": "The chip's own GPIO pad current with GPIOs unloaded; what the pins source into loads is counted on those loads. Below 2.5 V the GPIO VOLTAGE_SELECT registers must be set (Table 1688 note a)",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     1.8,
@@ -121,6 +140,25 @@
    }
   },
   "QSPI_IOVDD": {
+   "power": {
+    "v": [
+     1.62,
+     3.63
+    ],
+    "draw_a": {
+     "typ": 2.2e-05,
+     "when": "hello_usb (pico-examples) at default clocks (150 MHz), all supplies 3.3 V, room temperature, flash on QSPI, USB to a host",
+     "citation": {
+      "source": "rp2350_ds",
+      "locator": "§14.9.7.3 Table 1693, p.1343"
+     }
+    },
+    "note": "The QSPI pads only; the flash's own supply current is the flash part's",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     1.8,
@@ -134,6 +172,26 @@
    }
   },
   "USB_OTP_VDD": {
+   "power": {
+    "v": [
+     3.135,
+     3.63
+    ],
+    "draw_a": {
+     "typ": 0.00057,
+     "max": 0.00605,
+     "when": "hello_usb (pico-examples) at default clocks (150 MHz), all supplies 3.3 V, room temperature, flash on QSPI, USB to a host",
+     "citation": {
+      "source": "rp2350_ds",
+      "locator": "§14.9.7.3 Table 1693, p.1343"
+     }
+    },
+    "note": "max is USB boot mode's peak during boot (Table 1693); typ is hello_usb's",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     3.3,
@@ -147,6 +205,26 @@
    }
   },
   "ADC_AVDD": {
+   "power": {
+    "v": [
+     1.62,
+     3.63
+    ],
+    "draw_a": {
+     "typ": 1e-06,
+     "max": 0.000142,
+     "when": "hello_usb (pico-examples) at default clocks (150 MHz), all supplies 3.3 V, room temperature, flash on QSPI, USB to a host",
+     "citation": {
+      "source": "rp2350_ds",
+      "locator": "§14.9.7.3 Table 1693, p.1343"
+     }
+    },
+    "note": "max is hello_adc's, with the ADC converting. ADC performance is compromised below 2.97 V (Table 1688 note c)",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     3.3,
@@ -160,6 +238,17 @@
    }
   },
   "DVDD": {
+   "power": {
+    "v": [
+     1.05,
+     1.16
+    ],
+    "note": "Short-term transients within +/-100 mV (Table 1688 note b). Fed by the core regulator inside the package circuit, so its current is on VREG_VIN",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     1.1,
@@ -173,6 +262,25 @@
    }
   },
   "VREG_VIN": {
+   "power": {
+    "v": [
+     2.7,
+     5.5
+    ],
+    "draw_a": {
+     "typ": 0.0147,
+     "when": "hello_usb (pico-examples) at default clocks (150 MHz), all supplies 3.3 V, room temperature, flash on QSPI, USB to a host",
+     "citation": {
+      "source": "rp2350_ds",
+      "locator": "§14.9.7.3 Table 1693, p.1343"
+     }
+    },
+    "note": "The core regulator's input: the core and peripherals' DVDD current, converted. No maximum is given; it rises with clock and load (§14.9.7.4, Figure 156)",
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     2.7,
@@ -186,6 +294,24 @@
    }
   },
   "VREG_AVDD": {
+   "power": {
+    "v": [
+     3.135,
+     3.63
+    ],
+    "draw_a": {
+     "typ": 0.000216,
+     "when": "hello_usb (pico-examples) at default clocks (150 MHz), all supplies 3.3 V, room temperature, flash on QSPI, USB to a host",
+     "citation": {
+      "source": "rp2350_ds",
+      "locator": "§14.9.7.3 Table 1693, p.1343"
+     }
+    },
+    "citation": {
+     "source": "rp2350_ds",
+     "locator": "§14.9.5 Table 1688, pp.1339-1340"
+    }
+   },
    "kind": "power_in",
    "nominal_v": [
     3.3,

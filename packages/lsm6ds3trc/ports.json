@@ -146,6 +146,25 @@
    }
   },
   "VDD": {
+   "power": {
+    "v": [
+     1.71,
+     3.6
+    ],
+    "draw_a": {
+     "typ": 0.0009,
+     "when": "Accelerometer and gyroscope both on in high-performance mode at ODR = 1.6 kHz, Vdd = 1.8 V, 25 °C",
+     "citation": {
+      "source": "lsm6ds3trc_ds",
+      "locator": "§4.2 Table 4 (IddHP) p.24"
+     }
+    },
+    "note": "Table 4 gives combined gyroscope + accelerometer figures with no VDD/VDDIO split, so they sit on VDD. Typical only; no maximum is given. High-performance at 1.6 kHz (0.90 mA) is the highest listed mode; normal mode at 208 Hz 0.45 mA, low-power at 52 Hz 0.29 mA, power-down 3 µA",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
@@ -159,6 +178,17 @@
    }
   },
   "VDDIO": {
+   "power": {
+    "v": [
+     1.62,
+     3.6
+    ],
+    "note": "Datasheet range is 1.62 V to Vdd + 0.1 V; 3.6 is VDD's maximum, the bound when VDDIO shares VDD's rail, and VDDIO must never exceed VDD by more than 0.1 V. No separate VDDIO current is given; the chip's draw is counted on VDD",
+    "citation": {
+     "source": "lsm6ds3trc_ds",
+     "locator": "§4.2 Table 4 p.24"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [

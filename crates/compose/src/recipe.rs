@@ -134,8 +134,26 @@ pub struct RPort {
     pub levels: Option<Value>,
     #[serde(default)]
     pub supply: Option<String>,
+    /// A power contract, as on a package's `power_in` or `power_out` function, with `dir` (`in` or
+    /// `out`) saying which. Its numbers may be expressions of the parameters. With one, the
+    /// expanded port's function is `power_in` or `power_out` (the circuit port stays `supply`).
+    #[serde(default)]
+    pub power: Option<Value>,
     #[serde(default)]
     pub note: Option<String>,
+}
+
+/// The power contract fields that hold numbers, which a recipe may give as expressions.
+const POWER_NUMBERS: [&str; 13] = ["v", "v_out", "i_max_a", "r_on_ohm", "off_below_v", "iq_a", "theta_ja_c_per_w", "tj_max_c", "typ", "max", "at_a", "value", "vin"];
+
+/// A recipe's power contract with its expressions evaluated.
+fn eval_power(v: &Value, key: &str, env: &Env) -> Result<Value, String> {
+    Ok(match v {
+        Value::String(s) if POWER_NUMBERS.contains(&key) => json!(env.eval(s)?),
+        Value::Array(a) => Value::Array(a.iter().map(|x| eval_power(x, key, env)).collect::<Result<_, _>>()?),
+        Value::Object(o) => Value::Object(o.iter().map(|(k, x)| Ok((k.clone(), eval_power(x, k, env)?))).collect::<Result<_, String>>()?),
+        other => other.clone(),
+    })
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -419,6 +437,16 @@ pub fn expand(r: &Recipe, given: &BTreeMap<String, Value>, stock: &Stock) -> Res
             }
             func["supply"] = json!(sp);
         }
+        if let Some(pw) = &p.power {
+            let mut pw = eval_power(pw, "", &env).map_err(|e| format!("{}: {name}'s power: {e}", r.name))?;
+            let dir = pw.as_object_mut().and_then(|o| o.remove("dir"));
+            func["kind"] = match dir.as_ref().and_then(Value::as_str) {
+                Some("in") => json!("power_in"),
+                Some("out") => json!("power_out"),
+                _ => return Err(format!("{}: {name}'s power needs dir: in or out", r.name)),
+            };
+            func["power"] = pw;
+        }
         functions.insert(name.clone(), func);
         pins_json.insert(name.clone(), json!({ "name": name, "function": name }));
     }
@@ -505,6 +533,29 @@ mod tests {
         assert!(!x.circuit.nets.contains_key("D3_DO"));
         assert_eq!(x.circuit.ports["VDD"].pins, ["D1.1", "D2.1", "D3.1"]);
         assert_eq!(x.volts["VDD"], (3.7, 5.5));
+    }
+
+    #[test]
+    fn power_contracts_take_expressions() {
+        // An LED chain's draw is n times one LED's: the expanded function is a power_in with it.
+        let r = |dir: &str| -> Recipe {
+            serde_json::from_value(json!({
+                "name": "chain", "summary": "a chain",
+                "params": { "n": { "default": 3 }, "each_a": { "default": 0.012 } },
+                "parts": { "D{i}": { "for": "1..n", "reference_ref": "D{i}", "symbol": "s", "value": "v", "footprint": "f" } },
+                "ports": { "VDD": { "kind": "supply", "pins": ["D{i}.1 for 1..n"],
+                    "power": { "dir": dir, "v": [3.7, 5.5], "draw_a": { "max": "n * each_a", "when": "all on" }, "citation": { "source": "s", "locator": "p.1" } } } }
+            }))
+            .unwrap()
+        };
+        let x = expand(&r("in"), &[("n".to_string(), json!(10))].into(), &Stock::default()).unwrap();
+        let f = &x.ports["functions"]["VDD"];
+        assert_eq!(f["kind"], "power_in");
+        assert!((f["power"]["draw_a"]["max"].as_f64().unwrap() - 0.12).abs() < 1e-9, "{f}");
+        assert!(f["power"].get("dir").is_none());
+        assert_eq!(x.circuit.ports["VDD"].kind, "supply");
+        let e = expand(&r("sideways"), &BTreeMap::new(), &Stock::default()).unwrap_err();
+        assert!(e.contains("dir: in or out"), "{e}");
     }
 
     #[test]

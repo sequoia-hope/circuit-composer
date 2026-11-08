@@ -2,6 +2,17 @@
   "note": "Pins by number for the SOT-23-5 (DBV) variant; what each function means and its default net class. The DBV variant has no power-good pin: PG exists only on TLV62569PDDC and TLV62569PDRL (Device Comparison, p.1; Pin Functions, p.3).",
   "functions": {
     "VIN": {
+      "power": {
+        "v": [
+          2.5,
+          5.5
+        ],
+        "note": "Recommended operating range. The converter's own draw is its quiescent current, on VOUT's iq_a; the supply rule adds the load's input current",
+        "citation": {
+          "source": "tlv62569_ds",
+          "locator": "§6.3 p.4"
+        }
+      },
       "kind": "power_in",
       "class": "POWER",
       "supply": "VIN",
@@ -56,6 +67,36 @@
         "citation": {
           "source": "tlv62569_ds",
           "locator": "p.3 (absolute maximum ratings); p.4 (electrical characteristics)"
+        }
+      }
+    },
+    "VOUT": {
+      "kind": "power_out",
+      "class": "POWER",
+      "supply": "VIN",
+      "note": "Not a pin: the package circuit's output, past L1 and the RFB_TOP/RFB_BOT divider (circuit port VOUT). Described here so the supply rule can match it",
+      "power": {
+        "from": "VIN",
+        "port": "VOUT",
+        "topology": "buck",
+        "v_out": [
+          3.198,
+          3.441
+        ],
+        "i_max_a": 2.0,
+        "r_on_ohm": 0.152,
+        "iq_a": 3.5e-05,
+        "theta_ja_c_per_w": 188.2,
+        "tj_max_c": 125,
+        "enable": {
+          "function": "EN",
+          "on_when_open": true,
+          "note": "The package circuit's R_EN (1 MOhm to VIN) holds EN high; the chip's own EN must not float (§7.4.1 p.7)"
+        },
+        "note": "v_out: VFB 0.588-0.612 V (p.4) times 1 + 453k/100k with both resistors at 1 % worst case (3.318 V nominal). In Power Save Mode the output rises slightly above nominal (§7.3.1 p.6, not quantified). i_max_a is the recommended maximum output current (§6.3 p.4); this circuit's caps and L1 (3.4 A) were picked for it. Below regulation it runs at 100 % duty, VIN(min) = VOUT + IOUT x (RDS(on) + RL) (§7.3.2 p.6): r_on_ohm is the high-side RDS(on), 100 mOhm typical at VIN = 5 V with no maximum given (p.5), plus L1's 52 mOhm maximum DCR (smnr4020_ds p.4). iq_a typical, not switching (p.4). theta_ja for DBV (SOT-23-5) on the JEDEC board (§6.4 p.4); tj_max the operating maximum (§6.3 p.4)",
+        "citation": {
+          "source": "tlv62569_ds",
+          "locator": "§6.3 p.4; §6.4 p.4; §6.5 pp.4-5; §7.3.2 p.6; Equation 2 p.9"
         }
       }
     }

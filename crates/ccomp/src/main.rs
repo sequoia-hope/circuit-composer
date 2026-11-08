@@ -1121,8 +1121,14 @@ fn recipes_check(root: &Path) -> Result<Value, String> {
     let sources: BTreeMap<String, Value> = serde_json::from_value(read_json_value(&root.join("library/sources.json"))?).map_err(|e| format!("library/sources.json: {e}"))?;
     let mut errors = Vec::new();
     for (name, r) in &recipes {
-        if let Err(e) = compose::recipe::expand(r, &BTreeMap::new(), &stock) {
-            errors.push(e);
+        match compose::recipe::expand(r, &BTreeMap::new(), &stock) {
+            Err(e) => errors.push(e),
+            // Power contracts, at the default parameters, cite library sources.
+            Ok(x) => {
+                let functions: BTreeMap<String, Value> = serde_json::from_value(x.ports["functions"].clone()).unwrap_or_default();
+                let known: std::collections::BTreeSet<String> = sources.keys().cloned().collect();
+                errors.extend(interfaces::power::check(&functions, Some(&known)).into_iter().map(|e| format!("{name}: {e}")));
+            }
         }
         for c in &r.citations {
             match c["source"].as_str() {

@@ -20,6 +20,26 @@
    }
   },
   "VS": {
+   "power": {
+    "v": [
+     2.7,
+     5.5
+    ],
+    "draw_a": {
+     "typ": 0.0018,
+     "max": 0.0024,
+     "when": "Quiescent current, VS = 5 V, VSENSE = 0 mV, TA = 25 °C",
+     "citation": {
+      "source": "ina240_ds",
+      "locator": "§7.5 Electrical Characteristics (IQ) p.5"
+     }
+    },
+    "note": "Over TA = -40 to 125 °C the maximum rises to 2.6 mA (p.5). The output's load current comes through VS on top of this; the output swings only within VS (p.23)",
+    "citation": {
+     "source": "ina240_ds",
+     "locator": "§7.3 Recommended Operating Conditions p.4"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [

@@ -2,6 +2,17 @@
  "note": "Pins by ball; what each function means, its supply and default net class. YZV (DSBGA-4) ball map from SLVSB49F Table 1 and Pin Functions (p.3): A1 VOUT, A2 VIN, B1 GND, B2 ON. The KiCad symbol Power_Management:AP22913CN4 (Diodes' pin-compatible AP22913) has the same four ball numbers with names OUT, IN, GND, ON (checked ball by ball), and its footprint Package_CSP:WLCSP-4_0.89x0.89mm_Layout2x2_P0.5mm puts A1 top-left, A2 top-right, B1 bottom-left, B2 bottom-right at 0.5 mm pitch: the datasheet's laser-marking (top) view turned 180 degrees, not mirrored.",
  "functions": {
   "VIN": {
+   "power": {
+    "v": [
+     1.4,
+     5.5
+    ],
+    "note": "Recommended operating range (§8.3 p.4). The switch's own draw is its quiescent current, on VOUT's iq_a; the supply rule adds the load's current",
+    "citation": {
+     "source": "tps22913_ds",
+     "locator": "§8.3 p.4"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
@@ -15,6 +26,29 @@
    }
   },
   "VOUT": {
+   "power": {
+    "from": "VIN",
+    "topology": "switch",
+    "v_out": [
+     1.4,
+     5.5
+    ],
+    "i_max_a": 2.0,
+    "r_on_ohm": 0.15,
+    "iq_a": 2e-06,
+    "theta_ja_c_per_w": 189.1,
+    "tj_max_c": 125,
+    "enable": {
+     "function": "ON",
+     "on_when_open": false,
+     "note": "ON must not float (§7 p.3, §11.1.2 p.20); the package circuit's R_ON (10 kOhm to GND) holds it low, so left undriven the switch is off. A host GPIO (VIH 1.1 V) drives it high"
+    },
+    "note": "A load switch, not a regulator: VOUT passes VIN through less ILOAD x rON (§10.3.3 Equation 1, p.19; VOUT recommended up to VIN, §8.3 p.4), so v_out is VIN's recommended range. i_max_a is the maximum continuous switch current (§8.1 p.4; 2.5 A pulsed under 300 us at 2 % duty). r_on_ohm is the worst case at the lowest input the table gives: 150 mOhm max at VIN = 1.5 V over TA -40 to 85 C (84 mOhm typ at 25 C); it falls to 110 mOhm max at VIN 3.3-5.25 V and 120 mOhm at 2.5 V (§8.5 p.5). No figure is given at VIN = 1.4 V. Below regulation is not a question for a switch, but UVLO turns it off: 1.2 V max rising, 0.50 V typ falling (§8.5 p.5), both under the 1.4 V recommended minimum, so off_below_v is not given. iq_a is the quiescent current with the switch on, 2 uA typ at VIN 3.6-5.25 V (7 uA max at 3.6-4.2 V, 10 uA at 5.25 V; 0.1-1.2 uA typ off), §8.5 p.5. theta_ja is the CSP-4's junction-to-ambient (§8.4 p.4); tj_max the maximum junction temperature (§8.1 p.4). The TPS22913B/C pull VOUT to GND through RPD (153 ohm typ, 200 ohm max) when off, and block reverse current when VOUT exceeds VIN by 44 mV typ (§8.5 p.5)",
+    "citation": {
+     "source": "tps22913_ds",
+     "locator": "§8.1, §8.3, §8.4 p.4; §8.5 p.5; §10.3.3 p.19; §11.1.2 p.20"
+    }
+   },
    "kind": "power_out",
    "class": "POWER",
    "note": "Switch output. Not a regulated rail: it follows VIN less ILOAD x rON (60 mOhm typ, 80 mOhm max at 25 C, 110 mOhm max over temperature, VIN 4.2-5.25 V), so it has no fixed nominal_v; a board gives the rail its voltage. With ON low the TPS22913B/C pull it to GND through the 150 ohm quick-output-discharge resistor (153 ohm typ, 200 ohm max). 2 A continuous, 2.5 A pulsed (< 300 us, 2 % duty). Full-time reverse-current protection opens the switch when VOUT exceeds VIN by VRCP (44 mV typ), within 10 us",

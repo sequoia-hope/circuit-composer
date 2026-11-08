@@ -2,6 +2,21 @@
  "note": "Pins by number; what each function means, its supply and default net class. SOP-8 numbering from the EG3113 datasheet's pin definition (Figure 4-1, PDF p.5) and pin description (§4.2, PDF p.5); the datasheet is Chinese only, and its pages are cited as PDF pages (the body's printed 'n/9' is PDF page n+3). The package's symbol (kicad/Driver_FET_EG3113.kicad_sym) has the same numbers and names, except that it draws LIN with its overbar (~{LIN}, active low; named LIN here, as the datasheet's text does), and pin 4 is GND (the board's MotorBuck:EG2131 symbol calls it COM). The logic levels are the application section's (§8.2, PDF p.10: high above 2.5 V, low below 1.0 V); the table (PDF p.8, at VCC 12 V and 25 C) gives 3 V for high, and the package does not use it (eg3113.input.levels, contested).",
  "functions": {
   "VCC": {
+   "power": {
+    "v": [
+     2.8,
+     20.0
+    ],
+    "draw_a": {
+     "max": 5e-05,
+     "when": "Quiescent: inputs floating, VCC = 12 V, TA = 25 C, not switching"
+    },
+    "note": "Supply range from Table 7.2 (PDF p.8, min 2.8, typ 12, max 20 V; the same 2.8-20 V in the features, PDF p.4, and §4.2, PDF p.5). The datasheet has no separate recommended-operating table, and 20 V is also VCC's absolute maximum (Table 7.1, PDF p.7), so the range has no margin at the top. §8.1 (PDF p.10) recommends 10-15 V for MOSFETs needing a high gate voltage and 2.8-10 V for low-voltage ones. draw_a is Icc, 50 uA max with no typical (Table 7.2, PDF p.8); the features say 'less than 5uA' (PDF p.4), which disagrees, and LCSC's older build of V1.2 gives 30 uA max (not cited). No operating (switching) current is given: in use VCC also supplies the gate charge of both MOSFETs (the high side's through the bootstrap) at the PWM frequency, which depends on the FETs and is not in this figure. Temperature range not stated for the table",
+    "citation": {
+     "source": "eg3113_ds",
+     "locator": "PDF p.4 (features); p.5 (§4.2); p.7 (Table 7.1); p.8 (Table 7.2); p.10 (§8.1)"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [

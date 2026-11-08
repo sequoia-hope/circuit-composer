@@ -2,6 +2,22 @@
  "note": "Pins by number; what each function means, its supply and default net class. SOT-23-5 numbering from Table 3-1; the KiCad symbol Battery_Management:MCP73831-2-OT has the same numbers and names (checked pin by pin).",
  "functions": {
   "VDD": {
+   "power": {
+    "v": [
+     4.5,
+     6.0
+    ],
+    "draw_a": {
+     "typ": 0.00051,
+     "max": 0.0015,
+     "when": "ISS while charging, VDD = VREG(typ) + 1 V to 6 V, TA -40 to 85 C: the chip's own draw, on top of the charge current"
+    },
+    "note": "Recommended range: [VREG(typical) + 0.3 V] to 6 V, i.e. 4.5-6 V for the 4.20 V -2 option (§3.1 p.11). The DC table's supply voltage is 3.75-6 V (p.3), but its limits all hold from VREG(typ) + 1 V = 5.2 V. Other ISS figures (p.3): 53 uA typ / 200 uA max at charge complete or with no battery, 25 / 50 uA with PROG floating",
+    "citation": {
+     "source": "mcp73831_ds",
+     "locator": "§3.1 p.11; DC Characteristics, Supply Input p.3"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
@@ -15,6 +31,24 @@
    }
   },
   "VBAT": {
+   "power": {
+    "from": "VDD",
+    "topology": "charger",
+    "v_out": [
+     4.168,
+     4.232
+    ],
+    "i_max_a": 0.213,
+    "r_on_ohm": 0.35,
+    "off_below_v": 3.5,
+    "theta_ja_c_per_w": 230,
+    "tj_max_c": 125,
+    "note": "MCP73831T-2ACI-OT, 4.20 V. v_out is VREG's min-max for the -2 option at TA -5 to 55 C (p.3). i_max_a is the fast-charge current this circuit programs: IREG = 1000 V / RPROG (§5.1.2 p.15) with the package circuit's RPROG of 4.7 kohm = 1000 / 4.7 = 212.8 mA; the datasheet's IREG spread is 90-110 mA at 10 kohm and 450-550 mA at 2 kohm (p.3), so about +/-10 %, up to some 234 mA. Below regulation it is a pass transistor: RDSON 350 mOhm typical at VDD = 3.75 V, TJ = 105 C, no maximum given (p.4); it stops altogether below the UVLO stop threshold VSTOP, 3.2-3.5 V (3.5 V max taken, p.3), and in automatic power-down when VDD < VBAT + 50 mV typ (p.4). No separate iq_a: the chip's draw is on VDD. Charging is disabled with PROG floating or RPROG >= 200 kohm (p.4, §5.1.2 p.15), so there is no enable pin; the circuit's RPROG keeps it on. theta_ja is the SOT-23-5 on a 4-layer JC51-7 board, typical (p.5); tj_max the operating junction range's top (p.5); thermal shutdown is at 150 C typ (p.5)",
+    "citation": {
+     "source": "mcp73831_ds",
+     "locator": "DC Characteristics pp.3-5; Temperature Specifications p.5; §5.1.2 p.15"
+    }
+   },
    "kind": "power_out",
    "class": "POWER",
    "nominal_v": [

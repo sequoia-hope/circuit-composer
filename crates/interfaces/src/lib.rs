@@ -21,6 +21,8 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+pub mod power;
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Types {
     #[serde(default)]
@@ -291,6 +293,9 @@ pub fn check(types: &Types, package: &str, ports: &Ports, sources: Option<&BTree
                 }
             }
         }
+    }
+    for x in power::check(&ports.functions, sources) {
+        e(x);
     }
     if let Some(m) = &ports.mux {
         if let Some(s) = cited(&m.citation) {

@@ -2,6 +2,17 @@
  "note": "Pins by number; what each function means, its supply and default net class. WDFN-6 2x2 (CASE 511BR) numbering from the WDFN-6 pin description (p.3) and the pin assignment (p.1, top view). The NCP730BMT330TBG is a fixed 3.3 V 'version B' part: pin 2 is NC (all fixed versions) and pin 5 is PG (versions with power good), per the ordering table (p.29). The package's symbol (kicad/Regulator_Linear_NCP730.kicad_sym) has the same numbers and names, with the exposed pad as pin 7 to match KiCad's WSON-6 footprint (the bolt's own footprint calls it EP).",
  "functions": {
   "IN": {
+   "power": {
+    "v": [
+     2.7,
+     38.0
+    ],
+    "note": "Recommended operating range. The LDO's own draw is its quiescent current, on OUT's iq_a; the supply rule adds the load's current",
+    "citation": {
+     "source": "ncp730_ds",
+     "locator": "p.4 (operating input voltage)"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
@@ -15,6 +26,32 @@
    }
   },
   "OUT": {
+   "power": {
+    "from": "IN",
+    "topology": "ldo",
+    "v_out": [
+     3.247,
+     3.373
+    ],
+    "i_max_a": 0.15,
+    "dropout_v": {
+     "max": 0.48,
+     "at_a": 0.15
+    },
+    "iq_a": 1.8e-06,
+    "theta_ja_c_per_w": 67,
+    "tj_max_c": 125,
+    "enable": {
+     "function": "EN",
+     "on_when_open": true,
+     "note": "Internal pull-up current source: left open, the regulator is on (p.3, p.17)"
+    },
+    "note": "NCP730BMT330TBG, fixed 3.3 V, version B. v_out is OUT's worst case (accuracy, line and load regulation, p.4). Dropout 480 mV max at 150 mA (p.5); below VOUT + VDO the output follows VIN - VDO. iq_a is version B's typical (3.0 uA max, p.4). theta_ja is the WDFN6 2x2's junction-to-air (p.4); tj_max is the top of the range the characteristics are given over (TJ -40 to 125 C, p.4), below the 150 C absolute maximum",
+    "citation": {
+     "source": "ncp730_ds",
+     "locator": "p.4 (thermal characteristics, electrical characteristics); p.5 (dropout); p.29 (ordering information)"
+    }
+   },
    "kind": "power_out",
    "class": "POWER",
    "supply": "IN",

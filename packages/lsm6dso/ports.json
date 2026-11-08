@@ -134,6 +134,25 @@
    }
   },
   "VDD": {
+   "power": {
+    "v": [
+     1.71,
+     3.6
+    ],
+    "draw_a": {
+     "typ": 0.00055,
+     "when": "Accelerometer and gyroscope both on in high-performance mode, Vdd = 1.8 V, 25 °C (the datasheet states no ODR for this figure)",
+     "citation": {
+      "source": "lsm6dso_ds",
+      "locator": "§4.2 Table 3 (IddHP) p.12"
+     }
+    },
+    "note": "Table 3 gives one combined gyroscope + accelerometer figure (IddHP 0.55 mA typ) with no VDD/VDDIO split, so it sits on VDD. No maximum is given in any mode, and no ODR for IddHP. Accelerometer alone in high-performance mode 170 µA typ; power-down 3 µA typ (Table 3)",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
@@ -147,6 +166,17 @@
    }
   },
   "VDDIO": {
+   "power": {
+    "v": [
+     1.62,
+     3.6
+    ],
+    "note": "No separate VDDIO current is given; the chip's draw is counted on VDD (Table 3)",
+    "citation": {
+     "source": "lsm6dso_ds",
+     "locator": "§4.2 Table 3 p.12"
+    }
+   },
    "kind": "power_in",
    "class": "POWER",
    "nominal_v": [
