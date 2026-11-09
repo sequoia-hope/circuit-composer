@@ -9,7 +9,9 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-PROJ="$(command -v proj || echo "/home/sequoia/Software/overseer/core/proj")"
-PORT="${PORT:-$("$PROJ" port)}"
+if [ -z "${PORT:-}" ]; then
+  command -v proj >/dev/null || { echo "serve.sh: \$PORT unset and 'proj' not on PATH; cannot resolve port" >&2; exit 1; }
+  PORT="$(proj port)"
+fi
 
 exec python3 -m http.server "$PORT" --bind 0.0.0.0

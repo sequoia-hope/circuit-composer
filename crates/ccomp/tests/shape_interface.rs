@@ -46,10 +46,7 @@ fn find_golden_dir() -> PathBuf {
             }
         }
     }
-    for rel in [
-        "../../../board-interface/golden",
-        "/home/sequoia/Software/board-interface/golden",
-    ] {
+    for rel in ["../../../board-interface/golden"] {
         let p = Path::new(env!("CARGO_MANIFEST_DIR")).join(rel);
         if p.join("easy2350.json").is_file() {
             return p;
