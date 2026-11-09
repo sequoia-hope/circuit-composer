@@ -4,23 +4,23 @@ reserve: waiting for 1 cores — 4 in line; running: waffle-iron 8 (agy-f4-n91 s
 reserve: waiting for 1 cores — 2 in line; running: waffle-iron 8 (agy-f4-n91 step2 gate+corpus), waffle-iron 8 (f6 cyl corpus census), waffle-iron 4 (f1-i3a recheck), render 2 (bevy dungeon pcss A/B); ahead: ssh_client 4 (vtmodel release build)
 reserve: waiting for 1 cores — 1 in line; running: waffle-iron 8 (agy-f4-n91 step2 gate+corpus), waffle-iron 8 (f6 cyl corpus census), waffle-iron 4 (f1-i3a recheck), ssh_client 4 (vtmodel release build)
 reserve: granted 1 cores
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SCLK" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD0" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD1" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD2" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD3" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SS" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM_C" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM_MCU" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP_C" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP_MCU" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /VREG_AVDD" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /VREG_LX" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /XIN" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /XOUT" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/route1/easy2350.kicad_dru: custom rule "cc max length /XOUT_R" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SCLK" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD0" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD1" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD2" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD3" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /QSPI_SS" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM_C" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DM_MCU" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP_C" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /USB_DP_MCU" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /VREG_AVDD" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /VREG_LX" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /XIN" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /XOUT" is not applied
+warning: <scratchpad>/route1/easy2350.kicad_dru: custom rule "cc max length /XOUT_R" is not applied
 prefanout: 3 parts, 4 inward, 46 of 47 escaped (1 failed), 46 vias, skipped 0 no-net 16 pth 2 exposed 37 escaped, 4.0 s
 planes: 11 of 16 pads off their planes joined, 4.2 s
 pairs: 3 pairs, 1 of 3 runs coupled, 2.4 mm, 4.7 s

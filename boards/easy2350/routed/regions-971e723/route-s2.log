@@ -1,20 +1,20 @@
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SCLK" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD0" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD1" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD2" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD3" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SS" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DM" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DM_C" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DM_MCU" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DP" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DP_C" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DP_MCU" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /VREG_AVDD" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /VREG_LX" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /XIN" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /XOUT" is not applied
-warning: /tmp/claude-1000/-home-sequoia-Software-circuit-composer/39b72a4c-5e54-4623-a3d0-346d073510af/scratchpad/r971/easy2350.kicad_dru: custom rule "cc max length /XOUT_R" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SCLK" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD0" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD1" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD2" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SD3" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /QSPI_SS" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DM" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DM_C" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DM_MCU" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DP" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DP_C" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /USB_DP_MCU" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /VREG_AVDD" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /VREG_LX" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /XIN" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /XOUT" is not applied
+warning: <scratchpad>/r971/easy2350.kicad_dru: custom rule "cc max length /XOUT_R" is not applied
 regions: lx_inner_cutout: 2 rules
 regions: crystal_quiet: 4 rules
 regions: crystal_plane: 6 rules
