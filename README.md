@@ -220,6 +220,8 @@ Composing and floorplanning (milestone 5):
 
 ```sh
 python3 tools/circuit_check.py packages/*/schematic/circuit.*.json --kicad 9   # symbols, footprints, pins
+$ccomp pins boards/rp2350-battery/loose.json -o compose.json                  # pins solved; a regulator for each rail named under rails with none
+$ccomp check supplies boards/rp2350-battery/compose.json                       # each rail's range, budget and feeds, judged
 $ccomp compose boards/rp2350-battery/compose.json -o composed.json --intent intent.json   # + the board's intent
 python3 tools/compose_kicad.py composed.json OUT_DIR --easy-pcb ../boardroom    # schematic, ERC, board
 $ccomp floorplan OUT_DIR/BOARD.kicad_pcb --composed composed.json --spec boards/rp2350-battery/floorplan.json -o placement.json

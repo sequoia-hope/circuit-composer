@@ -26,8 +26,10 @@ use crate::{port_of, Package};
 /// Board net → (lowest, highest) volts.
 pub type Rails = BTreeMap<String, (f64, f64)>;
 
-fn range(v: &Value) -> Option<(f64, f64)> {
+/// A voltage, `3.3` or `[4.75, 5.5]`, or a rail written `{ "v": 3.3, ... }` (the supply rule's).
+pub(crate) fn range(v: &Value) -> Option<(f64, f64)> {
     match v {
+        Value::Object(o) => o.get("v").and_then(range),
         Value::Number(n) => n.as_f64().map(|x| (x, x)),
         Value::Array(a) => match &a[..] {
             [x] => x.as_f64().map(|x| (x, x)),

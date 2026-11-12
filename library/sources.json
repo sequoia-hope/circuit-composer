@@ -678,5 +678,29 @@
     "bytes": 756414,
     "retrieved": "2026-10-30",
     "note": "Chinese-language datasheet; printed page numbers (n/7) equal PDF pages."
+  },
+  "ao3401a": {
+    "title": "AO3401A 30V P-Channel MOSFET",
+    "publisher": "Alpha & Omega Semiconductor",
+    "doc": "AO3401A (LCSC C15127)",
+    "kind": "datasheet",
+    "revision": "Rev 3.1: December 2023",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/fee353dd1e9e0bc90b295f14f381aa4c.pdf?productCode=C15127",
+    "sha256": "0d8e3261ae280e007b5837fff60c55142f2d92af71edc4d02aee6f7a760a785c",
+    "bytes": 326568,
+    "retrieved": "2026-11-07",
+    "note": "Printed page numbers (Page n of 5) equal PDF pages."
+  },
+  "b5819w": {
+    "title": "B5817W-B5819W Schottky barrier diode (SOD-123)",
+    "publisher": "Jiangsu Changjiang Electronics Technology (JSCJ)",
+    "doc": "B5819W SL (LCSC C8598)",
+    "kind": "datasheet",
+    "revision": "D, Mar, 2015",
+    "url": "https://datasheet.lcsc.com/datasheet/pdf/4ac2c059be7c462694ab0715ce987a85.pdf?productCode=C8598",
+    "sha256": "1a0fd53a8ed6c62591a3983fd4c29b607975d30ba96c9381679109461399d442",
+    "bytes": 745783,
+    "retrieved": "2026-11-07",
+    "note": "Printed page numbers equal PDF pages."
   }
 }

@@ -42,9 +42,14 @@ pub struct Composition {
     #[serde(default)]
     pub connect: Vec<Value>,
     /// Net → its voltage, `3.3` or `[4.75, 5.5]`, where no part in the composition says: what the
-    /// pin solver's level rules judge connections by.
+    /// pin solver's level rules judge connections by. The supply rule also takes
+    /// `{ "v": 3.3, "from": "VSYS", "supply": "tlv62569", "as": "reg" }`.
     #[serde(default)]
     pub rails: BTreeMap<String, Value>,
+    /// Net → power arriving from off the board through a connector: `{ "v": [3.0, 4.2], "i_max_a": 1.0,
+    /// "kind": "lipo" }` (the supply rule's).
+    #[serde(default)]
+    pub sources: BTreeMap<String, Value>,
     /// The board's own intent, over what its packages bring (`board_intent`).
     #[serde(default)]
     pub intent: Option<board_intent::Overlay>,

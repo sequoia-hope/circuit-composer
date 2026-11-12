@@ -85,6 +85,15 @@
         ],
         "i_max_a": 2.0,
         "r_on_ohm": 0.152,
+        "efficiency": {
+          "value": 0.94,
+          "at_a": 0.1,
+          "vin": 5.0,
+          "citation": {
+            "source": "tlv62569_ds",
+            "locator": "Figure 9 p.11 (3.3-V output efficiency, VIN = 5 V): read off a typical curve as 94-95 % at 100 mA, with the datasheet's own application parts"
+          }
+        },
         "iq_a": 3.5e-05,
         "theta_ja_c_per_w": 188.2,
         "tj_max_c": 125,

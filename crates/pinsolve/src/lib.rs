@@ -36,9 +36,14 @@
 //! Then the interface rules (`rules`) add what a connection implies: a bus's I2C pull-ups, from a
 //! recipe, sized for its rail, speed and capacitance; or, where several packages each bring their
 //! own pair, all but one pair omitted.
+//!
+//! The supply rule (`supply`) runs after, on the solved composition: a regulator for each rail the
+//! composition names under `rails` with loads and nothing feeding it, chosen and explained from the
+//! packages' power contracts.
 
 pub mod levels;
 pub mod rules;
+pub mod supply;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;

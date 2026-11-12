@@ -437,6 +437,16 @@ enum Check {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+    /// A composition's power: each rail's range, its budget from the cited draws, and each
+    /// regulator judged against its consumers (the supply rule's checks, on a drawn board).
+    Supplies {
+        /// A composition (`compose.json`); the board's when omitted.
+        composition: Option<PathBuf>,
+        #[arg(long)]
+        packages: Option<PathBuf>,
+        #[arg(short, long)]
+        output: Option<PathBuf>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -708,6 +718,25 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             let drawn = svg.map(|p| (p, verify::svg::render_ideal_diode(&b, &report, &check_title(&board, &name), 1.0)));
             check_out(&report, &report.measurements, drawn, output)
         }
+        Cmd::Check { kind: Check::Supplies { composition, packages, output } } => {
+            let path = ctx.or_board(composition, "a composition", |b| b.composition.clone())?;
+            let packages = match packages {
+                Some(p) => p,
+                None if ctx.active() => ctx.board()?.packages.clone(),
+                None => PathBuf::from("packages"),
+            };
+            let mut value = read_json_value(&path)?;
+            let c: compose::Composition = serde_json::from_value(value.clone()).map_err(|e| format!("{}: {e}", path.display()))?;
+            let pkgs = pinsolve::load(&c, &packages)?;
+            let rep = pinsolve::supply::run(&mut value, &c, &pkgs, None);
+            let ok = rep.errors.is_empty();
+            let mut out = serde_json::to_value(&rep).unwrap();
+            out["ok"] = ok.into();
+            if let Some(o) = output {
+                write_json(&o, &out)?;
+            }
+            Ok((out, ok))
+        }
         Cmd::Check { kind: Check::Package { board, package, binding, output } } => {
             let report = package_check::check(&board, &package, &binding)?;
             let value = serde_json::to_value(&report).unwrap();
@@ -955,8 +984,39 @@ fn run(cmd: Cmd, mut ctx: Ctx) -> Result<(Value, bool), String> {
             let pkgs = pinsolve::load(&c, &packages)?;
             let library = packages.parent().unwrap_or(Path::new(".")).join("library/interfaces.json");
             let types = interfaces::load_types(&library)?;
-            let solved = pinsolve::solve(&value, &types, &pkgs, nodes)?;
-            let mut out = json!({ "ok": solved.ok, "cost": solved.cost, "exhaustive": solved.exhaustive, "pinout": solved.pinout, "added": solved.added, "warnings": solved.warnings, "errors": solved.errors });
+            let mut solved = pinsolve::solve(&value, &types, &pkgs, nodes)?;
+            // The supply rule, on the solved composition: a regulator for each named rail with none.
+            let supplies = if solved.ok {
+                let sc: compose::Composition = serde_json::from_value(solved.composition.clone()).map_err(|e| format!("solved: {e}"))?;
+                let cands = pinsolve::supply::candidates(&packages)?;
+                let rep = pinsolve::supply::run(&mut solved.composition, &sc, &pkgs, Some(&cands));
+                solved.added.extend(rep.added.iter().cloned());
+                solved.errors.extend(rep.errors.iter().cloned());
+                // With regulators placed, every rail again: the budgets upstream of them, and the
+                // chosen ones judged in place. A filled rail keeps the options it was chosen from.
+                let mut rails = rep.rails.clone();
+                let mut warnings = rep.warnings.clone();
+                if !rep.added.is_empty() {
+                    let fc: compose::Composition = serde_json::from_value(solved.composition.clone()).map_err(|e| format!("filled: {e}"))?;
+                    let fpkgs = pinsolve::load(&fc, &packages)?;
+                    let again = pinsolve::supply::run(&mut solved.composition.clone(), &fc, &fpkgs, None);
+                    warnings = again.warnings.clone();
+                    solved.errors.extend(again.errors.iter().filter(|e| !solved.errors.contains(e)).cloned().collect::<Vec<_>>());
+                    rails = again.rails.into_iter().map(|mut r| {
+                        if let Some(f) = rep.rails.iter().find(|f| f.net == r.net && f.chosen.is_some()) {
+                            r.options = f.options.clone();
+                            r.chosen = f.chosen.clone();
+                        }
+                        r
+                    }).collect();
+                }
+                solved.warnings.extend(warnings);
+                solved.ok = solved.errors.is_empty();
+                serde_json::to_value(&rails).unwrap()
+            } else {
+                json!([])
+            };
+            let mut out = json!({ "ok": solved.ok, "cost": solved.cost, "exhaustive": solved.exhaustive, "pinout": solved.pinout, "added": solved.added, "warnings": solved.warnings, "errors": solved.errors, "supplies": supplies });
             if solved.ok {
                 let sc: compose::Composition = serde_json::from_value(solved.composition.clone()).map_err(|e| format!("solved: {e}"))?;
                 let composed = compose::compose(&sc, &packages)?;

@@ -81,9 +81,37 @@ pub struct PowerOut {
     pub tj_max_c: Option<f64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub enable: Option<Enable>,
+    /// Further inputs feeding the same output, each through its own pass element: a load-sharing
+    /// path's VSYS is the input through a diode or the cell through a FET. The output's range is
+    /// the union of every path's.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub also: Vec<Path>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
     pub citation: Citation,
+}
+
+/// One more way into an output: a `switch` or `diode` from another input.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Path {
+    pub from: String,
+    pub topology: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub dropout_v: Option<Dropout>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub r_on_ohm: Option<f64>,
+}
+
+impl PowerOut {
+    /// Each path into the output as an output of its own: the main one, then `also`.
+    pub fn paths(&self) -> Vec<PowerOut> {
+        let mut out = vec![PowerOut { also: vec![], ..self.clone() }];
+        for p in &self.also {
+            out.push(PowerOut { from: p.from.clone(), topology: p.topology.clone(), dropout_v: p.dropout_v.clone(), r_on_ohm: p.r_on_ohm, off_below_v: None, also: vec![], efficiency: None, ..self.clone() });
+        }
+        out
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -140,6 +168,12 @@ fn range_ok(r: &[f64; 2]) -> bool {
     r[0].is_finite() && r[1].is_finite() && r[0] > 0.0 && r[0] <= r[1]
 }
 
+/// An input's range may start at 0: no minimum (a passive path, which takes whatever it is given
+/// up to its ceiling).
+fn input_range_ok(r: &[f64; 2]) -> bool {
+    r[0].is_finite() && r[1].is_finite() && r[0] >= 0.0 && r[0] <= r[1] && r[1] > 0.0
+}
+
 /// What is wrong with a package's power contracts.
 pub fn check(functions: &BTreeMap<String, Value>, sources: Option<&BTreeSet<String>>) -> Vec<String> {
     let mut errs = Vec::new();
@@ -159,8 +193,8 @@ pub fn check(functions: &BTreeMap<String, Value>, sources: Option<&BTreeSet<Stri
         };
         match p {
             Power::In(p) => {
-                if !range_ok(&p.v) {
-                    errs.push(format!("{name}: power.v {:?} is not a range of positive volts", p.v));
+                if !input_range_ok(&p.v) {
+                    errs.push(format!("{name}: power.v {:?} is not a range of volts (0 for no minimum)", p.v));
                 }
                 if uncited(&p.citation) {
                     errs.push(format!("{name}: power cites {}, not in sources.json", p.citation.source));
@@ -186,7 +220,9 @@ pub fn check(functions: &BTreeMap<String, Value>, sources: Option<&BTreeSet<Stri
                 if !TOPOLOGIES.contains(&p.topology.as_str()) {
                     errs.push(format!("{name}: topology {} is not one of {}", p.topology, TOPOLOGIES.join(", ")));
                 }
-                if !range_ok(&p.v_out) {
+                // A switch or diode passes its input through: its v_out is only a ceiling.
+                let pass = matches!(p.topology.as_str(), "switch" | "diode");
+                if !(range_ok(&p.v_out) || pass && input_range_ok(&p.v_out)) {
                     errs.push(format!("{name}: power.v_out {:?} is not a range of positive volts", p.v_out));
                 }
                 if !(p.i_max_a > 0.0) {
@@ -212,6 +248,17 @@ pub fn check(functions: &BTreeMap<String, Value>, sources: Option<&BTreeSet<Stri
                     }
                     if let Some(c) = e.citation.as_ref().filter(|c| uncited(c)) {
                         errs.push(format!("{name}: efficiency cites {}, not in sources.json", c.source));
+                    }
+                }
+                for x in &p.also {
+                    if !matches!(x.topology.as_str(), "switch" | "diode") {
+                        errs.push(format!("{name}: also from {}: a {} path; only switch and diode paths join an output", x.from, x.topology));
+                    }
+                    if !ins.contains_key(x.from.as_str()) {
+                        errs.push(format!("{name}: also from {}, which is not a power_in function with a power contract", x.from));
+                    }
+                    if x.dropout_v.is_none() && x.r_on_ohm.is_none() {
+                        errs.push(format!("{name}: also from {}: give its dropout_v or r_on_ohm", x.from));
                     }
                 }
                 if p.theta_ja_c_per_w.is_some() != p.tj_max_c.is_some() {
