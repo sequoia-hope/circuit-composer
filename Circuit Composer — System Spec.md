@@ -196,6 +196,7 @@ Each milestone ends with something verified end to end, not a partial layer acro
 | Current-sized widths: `min_mm` only from a figure someone stands behind, `opt_mm` from any | The 50-board hand check found recognised currents within 2× on only 59 of 171 nets, mostly low; an `opt_mm` that is wrong costs no connection (ultraroute e54f7e9) |
 | A rigid block reaches the router as a KiCad group | No new format: ultraroute already keeps a group's parts still and its pours clear; vendor reference copper (`extract_layout.py`) can travel with it |
 | Supplies are chosen by a fixed-order rule over cited power contracts (proposed) | Classical and explainable: every option shows the check it failed, and a person's choice overrides the rank without hiding a failing check |
+| Power sections come from Composer as locked, routed blocks; ultraroute scores them, never lays them out (owner, 2026-11-12) | A regulator's reference layout is known; the router's job is to route around it. ultraroute scores hot loops (buck: input capacitor to switch and back through ground; boost: output capacitor to output) on its routing and on the designer's. Agreed form, not built: the group locks the copper, and `routing.json` gains `"blocks": [{"group": "buck_U1", "type": "buck", "roles": {"vin": "U1.49", "sw": "U1.48", "cin": "C14", ...}}]` (pads `REF.PAD`, parts `REF`, the generator's roles), read only for scoring |
 
 **Open questions**
 
