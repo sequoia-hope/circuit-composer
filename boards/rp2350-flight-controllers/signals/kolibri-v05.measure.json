@@ -1,0 +1,36 @@
+{
+  "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+  "return_paths": {
+    "ground": "GND",
+    "step": 0.05,
+    "nets": [
+      "+5V_USB",
+      "/ELRS/RADIO_MISO",
+      "/ELRS/RADIO_MOSI",
+      "/ELRS/RADIO_SCK",
+      "/ELRS/WIFI_ANTENNA",
+      "/Gyro/Int",
+      "/RP2350/Gyro_SS",
+      "/RP2350/SD_SCLK",
+      "/SPI0.SCLK",
+      "/SPI0.SDX",
+      "/SPI1.MISO",
+      "/SPI1.MOSI",
+      "/SPI1.SCLK",
+      "/USB.D+",
+      "/USB.D-",
+      "/Video.In",
+      "/Video.Out",
+      "Net-(IC2-ANT)",
+      "Net-(IC4-ANT)",
+      "Net-(U1-QSPI_SCLK)",
+      "Net-(U1-QSPI_SD0)",
+      "Net-(U1-QSPI_SD1)",
+      "Net-(U1-QSPI_SD2)",
+      "Net-(U1-QSPI_SD3)",
+      "Net-(U1-QSPI_SS)",
+      "Net-(U1-USB_DM)",
+      "Net-(U1-USB_DP)"
+    ]
+  }
+}

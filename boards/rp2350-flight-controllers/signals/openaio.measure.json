@@ -1,0 +1,32 @@
+{
+  "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+  "return_paths": {
+    "ground": "GND",
+    "step": 0.05,
+    "nets": [
+      "+1.8V_GYRO",
+      "+5V_USB",
+      "/IMU/GYRO_INT",
+      "/IMU/SPI1.MISO",
+      "/IMU/SPI1.MOSI",
+      "/IMU/SPI1.SCK",
+      "/OSD/VIDEO_IN",
+      "/OSD/VIDEO_OUT",
+      "/OSD/VID_DC",
+      "/OSD/VID_FILT",
+      "/RX/MISO",
+      "/RX/MOSI",
+      "/RX/SCK",
+      "Net-(U2-QSPI_SS)",
+      "Net-(U2-USB_DM)",
+      "Net-(U2-USB_DP)",
+      "Net-(USB1-CC1)",
+      "Net-(USB1-CC2)",
+      "SPI0.MISO",
+      "SPI0.MOSI",
+      "SPI0.SCK",
+      "USB_D+",
+      "USB_D-"
+    ]
+  }
+}

@@ -145,6 +145,27 @@ pub fn copper_path(board: &Board, net: &str, from: &str, to: &str) -> Option<Pat
         }
     }
 
+    // Stacked or overlapping HDI vias whose barrel spans differ (e.g. laser microvias landing on
+    // a buried core via) join on their shared handoff layer without an intervening track segment.
+    for (i, (vids1, size1)) in via_nodes.iter().enumerate() {
+        for (vids2, size2) in &via_nodes[i + 1..] {
+            let same_span = vids1.len() == vids2.len() && vids1.iter().zip(vids2).all(|(&a, &b)| nodes[a].layer == nodes[b].layer);
+            if same_span {
+                continue;
+            }
+            for &v1 in vids1 {
+                let (p1, l) = (nodes[v1].p, nodes[v1].layer);
+                if let Some(&v2) = vids2.iter().find(|&&v2| nodes[v2].layer == l) {
+                    let p2 = nodes[v2].p;
+                    let d = geom::dist(p1, p2);
+                    if d <= (size1 + size2) / 2.0 {
+                        link(&mut adj, v1, v2, d);
+                    }
+                }
+            }
+        }
+    }
+
     // Fills: every node inside joins every other inside, in a straight line. A pad that
     // overlaps the fill joins at its centre.
     for f in board.fills.iter().filter(|f| f.net == net) {
@@ -318,5 +339,31 @@ mod tests {
         };
         let p = copper_path(&board, "N", "Q.1", "B.1").expect("the second pad of Q.1 is joined");
         assert!((p.length - 5.0).abs() < 1e-9, "{}", p.length);
+    }
+
+    #[test]
+    fn stacked_hdi_vias_join_across_layers() {
+        // B.Cu pad -> microvia (B.Cu..In2.Cu) -> buried via (In2.Cu..In1.Cu) -> microvia (In1.Cu..F.Cu) -> F.Cu track -> F.Cu pad.
+        let mut pad_b = pad("J", [0.0, 0.0]);
+        pad_b.layers = vec!["B.Cu".into()];
+        let pad_f = pad("D", [2.0, 0.0]);
+        let pads = vec![pad_b, pad_f];
+        let mut parts = BTreeMap::new();
+        for (i, r) in ["J", "D"].iter().enumerate() {
+            parts.insert(r.to_string(), Part { reference: r.to_string(), value: String::new(), footprint: String::new(), at: pads[i].centre, rotation: 0.0, back: i == 0, locked: false, courtyard: None, pads: vec![i] });
+        }
+        let mk_via = |l1: &str, l2: &str| crate::Via { at: [0.0, 0.0], size: 0.35, drill: 0.1, layers: vec![l1.into(), l2.into()], net: "N".into() };
+        let board = Board {
+            layers: vec!["F.Cu".into(), "In1.Cu".into(), "In2.Cu".into(), "B.Cu".into()],
+            parts,
+            pads,
+            tracks: vec![Track { a: [0.0, 0.0], b: [2.0, 0.0], width: 0.1, layer: "F.Cu".into(), net: "N".into(), locked: false }],
+            vias: vec![mk_via("F.Cu", "In1.Cu"), mk_via("In1.Cu", "In2.Cu"), mk_via("In2.Cu", "B.Cu")],
+            fills: vec![],
+            rules: None,
+            outline: None,
+        };
+        let p = copper_path(&board, "N", "J.1", "D.1").expect("stacked HDI vias connect B.Cu to F.Cu");
+        assert!((p.length - 2.0).abs() < 1e-9, "{}", p.length);
     }
 }

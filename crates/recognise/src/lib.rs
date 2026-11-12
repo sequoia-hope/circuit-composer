@@ -582,11 +582,13 @@ fn feedback(cx: &mut Cx) {
         let ev = vec![format!("{} and {} divide {} to ground into {}", rs[0], rs[1], names::norm(rail), ics[0])];
         cx.guess(n, "ANALOG", conf, ev);
         cx.facts.entry(n.to_string()).or_default().bandwidth = Some((BandwidthKind::SlowPrecise, "a divider into a regulator or ADC pin".into()));
-        // A converter's feedback pin.
+        // A converter's feedback pin: only when the divided rail is that converter's output
+        // (so a battery-sense divider into an MCU with an on-chip core buck does not steal `fb`).
         let ic = ics[0];
         let pin = cx.nodes[n].iter().find(|x| x.reference == ic).map(|x| x.pin.clone());
         for b in cx.blocks.values_mut() {
-            if matches!(b.kind.as_str(), "buck" | "boost") && b.parts.iter().any(|p| p == ic) {
+            let feeds_this_rail = b.roles.get("inductor").is_some_and(|l| cx.regs.iter().any(|reg| &reg.part == l && reg.output == rail));
+            if matches!(b.kind.as_str(), "buck" | "boost") && feeds_this_rail && b.parts.iter().any(|p| p == ic) {
                 if let Some(pin) = &pin {
                     b.roles.insert("fb".into(), format!("{ic}.{pin}"));
                 }

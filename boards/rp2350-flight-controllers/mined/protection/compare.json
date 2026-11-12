@@ -1,0 +1,99 @@
+{
+  "weights": {
+    "clamp_loop_area_mm2": 1.0
+  },
+  "limits": {
+    "vias_before_tvs": "<=0",
+    "tvs_stub_mm": "<=0"
+  },
+  "rows": [
+    {
+      "id": "whoop_usb_dp",
+      "label": "OpenAIO-Whoop USB D+ from J31.3 (B.Cu) to D7 (TPD2EUSB30, F.Cu)",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO-Whoop/hardware/OpenAIO-Whoop.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 0.792,
+        "vias_before_tvs": 1.0,
+        "tvs_lead_mm": 11.805,
+        "tvs_stub_mm": 0.792,
+        "clamp_loop_area_mm2": 0.684,
+        "tvs_ground_via_mm": 0.0,
+        "tvs_ground_vias": 25.0
+      },
+      "passed": {
+        "vias_before_tvs": false,
+        "tvs_stub_mm": false
+      },
+      "not_applicable": {},
+      "score": 0.684,
+      "svg": "whoop_usb_dp.svg"
+    },
+    {
+      "id": "whoop_usb_dn",
+      "label": "OpenAIO-Whoop USB D- from J31.2 (B.Cu) to D7 (TPD2EUSB30, F.Cu)",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO-Whoop/hardware/OpenAIO-Whoop.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 0.476,
+        "vias_before_tvs": 1.0,
+        "tvs_lead_mm": 13.003,
+        "tvs_stub_mm": 0.476,
+        "clamp_loop_area_mm2": 0.171,
+        "tvs_ground_via_mm": 0.0,
+        "tvs_ground_vias": 25.0
+      },
+      "passed": {
+        "vias_before_tvs": false,
+        "tvs_stub_mm": false
+      },
+      "not_applicable": {},
+      "score": 0.171,
+      "svg": "whoop_usb_dn.svg"
+    },
+    {
+      "id": "kolibri_v05_usb_dp",
+      "label": "Kolibri v0.5 USB D+ from J1.A6 to U8 (WE-TVS-824015043, F.Cu)",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 4.931,
+        "vias_before_tvs": 0.0,
+        "tvs_lead_mm": 10.299,
+        "tvs_stub_mm": 3.934,
+        "clamp_loop_area_mm2": 5.82,
+        "tvs_ground_via_mm": 0.0,
+        "tvs_ground_vias": 1.0
+      },
+      "passed": {
+        "vias_before_tvs": true,
+        "tvs_stub_mm": false
+      },
+      "not_applicable": {},
+      "score": 5.82,
+      "svg": "kolibri_v05_usb_dp.svg"
+    },
+    {
+      "id": "kolibri_v05_usb_dn",
+      "label": "Kolibri v0.5 USB D- from J1.A7 to U8 (WE-TVS-824015043, F.Cu)",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "connector_to_tvs_mm": 4.404,
+        "vias_before_tvs": 0.0,
+        "tvs_lead_mm": 10.166,
+        "tvs_stub_mm": 0.0,
+        "clamp_loop_area_mm2": 9.305,
+        "tvs_ground_via_mm": 0.0,
+        "tvs_ground_vias": 1.0
+      },
+      "passed": {
+        "vias_before_tvs": true,
+        "tvs_stub_mm": false
+      },
+      "not_applicable": {},
+      "score": 9.305,
+      "svg": "kolibri_v05_usb_dn.svg"
+    }
+  ]
+}

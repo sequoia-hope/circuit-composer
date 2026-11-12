@@ -1,0 +1,259 @@
+{
+  "block": "whoop_usb_dp",
+  "geometry": {
+    "clamp_loop": [
+      [
+        101.45776229815871,
+        124.01013092065475
+      ],
+      [
+        101.3569,
+        124.028238
+      ],
+      [
+        101.451392,
+        124.12273
+      ],
+      [
+        102.007296,
+        124.12273
+      ],
+      [
+        102.00729625254611,
+        124.12273041483688
+      ],
+      [
+        102.84521708114538,
+        123.77978291885462
+      ],
+      [
+        102.59935200000001,
+        124.165565
+      ],
+      [
+        102.64635500000001,
+        125.111752
+      ],
+      [
+        102.871976,
+        125.42434400000002
+      ],
+      [
+        102.8719758605318,
+        125.42434448302784
+      ]
+    ],
+    "first": "R42.2",
+    "ground_via": [
+      102.56,
+      123.62
+    ],
+    "ret": "J31.1",
+    "routed": true,
+    "to_first": [
+      [
+        101.45776229815871,
+        124.01013092065475
+      ],
+      [
+        101.457762,
+        124.01013100000002
+      ],
+      [
+        102.34,
+        123.127893
+      ],
+      [
+        102.34,
+        121.001336
+      ],
+      [
+        102.972712,
+        120.368624
+      ],
+      [
+        102.972712,
+        119.89271200000002
+      ],
+      [
+        102.86000000000001,
+        119.78
+      ],
+      [
+        102.86000000000001,
+        119.08
+      ],
+      [
+        106.0,
+        115.94
+      ],
+      [
+        106.0,
+        114.57
+      ],
+      [
+        105.664635,
+        114.234635
+      ],
+      [
+        105.118672,
+        114.234635
+      ],
+      [
+        105.03,
+        114.37000000000002
+      ]
+    ],
+    "to_tvs": [
+      [
+        101.45776229815871,
+        124.01013092065475
+      ],
+      [
+        101.3569,
+        124.028238
+      ],
+      [
+        101.451392,
+        124.12273
+      ],
+      [
+        102.007296,
+        124.12273
+      ],
+      [
+        102.00729625254611,
+        124.12273041483688
+      ]
+    ],
+    "tvs_ground": "D7.3",
+    "tvs_pad": "D7.1"
+  },
+  "measurements": [
+    {
+      "block": "whoop_usb_dp",
+      "check": "connector_to_tvs_mm",
+      "fix_stage": "floorplan",
+      "location": [
+        101.45776229815871,
+        124.01013092065475
+      ],
+      "measured": 0.7920110798116416,
+      "method": "shortest copper path, connector pad to TVS pad",
+      "nets": [
+        "/USB_D_P"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "whoop_usb_dp",
+      "check": "vias_before_tvs",
+      "fix_stage": "route",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        101.45776229815871,
+        124.01013092065475
+      ],
+      "measured": 1.0,
+      "method": "layer changes on the connector-to-TVS path, a through-hole pad's own excluded",
+      "nets": [
+        "/USB_D_P"
+      ],
+      "passed": false,
+      "unit": "count"
+    },
+    {
+      "block": "whoop_usb_dp",
+      "check": "tvs_lead_mm",
+      "fix_stage": "floorplan",
+      "location": [
+        105.03,
+        114.37000000000002
+      ],
+      "measured": 11.805013366887623,
+      "method": "copper from the connector to R42.2, the first other pad reached, less to the TVS",
+      "nets": [
+        "/USB_D_P"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "whoop_usb_dp",
+      "check": "tvs_stub_mm",
+      "fix_stage": "route",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        102.00729625254611,
+        124.12273041483688
+      ],
+      "measured": 0.7920107718001015,
+      "method": "how far the TVS pad sits off the connector's path to R42.2",
+      "nets": [
+        "/USB_D_P"
+      ],
+      "passed": false,
+      "unit": "mm"
+    },
+    {
+      "block": "whoop_usb_dp",
+      "check": "clamp_loop_area_mm2",
+      "fix_stage": "floorplan",
+      "location": [
+        102.21155224923821,
+        124.4312347737374
+      ],
+      "measured": 0.684158010951343,
+      "method": "copper, connector pad to the TVS, its ground pad to the connector's ground pad",
+      "nets": [
+        "/USB_D_P",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "whoop_usb_dp",
+      "check": "tvs_ground_via_mm",
+      "fix_stage": "route",
+      "location": [
+        102.84521708114538,
+        123.77978291885462
+      ],
+      "measured": 0.0,
+      "method": "TVS ground pad edge to the nearest ground via's ring, 0 in the pad",
+      "nets": [
+        "GND"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "whoop_usb_dp",
+      "check": "tvs_ground_vias",
+      "fix_stage": "route",
+      "location": [
+        102.84521708114538,
+        123.77978291885462
+      ],
+      "measured": 25.0,
+      "method": "ground vias whose ring is within 1 mm of the TVS ground pad",
+      "nets": [
+        "GND"
+      ],
+      "unit": "count"
+    }
+  ],
+  "nets": [
+    "/USB_D_P",
+    "GND"
+  ],
+  "ok": false,
+  "roles": {
+    "conn": "J31.3",
+    "tvs": "D7"
+  }
+}

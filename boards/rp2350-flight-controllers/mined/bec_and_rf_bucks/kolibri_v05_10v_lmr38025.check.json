@@ -1,0 +1,199 @@
+{
+  "block": "kolibri_v05_10v_lmr38025",
+  "geometry": {
+    "feedback_closest": [
+      [
+        98.795,
+        89.514
+      ],
+      [
+        98.795,
+        89.16007652090175
+      ]
+    ],
+    "feedback_path": [
+      [
+        100.70000000000002,
+        89.0
+      ],
+      [
+        100.70000000000002,
+        88.85
+      ],
+      [
+        100.036,
+        89.514
+      ],
+      [
+        97.5885,
+        89.514
+      ],
+      [
+        97.1025,
+        90.0
+      ]
+    ],
+    "hot_loop": [
+      [
+        100.70000000000002,
+        91.9
+      ],
+      [
+        102.22500000000001,
+        93.75
+      ],
+      [
+        99.275,
+        93.75
+      ],
+      [
+        98.70000000000002,
+        91.9
+      ]
+    ],
+    "output_loop": [
+      [
+        99.20000000000002,
+        89.0
+      ],
+      [
+        95.90000000000002,
+        89.39999999999999
+      ],
+      [
+        95.90000000000002,
+        92.1
+      ],
+      [
+        96.45,
+        91.95
+      ],
+      [
+        96.7,
+        91.6
+      ],
+      [
+        98.60000000000002,
+        91.6
+      ],
+      [
+        98.70000000000002,
+        91.9
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "kolibri_v05_10v_lmr38025",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        100.22500000000002,
+        92.82499999999999
+      ],
+      "measured": 4.580551335937478,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "VCC",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_10v_lmr38025",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        100.22500000000002,
+        92.82499999999999
+      ],
+      "measured": 4.580551335937478,
+      "method": "pad centres",
+      "nets": [
+        "VCC",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_10v_lmr38025",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        97.35,
+        91.07857142857142
+      ],
+      "measured": 7.635455437499988,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(IC6-SW_1)",
+        "+10V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_10v_lmr38025",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        99.20000000000002,
+        89.0
+      ],
+      "measured": 9.877099999999999,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(IC6-SW_1)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_10v_lmr38025",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "location": [
+        98.795,
+        89.514
+      ],
+      "measured": 0.35392347909824196,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 4 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "Net-(IC6-FB)",
+        "Net-(IC6-SW_1)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v05_10v_lmr38025",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        99.20000000000002,
+        89.0
+      ],
+      "measured": 8.19,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(IC6-SW_1)"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+10V",
+    "sw": "Net-(IC6-SW_1)",
+    "vin": "VCC"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C69",
+    "cout": "C72",
+    "fb": "IC6.8",
+    "inductor": "L8",
+    "pgnd": "IC6.1",
+    "sw": "IC6.11",
+    "vin": "IC6.5"
+  }
+}

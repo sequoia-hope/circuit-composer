@@ -1,0 +1,209 @@
+{
+  "block": "openfc_lite_mini_core",
+  "geometry": {
+    "feedback_closest": [
+      [
+        147.15,
+        85.92999999999999
+      ],
+      [
+        147.15,
+        85.55
+      ]
+    ],
+    "feedback_path": [
+      [
+        148.935,
+        86.2825
+      ],
+      [
+        148.295,
+        86.38250000000001
+      ],
+      [
+        147.625,
+        86.40500000000002
+      ],
+      [
+        147.15,
+        85.92999999999999
+      ]
+    ],
+    "hot_loop": [
+      [
+        148.935,
+        85.88250000000001
+      ],
+      [
+        147.975,
+        85.925
+      ],
+      [
+        147.975,
+        84.965
+      ],
+      [
+        148.935,
+        85.08250000000001
+      ]
+    ],
+    "output_loop": [
+      [
+        148.935,
+        85.4825
+      ],
+      [
+        147.469714,
+        85.445
+      ],
+      [
+        146.835286,
+        85.45
+      ],
+      [
+        145.77,
+        84.205
+      ],
+      [
+        145.77,
+        86.205
+      ],
+      [
+        147.15,
+        85.92999999999999
+      ],
+      [
+        147.15,
+        84.97
+      ],
+      [
+        148.935,
+        85.08250000000001
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openfc_lite_mini_core",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.45499999999998,
+        85.46375
+      ],
+      "measured": 0.8448019200000139,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_mini_core",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.45499999999998,
+        85.46375
+      ],
+      "measured": 0.8448019200000139,
+      "method": "pad centres",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_mini_core",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        147.25187499999998,
+        85.34625
+      ],
+      "measured": 2.2916280417187385,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U10-VREG_LX)",
+        "+1.1V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_mini_core",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.935,
+        85.4825
+      ],
+      "measured": 2.8943000000000003,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U10-VREG_LX)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_mini_core",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        147.15,
+        85.92999999999999
+      ],
+      "measured": 0.37999999999999545,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1.1V",
+        "Net-(U10-VREG_LX)"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "openfc_lite_mini_core",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        148.935,
+        85.4825
+      ],
+      "measured": 2.9,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(U10-VREG_LX)"
+      ],
+      "passed": false,
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1.1V",
+    "sw": "Net-(U10-VREG_LX)",
+    "vin": "+3.3V"
+  },
+  "ok": false,
+  "roles": {
+    "cin": "C45",
+    "cout": "C46",
+    "fb": "U10.50",
+    "inductor": "L4",
+    "pgnd": "U10.47",
+    "sw": "U10.48",
+    "vin": "U10.49"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "weights": {
+    "sense_loop_area_mm2": 1.0
+  },
+  "limits": {},
+  "rows": [
+    {
+      "id": "openaio_rsense2",
+      "label": "OpenAIO battery shunt: U25 (INA186A3) across Rsense2 (0.2 mOhm 2512, 2-pad)",
+      "note": "0.2 mOhm uses a 2-terminal 2512 footprint rather than a 4-terminal Kelvin shunt.",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "sense_path_pos_mm": 2.552,
+        "kelvin_offset_pos_mm": 0.861,
+        "sense_path_neg_mm": 7.569,
+        "kelvin_offset_neg_mm": 2.311,
+        "sense_loop_area_mm2": 8.083
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 8.083,
+      "svg": "openaio_rsense2.svg"
+    },
+    {
+      "id": "openaio_whoop_r2",
+      "label": "OpenAIO-Whoop battery shunt: U1 (INA186A3) across R2 (0.5 mOhm 1206, 4-pad Kelvin)",
+      "note": "Dedicated 4-pad Kelvin footprint (HCS1206) with net-tie sense pads 2 and 3.",
+      "board": "~/pcb/flight-controllers/OpenAIO-Whoop/hardware/OpenAIO-Whoop.kicad_pcb",
+      "measured": {
+        "sense_path_pos_mm": 0.967,
+        "kelvin_offset_pos_mm": 0.0,
+        "sense_path_neg_mm": 2.905,
+        "kelvin_offset_neg_mm": 0.0,
+        "sense_loop_area_mm2": 1.103
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 1.103,
+      "svg": "openaio_whoop_r2.svg"
+    }
+  ]
+}

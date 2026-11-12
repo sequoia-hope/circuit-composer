@@ -1,0 +1,29 @@
+{
+  "board": "~/pcb/flight-controllers/OpenFC-Lite/hardware/OpenFC.kicad_pcb",
+  "return_paths": {
+    "ground": "GND",
+    "step": 0.05,
+    "nets": [
+      "+1.8V_GYRO",
+      "+5V_USB",
+      "/BLACKBOX/SPI1.MISO",
+      "/BLACKBOX/SPI1.MOSI",
+      "/BLACKBOX/SPI1.SCK",
+      "/IMU/GYRO_INT",
+      "/IMU/SPI0.MISO",
+      "/IMU/SPI0.MOSI",
+      "/IMU/SPI0.SCK",
+      "/OSD/VIDEO_IN",
+      "/OSD/VIDEO_OUT",
+      "/OSD/VID_DC",
+      "/OSD/VID_FILT",
+      "/RP2350A/D+",
+      "/RP2350A/D-",
+      "Net-(U2-QSPI_SS)",
+      "Net-(U2-USB_DM)",
+      "Net-(U2-USB_DP)",
+      "Net-(USB1-CC1)",
+      "Net-(USB1-CC2)"
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "package": "rp2350@0.2.0",
+  "variant": "RP2350A",
+  "chip": "U2",
+  "parts": {
+    "CFILT": "C17",
+    "CIN": "C15",
+    "CL_XIN": "C4",
+    "CL_XOUT": "C10",
+    "COUT": "C16",
+    "C_DVDD_23": "C3",
+    "C_DVDD_39": "C5",
+    "C_DVDD_6": "C1",
+    "C_IOVDD_1": "C107",
+    "C_IOVDD_11": "C30",
+    "C_IOVDD_20": "C35",
+    "C_IOVDD_30": "C7",
+    "C_IOVDD_38": "C11",
+    "C_IOVDD_45_ADC": "C8",
+    "C_OTP_QSPI": "C14",
+    "L1": "L1",
+    "RFILT": "R10",
+    "R_BOOTSEL": "R7",
+    "R_USB_DM": "R8",
+    "R_USB_DP": "R9",
+    "R_XOUT": "R6",
+    "SW_BOOTSEL": "U1",
+    "XTAL": "X1"
+  },
+  "note": "RP2354A uses 2 MB internal stacked QSPI flash (external QSPI pins 55-59 unconnected; R7 + tactile U1 on QSPI_SS for BOOTSEL). RUN tied directly to +3.3V."
+}

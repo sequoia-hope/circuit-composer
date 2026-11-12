@@ -108,10 +108,16 @@ pub fn protection(board: &Board, block: &str, roles: &ProtectionRoles, limits: &
     let ret = match &roles.ret {
         Some(r) => r.clone(),
         None => {
+            let pad_count = |n: &str| board.pads.iter().filter(|p| p.net == n).count();
+            let is_gnd = |n: &str| {
+                let u = n.trim_start_matches('/').to_ascii_uppercase();
+                matches!(u.as_str(), "GND" | "PGND" | "AGND" | "VSS") || u.ends_with("_GND") || u.starts_with("GND_")
+            };
             let gnd = tvs_pads
                 .iter()
                 .map(|p| p.net.as_str())
-                .find(|n| *n != net && conn_pads.iter().any(|c| c.net == *n))
+                .filter(|n| !n.is_empty() && *n != net && conn_pads.iter().any(|c| c.net == *n))
+                .max_by_key(|n| (is_gnd(n), pad_count(n)))
                 .ok_or_else(|| format!("{} shares no net with {conn_part} but `{net}`; name the connector's ground pad (`ret`)", roles.tvs))?;
             let tvs_g = pin_on(board, &roles.tvs, gnd)?;
             let mut cands: Vec<String> = conn_pads.iter().filter(|c| c.net == gnd).map(|c| format!("{conn_part}.{}", c.pin)).collect();
@@ -353,6 +359,28 @@ mod tests {
         let m = |c| measured(&r.measurements, c);
         assert!(m("tvs_stub_mm").abs() < 1e-9);
         assert!((m("tvs_lead_mm") - 5.0).abs() < 1e-9);
+    }
+
+    #[test]
+    fn dual_channel_tvs_picks_ground_not_sibling_signal() {
+        // 3-pin dual-channel ESD array (e.g. TPD2EUSB30): pin 1 = D+, pin 2 = D-, pin 3 = GND.
+        // Checking J1.1 (D+) must choose GND (pin 3), not D- (pin 2), as the return net.
+        let b = board(
+            &[
+                ("J1", "1", "USB_DP", [0.0, 0.0]),
+                ("J1", "2", "USB_DN", [0.0, 1.0]),
+                ("J1", "3", "GND", [0.0, 3.0]),
+                ("D1", "1", "USB_DP", [2.0, 0.0]),
+                ("D1", "2", "USB_DN", [2.0, 1.0]),
+                ("D1", "3", "GND", [2.0, 3.0]),
+            ],
+            vec![track("USB_DP", [0.0, 0.0], [2.0, 0.0]), track("GND", [2.0, 3.0], [0.0, 3.0])],
+            vec![],
+        );
+        let r = protection(&b, "usb_dp", &ProtectionRoles::from_map(&roles(&[("conn", "J1.1"), ("tvs", "D1")])).unwrap(), &BTreeMap::new()).unwrap();
+        assert_eq!(r.nets, ["USB_DP".to_string(), "GND".to_string()]);
+        assert_eq!(r.geometry.tvs_ground, "D1.3");
+        assert_eq!(r.geometry.ret, "J1.3");
     }
 
     #[test]

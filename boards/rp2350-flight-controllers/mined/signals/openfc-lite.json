@@ -1,0 +1,347 @@
+{
+  "decoupling": null,
+  "errors": [],
+  "ok": true,
+  "paths": {},
+  "return_paths": [
+    {
+      "by_layer": {
+        "F.Cu": [
+          2.4371320343559666,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "+1.8V_GYRO",
+      "over_other": {},
+      "track_mm": 2.4371320343559666,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {},
+      "ground": "GND",
+      "net": "+5V_USB",
+      "over_other": {},
+      "track_mm": 0.0,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          3.835807358037436,
+          0.2951020408163261
+        ],
+        "F.Cu": [
+          1.1948528137424026,
+          0.35656854249493397
+        ]
+      },
+      "ground": "GND",
+      "net": "/BLACKBOX/SPI1.MISO",
+      "over_other": {},
+      "track_mm": 5.0306601717798385,
+      "unreferenced_mm": 0.65167058331126,
+      "worst_at": [
+        149.29857142857145,
+        88.92
+      ],
+      "worst_mm": 0.30000000000001137
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          1.7645079348883275,
+          0.29868190437319614
+        ],
+        "F.Cu": [
+          0.8930419844020984,
+          0.30637531773541576
+        ]
+      },
+      "ground": "GND",
+      "net": "/BLACKBOX/SPI1.MOSI",
+      "over_other": {},
+      "track_mm": 2.6575499192904255,
+      "unreferenced_mm": 0.6050572221086119,
+      "worst_at": [
+        149.2536,
+        88.3064
+      ],
+      "worst_mm": 0.29868190437319614
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          3.5020815280171584,
+          0.3000000000000161
+        ]
+      },
+      "ground": "GND",
+      "net": "/BLACKBOX/SPI1.SCK",
+      "over_other": {},
+      "track_mm": 3.5020815280171584,
+      "unreferenced_mm": 0.3000000000000161,
+      "worst_at": [
+        150.46,
+        89.55416666666666
+      ],
+      "worst_mm": 0.28999999999999676
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          3.9946292821900724,
+          0.45341924422042407
+        ],
+        "In2.Cu": [
+          3.0585492458608385,
+          0.3478108444444366
+        ]
+      },
+      "ground": "GND",
+      "net": "/IMU/GYRO_INT",
+      "over_other": {},
+      "track_mm": 7.0531785280509105,
+      "unreferenced_mm": 0.8012300886648605,
+      "worst_at": [
+        156.47,
+        83.55459458108108
+      ],
+      "worst_mm": 0.2951349729729723
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          1.288233764908637,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/IMU/SPI0.MISO",
+      "over_other": {},
+      "track_mm": 1.288233764908637,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          3.4927964358732413,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/IMU/SPI0.MOSI",
+      "over_other": {},
+      "track_mm": 3.4927964358732413,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          5.123698100495862,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/IMU/SPI0.SCK",
+      "over_other": {},
+      "track_mm": 5.123698100495862,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          23.797304102091054,
+          0.6452191138326069
+        ],
+        "F.Cu": [
+          11.16531096016687,
+          0.8928376207250012
+        ]
+      },
+      "ground": "GND",
+      "net": "/OSD/VIDEO_IN",
+      "over_other": {},
+      "track_mm": 34.962615062257925,
+      "unreferenced_mm": 1.5380567345576088,
+      "worst_at": [
+        167.61,
+        87.67490566037736
+      ],
+      "worst_mm": 0.29886792452830196
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          4.0082337649086215,
+          0.29092393283103624
+        ]
+      },
+      "ground": "GND",
+      "net": "/OSD/VIDEO_OUT",
+      "over_other": {},
+      "track_mm": 4.0082337649086215,
+      "unreferenced_mm": 0.29092393283103624,
+      "worst_at": [
+        168.25142857142856,
+        91.10857142857142
+      ],
+      "worst_mm": 0.29092393283103624
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          8.009087296526,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/OSD/VID_DC",
+      "over_other": {},
+      "track_mm": 8.009087296526,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          4.751839511488525,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "/OSD/VID_FILT",
+      "over_other": {},
+      "track_mm": 4.751839511488525,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          4.2098894877589,
+          0.2939189189189189
+        ],
+        "F.Cu": [
+          0.08656854249493379,
+          0.08656854249493379
+        ],
+        "In2.Cu": [
+          12.325626401395855,
+          0.6039587257352745
+        ]
+      },
+      "ground": "GND",
+      "net": "/RP2350A/D+",
+      "over_other": {},
+      "track_mm": 16.62208443164969,
+      "unreferenced_mm": 0.9844461871491273,
+      "worst_at": [
+        152.27944444444447,
+        93.77944444444445
+      ],
+      "worst_mm": 0.3189837257352716
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          3.280183860274178,
+          0.32947186141664137
+        ],
+        "F.Cu": [
+          0.11242640687118763,
+          0.11242640687118763
+        ],
+        "In2.Cu": [
+          14.137274059751768,
+          0.6003108379715836
+        ]
+      },
+      "ground": "GND",
+      "net": "/RP2350A/D-",
+      "over_other": {},
+      "track_mm": 17.529884326897132,
+      "unreferenced_mm": 1.0422091062594125,
+      "worst_at": [
+        151.46599999999998,
+        93.524
+      ],
+      "worst_mm": 0.31678383797158766
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          11.524570496976308,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(U2-QSPI_SS)",
+      "over_other": {},
+      "track_mm": 11.524570496976308,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          1.0645584412271387,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(U2-USB_DM)",
+      "over_other": {},
+      "track_mm": 1.0645584412271387,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "F.Cu": [
+          1.1598275605729826,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(U2-USB_DP)",
+      "over_other": {},
+      "track_mm": 1.1598275605729826,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          1.329779220613598,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(USB1-CC1)",
+      "over_other": {},
+      "track_mm": 1.329779220613598,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    },
+    {
+      "by_layer": {
+        "B.Cu": [
+          1.1366421356237422,
+          0.0
+        ]
+      },
+      "ground": "GND",
+      "net": "Net-(USB1-CC2)",
+      "over_other": {},
+      "track_mm": 1.1366421356237422,
+      "unreferenced_mm": 0.0,
+      "worst_mm": 0.0
+    }
+  ]
+}

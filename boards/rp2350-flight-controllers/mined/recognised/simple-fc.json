@@ -1,0 +1,552 @@
+{
+  "blocks": {
+    "buck_L2": {
+      "parts": [
+        "C10",
+        "C11",
+        "C12",
+        "C13",
+        "C14",
+        "C15",
+        "C16",
+        "C17",
+        "C18",
+        "C20",
+        "C21",
+        "C22",
+        "C23",
+        "C24",
+        "C28",
+        "C29",
+        "C4",
+        "C5",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "L2",
+        "U1"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "L2 is an inductor (refdes L, value \"3.3uH\", footprint L_0805_2012METRIC)",
+          "NET-(U1-VREG_LX) has no capacitor to ground and drives L2",
+          "+1V1 has 4 capacitor(s) to ground",
+          "named as a switch node"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "roles": {
+        "cin": "C13",
+        "cout": "C10",
+        "inductor": "L2",
+        "pgnd": "U1.47",
+        "sw": "U1.48",
+        "vin": "U1.1"
+      },
+      "type": "buck"
+    },
+    "crystal_Y1": {
+      "parts": [
+        "C1",
+        "C2",
+        "R5",
+        "Y1"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "Y1 is a crystal (refdes Y, value \"ABM8-272-T3\", footprint CRYSTAL_SMD_3225-4PIN_3.2X2.5MM)",
+          "3 load or series part(s) on its nets"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "roles": {
+        "crystal": "Y1"
+      },
+      "type": "crystal"
+    },
+    "indicator_D3": {
+      "parts": [
+        "D3",
+        "R20"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "D3 and R20 share net NET-(D3-A) and nothing else"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "indicator"
+    },
+    "indicator_D4": {
+      "parts": [
+        "D4",
+        "R21"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "D4 and R21 share net NET-(D4-A) and nothing else"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "indicator"
+    },
+    "mcu_U1": {
+      "parts": [
+        "C10",
+        "C11",
+        "C12",
+        "C28",
+        "U1"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U1's value \"RP2350A\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "usb_J1": {
+      "parts": [
+        "J1"
+      ],
+      "provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "USB_D+ and USB_D- differ only in their pair suffix",
+          "both reach USB connector J1"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "usb"
+    }
+  },
+  "board": {
+    "name": "Simple-FC"
+  },
+  "nets": {
+    "+1V1": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +1V1",
+          "4 capacitor(s) to ground",
+          "buck output: L2 and 4 capacitor(s) to ground"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a microcontroller, about 50 mA",
+            "peak: L2's body, about 2 mm, carries about 0.8 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.05,
+          "peak_a": 0.8
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "1.1 V from the net name +1V1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 1.1
+        },
+        "weight": 0.5
+      }
+    },
+    "+3V3": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +3V3",
+          "18 capacitor(s) to ground",
+          "U1's decoupled input beside switch node NET-(U1-VREG_LX)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a microcontroller, about 50 mA",
+            "4 × a module on an expansion header, about 100 mA",
+            "5 × an IC, about 10 mA",
+            "an LED, about 10 mA",
+            "feeds +1V1 through L2 (0.05 A out, 0.02 A in)"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.53
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "3.3 V from the net name +3V3"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 3.3
+        },
+        "weight": 0.5
+      }
+    },
+    "/ADC_VBUS": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.65,
+          "evidence": [
+            "a divider into a regulator or ADC pin"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "slow_precise"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.65,
+        "evidence": [
+          "R16 and R17 divide VBUS to ground into U1",
+          "net name ADC_VBUS: analog input"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/QSPI_SCLK": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SCLK: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/QSPI_SD0": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SD0: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/QSPI_SD1": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SD1: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/QSPI_SD2": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SD2: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/QSPI_SD3": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SD3: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/QSPI_SS": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SS: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/USB_D+": {
+      "class": "DIFF_HS",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "USB_D+ and USB_D- differ only in their pair suffix",
+          "both reach USB connector J1"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "impedance": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "USB 2.0 specifies 90 ohm differential; 10 % assumed"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_D-",
+          "tolerance_pct": 10.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/USB_D-": {
+      "class": "DIFF_HS",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "USB_D+ and USB_D- differ only in their pair suffix",
+          "both reach USB connector J1"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "impedance": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "USB 2.0 specifies 90 ohm differential; 10 % assumed"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_D+",
+          "tolerance_pct": 10.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/XIN": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "Y1 is a crystal (refdes Y, value \"ABM8-272-T3\", footprint CRYSTAL_SMD_3225-4PIN_3.2X2.5MM)",
+          "net name XIN"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/XOUT": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "R5 joins crystal Y1 to an IC pin",
+          "net name XOUT"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "GND": {
+      "class": "GROUND",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name GND"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.3,
+          "evidence": [
+            "returns what the board's input rails carry: +3V3 0.53 A, VBUS 0.01 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.54
+        },
+        "weight": 0.5
+      }
+    },
+    "Net-(C2-Pad1)": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "Y1 is a crystal (refdes Y, value \"ABM8-272-T3\", footprint CRYSTAL_SMD_3225-4PIN_3.2X2.5MM)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "Net-(U1-VREG_LX)": {
+      "class": "SWITCH",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "L2 is an inductor (refdes L, value \"3.3uH\", footprint L_0805_2012METRIC)",
+          "NET-(U1-VREG_LX) has no capacitor to ground and drives L2",
+          "+1V1 has 4 capacitor(s) to ground",
+          "named as a switch node"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "the current of +1V1, through inductor L2"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.05,
+          "peak_a": 0.8
+        },
+        "weight": 0.5
+      }
+    },
+    "Net-(U5-FB)": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.65,
+          "evidence": [
+            "a divider into a regulator or ADC pin"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "slow_precise"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.65,
+        "evidence": [
+          "R12 and R13 divide +3V3 to ground into U5"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "VBUS": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name VBUS",
+          "1 capacitor(s) to ground"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "an IC, about 10 mA"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.01
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "5 V from the net name VBUS"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 5.0
+        },
+        "weight": 0.5
+      }
+    }
+  },
+  "schema_version": "0.1",
+  "sources": {
+    "recogniser": {
+      "location": "../../../../../../pcb/flight-controllers/Simple-FC/hardware/Simple-FC.kicad_pcb",
+      "title": "ccomp recognise v0"
+    }
+  }
+}

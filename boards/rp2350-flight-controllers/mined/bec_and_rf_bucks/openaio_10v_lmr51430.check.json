@@ -1,0 +1,211 @@
+{
+  "block": "openaio_10v_lmr51430",
+  "geometry": {
+    "feedback_closest": [
+      [
+        65.989348,
+        58.148658
+      ],
+      [
+        65.82317761889578,
+        58.31482838110421
+      ]
+    ],
+    "feedback_path": [
+      [
+        64.31,
+        57.0
+      ],
+      [
+        64.3,
+        56.745
+      ],
+      [
+        64.58569,
+        56.745
+      ],
+      [
+        66.97069,
+        59.13
+      ],
+      [
+        67.57374100000001,
+        59.13
+      ],
+      [
+        67.823741,
+        59.38
+      ],
+      [
+        68.49,
+        59.38
+      ],
+      [
+        68.625,
+        59.07000000000001
+      ]
+    ],
+    "hot_loop": [
+      [
+        64.31,
+        59.3
+      ],
+      [
+        64.5,
+        60.925
+      ],
+      [
+        66.40000000000002,
+        60.925
+      ],
+      [
+        66.21000000000002,
+        59.3
+      ]
+    ],
+    "output_loop": [
+      [
+        65.26000000000002,
+        59.3
+      ],
+      [
+        65.71499999999999,
+        57.65
+      ],
+      [
+        67.61500000000001,
+        57.65
+      ],
+      [
+        67.478307,
+        58.434657
+      ],
+      [
+        67.70000000000002,
+        58.675000000000004
+      ],
+      [
+        67.70000000000002,
+        60.225
+      ],
+      [
+        66.21000000000002,
+        59.3
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openaio_10v_lmr51430",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.35500000000002,
+        60.1125
+      ],
+      "measured": 3.0874822825000514,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+BATT",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_10v_lmr51430",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.35500000000002,
+        60.1125
+      ],
+      "measured": 3.0874822825000514,
+      "method": "pad centres",
+      "nets": [
+        "+BATT",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_10v_lmr51430",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        66.81118671428572,
+        58.747808142857146
+      ],
+      "measured": 4.19067932421876,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U3-SW)",
+        "+10V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_10v_lmr51430",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.26000000000002,
+        59.3
+      ],
+      "measured": 6.401899999999999,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U3-SW)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_10v_lmr51430",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "location": [
+        65.989348,
+        58.148658
+      ],
+      "measured": 0.23500040662229302,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 21 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "Net-(U3-FB)",
+        "Net-(U3-SW)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_10v_lmr51430",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.26000000000002,
+        59.3
+      ],
+      "measured": 0.7088,
+      "method": "B.Cu switch copper over other nets' copper on In6.Cu, 20 um raster",
+      "nets": [
+        "Net-(U3-SW)"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+10V",
+    "sw": "Net-(U3-SW)",
+    "vin": "+BATT"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C18",
+    "cout": "C23",
+    "fb": "U3.4",
+    "inductor": "L2",
+    "pgnd": "U3.1",
+    "sw": "U3.2",
+    "vin": "U3.3"
+  }
+}

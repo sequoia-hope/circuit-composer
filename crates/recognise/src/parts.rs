@@ -139,14 +139,16 @@ pub fn si_value(v: &str, resistor: bool) -> Option<f64> {
 /// Value strings naming a linear regulator, by family prefix.
 pub const LDO_FAMILIES: &[&str] = &[
     "AMS1117", "LM1117", "LD1117", "NCP1117", "AP2112", "AP2210", "AP7361", "AP7365", "XC6206", "XC6210", "XC6220", "MCP1700", "MCP1702", "MCP1703", "MCP1754", "MIC5205",
-    "MIC5219", "MIC5504", "LP2985", "LP2992", "LP5907", "LP2950", "LP38", "TLV70", "TLV75", "TPS7A", "TPS73", "LM317", "LM2937", "LM3940", "RT9013", "RT9193", "HT73", "HT75",
+    "MIC5219", "MIC5504", "LP2985", "LP2992", "LP5907", "LP5912", "LP2950", "LP38", "TLV700", "TLV702", "TLV707", "TLV75", "TPS7A", "TPS73", "TPS746", "TPS785", "LM317",
+    "LM2937", "LM3940", "RT9013", "RT9193", "HT73", "HT75",
     "SPX3819", "ME6211", "ME6206", "L78", "LM78", "MC78", "UA78", "L79", "LM79", "7805", "7812", "7833", "7905", "LT1117", "LT1763", "LT3042", "ADP150", "ADP7118", "BD433",
 ];
 
 /// Value strings naming a microcontroller or SoC, by family prefix.
 pub const MCU_FAMILIES: &[&str] = &[
-    "ATMEGA", "ATTINY", "ATXMEGA", "AT90", "ATSAM", "SAMD", "SAME", "STM32", "STM8", "GD32", "CH32", "CH55", "RP2040", "RP2350", "ESP32", "ESP8266", "ESP-", "NRF51", "NRF52",
-    "NRF53", "PIC1", "PIC24", "PIC32", "DSPIC", "MSP430", "EFM32", "EFR32", "LPC", "MK20", "MK64", "MKL", "MIMXRT", "CY8C", "TM4C", "AVR", "ARDUINO", "TEENSY",
+    "ATMEGA", "ATTINY", "ATXMEGA", "AT90", "ATSAM", "SAMD", "SAME", "STM32", "STM8", "GD32", "AT32", "CH32", "CH55", "RP2040", "RP2350", "RP2354", "ESP32", "ESP8266", "ESP8685",
+    "ESP-", "NRF51", "NRF52", "NRF53", "PIC1", "PIC24", "PIC32", "DSPIC", "MSP430", "EFM8", "EFM32", "EFR32", "LPC", "MK20", "MK64", "MKL", "MIMXRT", "CY8C", "TM4C", "AVR",
+    "ARDUINO", "TEENSY",
 ];
 
 /// Whether a value names one of `families`, ignoring a leading manufacturer word.
@@ -167,8 +169,8 @@ pub fn ldo_rating(value: &str) -> Option<f64> {
     const RATINGS: &[(&str, f64)] = &[
         ("AMS1117", 1.0), ("LM1117", 0.8), ("LD1117", 0.8), ("NCP1117", 1.0), ("LT1117", 0.8), ("AP2112", 0.6), ("AP2210", 0.3), ("AP7361", 1.0), ("AP7365", 0.6),
         ("XC6206", 0.2), ("XC6210", 0.7), ("XC6220", 0.7), ("MCP1700", 0.25), ("MCP1702", 0.25), ("MCP1703", 0.25), ("MCP1754", 0.15), ("MIC5205", 0.15),
-        ("MIC5219", 0.5), ("MIC5504", 0.3), ("LP2985", 0.15), ("LP2992", 0.25), ("LP5907", 0.25), ("LP2950", 0.1), ("LP38", 0.8), ("TLV70", 0.2), ("TLV75", 0.5),
-        ("TPS7A", 0.5), ("TPS73", 0.15), ("LM317", 1.5), ("LM2937", 0.5), ("LM3940", 1.0), ("RT9013", 0.5), ("RT9193", 0.3), ("HT73", 0.25), ("HT75", 0.1),
+        ("MIC5219", 0.5), ("MIC5504", 0.3), ("LP2985", 0.15), ("LP2992", 0.25), ("LP5907", 0.25), ("LP5912", 0.5), ("LP2950", 0.1), ("LP38", 0.8), ("TLV700", 0.2), ("TLV702", 0.3),
+        ("TLV707", 0.2), ("TLV75", 0.5), ("TPS7A", 0.5), ("TPS73", 0.15), ("TPS746", 1.0), ("TPS785", 1.0), ("LM317", 1.5), ("LM2937", 0.5), ("LM3940", 1.0), ("RT9013", 0.5), ("RT9193", 0.3), ("HT73", 0.25), ("HT75", 0.1),
         ("SPX3819", 0.5), ("ME6211", 0.5), ("ME6206", 0.3), ("L78", 1.0), ("LM78", 1.0), ("MC78", 1.0), ("UA78", 1.0), ("L79", 1.0), ("LM79", 1.0), ("7805", 1.0),
         ("7812", 1.0), ("7833", 1.0), ("7905", 1.0), ("LT1763", 0.5), ("LT3042", 0.2), ("ADP150", 0.15), ("ADP7118", 0.2), ("BD433", 0.5),
     ];
@@ -283,7 +285,7 @@ pub fn fpga(value: &str) -> Option<(f64, &'static str)> {
 pub fn load(kind: Kind, value: &str) -> Option<(f64, &'static str)> {
     let v = value.to_ascii_uppercase();
     match kind {
-        Kind::Ic if v.contains("ESP32") || v.contains("ESP8266") || v.starts_with("ESP-") => Some((0.35, "a Wi-Fi SoC, about 350 mA averaged over transmit")),
+        Kind::Ic if v.contains("ESP32") || v.contains("ESP8266") || v.contains("ESP8685") || v.starts_with("ESP-") => Some((0.35, "a Wi-Fi SoC, about 350 mA averaged over transmit")),
         Kind::Ic if names_family(value, MCU_FAMILIES) => Some((0.05, "a microcontroller, about 50 mA")),
         Kind::Ic | Kind::Connector if STEPPER_MODULES.iter().any(|k| v.contains(k)) => Some((0.4, "a plug-in stepper driver, about 400 mA from its motor supply")),
         Kind::Ic => Some((0.01, "an IC, about 10 mA")),
@@ -339,5 +341,8 @@ mod tests {
         assert_eq!(inductor_class("INDUCTOR-CDRH2D18-LD"), Some((0.8, 2.0)));
         assert_eq!(inductor_class("Inductor_SMD:L_1210_3225Metric"), Some((1.5, 3.2)));
         assert!(names_family("ATmega328P-AU", MCU_FAMILIES));
+        assert!(names_family("RP2354A", MCU_FAMILIES));
+        assert!(!names_family("TLV7031DPWR", LDO_FAMILIES));
+        assert!(names_family("TLV70233DBVR", LDO_FAMILIES));
     }
 }

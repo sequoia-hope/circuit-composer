@@ -1,0 +1,274 @@
+{
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "hs_gate_loop_area_mm2": 0.25,
+    "ls_gate_loop_area_mm2": 0.25
+  },
+  "limits": {},
+  "rows": [
+    {
+      "id": "esc1_a",
+      "label": "ESC1 Phase A: Q3 (F.Cu) / Q4 (B.Cu), U14 (NSG2065Q), C90",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 1.463,
+        "hot_loop_area_placed_mm2": 0.952,
+        "phase_path_mm": 1.359,
+        "hs_gate_loop_area_mm2": 5.233,
+        "hs_gate_path_mm": 9.471,
+        "ls_gate_loop_area_mm2": 16.36,
+        "ls_gate_path_mm": 11.537,
+        "bootstrap_loop_area_mm2": 1.864,
+        "bootstrap_path_mm": 3.183,
+        "driver_supply_path_mm": 3.135
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 6.861,
+      "svg": "esc1_a.svg"
+    },
+    {
+      "id": "esc1_b",
+      "label": "ESC1 Phase B: Q5 (F.Cu) / Q6 (B.Cu), U14 (NSG2065Q), C91",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 2.228,
+        "hot_loop_area_placed_mm2": 1.354,
+        "phase_path_mm": 1.291,
+        "hs_gate_loop_area_mm2": 6.849,
+        "hs_gate_path_mm": 7.746,
+        "ls_gate_loop_area_mm2": 11.541,
+        "ls_gate_path_mm": 9.873,
+        "bootstrap_loop_area_mm2": 0.822,
+        "bootstrap_path_mm": 1.63,
+        "driver_supply_path_mm": 3.135
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 6.826,
+      "svg": "esc1_b.svg"
+    },
+    {
+      "id": "esc1_c",
+      "label": "ESC1 Phase C: Q7 (F.Cu) / Q8 (B.Cu), U14 (NSG2065Q), C92",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.363,
+        "hot_loop_area_placed_mm2": 1.496,
+        "phase_path_mm": 1.41,
+        "hs_gate_loop_area_mm2": 7.683,
+        "hs_gate_path_mm": 5.991,
+        "ls_gate_loop_area_mm2": 9.973,
+        "ls_gate_path_mm": 9.489,
+        "bootstrap_loop_area_mm2": 1.29,
+        "bootstrap_path_mm": 2.59,
+        "driver_supply_path_mm": 3.135
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 7.777,
+      "svg": "esc1_c.svg"
+    },
+    {
+      "id": "esc2_a",
+      "label": "ESC2 Phase A: Q9 (F.Cu) / Q10 (B.Cu), U16 (NSG2065Q), C93",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 1.709,
+        "hot_loop_area_placed_mm2": 1.019,
+        "phase_path_mm": 1.117,
+        "hs_gate_loop_area_mm2": 5.934,
+        "hs_gate_path_mm": 12.062,
+        "ls_gate_loop_area_mm2": 5.466,
+        "ls_gate_path_mm": 8.035,
+        "bootstrap_loop_area_mm2": 1.864,
+        "bootstrap_path_mm": 3.183,
+        "driver_supply_path_mm": 2.659
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 4.559,
+      "svg": "esc2_a.svg"
+    },
+    {
+      "id": "esc2_b",
+      "label": "ESC2 Phase B: Q11 (F.Cu) / Q12 (B.Cu), U16 (NSG2065Q), C94",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 2.013,
+        "hot_loop_area_placed_mm2": 1.163,
+        "phase_path_mm": 1.153,
+        "hs_gate_loop_area_mm2": 5.768,
+        "hs_gate_path_mm": 8.979,
+        "ls_gate_loop_area_mm2": 2.1,
+        "ls_gate_path_mm": 5.786,
+        "bootstrap_loop_area_mm2": 0.822,
+        "bootstrap_path_mm": 1.63,
+        "driver_supply_path_mm": 2.659
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 3.98,
+      "svg": "esc2_b.svg"
+    },
+    {
+      "id": "esc2_c",
+      "label": "ESC2 Phase C: Q13 (F.Cu) / Q14 (B.Cu), U16 (NSG2065Q), C95",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 2.969,
+        "hot_loop_area_placed_mm2": 1.298,
+        "phase_path_mm": 1.097,
+        "hs_gate_loop_area_mm2": 9.424,
+        "hs_gate_path_mm": 9.582,
+        "ls_gate_loop_area_mm2": 2.472,
+        "ls_gate_path_mm": 3.472,
+        "bootstrap_loop_area_mm2": 1.296,
+        "bootstrap_path_mm": 2.383,
+        "driver_supply_path_mm": 2.659
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 5.943,
+      "svg": "esc2_c.svg"
+    },
+    {
+      "id": "esc3_a",
+      "label": "ESC3 Phase A: Q15 (F.Cu) / Q16 (B.Cu), U18 (NSG2065Q), C96",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 1.169,
+        "hot_loop_area_placed_mm2": 1.071,
+        "phase_path_mm": 1.105,
+        "hs_gate_loop_area_mm2": 24.607,
+        "hs_gate_path_mm": 13.324,
+        "ls_gate_loop_area_mm2": 2.494,
+        "ls_gate_path_mm": 8.44,
+        "bootstrap_loop_area_mm2": 1.904,
+        "bootstrap_path_mm": 3.225,
+        "driver_supply_path_mm": 0.919
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 7.945,
+      "svg": "esc3_a.svg"
+    },
+    {
+      "id": "esc3_b",
+      "label": "ESC3 Phase B: Q17 (F.Cu) / Q18 (B.Cu), U18 (NSG2065Q), C97",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 2.089,
+        "hot_loop_area_placed_mm2": 1.205,
+        "phase_path_mm": 1.094,
+        "hs_gate_loop_area_mm2": 9.008,
+        "hs_gate_path_mm": 8.599,
+        "ls_gate_loop_area_mm2": 7.832,
+        "ls_gate_path_mm": 10.271,
+        "bootstrap_loop_area_mm2": 0.828,
+        "bootstrap_path_mm": 1.637,
+        "driver_supply_path_mm": 0.919
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 6.299,
+      "svg": "esc3_b.svg"
+    },
+    {
+      "id": "esc3_c",
+      "label": "ESC3 Phase C: Q19 (F.Cu) / Q20 (B.Cu), U18 (NSG2065Q), C98",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 2.729,
+        "hot_loop_area_placed_mm2": 1.371,
+        "phase_path_mm": 1.11,
+        "hs_gate_loop_area_mm2": 5.114,
+        "hs_gate_path_mm": 9.416,
+        "ls_gate_loop_area_mm2": 3.703,
+        "ls_gate_path_mm": 4.367,
+        "bootstrap_loop_area_mm2": 1.308,
+        "bootstrap_path_mm": 2.435,
+        "driver_supply_path_mm": 0.919
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 4.933,
+      "svg": "esc3_c.svg"
+    },
+    {
+      "id": "esc4_a",
+      "label": "ESC4 Phase A: Q21 (F.Cu) / Q22 (B.Cu), U20 (NSG2065Q), C99",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.111,
+        "hot_loop_area_placed_mm2": 1.16,
+        "phase_path_mm": 1.296,
+        "hs_gate_loop_area_mm2": 3.282,
+        "hs_gate_path_mm": 9.072,
+        "ls_gate_loop_area_mm2": 5.047,
+        "ls_gate_path_mm": 15.814,
+        "bootstrap_loop_area_mm2": 1.864,
+        "bootstrap_path_mm": 3.183,
+        "driver_supply_path_mm": 3.313
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 5.193,
+      "svg": "esc4_a.svg"
+    },
+    {
+      "id": "esc4_b",
+      "label": "ESC4 Phase B: Q23 (F.Cu) / Q24 (B.Cu), U20 (NSG2065Q), C100",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.066,
+        "hot_loop_area_placed_mm2": 1.309,
+        "phase_path_mm": 0.942,
+        "hs_gate_loop_area_mm2": 2.059,
+        "hs_gate_path_mm": 7.934,
+        "ls_gate_loop_area_mm2": 5.673,
+        "ls_gate_path_mm": 9.597,
+        "bootstrap_loop_area_mm2": 0.807,
+        "bootstrap_path_mm": 1.636,
+        "driver_supply_path_mm": 3.313
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 4.999,
+      "svg": "esc4_b.svg"
+    },
+    {
+      "id": "esc4_c",
+      "label": "ESC4 Phase C: Q25 (F.Cu) / Q26 (B.Cu), U20 (NSG2065Q), C101",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.4,
+        "hot_loop_area_placed_mm2": 1.448,
+        "phase_path_mm": 1.283,
+        "hs_gate_loop_area_mm2": 7.489,
+        "hs_gate_path_mm": 6.178,
+        "ls_gate_loop_area_mm2": 5.295,
+        "ls_gate_path_mm": 10.131,
+        "bootstrap_loop_area_mm2": 1.296,
+        "bootstrap_path_mm": 2.383,
+        "driver_supply_path_mm": 3.313
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 6.596,
+      "svg": "esc4_c.svg"
+    }
+  ]
+}

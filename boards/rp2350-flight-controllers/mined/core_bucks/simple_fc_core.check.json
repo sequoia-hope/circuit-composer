@@ -1,0 +1,253 @@
+{
+  "block": "simple_fc_core",
+  "geometry": {
+    "feedback_closest": [
+      [
+        147.4,
+        99.60364000000001
+      ],
+      [
+        148.1,
+        99.60364000000001
+      ]
+    ],
+    "feedback_path": [
+      [
+        147.4,
+        100.10000000000001
+      ],
+      [
+        147.4,
+        98.901339
+      ],
+      [
+        147.60000000000002,
+        98.701339
+      ]
+    ],
+    "hot_loop": [
+      [
+        147.79999999999998,
+        100.10000000000001
+      ],
+      [
+        147.8,
+        99.437954
+      ],
+      [
+        148.60000000000002,
+        98.70133900000002
+      ],
+      [
+        148.60000000000002,
+        97.74133900000001
+      ],
+      [
+        148.11932300000004,
+        98.0
+      ],
+      [
+        148.427899,
+        100.89148200000001
+      ],
+      [
+        148.60000000000002,
+        100.719381
+      ],
+      [
+        148.60000000000002,
+        100.1
+      ]
+    ],
+    "output_loop": [
+      [
+        148.2,
+        100.10000000000001
+      ],
+      [
+        148.2,
+        99.60364000000001
+      ],
+      [
+        148.40364,
+        99.4
+      ],
+      [
+        149.60000000000002,
+        99.4
+      ],
+      [
+        150.10000000000002,
+        98.9
+      ],
+      [
+        150.10000000000002,
+        96.595484
+      ],
+      [
+        149.884516,
+        96.38
+      ],
+      [
+        147.75951600000002,
+        96.38
+      ],
+      [
+        146.99,
+        97.149516
+      ],
+      [
+        146.99,
+        98.09133900000002
+      ],
+      [
+        147.60000000000002,
+        98.70133900000002
+      ],
+      [
+        147.60000000000002,
+        97.74133900000001
+      ],
+      [
+        148.11932300000004,
+        98.0
+      ],
+      [
+        148.427899,
+        100.89148200000001
+      ],
+      [
+        148.60000000000002,
+        100.719381
+      ],
+      [
+        148.60000000000002,
+        100.1
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "simple_fc_core",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.31840275000002,
+        99.461436875
+      ],
+      "measured": 1.0308552918673926,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "simple_fc_core",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.4,
+        99.16066950000001
+      ],
+      "measured": 0.5622043876013718,
+      "method": "pad centres",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "simple_fc_core",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.448430875,
+        98.63459499999999
+      ],
+      "measured": 7.671349990497045,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U1-VREG_LX)",
+        "+1V1",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "simple_fc_core",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        148.2,
+        100.10000000000001
+      ],
+      "measured": 2.0084,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U1-VREG_LX)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "simple_fc_core",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        147.4,
+        99.60364000000001
+      ],
+      "measured": 0.6999999999999886,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1V1",
+        "Net-(U1-VREG_LX)"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "simple_fc_core",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        148.2,
+        100.10000000000001
+      ],
+      "measured": 0.0,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(U1-VREG_LX)"
+      ],
+      "passed": true,
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1V1",
+    "sw": "Net-(U1-VREG_LX)",
+    "vin": "+3V3"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C29",
+    "cout": "C28",
+    "fb": "U1.50",
+    "inductor": "L2",
+    "pgnd": "U1.47",
+    "sw": "U1.48",
+    "vin": "U1.49"
+  }
+}

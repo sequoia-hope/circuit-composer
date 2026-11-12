@@ -1,0 +1,262 @@
+{
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "switch_node_area_mm2": 0.5,
+    "output_loop_area_mm2": 0.5
+  },
+  "limits": {},
+  "rows": [
+    {
+      "id": "openfc_mini_10v_lmr51430",
+      "label": "OpenFC-Lite-Mini +10V BEC: U3 (LMR51430, B.Cu), L2, C24, C28",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite-Mini/hardware/OpenFC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.058,
+        "hot_loop_area_placed_mm2": 3.058,
+        "output_loop_area_mm2": 6.265,
+        "switch_node_area_mm2": 8.463,
+        "feedback_clearance_mm": 0.624,
+        "switch_node_underlap_mm2": 6.395
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 10.422,
+      "svg": "openfc_mini_10v_lmr51430.svg"
+    },
+    {
+      "id": "openfc_mini_5v_lmr51430",
+      "label": "OpenFC-Lite-Mini +5V BEC: U4 (LMR51430, B.Cu), L3, C25, C29",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite-Mini/hardware/OpenFC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 7.239,
+        "hot_loop_area_placed_mm2": 7.239,
+        "output_loop_area_mm2": 5.885,
+        "switch_node_area_mm2": 6.383,
+        "feedback_clearance_mm": 1.225,
+        "switch_node_underlap_mm2": 5.086
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 13.373,
+      "svg": "openfc_mini_5v_lmr51430.svg"
+    },
+    {
+      "id": "openfc_lite_10v_lmr51635",
+      "label": "OpenFC-Lite +10V BEC: U6 (LMR51635, B.Cu), L2, C22, C26",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite/hardware/OpenFC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.043,
+        "hot_loop_area_placed_mm2": 3.043,
+        "output_loop_area_mm2": 6.097,
+        "switch_node_area_mm2": 6.865,
+        "feedback_clearance_mm": 1.648,
+        "switch_node_underlap_mm2": 6.866
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 9.524,
+      "svg": "openfc_lite_10v_lmr51635.svg"
+    },
+    {
+      "id": "openfc_lite_5v_lmr51635",
+      "label": "OpenFC-Lite +5V BEC: U16 (LMR51635, B.Cu), L3, C23, C27",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite/hardware/OpenFC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.337,
+        "hot_loop_area_placed_mm2": 3.337,
+        "output_loop_area_mm2": 6.077,
+        "switch_node_area_mm2": 7.164,
+        "feedback_clearance_mm": 1.717,
+        "switch_node_underlap_mm2": 7.166
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 9.957,
+      "svg": "openfc_lite_5v_lmr51635.svg"
+    },
+    {
+      "id": "openaio_10v_lmr51430",
+      "label": "OpenAIO +10V BEC: U3 (LMR51430, B.Cu), L2 (F.Cu), C18, C23",
+      "note": "IC on B.Cu and inductor L2 on F.Cu across the 8-layer stack.",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.087,
+        "hot_loop_area_placed_mm2": 3.087,
+        "output_loop_area_mm2": 4.191,
+        "switch_node_area_mm2": 6.402,
+        "feedback_clearance_mm": 0.235,
+        "switch_node_underlap_mm2": 0.709
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 8.384,
+      "svg": "openaio_10v_lmr51430.svg"
+    },
+    {
+      "id": "openaio_5v_lmr51430",
+      "label": "OpenAIO +5V BEC: U4 (LMR51430, B.Cu), L3 (F.Cu), C19, C24",
+      "note": "IC on B.Cu and inductor L3 on F.Cu across the 8-layer stack.",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 2.872,
+        "hot_loop_area_placed_mm2": 2.945,
+        "output_loop_area_mm2": 3.007,
+        "switch_node_area_mm2": 7.671,
+        "feedback_clearance_mm": 0.181,
+        "switch_node_underlap_mm2": 1.832
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 8.211,
+      "svg": "openaio_5v_lmr51430.svg"
+    },
+    {
+      "id": "kolibri_v05_5v_lmr38025",
+      "label": "Kolibri v0.5 +5V BEC: IC5 (LMR38025, F.Cu), L7, C67, C66",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 1.778,
+        "hot_loop_area_placed_mm2": 1.778,
+        "output_loop_area_mm2": 7.707,
+        "switch_node_area_mm2": 10.197,
+        "feedback_clearance_mm": 0.552,
+        "switch_node_underlap_mm2": 8.526
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 10.73,
+      "svg": "kolibri_v05_5v_lmr38025.svg"
+    },
+    {
+      "id": "kolibri_v05_10v_lmr38025",
+      "label": "Kolibri v0.5 +10V BEC: IC6 (LMR38025, F.Cu), L8, C69, C72",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 4.581,
+        "hot_loop_area_placed_mm2": 4.581,
+        "output_loop_area_mm2": 7.635,
+        "switch_node_area_mm2": 9.877,
+        "feedback_clearance_mm": 0.354,
+        "switch_node_underlap_mm2": 8.19
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 13.337,
+      "svg": "kolibri_v05_10v_lmr38025.svg"
+    },
+    {
+      "id": "kolibri_v06_5v_lmr38025",
+      "label": "Kolibri v0.6 +5V BEC: IC5 (LMR38025, F.Cu), L7 (B.Cu), C68, C66",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.315,
+        "hot_loop_area_placed_mm2": 3.315,
+        "output_loop_area_mm2": 5.766,
+        "switch_node_area_mm2": 14.922,
+        "feedback_clearance_mm": 1.25,
+        "switch_node_underlap_mm2": 1.383
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 13.659,
+      "svg": "kolibri_v06_5v_lmr38025.svg"
+    },
+    {
+      "id": "kolibri_v06_10v_lmr38025",
+      "label": "Kolibri v0.6 +10V BEC: IC6 (LMR38025, B.Cu), L8 (F.Cu), C69, C72",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.315,
+        "hot_loop_area_placed_mm2": 3.315,
+        "output_loop_area_mm2": 4.135,
+        "switch_node_area_mm2": 14.041,
+        "feedback_clearance_mm": 1.005,
+        "switch_node_underlap_mm2": 2.003
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 12.403,
+      "svg": "kolibri_v06_10v_lmr38025.svg"
+    },
+    {
+      "id": "openaio_sx1281_dcdc",
+      "label": "OpenAIO SX1281 internal RF buck: U21 (B.Cu), L4 (15 uH), C71, C68",
+      "note": "",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 3.618,
+        "hot_loop_area_placed_mm2": 0.717,
+        "output_loop_area_mm2": 3.203,
+        "switch_node_area_mm2": 1.07,
+        "feedback_clearance_mm": 1.359,
+        "switch_node_underlap_mm2": 1.078
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 5.754,
+      "svg": "openaio_sx1281_dcdc.svg"
+    },
+    {
+      "id": "kolibri_v05_sx1280_1_dcdc",
+      "label": "Kolibri v0.5 SX1280 #1 RF buck: IC1 (F.Cu), L5 (15 uH, B.Cu), C45, C41",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.905,
+        "hot_loop_area_placed_mm2": 0.804,
+        "output_loop_area_mm2": 2.458,
+        "switch_node_area_mm2": 2.405,
+        "feedback_clearance_mm": 1.241,
+        "switch_node_underlap_mm2": 0.274
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 3.336,
+      "svg": "kolibri_v05_sx1280_1_dcdc.svg"
+    },
+    {
+      "id": "kolibri_v05_sx1280_2_dcdc",
+      "label": "Kolibri v0.5 SX1280 #2 RF buck: IC3 (F.Cu), L6 (15 uH, F.Cu), C60, C61",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.745,
+        "hot_loop_area_placed_mm2": 0.645,
+        "output_loop_area_mm2": 1.989,
+        "switch_node_area_mm2": 1.994,
+        "feedback_clearance_mm": 0.577,
+        "switch_node_underlap_mm2": 1.997
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 2.736,
+      "svg": "kolibri_v05_sx1280_2_dcdc.svg"
+    },
+    {
+      "id": "kolibri_v06_sx1280_dcdc",
+      "label": "Kolibri v0.6 SX1280 RF buck: IC1 (F.Cu), L5 (15 uH, B.Cu), C45, C41",
+      "note": "",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.883,
+        "hot_loop_area_placed_mm2": 0.821,
+        "output_loop_area_mm2": 1.949,
+        "switch_node_area_mm2": 2.412,
+        "feedback_clearance_mm": 1.141,
+        "switch_node_underlap_mm2": 0.069
+      },
+      "passed": {},
+      "not_applicable": {},
+      "score": 3.063,
+      "svg": "kolibri_v06_sx1280_dcdc.svg"
+    }
+  ]
+}

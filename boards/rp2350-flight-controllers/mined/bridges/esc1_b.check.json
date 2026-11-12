@@ -1,0 +1,401 @@
+{
+  "block": "esc1_b",
+  "geometry": {
+    "bootstrap_loop": [
+      [
+        66.18812500000001,
+        68.52493600000001
+      ],
+      [
+        65.374936,
+        68.57188700000002
+      ],
+      [
+        65.374936,
+        69.59188699999999
+      ],
+      [
+        66.188125,
+        69.524936
+      ]
+    ],
+    "cboot": "C41",
+    "cvcc": "C43",
+    "hot_loop": [
+      [
+        63.14500000000001,
+        67.425
+      ],
+      [
+        62.8,
+        67.05
+      ],
+      [
+        62.625,
+        66.75
+      ],
+      [
+        60.67,
+        66.425
+      ],
+      [
+        59.73,
+        66.45
+      ],
+      [
+        59.815000000000005,
+        66.79
+      ],
+      [
+        61.77,
+        65.815
+      ],
+      [
+        63.14500000000001,
+        65.52499999999999
+      ]
+    ],
+    "hs_gate_loop": [
+      [
+        66.18812500000001,
+        69.025064
+      ],
+      [
+        64.51117400000001,
+        69.101887
+      ],
+      [
+        64.508125,
+        69.10493600000001
+      ],
+      [
+        64.508125,
+        69.74493600000001
+      ],
+      [
+        64.557336,
+        69.589934
+      ],
+      [
+        64.214335,
+        69.654335
+      ],
+      [
+        61.910696,
+        67.350696
+      ],
+      [
+        61.266631,
+        67.350696
+      ],
+      [
+        60.852802,
+        67.764525
+      ],
+      [
+        60.852802,
+        68.2392
+      ],
+      [
+        60.67,
+        68.056398
+      ],
+      [
+        60.67,
+        67.72500000000001
+      ],
+      [
+        60.67,
+        67.075
+      ],
+      [
+        59.73,
+        67.15
+      ],
+      [
+        61.516041,
+        67.21500000000002
+      ],
+      [
+        61.765,
+        66.966041
+      ],
+      [
+        61.765,
+        66.613959
+      ],
+      [
+        62.153959,
+        66.225
+      ],
+      [
+        63.826041000000004,
+        66.225
+      ],
+      [
+        64.31877,
+        66.717729
+      ],
+      [
+        64.31877,
+        68.535721
+      ],
+      [
+        65.374936,
+        69.591887
+      ],
+      [
+        66.188125,
+        69.524936
+      ]
+    ],
+    "ls_gate_loop": [
+      [
+        67.83818900000001,
+        71.185
+      ],
+      [
+        67.83818900000001,
+        71.408032
+      ],
+      [
+        67.52,
+        71.726221
+      ],
+      [
+        67.52000000000001,
+        71.958774
+      ],
+      [
+        68.16000000000001,
+        71.958774
+      ],
+      [
+        68.255,
+        71.958774
+      ],
+      [
+        67.336226,
+        71.04
+      ],
+      [
+        65.47,
+        71.04
+      ],
+      [
+        62.205696,
+        67.775696
+      ],
+      [
+        61.442672,
+        67.775696
+      ],
+      [
+        61.77,
+        67.765
+      ],
+      [
+        61.77,
+        67.11500000000001
+      ],
+      [
+        61.895,
+        67.08
+      ],
+      [
+        70.02,
+        70.6
+      ],
+      [
+        70.00812500000002,
+        70.524936
+      ]
+    ],
+    "rgh": "R41",
+    "rgl": "R42",
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "esc1_b",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        61.712500000000006,
+        66.52875
+      ],
+      "measured": 2.228140975156267,
+      "method": "copper paths on the bus, phase and ground nets, joined through the bus capacitor and each switch",
+      "nets": [
+        "+BATT",
+        "/1B",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "esc1_b",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "floorplan",
+      "location": [
+        61.86166666666666,
+        66.56333333333333
+      ],
+      "measured": 1.3540239956250042,
+      "method": "pad centres (a pin's pads averaged)",
+      "nets": [
+        "+BATT",
+        "/1B",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "esc1_b",
+      "check": "phase_path_mm",
+      "fix_stage": "block",
+      "location": [
+        60.071666666666665,
+        66.555
+      ],
+      "measured": 1.2907963662191018,
+      "method": "shortest copper path, high-side source pads to low-side drain pads",
+      "nets": [
+        "/1B"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "esc1_b",
+      "check": "hs_gate_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        62.88420839130434,
+        68.02382086956521
+      ],
+      "measured": 6.8493942367285525,
+      "method": "copper from the driver pin through the gate resistor to the gate, back from the source to the driver's return pin",
+      "nets": [
+        "/ESC1/GHB",
+        "Net-(Q5-G)",
+        "/1B"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "esc1_b",
+      "check": "hs_gate_path_mm",
+      "fix_stage": "block",
+      "location": [
+        60.67,
+        67.72500000000001
+      ],
+      "measured": 7.7463817662977075,
+      "method": "copper, driver pin to gate pad, through the gate resistor",
+      "nets": [
+        "/ESC1/GHB",
+        "Net-(Q5-G)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "esc1_b",
+      "check": "ls_gate_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.93660646666667,
+        70.06079353333334
+      ],
+      "measured": 11.540921096849601,
+      "method": "copper from the driver pin through the gate resistor to the gate, back from the source to the driver's return pin",
+      "nets": [
+        "/ESC1/GLB",
+        "Net-(Q6-G)",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "esc1_b",
+      "check": "ls_gate_path_mm",
+      "fix_stage": "block",
+      "location": [
+        61.77,
+        67.765
+      ],
+      "measured": 9.873090547648209,
+      "method": "copper, driver pin to gate pad, through the gate resistor",
+      "nets": [
+        "/ESC1/GLB",
+        "Net-(Q6-G)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "esc1_b",
+      "check": "bootstrap_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.7815305,
+        69.05341150000001
+      ],
+      "measured": 0.8216930010969303,
+      "method": "copper VB → bootstrap capacitor → VS",
+      "nets": [
+        "Net-(U14-VB2)",
+        "/1B"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "esc1_b",
+      "check": "bootstrap_path_mm",
+      "fix_stage": "block",
+      "location": [
+        66.18812500000001,
+        68.52493600000001
+      ],
+      "measured": 1.630483705053031,
+      "method": "copper VB → bootstrap capacitor → VS",
+      "nets": [
+        "Net-(U14-VB2)",
+        "/1B"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "esc1_b",
+      "check": "driver_supply_path_mm",
+      "fix_stage": "block",
+      "location": [
+        70.00812500000002,
+        69.52493600000001
+      ],
+      "measured": 3.1347007330284278,
+      "method": "copper, VCC pin to C43, the nearest capacitor to GND along it",
+      "nets": [
+        "+10V"
+      ],
+      "unit": "mm"
+    }
+  ],
+  "nets": {
+    "bus": "+BATT",
+    "gnd": "GND",
+    "hs_gate": "Net-(Q5-G)",
+    "ls_gate": "Net-(Q6-G)",
+    "phase": "/1B"
+  },
+  "ok": true,
+  "roles": {
+    "cbus": "C91",
+    "com": "U14.6",
+    "ho": "U14.16",
+    "hs": "Q5",
+    "lo": "U14.10",
+    "ls": "Q6",
+    "vb": "U14.17",
+    "vcc": "U14.4",
+    "vs": "U14.15"
+  }
+}

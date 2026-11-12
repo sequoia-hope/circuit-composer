@@ -1,0 +1,83 @@
+{
+  "check": "half-bridge",
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "hs_gate_loop_area_mm2": 0.25,
+    "ls_gate_loop_area_mm2": 0.25
+  },
+  "limits": {},
+  "entries": [
+    {
+      "id": "esc1_a",
+      "label": "ESC1 Phase A: Q3 (F.Cu) / Q4 (B.Cu), U14 (NSG2065Q), C90",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q3", "ls": "Q4", "cbus": "C90", "ho": "U14.19", "lo": "U14.11", "vs": "U14.18", "vb": "U14.20", "com": "U14.6", "vcc": "U14.4" }
+    },
+    {
+      "id": "esc1_b",
+      "label": "ESC1 Phase B: Q5 (F.Cu) / Q6 (B.Cu), U14 (NSG2065Q), C91",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q5", "ls": "Q6", "cbus": "C91", "ho": "U14.16", "lo": "U14.10", "vs": "U14.15", "vb": "U14.17", "com": "U14.6", "vcc": "U14.4" }
+    },
+    {
+      "id": "esc1_c",
+      "label": "ESC1 Phase C: Q7 (F.Cu) / Q8 (B.Cu), U14 (NSG2065Q), C92",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q7", "ls": "Q8", "cbus": "C92", "ho": "U14.13", "lo": "U14.9", "vs": "U14.12", "vb": "U14.14", "com": "U14.6", "vcc": "U14.4" }
+    },
+    {
+      "id": "esc2_a",
+      "label": "ESC2 Phase A: Q9 (F.Cu) / Q10 (B.Cu), U16 (NSG2065Q), C93",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q9", "ls": "Q10", "cbus": "C93", "ho": "U16.19", "lo": "U16.11", "vs": "U16.18", "vb": "U16.20", "com": "U16.6", "vcc": "U16.4" }
+    },
+    {
+      "id": "esc2_b",
+      "label": "ESC2 Phase B: Q11 (F.Cu) / Q12 (B.Cu), U16 (NSG2065Q), C94",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q11", "ls": "Q12", "cbus": "C94", "ho": "U16.16", "lo": "U16.10", "vs": "U16.15", "vb": "U16.17", "com": "U16.6", "vcc": "U16.4" }
+    },
+    {
+      "id": "esc2_c",
+      "label": "ESC2 Phase C: Q13 (F.Cu) / Q14 (B.Cu), U16 (NSG2065Q), C95",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q13", "ls": "Q14", "cbus": "C95", "ho": "U16.13", "lo": "U16.9", "vs": "U16.12", "vb": "U16.14", "com": "U16.6", "vcc": "U16.4" }
+    },
+    {
+      "id": "esc3_a",
+      "label": "ESC3 Phase A: Q15 (F.Cu) / Q16 (B.Cu), U18 (NSG2065Q), C96",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q15", "ls": "Q16", "cbus": "C96", "ho": "U18.19", "lo": "U18.11", "vs": "U18.18", "vb": "U18.20", "com": "U18.6", "vcc": "U18.4" }
+    },
+    {
+      "id": "esc3_b",
+      "label": "ESC3 Phase B: Q17 (F.Cu) / Q18 (B.Cu), U18 (NSG2065Q), C97",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q17", "ls": "Q18", "cbus": "C97", "ho": "U18.16", "lo": "U18.10", "vs": "U18.15", "vb": "U18.17", "com": "U18.6", "vcc": "U18.4" }
+    },
+    {
+      "id": "esc3_c",
+      "label": "ESC3 Phase C: Q19 (F.Cu) / Q20 (B.Cu), U18 (NSG2065Q), C98",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q19", "ls": "Q20", "cbus": "C98", "ho": "U18.13", "lo": "U18.9", "vs": "U18.12", "vb": "U18.14", "com": "U18.6", "vcc": "U18.4" }
+    },
+    {
+      "id": "esc4_a",
+      "label": "ESC4 Phase A: Q21 (F.Cu) / Q22 (B.Cu), U20 (NSG2065Q), C99",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q21", "ls": "Q22", "cbus": "C99", "ho": "U20.19", "lo": "U20.11", "vs": "U20.18", "vb": "U20.20", "com": "U20.6", "vcc": "U20.4" }
+    },
+    {
+      "id": "esc4_b",
+      "label": "ESC4 Phase B: Q23 (F.Cu) / Q24 (B.Cu), U20 (NSG2065Q), C100",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q23", "ls": "Q24", "cbus": "C100", "ho": "U20.16", "lo": "U20.10", "vs": "U20.15", "vb": "U20.17", "com": "U20.6", "vcc": "U20.4" }
+    },
+    {
+      "id": "esc4_c",
+      "label": "ESC4 Phase C: Q25 (F.Cu) / Q26 (B.Cu), U20 (NSG2065Q), C101",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": { "hs": "Q25", "ls": "Q26", "cbus": "C101", "ho": "U20.13", "lo": "U20.9", "vs": "U20.12", "vb": "U20.14", "com": "U20.6", "vcc": "U20.4" }
+    }
+  ]
+}

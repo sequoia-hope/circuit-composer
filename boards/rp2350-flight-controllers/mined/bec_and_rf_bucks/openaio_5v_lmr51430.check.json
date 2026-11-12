@@ -1,0 +1,215 @@
+{
+  "block": "openaio_5v_lmr51430",
+  "geometry": {
+    "feedback_closest": [
+      [
+        66.92,
+        54.28
+      ],
+      [
+        66.92,
+        54.0995
+      ]
+    ],
+    "feedback_path": [
+      [
+        68.10000000000001,
+        55.5
+      ],
+      [
+        68.1,
+        55.230000000000004
+      ],
+      [
+        67.595,
+        54.725
+      ],
+      [
+        67.365,
+        54.725
+      ],
+      [
+        66.92,
+        54.28
+      ],
+      [
+        66.525,
+        54.285
+      ],
+      [
+        66.163099,
+        54.64
+      ],
+      [
+        63.70000000000001,
+        54.63
+      ]
+    ],
+    "hot_loop": [
+      [
+        68.10000000000001,
+        53.2
+      ],
+      [
+        68.1,
+        51.75000000000001
+      ],
+      [
+        68.20000000000002,
+        51.65
+      ],
+      [
+        66.3,
+        51.65
+      ],
+      [
+        66.19999999999999,
+        53.2
+      ]
+    ],
+    "output_loop": [
+      [
+        67.15,
+        53.2
+      ],
+      [
+        67.625,
+        54.125
+      ],
+      [
+        65.725,
+        54.125
+      ],
+      [
+        65.524998,
+        55.302275
+      ],
+      [
+        64.75,
+        55.5
+      ],
+      [
+        64.75,
+        53.95
+      ],
+      [
+        66.19999999999999,
+        53.2
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openaio_5v_lmr51430",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        67.38,
+        52.29000000000001
+      ],
+      "measured": 2.872250000000082,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+BATT",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_5v_lmr51430",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        67.2,
+        52.425
+      ],
+      "measured": 2.945000000000084,
+      "method": "pad centres",
+      "nets": [
+        "+BATT",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_5v_lmr51430",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        65.960714,
+        54.20032499999999
+      ],
+      "measured": 3.0066727539062503,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U4-SW)",
+        "+5V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_5v_lmr51430",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        67.15,
+        53.2
+      ],
+      "measured": 7.670800000000002,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U4-SW)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_5v_lmr51430",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "location": [
+        66.92,
+        54.28
+      ],
+      "measured": 0.1805000000000021,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 5 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "Net-(U4-FB)",
+        "Net-(U4-SW)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_5v_lmr51430",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        67.15,
+        53.2
+      ],
+      "measured": 1.8320000000000003,
+      "method": "B.Cu switch copper over other nets' copper on In6.Cu, 20 um raster",
+      "nets": [
+        "Net-(U4-SW)"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+5V",
+    "sw": "Net-(U4-SW)",
+    "vin": "+BATT"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C19",
+    "cout": "C24",
+    "fb": "U4.4",
+    "inductor": "L3",
+    "pgnd": "U4.1",
+    "sw": "U4.2",
+    "vin": "U4.3"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "package": "rp2350@0.2.0",
+  "variant": "RP2350A",
+  "chip": "U10",
+  "parts": {
+    "CFILT": "C57",
+    "CIN": "C58",
+    "COUT": "C56",
+    "C_DVDD_23": "C52",
+    "C_DVDD_39": "C50",
+    "C_DVDD_6": "C51",
+    "C_IOVDD_1": "C48",
+    "C_IOVDD_11": "C46",
+    "C_IOVDD_20": "C61",
+    "C_IOVDD_30": "C54",
+    "C_IOVDD_38": "C54",
+    "C_IOVDD_45_ADC": "C44",
+    "C_OTP_QSPI": "C45",
+    "L1": "L2",
+    "RFILT": "R41",
+    "R_BOOTSEL": "R44",
+    "R_USB_DM": "R43",
+    "R_USB_DP": "R42"
+  },
+  "note": "RP2354A uses 2 MB internal stacked QSPI flash; clocked from active 12 MHz CMOS oscillator X1 on XIN (XOUT floating); BOOTSEL via dual-Schottky D8 to shared button SW1."
+}

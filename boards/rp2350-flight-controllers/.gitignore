@@ -1,0 +1,2 @@
+# Renders, 68 MB: rebuilt by tools/compare_buck.py from the specs (upstream boards under ~/pcb/flight-controllers)
+mined/**/*.svg

@@ -1,0 +1,199 @@
+{
+  "block": "kolibri_v05_5v_lmr38025",
+  "geometry": {
+    "feedback_closest": [
+      [
+        108.84954988650206,
+        90.55070363165623
+      ],
+      [
+        108.45804591858705,
+        90.1611571835808
+      ]
+    ],
+    "feedback_path": [
+      [
+        110.15,
+        90.2
+      ],
+      [
+        110.142855,
+        90.19439
+      ],
+      [
+        109.837245,
+        90.5
+      ],
+      [
+        108.9,
+        90.5
+      ],
+      [
+        108.4025,
+        91.0
+      ]
+    ],
+    "hot_loop": [
+      [
+        110.15,
+        93.10000000000002
+      ],
+      [
+        110.68,
+        94.3
+      ],
+      [
+        109.72000000000001,
+        94.3
+      ],
+      [
+        108.15,
+        93.10000000000002
+      ]
+    ],
+    "output_loop": [
+      [
+        108.65,
+        90.2
+      ],
+      [
+        105.33750000000002,
+        90.14999999999999
+      ],
+      [
+        105.33750000000002,
+        92.85000000000001
+      ],
+      [
+        105.41250000000001,
+        92.65
+      ],
+      [
+        108.36250000000001,
+        92.65
+      ],
+      [
+        108.15,
+        92.65
+      ],
+      [
+        108.15,
+        93.10000000000002
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "kolibri_v05_5v_lmr38025",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        109.67500000000001,
+        93.70000000000002
+      ],
+      "measured": 1.7776099412500015,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "VCC",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_5v_lmr38025",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        109.67500000000001,
+        93.70000000000002
+      ],
+      "measured": 1.7776099412500015,
+      "method": "pad centres",
+      "nets": [
+        "VCC",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_5v_lmr38025",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        107.05714285714286,
+        92.03571428571428
+      ],
+      "measured": 7.707330908203057,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(IC5-SW_1)",
+        "+5V_BUCK",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_5v_lmr38025",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        108.65,
+        90.2
+      ],
+      "measured": 10.197199999999999,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(IC5-SW_1)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_5v_lmr38025",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "location": [
+        108.84954988650206,
+        90.55070363165623
+      ],
+      "measured": 0.5522877801485276,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 2 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "Net-(IC5-FB)",
+        "Net-(IC5-SW_1)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v05_5v_lmr38025",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        108.65,
+        90.2
+      ],
+      "measured": 8.5264,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(IC5-SW_1)"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+5V_BUCK",
+    "sw": "Net-(IC5-SW_1)",
+    "vin": "VCC"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C67",
+    "cout": "C66",
+    "fb": "IC5.8",
+    "inductor": "L7",
+    "pgnd": "IC5.1",
+    "sw": "IC5.11",
+    "vin": "IC5.5"
+  }
+}

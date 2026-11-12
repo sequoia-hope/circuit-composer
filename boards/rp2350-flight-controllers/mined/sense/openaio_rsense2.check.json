@@ -1,0 +1,160 @@
+{
+  "block": "openaio_rsense2",
+  "geometry": {
+    "ends": [
+      "Rsense2.1",
+      "Rsense2.2"
+    ],
+    "loop_": [
+      [
+        63.319999999999986,
+        51.76
+      ],
+      [
+        60.95,
+        50.8125
+      ],
+      [
+        60.95,
+        56.7375
+      ],
+      [
+        61.13,
+        55.95000000000001
+      ],
+      [
+        62.16,
+        53.870000000000005
+      ],
+      [
+        62.61,
+        53.42
+      ],
+      [
+        63.049533000000004,
+        53.42
+      ],
+      [
+        63.63,
+        52.839533
+      ],
+      [
+        63.63,
+        52.16912
+      ],
+      [
+        64.19206,
+        51.60706
+      ],
+      [
+        63.695,
+        51.11
+      ],
+      [
+        63.319999999999986,
+        51.11
+      ]
+    ],
+    "routed": true,
+    "taps": [
+      [
+        63.319999999999986,
+        51.76
+      ],
+      [
+        62.216249999999995,
+        53.813750000000006
+      ]
+    ]
+  },
+  "measurements": [
+    {
+      "block": "openaio_rsense2",
+      "check": "sense_path_pos_mm",
+      "fix_stage": "block",
+      "location": [
+        63.319999999999986,
+        51.76
+      ],
+      "measured": 2.5523824654623994,
+      "method": "copper, amplifier input to the nearest shunt pad",
+      "nets": [
+        "/CSA+"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_rsense2",
+      "check": "kelvin_offset_pos_mm",
+      "fix_stage": "route",
+      "location": [
+        63.319999999999986,
+        51.76
+      ],
+      "measured": 0.8613732921795109,
+      "method": "where the input's path first enters a fill of its net or another part's pad, to the nearest shunt pad; 0 is a tap on the pad",
+      "nets": [
+        "/CSA+"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_rsense2",
+      "check": "sense_path_neg_mm",
+      "fix_stage": "block",
+      "location": [
+        63.319999999999986,
+        51.11
+      ],
+      "measured": 7.568933607599617,
+      "method": "copper, amplifier input to the nearest shunt pad",
+      "nets": [
+        "+BATT"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_rsense2",
+      "check": "kelvin_offset_neg_mm",
+      "fix_stage": "route",
+      "location": [
+        62.216249999999995,
+        53.813750000000006
+      ],
+      "measured": 2.311201800742893,
+      "method": "where the input's path first enters a fill of its net or another part's pad, to the nearest shunt pad; 0 is a tap on the pad",
+      "nets": [
+        "+BATT"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_rsense2",
+      "check": "sense_loop_area_mm2",
+      "fix_stage": "route",
+      "location": [
+        62.719716083333324,
+        52.90047608333334
+      ],
+      "measured": 8.083289566406242,
+      "method": "copper of both inputs to the shunt, closed across the shunt and the amplifier",
+      "nets": [
+        "/CSA+",
+        "+BATT"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": [
+    "/CSA+",
+    "+BATT"
+  ],
+  "ok": true,
+  "roles": {
+    "inn": "U25.5",
+    "inp": "U25.4",
+    "shunt": [
+      "Rsense2"
+    ]
+  }
+}

@@ -118,7 +118,8 @@ struct Ctx<'a> {
     board: &'a Board,
     pkg: &'a Package,
     bind: &'a Binding,
-    /// Two-pin resistors and capacitors fitted the other way round from the package.
+    /// Two-pin resistors/capacitors and 180°-symmetric four-pin crystals fitted the other way
+    /// round from the package.
     swapped: BTreeSet<String>,
 }
 
@@ -129,18 +130,42 @@ impl Ctx<'_> {
         if part == "U1" {
             return Some(format!("{}.{}", self.bind.chip, self.chip_pin(pin)?));
         }
-        let pin = match (self.swapped.contains(part), pin) {
-            (true, "1") => "2",
-            (true, "2") => "1",
-            _ => pin,
-        };
+        let pin = if self.swapped.contains(part) { self.swapped_pin(part, pin).unwrap_or(pin) } else { pin };
         Some(format!("{}.{pin}", self.bind.parts.get(part)?))
     }
 
-    /// A bound two-pin resistor or capacitor, whose pins are interchangeable. Inductors are
-    /// not: the RP2350's has a marked side (`rp2350.vreg.inductor_orientation`).
+    /// The opposite pin under 180° rotation for interchangeable-pin passives: 2-pin resistors and
+    /// capacitors (`1` <-> `2`), and 4-pin passive SMD crystals whose shield pads `2` and `4`
+    /// share a net (`1` <-> `3`, `2` <-> `4`). Inductors are excluded (`rp2350.vreg.inductor_orientation`),
+    /// and 4-pin active oscillators have `pad(2) = GND != pad(4) = VDD`.
+    fn swapped_pin(&self, package_part: &str, pin: &str) -> Option<&'static str> {
+        let r = self.bind.parts.get(package_part)?;
+        let p = self.board.parts.get(r)?;
+        if p.pads.len() == 2 && (p.reference.starts_with('R') || p.reference.starts_with('C')) {
+            return match pin {
+                "1" => Some("2"),
+                "2" => Some("1"),
+                _ => None,
+            };
+        }
+        if p.pads.len() == 4 && (p.reference.starts_with('Y') || p.reference.starts_with('X')) {
+            let n2 = self.board.pad(&format!("{r}.2")).map(|q| &q.net);
+            let n4 = self.board.pad(&format!("{r}.4")).map(|q| &q.net);
+            if n2.is_some() && n2 == n4 && !n2.unwrap().is_empty() {
+                return match pin {
+                    "1" => Some("3"),
+                    "3" => Some("1"),
+                    "2" => Some("4"),
+                    "4" => Some("2"),
+                    _ => None,
+                };
+            }
+        }
+        None
+    }
+
     fn reversible(&self, package_part: &str) -> bool {
-        self.bind.parts.get(package_part).and_then(|r| self.board.parts.get(r)).is_some_and(|p| p.pads.len() == 2 && (p.reference.starts_with('R') || p.reference.starts_with('C')))
+        self.swapped_pin(package_part, "1").is_some()
     }
 
     /// Package nets on the board: the anchor's net, or the first bound pin's. With `fixed_only`,
@@ -206,15 +231,15 @@ pub fn check(board_path: &Path, package_dir: &Path, binding_path: &Path) -> Resu
     let mut cx = Ctx { board: &board, pkg: &pkg, bind: &bind, swapped: BTreeSet::new() };
     let mut findings = Vec::new();
 
-    // Nets found through fixed pins first; they say which way round each resistor and capacitor
-    // is fitted; then every net, with those parts' pins read the right way.
+    // Nets found through fixed pins first; they say which way round each reversible part is
+    // fitted; then every net, with those parts' pins read the right way.
     let fixed = cx.resolve(true);
     let mut swapped = BTreeSet::new();
     for part in bind.parts.keys().filter(|p| cx.reversible(p)) {
         let flipped = pkg.nets.iter().any(|(net, n)| {
             let Some(want) = fixed.get(net) else { return false };
             n.pins.iter().filter_map(|p| p.split_once('.')).filter(|(q, _)| q == part).any(|(_, pin)| {
-                let other = if pin == "1" { "2" } else { "1" };
+                let Some(other) = cx.swapped_pin(part, pin) else { return false };
                 let on = |pin: &str| board.pad(&format!("{}.{pin}", bind.parts[part])).map(|p| &p.net);
                 on(pin) != Some(want) && on(other) == Some(want)
             })
@@ -602,7 +627,41 @@ pub fn parse_value(raw: &str, quantity: &str) -> Option<f64> {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_value;
+    use super::*;
+
+    #[test]
+    fn rotated_four_pin_crystal_swaps_electrodes_not_oscillator() {
+        let src = r#"(kicad_pcb (version 20260206) (generator "pcbnew")
+          (general (thickness 1.6))
+          (layers (0 "F.Cu" signal) (1 "B.Cu" signal) (2 "F.Mask" user))
+          (footprint "Crystal:Crystal_SMD_3225-4Pin" (layer "F.Cu") (at 0 0)
+            (property "Reference" "Y1") (property "Value" "ABM8-272-T3")
+            (pad "1" smd rect (at -1 0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "XOUT_XTAL"))
+            (pad "2" smd rect (at 1 0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "GND"))
+            (pad "3" smd rect (at 1 -0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "XIN"))
+            (pad "4" smd rect (at -1 -0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "GND")))
+          (footprint "Oscillator:Osc_SMD_4Pin" (layer "F.Cu") (at 10 0)
+            (property "Reference" "X1") (property "Value" "12MHz")
+            (pad "1" smd rect (at -1 0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "+3V3"))
+            (pad "2" smd rect (at 1 0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "GND"))
+            (pad "3" smd rect (at 1 -0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "XIN"))
+            (pad "4" smd rect (at -1 -0.8) (size 0.8 0.8) (layers "F.Cu" "F.Mask") (net "+3V3")))
+        )"#;
+        let board = Board::parse(src).unwrap();
+        let pkg = load_package(Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../packages/rp2350"))).unwrap();
+        let bind = Binding {
+            package: "rp2350@0.2.0".into(),
+            variant: "RP2350A".into(),
+            chip: "Y1".into(),
+            parts: BTreeMap::from([("XTAL".into(), "Y1".into()), ("OSC".into(), "X1".into())]),
+            note: None,
+        };
+        let cx = Ctx { board: &board, pkg: &pkg, bind: &bind, swapped: BTreeSet::from(["XTAL".into()]) };
+        assert!(cx.reversible("XTAL"));
+        assert!(!cx.reversible("OSC"));
+        assert_eq!(cx.pin("XTAL.1").as_deref(), Some("Y1.3"));
+        assert_eq!(cx.pin("XTAL.3").as_deref(), Some("Y1.1"));
+    }
 
     #[test]
     fn values() {

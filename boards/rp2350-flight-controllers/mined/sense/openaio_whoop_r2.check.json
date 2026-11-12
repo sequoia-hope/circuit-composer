@@ -1,0 +1,140 @@
+{
+  "block": "openaio_whoop_r2",
+  "geometry": {
+    "ends": [
+      "R2.2",
+      "R2.3"
+    ],
+    "loop_": [
+      [
+        100.57500000000002,
+        121.87500000000001
+      ],
+      [
+        101.1,
+        121.35
+      ],
+      [
+        101.10000000000001,
+        121.12500000000001
+      ],
+      [
+        102.9,
+        121.125
+      ],
+      [
+        102.245,
+        121.125
+      ],
+      [
+        100.845,
+        122.525
+      ],
+      [
+        100.57500000000002,
+        122.525
+      ]
+    ],
+    "routed": true,
+    "taps": [
+      [
+        101.1,
+        121.3125
+      ],
+      [
+        102.70151515151515,
+        121.125
+      ]
+    ]
+  },
+  "measurements": [
+    {
+      "block": "openaio_whoop_r2",
+      "check": "sense_path_pos_mm",
+      "fix_stage": "block",
+      "location": [
+        100.57500000000002,
+        121.87500000000001
+      ],
+      "measured": 0.9674621202458572,
+      "method": "copper, amplifier input to the nearest shunt pad",
+      "nets": [
+        "/POWER/SHUNT_SENSE_P"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_whoop_r2",
+      "check": "kelvin_offset_pos_mm",
+      "fix_stage": "route",
+      "location": [
+        101.1,
+        121.3125
+      ],
+      "measured": 0.0,
+      "method": "where the input's path first enters a fill of its net or another part's pad, to the nearest shunt pad; 0 is a tap on the pad",
+      "nets": [
+        "/POWER/SHUNT_SENSE_P"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_whoop_r2",
+      "check": "sense_path_neg_mm",
+      "fix_stage": "block",
+      "location": [
+        100.57500000000002,
+        122.525
+      ],
+      "measured": 2.9048989873223383,
+      "method": "copper, amplifier input to the nearest shunt pad",
+      "nets": [
+        "/POWER/SHUNT_SENSE_N"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_whoop_r2",
+      "check": "kelvin_offset_neg_mm",
+      "fix_stage": "route",
+      "location": [
+        102.70151515151515,
+        121.125
+      ],
+      "measured": 0.0,
+      "method": "where the input's path first enters a fill of its net or another part's pad, to the nearest shunt pad; 0 is a tap on the pad",
+      "nets": [
+        "/POWER/SHUNT_SENSE_N"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_whoop_r2",
+      "check": "sense_loop_area_mm2",
+      "fix_stage": "route",
+      "location": [
+        101.33428571428573,
+        121.66428571428571
+      ],
+      "measured": 1.1028150703124893,
+      "method": "copper of both inputs to the shunt, closed across the shunt and the amplifier",
+      "nets": [
+        "/POWER/SHUNT_SENSE_P",
+        "/POWER/SHUNT_SENSE_N"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": [
+    "/POWER/SHUNT_SENSE_P",
+    "/POWER/SHUNT_SENSE_N"
+  ],
+  "ok": true,
+  "roles": {
+    "inn": "U1.5",
+    "inp": "U1.4",
+    "shunt": [
+      "R2"
+    ]
+  }
+}

@@ -1,0 +1,1464 @@
+{
+  "blocks": {
+    "buck_L1": {
+      "parts": [
+        "C10",
+        "C11",
+        "C111",
+        "C112",
+        "C113",
+        "C114",
+        "C115",
+        "C116",
+        "C118",
+        "C20",
+        "C21",
+        "C22",
+        "C23",
+        "C24",
+        "C26",
+        "C27",
+        "C28",
+        "C29",
+        "C30",
+        "C32",
+        "C33",
+        "C34",
+        "C35",
+        "C36",
+        "C38",
+        "C39",
+        "C40",
+        "C41",
+        "C43",
+        "C63",
+        "C7",
+        "C8",
+        "C9",
+        "L1",
+        "U2"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "L1 is an inductor (refdes L, value \"0.68uH 6.5A\", footprint IND-SMD_L2.5-W2.0_FTC252012_L)",
+          "U2_SW has no capacitor to ground and drives L1",
+          "+BATT has 29 capacitor(s) to ground",
+          "named as a switch node"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "roles": {
+        "cin": "C10",
+        "cout": "C111",
+        "inductor": "L1",
+        "pgnd": "U2.1",
+        "sw": "U2.2",
+        "vin": "U2.3"
+      },
+      "type": "buck"
+    },
+    "buck_L2": {
+      "parts": [
+        "C137",
+        "C14",
+        "C42",
+        "C44",
+        "C45",
+        "C46",
+        "C47",
+        "C48",
+        "C49",
+        "C50",
+        "C51",
+        "C52",
+        "C54",
+        "C56",
+        "C58",
+        "C6",
+        "C61",
+        "C65",
+        "C70",
+        "C71",
+        "C76",
+        "C82",
+        "C85",
+        "C91",
+        "L2",
+        "U10"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "L2 is an inductor (refdes L, value \"3.3uH\", footprint IND-SMD_L2.0-W1.6_AOTA-B201610S3R3-101-T_DENSE)",
+          "VREG_LX has no capacitor to ground and drives L2",
+          "+1.1V has 4 capacitor(s) to ground",
+          "named as a switch node"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "roles": {
+        "cin": "C137",
+        "cout": "C50",
+        "inductor": "L2",
+        "pgnd": "U10.47",
+        "sw": "U10.48",
+        "vin": "U10.1"
+      },
+      "type": "buck"
+    },
+    "connector_protection_J31": {
+      "parts": [
+        "D7",
+        "J31"
+      ],
+      "provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "D7 is a suppressor (refdes D, value \"TPD2EUSB30\", footprint TI_SOT-9X3-3_DRT_L)",
+          "it shares a net with connector J31"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "connector_protection"
+    },
+    "crystal_X1": {
+      "parts": [
+        "C137",
+        "C14",
+        "C42",
+        "C44",
+        "C45",
+        "C46",
+        "C47",
+        "C48",
+        "C49",
+        "C54",
+        "C58",
+        "C6",
+        "C61",
+        "C65",
+        "C70",
+        "C71",
+        "C76",
+        "C82",
+        "C85",
+        "C91",
+        "X1"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "X1 is a crystal (refdes X, value \"12MHz\", footprint OSC-SMD_4P-L2.0-W1.6-BL_YXC_YSO110TR_DENSE)",
+          "20 load or series part(s) on its nets"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "roles": {
+        "crystal": "X1"
+      },
+      "type": "crystal"
+    },
+    "crystal_X4": {
+      "parts": [
+        "C94",
+        "C95",
+        "X4"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "X4 is a crystal (refdes X, value \"8MHz 10pF\", footprint CRYSTAL-SMD_4P-L3.2-W2.5-BL_DENSE)",
+          "2 load or series part(s) on its nets"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "roles": {
+        "crystal": "X4"
+      },
+      "type": "crystal"
+    },
+    "indicator_D5": {
+      "parts": [
+        "D5",
+        "R85"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "D5 and R85 share net D5_K and nothing else"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "indicator"
+    },
+    "indicator_D6": {
+      "parts": [
+        "D6",
+        "R86"
+      ],
+      "provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "D6 and R86 share net D6_K and nothing else"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "indicator"
+    },
+    "ldo_U12": {
+      "parts": [
+        "C137",
+        "C138",
+        "C14",
+        "C42",
+        "C44",
+        "C45",
+        "C46",
+        "C47",
+        "C48",
+        "C49",
+        "C54",
+        "C58",
+        "C6",
+        "C61",
+        "C62",
+        "C65",
+        "C70",
+        "C71",
+        "C76",
+        "C82",
+        "C85",
+        "C91",
+        "U12"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U12's value \"TPS7A2018\" names a linear regulator family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "ldo"
+    },
+    "ldo_U21": {
+      "parts": [
+        "C100",
+        "C101",
+        "C102",
+        "C103",
+        "C108",
+        "C12",
+        "C122",
+        "C128",
+        "C83",
+        "C98",
+        "U21"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U21's value \"LP5912-3.3\" names a linear regulator family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "ldo"
+    },
+    "ldo_U22": {
+      "parts": [
+        "C100",
+        "C101",
+        "C102",
+        "C103",
+        "C108",
+        "C122",
+        "C123",
+        "C98",
+        "U22"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U22's value \"TPS7A20285\" names a linear regulator family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "ldo"
+    },
+    "ldo_U4": {
+      "parts": [
+        "C12",
+        "C128",
+        "C137",
+        "C14",
+        "C42",
+        "C44",
+        "C45",
+        "C46",
+        "C47",
+        "C48",
+        "C49",
+        "C54",
+        "C58",
+        "C6",
+        "C61",
+        "C65",
+        "C70",
+        "C71",
+        "C76",
+        "C82",
+        "C83",
+        "C85",
+        "C91",
+        "U4"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U4's value \"TLV75733\" names a linear regulator family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "ldo"
+    },
+    "mcu_U10": {
+      "parts": [
+        "C50",
+        "C51",
+        "C52",
+        "C56",
+        "U10"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U10's value \"RP2354A\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "mcu_U16": {
+      "parts": [
+        "U16"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U16's value \"ESP32-PICO-V3\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "mcu_U6": {
+      "parts": [
+        "U6"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U6's value \"EFM8BB51F16I\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "mcu_U7": {
+      "parts": [
+        "U7"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U7's value \"EFM8BB51F16I\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "mcu_U8": {
+      "parts": [
+        "U8"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U8's value \"EFM8BB51F16I\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "mcu_U9": {
+      "parts": [
+        "U9"
+      ],
+      "provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "U9's value \"EFM8BB51F16I\" names a microcontroller family"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "mcu"
+    },
+    "usb_J31": {
+      "parts": [
+        "D7",
+        "J31",
+        "R42",
+        "R43"
+      ],
+      "provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "USB_D_N and USB_D_P differ only in their pair suffix",
+          "both reach USB connector J31"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "usb"
+    },
+    "usb_RP2350AU10_USB_D_N": {
+      "parts": [
+        "R42",
+        "R43"
+      ],
+      "provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "U10_USB_D_N and U10_USB_D_P differ only in their pair suffix"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "type": "usb"
+    }
+  },
+  "board": {
+    "name": "OpenAIO-Whoop"
+  },
+  "nets": {
+    "+1.1V": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +1.1V",
+          "4 capacitor(s) to ground",
+          "buck output: L2 and 4 capacitor(s) to ground"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a microcontroller, about 50 mA",
+            "peak: L2's body, about 2 mm, carries about 0.8 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.05,
+          "peak_a": 0.8
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "1.1 V from the net name +1.1V"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 1.1
+        },
+        "weight": 0.5
+      }
+    },
+    "+1.8V_GYRO": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +1.8V_GYRO",
+          "2 capacitor(s) to ground",
+          "a decoupled pin of regulator U12 (TPS7A2018)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "an IC, about 10 mA",
+            "peak: U12 (TPS7A2018) is rated 0.5 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.01,
+          "peak_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "1.8 V from the net name +1.8V_GYRO"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 1.8
+        },
+        "weight": 0.5
+      }
+    },
+    "+3.3V": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +3.3V",
+          "20 capacitor(s) to ground",
+          "U10's decoupled input beside switch node VREG_LX",
+          "a decoupled pin of regulator U12 (TPS7A2018)",
+          "a decoupled pin of regulator U4 (TLV75733)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a Wi-Fi SoC, about 350 mA averaged over transmit",
+            "a microcontroller, about 50 mA",
+            "3 × a module on an expansion header, about 100 mA",
+            "6 × an IC, about 10 mA",
+            "2 × an LED, about 10 mA",
+            "an addressable LED, about 40 mA at full white",
+            "feeds +BATT through L1 (0.21 A out, 0.21 A in)",
+            "feeds +1.1V through L2 (0.05 A out, 0.02 A in)",
+            "feeds +1.8V_GYRO through U12 (0.01 A out, 0.01 A in)",
+            "feeds +3.3V_VTX through U21 (0.01 A out, 0.01 A in)",
+            "capped: J31: a USB 2.0 port delivers 500 mA",
+            "+5V and +5V_BST are one rail through D10",
+            "+3.3V and +5V are one rail through D11",
+            "+5V and VBUS are one rail through D9",
+            "+5V and +5V_CAM are one rail through FB1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "3.3 V from the net name +3.3V"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 3.3
+        },
+        "weight": 0.5
+      }
+    },
+    "+3.3V_VTX": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +3.3V_VTX",
+          "7 capacitor(s) to ground",
+          "a decoupled pin of regulator U21 (LP5912-3.3)",
+          "a decoupled pin of regulator U22 (TPS7A20285)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "an IC, about 10 mA",
+            "peak: U21 (LP5912-3.3) is rated 0.5 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.01,
+          "peak_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "3.3 V from the net name +3.3V_VTX"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 3.3
+        },
+        "weight": 0.5
+      }
+    },
+    "+5V": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +5V",
+          "3 capacitor(s) to ground",
+          "a decoupled pin of regulator U21 (LP5912-3.3)",
+          "a decoupled pin of regulator U4 (TLV75733)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a Wi-Fi SoC, about 350 mA averaged over transmit",
+            "a microcontroller, about 50 mA",
+            "3 × a module on an expansion header, about 100 mA",
+            "6 × an IC, about 10 mA",
+            "2 × an LED, about 10 mA",
+            "an addressable LED, about 40 mA at full white",
+            "feeds +BATT through L1 (0.21 A out, 0.21 A in)",
+            "feeds +1.1V through L2 (0.05 A out, 0.02 A in)",
+            "feeds +1.8V_GYRO through U12 (0.01 A out, 0.01 A in)",
+            "feeds +3.3V_VTX through U21 (0.01 A out, 0.01 A in)",
+            "capped: J31: a USB 2.0 port delivers 500 mA",
+            "+5V and +5V_BST are one rail through D10",
+            "+3.3V and +5V are one rail through D11",
+            "+5V and VBUS are one rail through D9",
+            "+5V and +5V_CAM are one rail through FB1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "5 V from the net name +5V"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 5.0
+        },
+        "weight": 0.5
+      }
+    },
+    "+5V_BST": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +5V_BST",
+          "4 capacitor(s) to ground",
+          "U2's decoupled input beside switch node U2_SW"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a Wi-Fi SoC, about 350 mA averaged over transmit",
+            "a microcontroller, about 50 mA",
+            "3 × a module on an expansion header, about 100 mA",
+            "6 × an IC, about 10 mA",
+            "2 × an LED, about 10 mA",
+            "an addressable LED, about 40 mA at full white",
+            "feeds +BATT through L1 (0.21 A out, 0.21 A in)",
+            "feeds +1.1V through L2 (0.05 A out, 0.02 A in)",
+            "feeds +1.8V_GYRO through U12 (0.01 A out, 0.01 A in)",
+            "feeds +3.3V_VTX through U21 (0.01 A out, 0.01 A in)",
+            "capped: J31: a USB 2.0 port delivers 500 mA",
+            "+5V and +5V_BST are one rail through D10",
+            "+3.3V and +5V are one rail through D11",
+            "+5V and VBUS are one rail through D9",
+            "+5V and +5V_CAM are one rail through FB1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "5 V from the net name +5V_BST"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 5.0
+        },
+        "weight": 0.5
+      }
+    },
+    "+5V_CAM": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name +5V_CAM",
+          "1 capacitor(s) to ground"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a Wi-Fi SoC, about 350 mA averaged over transmit",
+            "a microcontroller, about 50 mA",
+            "3 × a module on an expansion header, about 100 mA",
+            "6 × an IC, about 10 mA",
+            "2 × an LED, about 10 mA",
+            "an addressable LED, about 40 mA at full white",
+            "feeds +BATT through L1 (0.21 A out, 0.21 A in)",
+            "feeds +1.1V through L2 (0.05 A out, 0.02 A in)",
+            "feeds +1.8V_GYRO through U12 (0.01 A out, 0.01 A in)",
+            "feeds +3.3V_VTX through U21 (0.01 A out, 0.01 A in)",
+            "capped: J31: a USB 2.0 port delivers 500 mA",
+            "+5V and +5V_BST are one rail through D10",
+            "+3.3V and +5V are one rail through D11",
+            "+5V and VBUS are one rail through D9",
+            "+5V and +5V_CAM are one rail through FB1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "5 V from the net name +5V_CAM"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 5.0
+        },
+        "weight": 0.5
+      }
+    },
+    "+BATT": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "net name +BATT",
+          "29 capacitor(s) to ground",
+          "buck output: L1 and 29 capacitor(s) to ground"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "4 × a microcontroller, about 50 mA",
+            "an IC, about 10 mA",
+            "peak: L1's body, about 2.5 mm, carries about 0.8 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.21,
+          "peak_a": 0.8
+        },
+        "weight": 0.5
+      }
+    },
+    "/CURR_SENSE": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.55,
+          "evidence": [
+            "current sense, from net name CURR_SENSE"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "dc"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.55,
+        "evidence": [
+          "net name CURR_SENSE: current sense"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/FLASH_CS": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name FLASH_CS: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/POWER/SHUNT_SENSE_N": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.55,
+          "evidence": [
+            "current sense, from net name SHUNT_SENSE_N"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "dc"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.55,
+        "evidence": [
+          "net name SHUNT_SENSE_N: current sense"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/POWER/SHUNT_SENSE_P": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.55,
+          "evidence": [
+            "current sense, from net name SHUNT_SENSE_P"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "dc"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.55,
+        "evidence": [
+          "net name SHUNT_SENSE_P: current sense"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/POWER/U2_FB": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.85,
+          "evidence": [
+            "a divider into a regulator or ADC pin"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "slow_precise"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "R4 and R5 divide +5V_BST to ground into U2",
+          "net name U2_FB: feedback"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/POWER/U2_SW": {
+      "class": "SWITCH",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "L1 is an inductor (refdes L, value \"0.68uH 6.5A\", footprint IND-SMD_L2.5-W2.0_FTC252012_L)",
+          "U2_SW has no capacitor to ground and drives L1",
+          "+BATT has 29 capacitor(s) to ground",
+          "named as a switch node",
+          "net name U2_SW"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "the current of +BATT, through inductor L1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.21,
+          "peak_a": 0.8
+        },
+        "weight": 0.5
+      }
+    },
+    "/RP2350A/ADC_CURR": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.55,
+          "evidence": [
+            "analog input, from net name ADC_CURR"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "slow_precise"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.55,
+        "evidence": [
+          "net name ADC_CURR: analog input"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/RP2350A/ADC_VBAT": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.65,
+          "evidence": [
+            "a divider into a regulator or ADC pin"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "slow_precise"
+        },
+        "weight": 0.5
+      },
+      "class": "ANALOG",
+      "class_provenance": {
+        "confidence": 0.65,
+        "evidence": [
+          "R45 and R46 divide +BATT to ground into U10",
+          "net name ADC_VBAT: analog input"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/RP2350A/QSPI_SS": {
+      "class": "SE_HS",
+      "class_provenance": {
+        "confidence": 0.7,
+        "evidence": [
+          "net name QSPI_SS: QSPI"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/RP2350A/U10_USB_D_N": {
+      "class": "DIFF_HS",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "U10_USB_D_N and U10_USB_D_P differ only in their pair suffix"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "impedance": {
+        "provenance": {
+          "confidence": 0.9,
+          "evidence": [
+            "USB 2.0 specifies 90 ohm differential; 10 % assumed"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/RP2350A/U10_USB_D_P",
+          "tolerance_pct": 10.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/RP2350A/U10_USB_D_P": {
+      "class": "DIFF_HS",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "U10_USB_D_N and U10_USB_D_P differ only in their pair suffix"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "impedance": {
+        "provenance": {
+          "confidence": 0.9,
+          "evidence": [
+            "USB 2.0 specifies 90 ohm differential; 10 % assumed"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/RP2350A/U10_USB_D_N",
+          "tolerance_pct": 10.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/RP2350A/VREG_LX": {
+      "class": "SWITCH",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "L2 is an inductor (refdes L, value \"3.3uH\", footprint IND-SMD_L2.0-W1.6_AOTA-B201610S3R3-101-T_DENSE)",
+          "VREG_LX has no capacitor to ground and drives L2",
+          "+1.1V has 4 capacitor(s) to ground",
+          "named as a switch node",
+          "net name VREG_LX"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "the current of +1.1V, through inductor L2"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.05,
+          "peak_a": 0.8
+        },
+        "weight": 0.5
+      }
+    },
+    "/RP2350A/XIN": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "X1 is a crystal (refdes X, value \"12MHz\", footprint OSC-SMD_4P-L2.0-W1.6-BL_YXC_YSO110TR_DENSE)",
+          "net name XIN"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/RX/TCXO_OUT": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.75,
+        "evidence": [
+          "X3 is an oscillator (refdes X, value \"52MHz TCXO\", footprint OSC-SMD_4P-L2.0-W1.6-BL_TXC_7Z_DENSE)",
+          "the oscillator's only undecoupled net: its output"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/RX/VREG_RADIO": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.55,
+        "evidence": [
+          "2 capacitors to ground and 1 IC pin(s), but no supply name"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "an IC, about 10 mA"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.01
+        },
+        "weight": 0.5
+      }
+    },
+    "/USB_D_N": {
+      "class": "DIFF_HS",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "USB_D_N and USB_D_P differ only in their pair suffix",
+          "both reach USB connector J31"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "impedance": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "USB 2.0 specifies 90 ohm differential; 10 % assumed"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_D_P",
+          "tolerance_pct": 10.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/USB_D_P": {
+      "class": "DIFF_HS",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "USB_D_N and USB_D_P differ only in their pair suffix",
+          "both reach USB connector J31"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "impedance": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "USB 2.0 specifies 90 ohm differential; 10 % assumed"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "mode": "differential",
+          "ohms": 90.0,
+          "pair": "/USB_D_N",
+          "tolerance_pct": 10.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/VBUS": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.85,
+        "evidence": [
+          "net name VBUS"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "a Wi-Fi SoC, about 350 mA averaged over transmit",
+            "a microcontroller, about 50 mA",
+            "3 × a module on an expansion header, about 100 mA",
+            "6 × an IC, about 10 mA",
+            "2 × an LED, about 10 mA",
+            "an addressable LED, about 40 mA at full white",
+            "feeds +BATT through L1 (0.21 A out, 0.21 A in)",
+            "feeds +1.1V through L2 (0.05 A out, 0.02 A in)",
+            "feeds +1.8V_GYRO through U12 (0.01 A out, 0.01 A in)",
+            "feeds +3.3V_VTX through U21 (0.01 A out, 0.01 A in)",
+            "capped: J31: a USB 2.0 port delivers 500 mA",
+            "+5V and +5V_BST are one rail through D10",
+            "+3.3V and +5V are one rail through D11",
+            "+5V and VBUS are one rail through D9",
+            "+5V and +5V_CAM are one rail through FB1"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.5
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.85,
+          "evidence": [
+            "5 V from the net name VBUS"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 5.0
+        },
+        "weight": 0.5
+      }
+    },
+    "/VTX/PA_VREF": {
+      "bandwidth": {
+        "provenance": {
+          "confidence": 0.8,
+          "evidence": [
+            "reference, from net name PA_VREF"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "kind": "dc"
+        },
+        "weight": 0.5
+      },
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.8,
+        "evidence": [
+          "a decoupled pin of regulator U22 (TPS7A20285)"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "an IC, about 10 mA"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.01
+        },
+        "weight": 0.5
+      }
+    },
+    "/VTX/U19_LDD2V5": {
+      "class": "POWER",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name U19_LDD2V5",
+          "1 capacitor(s) to ground"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.35,
+          "evidence": [
+            "an IC, about 10 mA"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.01
+        },
+        "weight": 0.5
+      },
+      "voltage": {
+        "provenance": {
+          "confidence": 0.95,
+          "evidence": [
+            "2.5 V from the net name U19_LDD2V5"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "peak_v": 2.5
+        },
+        "weight": 0.5
+      }
+    },
+    "/VTX/U19_XTAL1": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "X4 is a crystal (refdes X, value \"8MHz 10pF\", footprint CRYSTAL-SMD_4P-L3.2-W2.5-BL_DENSE)",
+          "net name U19_XTAL1"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "/VTX/U19_XTAL2": {
+      "class": "CLOCK",
+      "class_provenance": {
+        "confidence": 0.9,
+        "evidence": [
+          "X4 is a crystal (refdes X, value \"8MHz 10pF\", footprint CRYSTAL-SMD_4P-L3.2-W2.5-BL_DENSE)",
+          "net name U19_XTAL2"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      }
+    },
+    "GND": {
+      "class": "GROUND",
+      "class_provenance": {
+        "confidence": 0.95,
+        "evidence": [
+          "net name GND"
+        ],
+        "kind": "recognised",
+        "source": "recogniser"
+      },
+      "current": {
+        "provenance": {
+          "confidence": 0.3,
+          "evidence": [
+            "returns what the board's input rails carry: VREG_RADIO 0.01 A, PA_VREF 0.01 A, U19_LDD2V5 0.01 A"
+          ],
+          "kind": "recognised",
+          "source": "recogniser"
+        },
+        "strength": "soft",
+        "value": {
+          "continuous_a": 0.03
+        },
+        "weight": 0.5
+      }
+    }
+  },
+  "schema_version": "0.1",
+  "sources": {
+    "recogniser": {
+      "location": "../../../../../../pcb/flight-controllers/OpenAIO-Whoop/hardware/OpenAIO-Whoop.kicad_pcb",
+      "title": "ccomp recognise v0"
+    }
+  }
+}

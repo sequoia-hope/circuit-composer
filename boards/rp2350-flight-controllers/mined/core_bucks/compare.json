@@ -1,0 +1,160 @@
+{
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "switch_node_area_mm2": 0.5,
+    "output_loop_area_mm2": 0.5
+  },
+  "limits": {
+    "feedback_clearance_mm": ">=0.3",
+    "switch_node_underlap_mm2": "<=0"
+  },
+  "rows": [
+    {
+      "id": "openfc_lite_mini_core",
+      "label": "OpenFC-Lite-Mini: RP2354A core regulator (U10, L4, C45, C46)",
+      "note": "20x20 mm 6-layer FC (OpenDrone-hw, CERN-OHL-S-2.0, KiCad 10).",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite-Mini/hardware/OpenFC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.845,
+        "hot_loop_area_placed_mm2": 0.845,
+        "output_loop_area_mm2": 2.292,
+        "switch_node_area_mm2": 2.894,
+        "feedback_clearance_mm": 0.38,
+        "switch_node_underlap_mm2": 2.9
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 3.438,
+      "svg": "openfc_lite_mini_core.svg"
+    },
+    {
+      "id": "openfc_lite_core",
+      "label": "OpenFC-Lite: RP2354B QFN-80 core regulator (U2, L1, C19, C20)",
+      "note": "30.5x30.5 mm 6-layer FC (OpenDrone-hw, CERN-OHL-S-2.0, KiCad 10).",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite/hardware/OpenFC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.739,
+        "hot_loop_area_placed_mm2": 0.739,
+        "output_loop_area_mm2": 2.485,
+        "switch_node_area_mm2": 2.26,
+        "feedback_clearance_mm": 0.38,
+        "switch_node_underlap_mm2": 2.232
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 3.112,
+      "svg": "openfc_lite_core.svg"
+    },
+    {
+      "id": "openaio_core",
+      "label": "OpenAIO: RP2354A core regulator (U2, L1, C15, C16)",
+      "note": "25.5x25.5 mm 8-layer HDI 3S-6S AIO FC+ESC+ELRS (OpenDrone-hw, CERN-OHL-S-2.0, KiCad 10).",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.834,
+        "hot_loop_area_placed_mm2": 0.834,
+        "output_loop_area_mm2": 2.36,
+        "switch_node_area_mm2": 2.332,
+        "feedback_clearance_mm": 0.385,
+        "switch_node_underlap_mm2": 2.34
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 3.18,
+      "svg": "openaio_core.svg"
+    },
+    {
+      "id": "openaio_whoop_core",
+      "label": "OpenAIO-Whoop: RP2354A core regulator (U10, L2, C58, C56)",
+      "note": "25.5x25.5 mm 8-layer HDI 1S Whoop AIO FC+ESC+ELRS+VTX (OpenDrone-hw, CERN-OHL-S-2.0, KiCad 10).",
+      "board": "~/pcb/flight-controllers/OpenAIO-Whoop/hardware/OpenAIO-Whoop.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.565,
+        "hot_loop_area_placed_mm2": 0.565,
+        "output_loop_area_mm2": 1.656,
+        "switch_node_area_mm2": 1.635,
+        "feedback_clearance_mm": 0.358,
+        "switch_node_underlap_mm2": 1.268
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 2.211,
+      "svg": "openaio_whoop_core.svg"
+    },
+    {
+      "id": "kolibri_v05_core",
+      "label": "Kolibri v0.5: RP2350A core regulator (U1, L1, C13, C12)",
+      "note": "30x30 mm 8-layer FC + Gemini dual-SX1280 ELRS (bastian2001, GPL-3.0, KiCad 9).",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.891,
+        "hot_loop_area_placed_mm2": 0.891,
+        "output_loop_area_mm2": 2.465,
+        "switch_node_area_mm2": 2.583,
+        "feedback_clearance_mm": 0.38,
+        "switch_node_underlap_mm2": 2.578
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 3.415,
+      "svg": "kolibri_v05_core.svg"
+    },
+    {
+      "id": "kolibri_v06_core",
+      "label": "Kolibri v0.6: RP2350A core regulator (U1, L1, C13, C12)",
+      "note": "20x20 mm 8-layer FC + SX1280 ELRS + ICM-42688-P (bastian2001, GPL-3.0, KiCad 9).",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 0.892,
+        "hot_loop_area_placed_mm2": 0.891,
+        "output_loop_area_mm2": 2.338,
+        "switch_node_area_mm2": 2.253,
+        "feedback_clearance_mm": 0.389,
+        "switch_node_underlap_mm2": 2.258
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": false
+      },
+      "not_applicable": {},
+      "score": 3.187,
+      "svg": "kolibri_v06_core.svg"
+    },
+    {
+      "id": "simple_fc_core",
+      "label": "Simple-FC: RP2350A core regulator (U1, L2, C29, C28)",
+      "note": "4-layer RP2350A FC with LSM6DSM + MMC5983MA + BMP384 (someonelse20, MIT, KiCad 10).",
+      "board": "~/pcb/flight-controllers/Simple-FC/hardware/Simple-FC.kicad_pcb",
+      "measured": {
+        "hot_loop_area_mm2": 1.031,
+        "hot_loop_area_placed_mm2": 0.562,
+        "output_loop_area_mm2": 7.671,
+        "switch_node_area_mm2": 2.008,
+        "feedback_clearance_mm": 0.7,
+        "switch_node_underlap_mm2": 0.0
+      },
+      "passed": {
+        "feedback_clearance_mm": true,
+        "switch_node_underlap_mm2": true
+      },
+      "not_applicable": {},
+      "score": 5.871,
+      "svg": "simple_fc_core.svg"
+    }
+  ]
+}

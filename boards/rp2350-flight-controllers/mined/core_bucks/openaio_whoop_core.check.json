@@ -1,0 +1,197 @@
+{
+  "block": "openaio_whoop_core",
+  "geometry": {
+    "feedback_closest": [
+      [
+        104.825,
+        112.90750000000001
+      ],
+      [
+        104.825,
+        112.55
+      ]
+    ],
+    "feedback_path": [
+      [
+        106.17,
+        113.3
+      ],
+      [
+        105.2175,
+        113.3
+      ],
+      [
+        104.825,
+        112.90750000000001
+      ]
+    ],
+    "hot_loop": [
+      [
+        106.17,
+        112.9
+      ],
+      [
+        105.47500200000002,
+        112.907499
+      ],
+      [
+        105.47500200000002,
+        112.08249900000001
+      ],
+      [
+        106.17,
+        112.10000000000001
+      ]
+    ],
+    "output_loop": [
+      [
+        106.17,
+        112.5
+      ],
+      [
+        103.6,
+        112.475
+      ],
+      [
+        103.6,
+        113.875
+      ],
+      [
+        104.825,
+        112.90750000000001
+      ],
+      [
+        104.825,
+        112.08250000000001
+      ],
+      [
+        106.17,
+        112.10000000000001
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openaio_whoop_core",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        105.82250100000002,
+        112.4974995
+      ],
+      "measured": 0.5647826249999843,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_whoop_core",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        105.82250100000002,
+        112.4974995
+      ],
+      "measured": 0.5647826249999843,
+      "method": "pad centres",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_whoop_core",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        104.86499999999998,
+        112.65666666666667
+      ],
+      "measured": 1.6561786750000096,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "/RP2350A/VREG_LX",
+        "+1.1V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_whoop_core",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        106.17,
+        112.5
+      ],
+      "measured": 1.6353,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "/RP2350A/VREG_LX"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_whoop_core",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        104.825,
+        112.90750000000001
+      ],
+      "measured": 0.3575000000000159,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1.1V",
+        "/RP2350A/VREG_LX"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_whoop_core",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        106.17,
+        112.5
+      ],
+      "measured": 1.268,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "/RP2350A/VREG_LX"
+      ],
+      "passed": false,
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1.1V",
+    "sw": "/RP2350A/VREG_LX",
+    "vin": "+3.3V"
+  },
+  "ok": false,
+  "roles": {
+    "cin": "C58",
+    "cout": "C56",
+    "fb": "U10.50",
+    "inductor": "L2",
+    "pgnd": "U10.47",
+    "sw": "U10.48",
+    "vin": "U10.49"
+  }
+}

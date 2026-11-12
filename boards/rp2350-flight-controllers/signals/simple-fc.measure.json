@@ -1,0 +1,26 @@
+{
+  "board": "~/pcb/flight-controllers/Simple-FC/hardware/Simple-FC.kicad_pcb",
+  "return_paths": {
+    "ground": "GND",
+    "step": 0.05,
+    "nets": [
+      "/LSM_CS",
+      "/LSM_INT1",
+      "/LSM_INT2",
+      "/MISO",
+      "/MOSI",
+      "/QSPI_SCLK",
+      "/QSPI_SD0",
+      "/QSPI_SD1",
+      "/QSPI_SD2",
+      "/QSPI_SD3",
+      "/QSPI_SS",
+      "/SCLK",
+      "/SD_MISO",
+      "/SD_MOSI",
+      "/SD_SCLK",
+      "/USB_D+",
+      "/USB_D-"
+    ]
+  }
+}

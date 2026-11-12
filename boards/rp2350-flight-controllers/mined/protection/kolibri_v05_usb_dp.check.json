@@ -1,0 +1,263 @@
+{
+  "block": "kolibri_v05_usb_dp",
+  "geometry": {
+    "clamp_loop": [
+      [
+        95.35,
+        111.9825
+      ],
+      [
+        95.35,
+        112.7075
+      ],
+      [
+        95.5425,
+        112.90000000000002
+      ],
+      [
+        95.90000000000002,
+        112.90000000000002
+      ],
+      [
+        96.35,
+        112.45
+      ],
+      [
+        96.35,
+        111.9825
+      ],
+      [
+        96.35,
+        110.950001
+      ],
+      [
+        96.900001,
+        110.4
+      ],
+      [
+        97.56250000000001,
+        110.4
+      ],
+      [
+        99.8375,
+        109.45
+      ],
+      [
+        98.8,
+        111.75
+      ],
+      [
+        98.79999999999998,
+        111.9825
+      ]
+    ],
+    "first": "J2.4",
+    "ground_via": [
+      99.8375,
+      109.45
+    ],
+    "ret": "J1.A12",
+    "routed": true,
+    "to_first": [
+      [
+        95.35,
+        111.9825
+      ],
+      [
+        95.35,
+        112.7075
+      ],
+      [
+        97.3425,
+        114.70000000000002
+      ],
+      [
+        99.3,
+        114.70000000000002
+      ],
+      [
+        100.15,
+        115.55
+      ],
+      [
+        105.30000000000001,
+        115.55
+      ],
+      [
+        107.3,
+        113.55
+      ],
+      [
+        107.30000000000001,
+        113.0
+      ]
+    ],
+    "to_tvs": [
+      [
+        95.35,
+        111.9825
+      ],
+      [
+        95.35,
+        112.7075
+      ],
+      [
+        95.5425,
+        112.90000000000002
+      ],
+      [
+        95.90000000000002,
+        112.90000000000002
+      ],
+      [
+        96.35,
+        112.45
+      ],
+      [
+        96.35,
+        111.9825
+      ],
+      [
+        96.35,
+        110.950001
+      ],
+      [
+        96.900001,
+        110.4
+      ],
+      [
+        97.56250000000001,
+        110.4
+      ]
+    ],
+    "tvs_ground": "U8.2",
+    "tvs_pad": "U8.6"
+  },
+  "measurements": [
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "connector_to_tvs_mm",
+      "fix_stage": "floorplan",
+      "location": [
+        95.35,
+        111.9825
+      ],
+      "measured": 4.931449087343522,
+      "method": "shortest copper path, connector pad to TVS pad",
+      "nets": [
+        "/USB.D+"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "vias_before_tvs",
+      "fix_stage": "route",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        95.35,
+        111.9825
+      ],
+      "measured": 0.0,
+      "method": "layer changes on the connector-to-TVS path, a through-hole pad's own excluded",
+      "nets": [
+        "/USB.D+"
+      ],
+      "passed": true,
+      "unit": "count"
+    },
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "tvs_lead_mm",
+      "fix_stage": "floorplan",
+      "location": [
+        107.30000000000001,
+        113.0
+      ],
+      "measured": 10.299380088448185,
+      "method": "copper from the connector to J2.4, the first other pad reached, less to the TVS",
+      "nets": [
+        "/USB.D+"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "tvs_stub_mm",
+      "fix_stage": "route",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        97.56250000000001,
+        110.4
+      ],
+      "measured": 3.934212976586684,
+      "method": "how far the TVS pad sits off the connector's path to J2.4",
+      "nets": [
+        "/USB.D+"
+      ],
+      "passed": false,
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "clamp_loop_area_mm2",
+      "fix_stage": "floorplan",
+      "location": [
+        96.92437508333333,
+        111.65458341666667
+      ],
+      "measured": 5.819908516601593,
+      "method": "copper, connector pad to the TVS, its ground pad to the connector's ground pad",
+      "nets": [
+        "/USB.D+",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "tvs_ground_via_mm",
+      "fix_stage": "route",
+      "location": [
+        99.8375,
+        109.45
+      ],
+      "measured": 0.0,
+      "method": "TVS ground pad edge to the nearest ground via's ring, 0 in the pad",
+      "nets": [
+        "GND"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v05_usb_dp",
+      "check": "tvs_ground_vias",
+      "fix_stage": "route",
+      "location": [
+        99.8375,
+        109.45
+      ],
+      "measured": 1.0,
+      "method": "ground vias whose ring is within 1 mm of the TVS ground pad",
+      "nets": [
+        "GND"
+      ],
+      "unit": "count"
+    }
+  ],
+  "nets": [
+    "/USB.D+",
+    "GND"
+  ],
+  "ok": false,
+  "roles": {
+    "conn": "J1.A6",
+    "tvs": "U8"
+  }
+}

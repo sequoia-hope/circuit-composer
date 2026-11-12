@@ -1,0 +1,25 @@
+{
+  "package": "rp2350@0.2.0",
+  "variant": "RP2350B",
+  "chip": "U2",
+  "parts": {
+    "CFILT": "C21",
+    "CIN": "C19",
+    "CL_XIN": "C4",
+    "CL_XOUT": "C8",
+    "COUT": "C20",
+    "C_DVDD_23": "C2",
+    "C_DVDD_39": "C5",
+    "C_DVDD_6": "C1",
+    "C_OTP_QSPI": "C9",
+    "L1": "L1",
+    "RFILT": "R12",
+    "R_BOOTSEL": "R9",
+    "R_USB_DM": "R10",
+    "R_USB_DP": "R11",
+    "R_XOUT": "R5",
+    "SW_BOOTSEL": "U1",
+    "XTAL": "X1"
+  },
+  "note": "RP2354B (QFN-80) uses 2 MB internal stacked QSPI flash (external QSPI pins 70-74 unconnected; R9 + tactile U1 on QSPI_SS for BOOTSEL). RUN tied directly to +3.3V."
+}

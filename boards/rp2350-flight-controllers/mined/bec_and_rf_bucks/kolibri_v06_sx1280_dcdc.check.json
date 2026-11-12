@@ -1,0 +1,215 @@
+{
+  "block": "kolibri_v06_sx1280_dcdc",
+  "geometry": {
+    "feedback_closest": [
+      [
+        91.6,
+        103.0
+      ],
+      [
+        92.16389622771786,
+        102.00787289481504
+      ]
+    ],
+    "feedback_path": [
+      [
+        91.6,
+        103.0
+      ],
+      [
+        91.7,
+        103.22000000000001
+      ],
+      [
+        91.52000000000001,
+        102.85
+      ]
+    ],
+    "hot_loop": [
+      [
+        92.3,
+        101.3
+      ],
+      [
+        92.9,
+        101.24
+      ],
+      [
+        91.082828,
+        103.36734200000001
+      ],
+      [
+        90.63,
+        102.85
+      ],
+      [
+        89.67000000000002,
+        102.85
+      ],
+      [
+        92.85000000000001,
+        102.45
+      ],
+      [
+        92.3,
+        102.3
+      ]
+    ],
+    "output_loop": [
+      [
+        92.3,
+        101.8
+      ],
+      [
+        92.25,
+        101.8
+      ],
+      [
+        91.76250000000002,
+        101.8
+      ],
+      [
+        91.4625,
+        101.5
+      ],
+      [
+        89.33750000000002,
+        101.5
+      ],
+      [
+        90.17,
+        101.5
+      ],
+      [
+        91.52000000000001,
+        102.85
+      ],
+      [
+        92.47999999999999,
+        102.85
+      ],
+      [
+        92.85000000000001,
+        102.45
+      ],
+      [
+        92.3,
+        102.3
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "kolibri_v06_sx1280_dcdc",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        91.67611828571427,
+        102.33676314285714
+      ],
+      "measured": 0.8825581343749944,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v06_sx1280_dcdc",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        91.22500000000001,
+        102.325
+      ],
+      "measured": 0.8213818749999884,
+      "method": "pad centres",
+      "nets": [
+        "+3V3",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v06_sx1280_dcdc",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        91.64325000000001,
+        102.03500000000001
+      ],
+      "measured": 1.9488099150390499,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(IC1-DCC_SW)",
+        "Net-(IC1-DCC_FB)",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v06_sx1280_dcdc",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        92.3,
+        101.8
+      ],
+      "measured": 2.4119,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(IC1-DCC_SW)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "kolibri_v06_sx1280_dcdc",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "location": [
+        91.6,
+        103.0
+      ],
+      "measured": 1.14118147044067,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 3 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "Net-(IC1-DCC_FB)",
+        "Net-(IC1-DCC_SW)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "kolibri_v06_sx1280_dcdc",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        92.3,
+        101.8
+      ],
+      "measured": 0.0688,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(IC1-DCC_SW)"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "Net-(IC1-DCC_FB)",
+    "sw": "Net-(IC1-DCC_SW)",
+    "vin": "+3V3"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C45",
+    "cout": "C41",
+    "fb": "IC1.12",
+    "inductor": "L5",
+    "pgnd": "IC1.13",
+    "sw": "IC1.14",
+    "vin": "IC1.15"
+  }
+}

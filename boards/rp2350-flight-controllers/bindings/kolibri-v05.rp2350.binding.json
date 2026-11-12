@@ -1,0 +1,33 @@
+{
+  "package": "rp2350@0.2.0",
+  "variant": "RP2350A",
+  "chip": "U1",
+  "parts": {
+    "CFILT": "C11",
+    "CIN": "C13",
+    "CL_XIN": "C14",
+    "CL_XOUT": "C15",
+    "COUT": "C12",
+    "C_DVDD_23": "C2",
+    "C_DVDD_39": "C3",
+    "C_DVDD_6": "C1",
+    "C_FLASH": "C85",
+    "C_IOVDD_1": "C8",
+    "C_IOVDD_11": "C4",
+    "C_IOVDD_20": "C5",
+    "C_IOVDD_30": "C6",
+    "C_IOVDD_38": "C10",
+    "C_IOVDD_45_ADC": "C7",
+    "C_OTP_QSPI": "C9",
+    "FLASH": "U10",
+    "L1": "L1",
+    "RFILT": "R3",
+    "R_BOOTSEL": "R33",
+    "R_USB_DM": "R2",
+    "R_USB_DP": "R1",
+    "R_XOUT": "R4",
+    "SW_BOOTSEL": "SW1",
+    "XTAL": "Y1"
+  },
+  "note": "RP2350A with external W25Q16JVUXIQ QSPI flash (U10, direct QSPI_SS without 0R link or pull-up). RUN pin 26 left unconnected (relies on internal pull-up)."
+}

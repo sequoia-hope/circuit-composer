@@ -1,0 +1,32 @@
+{
+  "package": "rp2350@0.2.0",
+  "variant": "RP2350A",
+  "chip": "U1",
+  "parts": {
+    "CFILT": "C26",
+    "CIN": "C29",
+    "CL_XIN": "C1",
+    "CL_XOUT": "C2",
+    "COUT": "C28",
+    "C_DVDD_23": "C10",
+    "C_DVDD_39": "C12",
+    "C_DVDD_6": "C11",
+    "C_FLASH": "C5",
+    "C_IOVDD_1": "C7",
+    "C_IOVDD_11": "C8",
+    "C_IOVDD_20": "C14",
+    "C_IOVDD_30": "C13",
+    "C_IOVDD_38": "C15",
+    "C_IOVDD_45_ADC": "C9",
+    "C_OTP_QSPI": "C16",
+    "FLASH": "U6",
+    "L1": "L2",
+    "RFILT": "R15",
+    "R_BOOTSEL": "R3",
+    "R_SS_PULLUP": "R4",
+    "R_XOUT": "R5",
+    "SW_BOOTSEL": "SW1",
+    "XTAL": "Y1"
+  },
+  "note": "RP2350A with W25Q128JVS QSPI flash (U6). Omits 27 ohm USB series termination resistors (USB_DM/DP wired directly to J1). RUN tied directly to +3V3."
+}

@@ -1,0 +1,209 @@
+{
+  "check": "buck",
+  "weights": {
+    "hot_loop_area_mm2": 1.0,
+    "switch_node_area_mm2": 0.5,
+    "output_loop_area_mm2": 0.5
+  },
+  "limits": {},
+  "entries": [
+    {
+      "id": "openfc_mini_10v_lmr51430",
+      "label": "OpenFC-Lite-Mini +10V BEC: U3 (LMR51430, B.Cu), L2, C24, C28",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite-Mini/hardware/OpenFC.kicad_pcb",
+      "roles": {
+        "vin": "U3.3",
+        "sw": "U3.2",
+        "pgnd": "U3.1",
+        "fb": "U3.4",
+        "cin": "C24",
+        "cout": "C28",
+        "inductor": "L2"
+      }
+    },
+    {
+      "id": "openfc_mini_5v_lmr51430",
+      "label": "OpenFC-Lite-Mini +5V BEC: U4 (LMR51430, B.Cu), L3, C25, C29",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite-Mini/hardware/OpenFC.kicad_pcb",
+      "roles": {
+        "vin": "U4.3",
+        "sw": "U4.2",
+        "pgnd": "U4.1",
+        "fb": "U4.4",
+        "cin": "C25",
+        "cout": "C29",
+        "inductor": "L3"
+      }
+    },
+    {
+      "id": "openfc_lite_10v_lmr51635",
+      "label": "OpenFC-Lite +10V BEC: U6 (LMR51635, B.Cu), L2, C22, C26",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite/hardware/OpenFC.kicad_pcb",
+      "roles": {
+        "vin": "U6.3",
+        "sw": "U6.5",
+        "pgnd": "U6.4",
+        "fb": "U6.1",
+        "cin": "C22",
+        "cout": "C26",
+        "inductor": "L2"
+      }
+    },
+    {
+      "id": "openfc_lite_5v_lmr51635",
+      "label": "OpenFC-Lite +5V BEC: U16 (LMR51635, B.Cu), L3, C23, C27",
+      "board": "~/pcb/flight-controllers/OpenFC-Lite/hardware/OpenFC.kicad_pcb",
+      "roles": {
+        "vin": "U16.3",
+        "sw": "U16.5",
+        "pgnd": "U16.4",
+        "fb": "U16.1",
+        "cin": "C23",
+        "cout": "C27",
+        "inductor": "L3"
+      }
+    },
+    {
+      "id": "openaio_10v_lmr51430",
+      "label": "OpenAIO +10V BEC: U3 (LMR51430, B.Cu), L2 (F.Cu), C18, C23",
+      "note": "IC on B.Cu and inductor L2 on F.Cu across the 8-layer stack.",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": {
+        "vin": "U3.3",
+        "sw": "U3.2",
+        "pgnd": "U3.1",
+        "fb": "U3.4",
+        "cin": "C18",
+        "cout": "C23",
+        "inductor": "L2"
+      }
+    },
+    {
+      "id": "openaio_5v_lmr51430",
+      "label": "OpenAIO +5V BEC: U4 (LMR51430, B.Cu), L3 (F.Cu), C19, C24",
+      "note": "IC on B.Cu and inductor L3 on F.Cu across the 8-layer stack.",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": {
+        "vin": "U4.3",
+        "sw": "U4.2",
+        "pgnd": "U4.1",
+        "fb": "U4.4",
+        "cin": "C19",
+        "cout": "C24",
+        "inductor": "L3"
+      }
+    },
+    {
+      "id": "kolibri_v05_5v_lmr38025",
+      "label": "Kolibri v0.5 +5V BEC: IC5 (LMR38025, F.Cu), L7, C67, C66",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "roles": {
+        "vin": "IC5.5",
+        "sw": "IC5.11",
+        "pgnd": "IC5.1",
+        "fb": "IC5.8",
+        "cin": "C67",
+        "cout": "C66",
+        "inductor": "L7"
+      }
+    },
+    {
+      "id": "kolibri_v05_10v_lmr38025",
+      "label": "Kolibri v0.5 +10V BEC: IC6 (LMR38025, F.Cu), L8, C69, C72",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "roles": {
+        "vin": "IC6.5",
+        "sw": "IC6.11",
+        "pgnd": "IC6.1",
+        "fb": "IC6.8",
+        "cin": "C69",
+        "cout": "C72",
+        "inductor": "L8"
+      }
+    },
+    {
+      "id": "kolibri_v06_5v_lmr38025",
+      "label": "Kolibri v0.6 +5V BEC: IC5 (LMR38025, F.Cu), L7 (B.Cu), C68, C66",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "roles": {
+        "vin": "IC5.5",
+        "sw": "IC5.11",
+        "pgnd": "IC5.1",
+        "fb": "IC5.8",
+        "cin": "C68",
+        "cout": "C66",
+        "inductor": "L7"
+      }
+    },
+    {
+      "id": "kolibri_v06_10v_lmr38025",
+      "label": "Kolibri v0.6 +10V BEC: IC6 (LMR38025, B.Cu), L8 (F.Cu), C69, C72",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "roles": {
+        "vin": "IC6.5",
+        "sw": "IC6.11",
+        "pgnd": "IC6.1",
+        "fb": "IC6.8",
+        "cin": "C69",
+        "cout": "C72",
+        "inductor": "L8"
+      }
+    },
+    {
+      "id": "openaio_sx1281_dcdc",
+      "label": "OpenAIO SX1281 internal RF buck: U21 (B.Cu), L4 (15 uH), C71, C68",
+      "board": "~/pcb/flight-controllers/OpenAIO/hardware/OpenAIO.kicad_pcb",
+      "roles": {
+        "vin": "U21.15",
+        "sw": "U21.14",
+        "pgnd": "U21.13",
+        "fb": "U21.12",
+        "cin": "C71",
+        "cout": "C68",
+        "inductor": "L4"
+      }
+    },
+    {
+      "id": "kolibri_v05_sx1280_1_dcdc",
+      "label": "Kolibri v0.5 SX1280 #1 RF buck: IC1 (F.Cu), L5 (15 uH, B.Cu), C45, C41",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "roles": {
+        "vin": "IC1.15",
+        "sw": "IC1.14",
+        "pgnd": "IC1.13",
+        "fb": "IC1.12",
+        "cin": "C45",
+        "cout": "C41",
+        "inductor": "L5"
+      }
+    },
+    {
+      "id": "kolibri_v05_sx1280_2_dcdc",
+      "label": "Kolibri v0.5 SX1280 #2 RF buck: IC3 (F.Cu), L6 (15 uH, F.Cu), C60, C61",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.5/Kolibri v0.5.kicad_pcb",
+      "roles": {
+        "vin": "IC3.15",
+        "sw": "IC3.14",
+        "pgnd": "IC3.13",
+        "fb": "IC3.12",
+        "cin": "C60",
+        "cout": "C61",
+        "inductor": "L6"
+      }
+    },
+    {
+      "id": "kolibri_v06_sx1280_dcdc",
+      "label": "Kolibri v0.6 SX1280 RF buck: IC1 (F.Cu), L5 (15 uH, B.Cu), C45, C41",
+      "board": "~/pcb/flight-controllers/Kolibri-FC-Hardware/PCB Version 0.6/Kolibri v0.6.kicad_pcb",
+      "roles": {
+        "vin": "IC1.15",
+        "sw": "IC1.14",
+        "pgnd": "IC1.13",
+        "fb": "IC1.12",
+        "cin": "C45",
+        "cout": "C41",
+        "inductor": "L5"
+      }
+    }
+  ]
+}

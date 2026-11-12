@@ -1,0 +1,217 @@
+{
+  "block": "openfc_lite_core",
+  "geometry": {
+    "feedback_closest": [
+      [
+        150.58,
+        93.75
+      ],
+      [
+        150.20000000000002,
+        93.75
+      ]
+    ],
+    "feedback_path": [
+      [
+        150.89999999999998,
+        92.00999999999999
+      ],
+      [
+        150.9,
+        92.389428
+      ],
+      [
+        151.05,
+        92.539428
+      ],
+      [
+        151.05,
+        93.28
+      ],
+      [
+        150.665,
+        93.665
+      ],
+      [
+        150.58,
+        93.75
+      ]
+    ],
+    "hot_loop": [
+      [
+        150.5,
+        92.00999999999999
+      ],
+      [
+        150.58,
+        92.85000000000001
+      ],
+      [
+        149.62,
+        92.85000000000001
+      ],
+      [
+        149.7,
+        92.00999999999999
+      ]
+    ],
+    "output_loop": [
+      [
+        150.1,
+        92.00999999999999
+      ],
+      [
+        150.10000000000002,
+        94.050572
+      ],
+      [
+        149.05,
+        95.1
+      ],
+      [
+        151.05,
+        95.1
+      ],
+      [
+        151.05,
+        94.22
+      ],
+      [
+        150.58,
+        93.75
+      ],
+      [
+        149.62,
+        93.75
+      ],
+      [
+        149.7,
+        92.00999999999999
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openfc_lite_core",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        150.10000000000002,
+        92.43
+      ],
+      "measured": 0.7392038400000122,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_core",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        150.10000000000002,
+        92.43
+      ],
+      "measured": 0.7392038400000122,
+      "method": "pad centres",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_core",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        150.15625000000003,
+        93.7488215
+      ],
+      "measured": 2.4852510787500055,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U2-VREG_LX)",
+        "+1.1V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_core",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        150.1,
+        92.00999999999999
+      ],
+      "measured": 2.2598000000000003,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U2-VREG_LX)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openfc_lite_core",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        150.58,
+        93.75
+      ],
+      "measured": 0.37999999999999545,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1.1V",
+        "Net-(U2-VREG_LX)"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "openfc_lite_core",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        150.1,
+        92.00999999999999
+      ],
+      "measured": 2.2316,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(U2-VREG_LX)"
+      ],
+      "passed": false,
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1.1V",
+    "sw": "Net-(U2-VREG_LX)",
+    "vin": "+3.3V"
+  },
+  "ok": false,
+  "roles": {
+    "cin": "C19",
+    "cout": "C20",
+    "fb": "U2.65",
+    "inductor": "L1",
+    "pgnd": "U2.62",
+    "sw": "U2.63",
+    "vin": "U2.64"
+  }
+}

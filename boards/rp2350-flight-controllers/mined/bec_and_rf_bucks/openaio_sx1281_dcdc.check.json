@@ -1,0 +1,219 @@
+{
+  "block": "openaio_sx1281_dcdc",
+  "geometry": {
+    "feedback_closest": [
+      [
+        86.375,
+        67.225
+      ],
+      [
+        87.53261204674888,
+        66.5132683432365
+      ]
+    ],
+    "feedback_path": [
+      [
+        86.375,
+        67.225
+      ],
+      [
+        85.83,
+        67.225
+      ],
+      [
+        85.475,
+        66.87000000000002
+      ]
+    ],
+    "hot_loop": [
+      [
+        88.125,
+        66.475
+      ],
+      [
+        88.025749,
+        66.990001
+      ],
+      [
+        84.095,
+        69.7
+      ],
+      [
+        84.095,
+        69.45
+      ],
+      [
+        84.095,
+        68.78
+      ],
+      [
+        84.486642,
+        68.288358
+      ],
+      [
+        84.891642,
+        67.755
+      ],
+      [
+        85.45,
+        67.755
+      ],
+      [
+        85.45,
+        68.39500000000001
+      ],
+      [
+        87.125,
+        66.475
+      ]
+    ],
+    "output_loop": [
+      [
+        87.625,
+        66.475
+      ],
+      [
+        87.5125,
+        65.125
+      ],
+      [
+        85.58749999999999,
+        65.125
+      ],
+      [
+        85.015,
+        65.6975
+      ],
+      [
+        85.015,
+        66.609999
+      ],
+      [
+        85.475,
+        66.87000000000002
+      ],
+      [
+        85.475,
+        66.23
+      ],
+      [
+        87.125,
+        66.475
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openaio_sx1281_dcdc",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        85.58390330000003,
+        68.0063359
+      ],
+      "measured": 3.6177619806250014,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_sx1281_dcdc",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        86.5375,
+        67.275
+      ],
+      "measured": 0.7174855742187485,
+      "method": "pad centres",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_sx1281_dcdc",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        86.10374999999999,
+        66.07593737500001
+      ],
+      "measured": 3.2025810881249988,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U21-DCC_SW)",
+        "Net-(U21-DCC_FB)",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_sx1281_dcdc",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        87.625,
+        66.475
+      ],
+      "measured": 1.0698,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U21-DCC_SW)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_sx1281_dcdc",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "location": [
+        86.375,
+        67.225
+      ],
+      "measured": 1.3589067672277724,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "Net-(U21-DCC_FB)",
+        "Net-(U21-DCC_SW)"
+      ],
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_sx1281_dcdc",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "location": [
+        87.625,
+        66.475
+      ],
+      "measured": 1.0784,
+      "method": "B.Cu switch copper over other nets' copper on In6.Cu, 20 um raster",
+      "nets": [
+        "Net-(U21-DCC_SW)"
+      ],
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "Net-(U21-DCC_FB)",
+    "sw": "Net-(U21-DCC_SW)",
+    "vin": "+3.3V"
+  },
+  "ok": true,
+  "roles": {
+    "cin": "C71",
+    "cout": "C68",
+    "fb": "U21.12",
+    "inductor": "L4",
+    "pgnd": "U21.13",
+    "sw": "U21.14",
+    "vin": "U21.15"
+  }
+}

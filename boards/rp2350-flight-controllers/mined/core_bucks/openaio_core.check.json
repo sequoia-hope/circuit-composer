@@ -1,0 +1,221 @@
+{
+  "block": "openaio_core",
+  "geometry": {
+    "feedback_closest": [
+      [
+        74.870104,
+        69.3875
+      ],
+      [
+        74.48510399999999,
+        69.3875
+      ]
+    ],
+    "feedback_path": [
+      [
+        75.185104,
+        67.63999999999999
+      ],
+      [
+        75.185104,
+        68.107786
+      ],
+      [
+        75.390104,
+        68.312786
+      ],
+      [
+        75.350104,
+        68.9075
+      ],
+      [
+        74.870104,
+        69.3875
+      ]
+    ],
+    "hot_loop": [
+      [
+        74.78510399999999,
+        67.63999999999999
+      ],
+      [
+        74.78510000000001,
+        67.64
+      ],
+      [
+        74.8701,
+        68.5875
+      ],
+      [
+        74.870104,
+        68.5875
+      ],
+      [
+        73.910104,
+        68.5875
+      ],
+      [
+        73.98510399999999,
+        67.63999999999999
+      ]
+    ],
+    "output_loop": [
+      [
+        74.385104,
+        67.63999999999999
+      ],
+      [
+        74.385104,
+        69.63
+      ],
+      [
+        73.283854,
+        70.845
+      ],
+      [
+        73.173854,
+        70.845
+      ],
+      [
+        75.173854,
+        70.845
+      ],
+      [
+        74.870104,
+        69.3875
+      ],
+      [
+        73.910104,
+        69.3875
+      ],
+      [
+        73.98510399999999,
+        67.63999999999999
+      ]
+    ],
+    "routed": true
+  },
+  "measurements": [
+    {
+      "block": "openaio_core",
+      "check": "hot_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        74.53426933333331,
+        68.11375
+      ],
+      "measured": 0.8342841599999891,
+      "method": "copper paths on VIN and GND, closed through CIN and the IC",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_core",
+      "check": "hot_loop_area_placed_mm2",
+      "fix_stage": "block",
+      "location": [
+        74.387604,
+        68.11375
+      ],
+      "measured": 0.834289919999989,
+      "method": "pad centres",
+      "nets": [
+        "+3.3V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_core",
+      "check": "output_loop_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        74.14588525,
+        69.52749999999999
+      ],
+      "measured": 2.359676742968769,
+      "method": "copper paths on SW, output and GND",
+      "nets": [
+        "Net-(U2-VREG_LX)",
+        "+1.1V",
+        "GND"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_core",
+      "check": "switch_node_area_mm2",
+      "fix_stage": "block",
+      "location": [
+        74.385104,
+        67.63999999999999
+      ],
+      "measured": 2.3320000000000003,
+      "method": "union of the net's copper per layer, summed, 10 um raster",
+      "nets": [
+        "Net-(U2-VREG_LX)"
+      ],
+      "unit": "mm2"
+    },
+    {
+      "block": "openaio_core",
+      "check": "feedback_clearance_mm",
+      "fix_stage": "block",
+      "limit": {
+        "op": ">=",
+        "value": 0.3
+      },
+      "location": [
+        74.870104,
+        69.3875
+      ],
+      "measured": 0.3850000000000051,
+      "method": "feedback path centreline to switch-node copper, plan view, IC pins excluded; 0 closer approach(es) on other layers shielded by a plane between",
+      "nets": [
+        "+1.1V",
+        "Net-(U2-VREG_LX)"
+      ],
+      "passed": true,
+      "unit": "mm"
+    },
+    {
+      "block": "openaio_core",
+      "check": "switch_node_underlap_mm2",
+      "fix_stage": "block",
+      "limit": {
+        "op": "<=",
+        "value": 0.0
+      },
+      "location": [
+        74.385104,
+        67.63999999999999
+      ],
+      "measured": 2.3396000000000003,
+      "method": "F.Cu switch copper over other nets' copper on In1.Cu, 20 um raster",
+      "nets": [
+        "Net-(U2-VREG_LX)"
+      ],
+      "passed": false,
+      "unit": "mm2"
+    }
+  ],
+  "nets": {
+    "gnd": "GND",
+    "out": "+1.1V",
+    "sw": "Net-(U2-VREG_LX)",
+    "vin": "+3.3V"
+  },
+  "ok": false,
+  "roles": {
+    "cin": "C15",
+    "cout": "C16",
+    "fb": "U2.50",
+    "inductor": "L1",
+    "pgnd": "U2.47",
+    "sw": "U2.48",
+    "vin": "U2.49"
+  }
+}
