@@ -1,6 +1,6 @@
 (export (version "E")
   (design
-    (source "/home/sequoia/Software/easy_pcb/examples/easy2350/hw/easy2350/a/easy2350.kicad_sch")
+    (source "~/Software/easy_pcb/examples/easy2350/hw/easy2350/a/easy2350.kicad_sch")
     (date "2026-10-27T00:54:17-0700")
     (tool "Eeschema 9.0.8+dfsg-1")
     (sheet (number "1") (name "/") (tstamps "/")
@@ -1743,7 +1743,7 @@
     (library (logical "Switch")
       (uri "/usr/share/kicad/symbols//Switch.kicad_sym"))
     (library (logical "easy2350")
-      (uri "/home/sequoia/Software/easy_pcb/examples/easy2350/hw/easy2350/a/lib/easy2350.kicad_sym")))
+      (uri "~/Software/easy_pcb/examples/easy2350/hw/easy2350/a/lib/easy2350.kicad_sym")))
   (nets
     (net (code "1") (name "+1V1") (class "POWER")
       (node (ref "C15") (pin "1") (pintype "passive"))
