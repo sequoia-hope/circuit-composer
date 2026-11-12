@@ -12,6 +12,7 @@
     for (const s of metrics.overlap_pairs || []) out.push({ level: 'error', kind: 'overlap', text: s, refs: refsIn(s) });
     for (const s of metrics.edge_misses || []) out.push({ level: 'error', kind: 'edge', text: s, refs: refsIn(s) });
     for (const s of metrics.separation_misses || []) out.push({ level: 'error', kind: 'separation', text: s, refs: refsIn(s) });
+    for (const s of metrics.region_misses || []) out.push({ level: 'error', kind: 'region', text: s, refs: refsIn(s) });
     return out;
   });
 

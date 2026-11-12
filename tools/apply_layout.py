@@ -3,8 +3,10 @@
 
     apply_layout.py BOARD GEN_JSON ROLES_JSON -o OUT [--group NAME] [--fixture [--copper-layers N]]
 
-ROLES_JSON maps roles to parts and pads, e.g. {"vin": "U1.49", ..., "cin": "C14"}. Parts are
-placed in the anchor's frame and locked; tracks, vias, keepouts and pours (a reference layout's,
+ROLES_JSON maps roles to parts and pads, e.g. {"vin": "U1.49", ..., "cin": "C14"}; a lifted
+cluster's (`lift_layout.py`) names its `anchor` and its parts, and a part role it leaves out is
+read as a designator. Parts are placed in the anchor's frame (a `flipped` one on the anchor's
+other side) and locked; tracks, vias, keepouts and pours (a reference layout's,
 from `extract_layout.py`) are added and locked; zones are refilled. Everything placed is wrapped
 in a KiCad group, NAME or `<block type>_<anchor>`, replacing one of that name: the router keeps
 a group whole, its pours as planes other nets keep clear of and its parts still.
@@ -72,16 +74,29 @@ def main():
     layout = gen.get("layout", gen)
     roles = json.load(open(a.roles))
     board = pcbnew.LoadBoard(a.board)
-    anchor_ref = roles["vin"].split(".")[0]
+    anchor_ref = roles.get("anchor") or roles["vin"].split(".")[0]
     anchor = board.FindFootprintByReference(anchor_ref)
+    if anchor is None:
+        sys.exit(json.dumps({"ok": False, "error": f"no part {anchor_ref}"}))
+    ref_of = lambda role: anchor_ref if role == "anchor" else roles.get(role, role)
     if anchor.GetFPIDAsString() != layout["anchor_footprint"] and str(anchor.GetFPID().GetLibItemName()) != layout["anchor_footprint"].split(":")[-1]:
         sys.exit(json.dumps({"ok": False, "error": f"{anchor_ref} is {anchor.GetFPIDAsString()}, layout is for {layout['anchor_footprint']}"}))
-    nets = {"vin": pad_net(board, roles["vin"]), "sw": pad_net(board, roles["sw"]), "gnd": pad_net(board, roles["pgnd"]), "fb": pad_net(board, roles["fb"])}
-    # The output: the inductor's pad off the switch net (the FB pin's own net when FB senses the
-    # output directly; behind a divider it is not).
-    ind = board.FindFootprintByReference(roles["inductor"])
-    nets["out"] = next((q.GetNet() for q in ind.Pads() if q.GetNetname() != nets["sw"].GetNetname()), nets["fb"])
-    block_refs = {anchor_ref} | {roles[r] for r in layout["parts"]}
+    nets = {}
+    if "vin" in roles:
+        nets = {"vin": pad_net(board, roles["vin"]), "sw": pad_net(board, roles["sw"]), "gnd": pad_net(board, roles["pgnd"]), "fb": pad_net(board, roles["fb"])}
+        # The output: the inductor's pad off the switch net (the FB pin's own net when FB senses
+        # the output directly; behind a divider it is not).
+        ind = board.FindFootprintByReference(roles["inductor"])
+        nets["out"] = next((q.GetNet() for q in ind.Pads() if q.GetNetname() != nets["sw"].GetNetname()), nets["fb"])
+
+    def net(key):
+        """A regulator role's net, or a lifted cluster's, named by a pad (`ROLE.PIN`)."""
+        if key not in nets:
+            role, pin = key.rsplit(".", 1)
+            nets[key] = pad_net(board, f"{ref_of(role)}.{pin}")
+        return nets[key]
+
+    block_refs = {anchor_ref} | {ref_of(r) for r in layout["parts"]}
 
     removed = {"footprints": 0, "tracks": 0, "zones": 0}
     if a.fixture:
@@ -101,6 +116,8 @@ def main():
         box = board.GetBoardEdgesBoundingBox()
         z = pcbnew.ZONE(board)
         on_layer(z, pcbnew.In1_Cu if board.GetCopperLayerCount() >= 4 else pcbnew.B_Cu)
+        if "gnd" not in nets:
+            sys.exit(json.dumps({"ok": False, "error": "--fixture is a regulator's bench: it needs the vin, sw, pgnd and fb roles"}))
         z.SetNet(nets["gnd"])
         z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL)
         z.SetMinThickness(int(0.2 * NM))
@@ -113,8 +130,12 @@ def main():
 
     members = [anchor]
     for role, pose in layout["parts"].items():
-        fp = board.FindFootprintByReference(roles[role])
+        fp = board.FindFootprintByReference(ref_of(role))
+        if fp is None:
+            sys.exit(json.dumps({"ok": False, "error": f"no part {ref_of(role)} for role {role}"}))
         members.append(fp)
+        if fp.IsFlipped() != (anchor.IsFlipped() != bool(pose.get("flipped"))):
+            fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_TOP_BOTTOM)
         fp.SetOrientationDegrees(anchor.GetOrientationDegrees() + pose["rotation"])
         fp.SetPosition(v(to_board(anchor, pose["at"])))
         fp.SetLocked(True)
@@ -127,7 +148,7 @@ def main():
         tr.SetEnd(v(to_board(anchor, t["b"])))
         tr.SetWidth(int(round(t["width"] * NM)))
         tr.SetLayer(layer_id[t["layer"]])
-        tr.SetNet(nets[t["net"]])
+        tr.SetNet(net(t["net"]))
         tr.SetLocked(True)
         board.Add(tr)
         members.append(tr)
@@ -138,7 +159,7 @@ def main():
         via.SetDrill(int(round(vi["drill"] * NM)))
         via.SetViaType(pcbnew.VIATYPE_THROUGH)
         via.SetLayerPair(pcbnew.F_Cu, pcbnew.B_Cu)
-        via.SetNet(nets[vi["net"]])
+        via.SetNet(net(vi["net"]))
         via.SetLocked(True)
         board.Add(via)
         members.append(via)
@@ -164,7 +185,7 @@ def main():
     for k in layout.get("pours", []):
         z = pcbnew.ZONE(board)
         on_layer(z, layer_id[k["layer"]])
-        z.SetNet(nets[k["net"]])
+        z.SetNet(net(k["net"]))
         z.SetAssignedPriority(k["priority"])
         z.SetPadConnection(pcbnew.ZONE_CONNECTION_FULL if k.get("connection") == "solid" else pcbnew.ZONE_CONNECTION_THERMAL)
         z.SetMinThickness(int(round(k["min_width"] * NM)))
@@ -193,7 +214,7 @@ def main():
     pcbnew.ZONE_FILLER(board).Fill(board.Zones())
     board.Save(a.output)
     print(json.dumps({"ok": True, "wrote": a.output, "fixture": a.fixture, "removed": removed,
-                      "placed": {roles[r]: p for r, p in layout["parts"].items()},
+                      "placed": {ref_of(r): p for r, p in layout["parts"].items()},
                       "tracks": len(layout["tracks"]), "vias": len(layout["vias"]), "keepouts": len(layout["keepouts"]),
                       "pours": len(layout.get("pours", [])), "group": group}))
 

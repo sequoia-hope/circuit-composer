@@ -67,6 +67,10 @@ It sits between two sibling projects:
       the app reads each part's lock from the board it opens and writes it back when it saves.
     - The demo board is in `boards/rp2350-battery/`: USB-C, a charger, load sharing, a buck,
       the RP2350 and an IMU. It composes and floorplans legally at 40 × 32 mm.
+    - Regions in the spec hold blocks to the brief's floorplan: a `must` region keeps its
+      blocks' and parts' courtyards inside a polygon, a `never` region keeps them out (with no
+      members, every moving part but those it `except`s), on one side or both. Both are hard,
+      like overlap: `ok` needs no region misses.
     - A rigid layout's tracks and vias keep other parts off them, as its parts do. A part keeps
       the margin from a side an edge connector sits flush on, and separations rise in weight
       through the anneal, like overlaps, so the end keeps them.
@@ -195,6 +199,9 @@ $ccomp gen buck board.kicad_pcb --intent boards/easy2350/intent.json --block cor
 python3 tools/apply_layout.py BOARD gen.json ROLES.json -o OUT.kicad_pcb [--group NAME] [--fixture]
 # A vendor board's own regulator copper (parts, pours, joining tracks and vias) as a layout
 python3 tools/extract_layout.py REFERENCE.kicad_pcb ROLES.json -o layout.json --source rp2350a_minimal
+# Any reviewed cluster with no generator (a half-bridge cell, a BGA's decoupler field, bottom-side
+# members included) lifted from a board as a rigid layout, plus roles.json beside it
+python3 tools/lift_layout.py BOARD.kicad_pcb --anchor U501 --parts Q501 Q502 C510 -o DIR/layout.json [--roles ROLES.json]
 python3 tools/compare_buck.py packages/rp2350/layouts/qfn60-4layer/compare.spec.json OUT_DIR
 ```
 
@@ -251,7 +258,7 @@ Every command prints one JSON result. Exit status: 0 success, 1 the input failed
 | `crates/ccomp/` | The command-line harness |
 | `crates/pcb/` | A KiCad board as copper per net (read with ultraroute's `kicad-pcb`, pinned), geometry, and copper-path search |
 | `crates/verify/` | Fast-tier verifier checks (`buck.rs`, `nets.rs`) and SVG drawings of what they measured |
-| `crates/floorplan/` | The floorplanner: simulated annealing over part poses, rigid groups, edges, separations |
+| `crates/floorplan/` | The floorplanner: simulated annealing over part poses, rigid groups, regions, edges, separations |
 | `crates/compose/` | The composer: package instances, the board's own parts and nets into one circuit, with a binding per instance |
 | `crates/library/` | The research library: cited claims from `library/` and every package's `rules.json`, checked and queried as one database |
 | `crates/blockgen/` | Block generators (`buck.rs`) and the layout format, in the anchor part's frame |

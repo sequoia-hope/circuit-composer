@@ -3,7 +3,8 @@
 //! reserved keep-outs for rail vias and bypass-cap slots), no part in trouble has a clear spot
 //! anywhere on the board on its own: the room it needs is where other movable parts sit. So here
 //! a part in trouble takes the spot that costs least, counting its distance from where it was and
-//! the movable parts it would evict, but never a spot on a fixed part or off the board. The
+//! the movable parts it would evict, but never a spot on a fixed part, off the board or astray of
+//! a region. The
 //! evicted parts take their turn. Each eviction raises the price of evicting that part again (as
 //! PathFinder's history cost does for congested wires), so parts can't keep trading places.
 //!
@@ -158,7 +159,7 @@ pub(crate) fn negotiate(st: &mut State, free: &[usize]) {
                     t += collide(st, &shapes[i], &shapes[j]);
                 }
             }
-            t += off_board(st, &shapes[i].bbox);
+            t += off_board(st, &shapes[i].bbox) + st.astray(i, &shapes[i].bbox);
         }
         t
     };
@@ -322,7 +323,7 @@ pub(crate) fn negotiate(st: &mut State, free: &[usize]) {
                             *ct = shift(t, x, y);
                         }
                     }
-                    if cand.iter().any(|s| off_board(st, &s.bbox) > EPS) {
+                    if cand.iter().any(|s| off_board(st, &s.bbox) > EPS || st.astray(s.part, &s.bbox) > EPS) {
                         continue;
                     }
                     let too_close = keep.iter().any(|(blk, rest, far, min)| {

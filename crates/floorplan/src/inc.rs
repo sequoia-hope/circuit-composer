@@ -1,8 +1,10 @@
 //! The anneal's cost, kept up to date move by move. `State::cost` rebuilds every pose and box and
 //! checks every pair of parts: O(n²) a move. A move changes one movable (or two, in a swap), so
 //! here only its parts' boxes, the nets on their pins and their overlaps with the rest are
-//! re-scored: O(n) a move. The terms that depend on the whole board (its extent, the edge
-//! connectors against it, block separations) are recomputed each move; they are O(n) or less.
+//! re-scored: O(n) a move. A `near_pin` line's corridor is re-measured when an end moved or a
+//! moved courtyard (where it was or is) meets the line's box. The terms that depend on the whole
+//! board (its extent, the edge connectors against it, block separations) are recomputed each
+//! move; they are O(n) or less.
 //! `State::cost` stays the reference: it makes the metrics, and the anneal re-syncs this cache
 //! from it now and then so rounding cannot drift.
 
@@ -15,6 +17,8 @@ struct Undo {
     parts: Vec<(usize, Pose, [f64; 4], f64, f64)>,
     nets: Vec<(usize, f64, f64)>,
     blocks: Vec<(usize, (f64, f64, f64), f64)>,
+    lanes: Vec<(usize, f64)>,
+    lane: f64,
     ov: f64,
     fill: f64,
     outside: f64,
@@ -42,7 +46,11 @@ pub(crate) struct Inc {
     block_sum: Vec<(f64, f64, f64)>,
     block_spread: Vec<f64>,
     spread: f64,
+    /// Each `near_pin` part's corridor, and their sum.
+    lane_part: Vec<f64>,
+    lane: f64,
     // Fixed structure.
+    lined: Vec<usize>,
     part_nets: Vec<Vec<usize>>,
     near_of: Vec<Vec<usize>>,
     block_of: Vec<Option<usize>>,
@@ -84,6 +92,7 @@ impl Inc {
             movable_parts[st.of_part[i].0].push(i);
         }
         let edge_parts = (0..n).filter(|&i| pr.parts[i].edge.is_some()).collect();
+        let lined = (0..n).filter(|&i| pr.parts[i].near.is_some() && pr.parts[i].near_pin.is_some()).collect();
         let mut inc = Inc {
             poses: Vec::new(),
             boxes: Vec::new(),
@@ -99,6 +108,9 @@ impl Inc {
             block_sum: vec![(0.0, 0.0, 0.0); block_names.len()],
             block_spread: vec![0.0; block_names.len()],
             spread: 0.0,
+            lane_part: vec![0.0; n],
+            lane: 0.0,
+            lined,
             part_nets,
             near_of,
             block_of,
@@ -143,6 +155,11 @@ impl Inc {
             self.block_spread[b] = self.spread_of(b);
         }
         self.spread = self.block_spread.iter().sum();
+        for k in 0..self.lined.len() {
+            let i = self.lined[k];
+            self.lane_part[i] = self.lane_of(st, i);
+        }
+        self.lane = self.lane_part.iter().sum();
         self.undo = None;
     }
 
@@ -151,7 +168,7 @@ impl Inc {
         let pr = st.pr;
         let parts: Vec<usize> = moved.iter().flat_map(|&m| self.movable_parts[m].iter().copied()).collect();
         let inside: BTreeSet<usize> = parts.iter().copied().collect();
-        let mut u = Undo { parts: Vec::new(), nets: Vec::new(), blocks: Vec::new(), ov: self.ov, fill: self.fill, outside: self.outside, near: self.near, spread: self.spread, wire: self.wire, wire_mm: self.wire_mm };
+        let mut u = Undo { parts: Vec::new(), nets: Vec::new(), blocks: Vec::new(), lanes: Vec::new(), lane: self.lane, ov: self.ov, fill: self.fill, outside: self.outside, near: self.near, spread: self.spread, wire: self.wire, wire_mm: self.wire_mm };
         // Overlap: what the moved parts had with every other part, before and after.
         let mut before = (0.0, 0.0);
         for &i in &parts {
@@ -182,6 +199,22 @@ impl Inc {
         }
         self.ov += after.0 - before.0;
         self.fill += after.1 - before.1;
+        // Corridors: lines with a moved end, or whose box meets a moved courtyard, then or now.
+        let swept: Vec<[f64; 4]> = u.parts.iter().map(|p| p.2).chain(parts.iter().map(|&i| self.boxes[i])).collect();
+        for k in 0..self.lined.len() {
+            let i = self.lined[k];
+            let p = &pr.parts[i];
+            let (j, pin) = p.near.as_ref().unwrap();
+            let (a, b) = (self.pin(st, i, p.near_pin.as_ref().unwrap()), self.pin(st, *j, pin));
+            let lb = [a.0.min(b.0), a.1.min(b.1), a.0.max(b.0), a.1.max(b.1)];
+            let touched = inside.contains(&i) || inside.contains(j) || swept.iter().any(|s| s[0] <= lb[2] && s[2] >= lb[0] && s[1] <= lb[3] && s[3] >= lb[1]);
+            if touched {
+                let v = corridor(pr, &self.boxes, i, a, b);
+                u.lanes.push((i, self.lane_part[i]));
+                self.lane += v - self.lane_part[i];
+                self.lane_part[i] = v;
+            }
+        }
         // Nets on the moved parts' pins.
         let nets: BTreeSet<usize> = parts.iter().flat_map(|&i| self.part_nets[i].iter().copied()).collect();
         for k in nets {
@@ -191,7 +224,7 @@ impl Inc {
             self.wire_mm += mm - self.net[k].1;
             self.net[k] = (w, mm);
         }
-        // Outside the outline, and `near`: the moved parts, and parts placed near them.
+        // Outside the outline or a region, and `near`: the moved parts, and parts placed near them.
         for &i in &parts {
             let o = self.outside_of(st, i);
             self.outside += o - self.out_part[i];
@@ -234,6 +267,10 @@ impl Inc {
             self.block_sum[b] = s;
             self.block_spread[b] = v;
         }
+        for (i, v) in u.lanes {
+            self.lane_part[i] = v;
+        }
+        self.lane = u.lane;
         self.ov = u.ov;
         self.fill = u.fill;
         self.outside = u.outside;
@@ -277,16 +314,7 @@ impl Inc {
             .flat_map(|(k, n)| spanning(&n.pins.iter().map(|(i, pin)| self.pin(st, *i, pin)).collect::<Vec<_>>()).into_iter().map(move |(a, b)| (k, a, b)))
             .collect();
         let cross = crossings(&lines) as f64;
-        let lane: f64 = pr
-            .parts
-            .iter()
-            .enumerate()
-            .filter_map(|(i, p)| {
-                let (j, pin) = p.near.as_ref()?;
-                let own = p.near_pin.as_ref()?;
-                Some(corridor(pr, &self.boxes, i, self.pin(st, i, own), self.pin(st, *j, pin)))
-            })
-            .sum();
+        let lane = self.lane;
         let mut edge = 0.0;
         for &i in &self.edge_parts {
             edge += edge_miss(pr, st.sdf.as_ref(), all, i, &self.poses[i], self.boxes[i]);
@@ -343,11 +371,12 @@ impl Inc {
     fn outside_of(&self, st: &State, i: usize) -> f64 {
         let pr = st.pr;
         let o = &pr.options;
-        if pr.parts[i].edge.is_some() || pr.parts[i].fixed.is_some() {
-            return 0.0;
-        }
         let b = self.boxes[i];
-        let mut out = 0.0;
+        // Regions bind every member, edge and fixed parts too; the outline does not.
+        let mut out = st.astray(i, &b);
+        if pr.parts[i].edge.is_some() || pr.parts[i].fixed.is_some() {
+            return out;
+        }
         if let Some(ol) = pr.outline {
             let lim = [ol[0] + o.margin, ol[1] + o.margin, ol[2] - o.margin, ol[3] - o.margin];
             let d = (lim[0] - b[0]).max(0.0) + (lim[1] - b[1]).max(0.0) + (b[2] - lim[2]).max(0.0) + (b[3] - lim[3]).max(0.0);
@@ -364,6 +393,12 @@ impl Inc {
             }
         }
         out
+    }
+
+    fn lane_of(&self, st: &State, i: usize) -> f64 {
+        let p = &st.pr.parts[i];
+        let (j, pin) = p.near.as_ref().unwrap();
+        corridor(st.pr, &self.boxes, i, self.pin(st, i, p.near_pin.as_ref().unwrap()), self.pin(st, *j, pin))
     }
 
     fn near_of_part(&self, st: &State, i: usize) -> f64 {

@@ -533,7 +533,7 @@
   // What the inspector describes: the solved board's parts and nets while it is on show.
   const boardCircuit = $derived(shows === 'solved' && live?.composed ? { parts: live.composed.parts, nets: live.composed.nets } : circuit);
   const fmt = (v, d = 1) => (v === undefined || v === null ? '—' : Number(v).toFixed(d));
-  const problems = $derived(metrics ? (metrics.overlaps || 0) + (metrics.edge_misses?.length || 0) + (metrics.separation_misses?.length || 0) : 0);
+  const problems = $derived(metrics ? (metrics.overlaps || 0) + (metrics.edge_misses?.length || 0) + (metrics.separation_misses?.length || 0) + (metrics.region_misses?.length || 0) : 0);
   const serverOnly = $derived(mode === 'local' ? '' : 'Needs Composer running on your machine (this page is a static demo)');
   // Moves not yet in the project's board (`version` changes with every edit).
   const unsaved = $derived(!!project && !!doc && version >= 0 && doc.board.placement() !== project.saved);

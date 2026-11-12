@@ -131,7 +131,7 @@ Every tool is a command-line program that reads files and writes files plus a JS
 | Recognizer | KiCad netlist, package library | Proposed block types and net classes, each with confidence |
 | Block generator | Block intent, package rules, parts | Locked sub-layout (KiCad design block) + score report |
 | Eval-board miner | Vendor KiCad or Gerber files, datasheet | Extracted block layout + measured scores, as a template |
-| Floorplanner | Intent file, block footprints, mechanical outline or none | Block placements, domain regions, board outline |
+| Floorplanner | Intent file, block footprints, mechanical outline or none, placement regions (blocks and parts each `must` stay inside or `never` enter a polygon, per side) | Block placements, domain regions, board outline |
 | Constraint compiler | Intent file, floorplan | KiCad net classes, rule areas, custom rules file; `routing.json` (regions, length limits, nets kept clear under, widths) |
 | Router | Partly routed board, `routing.json`, KiCad rules | Fully routed board |
 | Verifier | Routed board, intent file | Per-check results with location, severity and the stage to fix |

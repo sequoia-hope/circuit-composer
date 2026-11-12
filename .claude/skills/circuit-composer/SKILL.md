@@ -98,11 +98,26 @@ To recompose an existing board, use `tools/compose_from_netlist.py draft` with
    - `fixed` and `back` parts;
    - `edges`, with the side and the way the connector's mouth faces at rotation 0, read off
      the footprint;
-   - `rigid` generated layouts (`layout.json` plus roles);
+   - `rigid` layouts: `{"name", "anchor", "layout", "roles"}`, a generated `layout.json`
+     (`ccomp gen`) or a cluster lifted from a board where it was placed and reviewed
+     (`python3 tools/lift_layout.py BOARD --anchor U501 --parts Q501 C510 ... -o DIR/layout.json`:
+     its parts in the anchor's frame, `flipped` for a bottom-side member under a top-side
+     anchor, and the copper joining them, nets named by pad). `roles` maps a layout role to
+     this board's designator; a role it leaves out is read as a designator.
    - `blocks` for the board's own parts;
-   - `separations`, taken from package rules.
+   - `separations`, taken from package rules;
+   - `keepouts`, rectangles no part covers (`side` front, back or both);
+   - `regions`, the brief's block floorplan:
+     `{"name": "primary", "rect": [x0, y0, x1, y1], "blocks": ["poe_in"], "parts": ["U201"]}`
+     or a `polygon` of `[x, y]` points, in the board's frame (KiCad's, y down, as the outline).
+     `kind` is `must` (the default: every member's courtyard inside) or `never` (outside).
+     A block name covers its sub-blocks (`iso_dcdc` holds `iso_dcdc/pri`), and a rigid
+     layout with a member comes whole. A `never` region with no blocks or parts keeps every
+     moving part out, but those it `except`s (designators or blocks). `side` (front, back,
+     both) says which side's parts it binds: `never` on `back` keeps the bottom clear under a
+     cooling plate.
 4. Run `ccomp floorplan BOARD --composed composed.json --spec SPEC -o placement.json`. Try
-   several `--seed`s; `ok` needs no overlaps, edge misses or separation misses.
+   several `--seed`s; `ok` needs no overlaps, edge, separation or region misses.
 5. Compare with a person's board using `--evaluate`. Apply with `tools/apply_placement.py`,
    which also runs KiCad's DRC.
 6. Look at a render: the metrics have missed things before (a connector placed off the

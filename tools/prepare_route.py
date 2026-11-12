@@ -235,6 +235,8 @@ def main():
             pkg_roles = json.load(open(layout.parent / "roles.json"))
             roles = {k: f"{r['anchor']}.{v.split('.', 1)[1]}" if "." in v else v for k, v in pkg_roles.items()}
             roles.update(r.get("roles", {}))
+            if "anchor" in roles:
+                roles["anchor"] = r["anchor"]
             rf = Path(t) / f"{r['name']}.roles.json"
             rf.write_text(json.dumps(roles))
             res = run([sys.executable, str(HERE / "apply_layout.py"), str(pcb), str(layout), str(rf), "-o", str(pcb), "--group", r["name"]])

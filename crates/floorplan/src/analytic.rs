@@ -11,6 +11,8 @@
 //! - **fill**: the same for the courtyards grown by their halos, at the anneal's fill weight;
 //! - **outline**: how far a courtyard pokes out of the outline (or, on a shaped board, of its
 //!   signed-distance field), squared;
+//! - **region**: how far a courtyard's corners, side midpoints and centre lie on the wrong side
+//!   of a region's edge, squared, at the outline's weight;
 //! - **area** with no outline: the courtyards' extent, smoothed like a net;
 //! - **near**, **block**, **edge** and **separation** as the anneal scores them.
 //!
@@ -21,7 +23,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{bbox_at, edge_miss, edge_slides, fixed_pose, gap, inc::Inc, layout, poly_box, rot, span_of, w_ov_at, Pose, Problem, Rng, Sdf, Side, State, P};
+use super::{bbox_at, edge_miss, edge_slides, fixed_pose, gap, inc::Inc, layout, poly_box, region, region_homes, rot, span_of, w_ov_at, Pose, Problem, RegionKind, Rng, Side, State, P};
 
 /// Gradient steps in a run.
 const ITERS: usize = 1200;
@@ -39,9 +41,24 @@ pub(crate) fn global(pr: &Problem) -> Vec<Pose> {
     };
     // Everything starts in a small cloud at the middle; the overlap term spreads it.
     let mut rng = Rng(o.seed.wrapping_mul(0x9E3779B97F4A7C15) | 1);
-    let mv: Vec<Pose> = movables.iter().map(|m| fixed_pose(pr, m).unwrap_or(Pose { x: cx + rng.normal() * sx * 0.05, y: cy + rng.normal() * sy * 0.05, rotation: 0.0 })).collect();
-    let sdf = pr.outline_polygon.as_ref().map(|p| Sdf::new(p, 0.1));
-    let mut st = State { pr, sdf, mv, movables, of_part, in_group, halo: super::halos(pr) };
+    // A part bound to a region starts in a cloud about a point inside it.
+    let homes = region_homes(pr, &movables, &of_part);
+    let seeds: Vec<P> = pr.regions.iter().map(|r| region::point_in(&r.polygon, || 0.5)).collect();
+    let mv: Vec<Pose> = movables
+        .iter()
+        .enumerate()
+        .map(|(k, m)| {
+            let (x, y, ex, ey) = match homes[k] {
+                Some(r) => {
+                    let e = region::extent(&pr.regions[r].polygon);
+                    (seeds[r].0, seeds[r].1, 0.02 * (e[2] - e[0]), 0.02 * (e[3] - e[1]))
+                }
+                None => (cx, cy, 0.05 * sx, 0.05 * sy),
+            };
+            fixed_pose(pr, m).unwrap_or(Pose { x: x + rng.normal() * ex, y: y + rng.normal() * ey, rotation: 0.0 })
+        })
+        .collect();
+    let mut st = State::new(pr, mv, movables, of_part, in_group);
     let free: Vec<usize> = (0..st.movables.len()).filter(|&m| fixed_pose(pr, &st.movables[m]).is_none()).collect();
     let slides = edge_slides(&mut st, &free, true);
     let mut adam = vec![[0.0f64; 4]; st.movables.len()];
@@ -233,6 +250,29 @@ fn gradient(st: &State, gamma: f64, w_ov: f64, board: Option<[f64; 4]>) -> Vec<P
                     // Into the board is up the distance field.
                     g[i].0 -= 2.0 * w_out * short * nx;
                     g[i].1 -= 2.0 * w_out * short * ny;
+                }
+            }
+        }
+    }
+
+    // Regions: each sample on the wrong side of the edge, back across it (along the slope of the
+    // signed distance, positive inside).
+    for (i, rs) in st.binds.iter().enumerate() {
+        if pr.parts[i].fixed.is_some() {
+            continue;
+        }
+        for &r in rs {
+            let reg = &pr.regions[r];
+            let sd = |q: P| region::signed_distance(&reg.polygon, q);
+            let sign = if reg.kind == RegionKind::Must { 1.0 } else { -1.0 };
+            for q in region::samples(&boxes[i]) {
+                let short = -sign * sd(q);
+                if short > 0.0 {
+                    let h = 0.05;
+                    let nx = (sd((q.0 + h, q.1)) - sd((q.0 - h, q.1))) / (2.0 * h);
+                    let ny = (sd((q.0, q.1 + h)) - sd((q.0, q.1 - h))) / (2.0 * h);
+                    g[i].0 -= 2.0 * w_out * short * sign * nx;
+                    g[i].1 -= 2.0 * w_out * short * sign * ny;
                 }
             }
         }

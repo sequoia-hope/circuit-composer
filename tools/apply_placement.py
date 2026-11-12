@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Apply a floorplan (`ccomp floorplan -o placement.json`) to a KiCad board with pcbnew: each
 footprint's position and rotation, the bottom-side parts flipped, and the board outline drawn
-on Edge.Cuts (replacing any outline there). Then KiCad's DRC is run on the result and its
+on Edge.Cuts (replacing any outline there). The bottom-side parts are the placement's `back`,
+unless `--back` names them. Then KiCad's DRC is run on the result and its
 courtyard findings counted.
 
     apply_placement.py BOARD PLACEMENT.json -o OUT.kicad_pcb [--back REF ...]
@@ -23,11 +24,12 @@ def main():
     ap.add_argument("board")
     ap.add_argument("placement")
     ap.add_argument("-o", "--output", required=True)
-    ap.add_argument("--back", nargs="*", default=[])
+    ap.add_argument("--back", nargs="*", help="the bottom-side parts (default: the placement's `back`)")
     ap.add_argument("--keep-sides", action="store_true", help="leave every part on the side the board has it (ignore --back)")
     ap.add_argument("--keep-outline", action="store_true", help="keep the board's own Edge.Cuts (a shaped board) instead of drawing the placement's rectangle")
     a = ap.parse_args()
     pl = json.load(open(a.placement))
+    back = set(pl.get("back", []) if a.back is None else a.back)
     b = pcbnew.LoadBoard(a.board)
     fps = {f.GetReference(): f for f in b.GetFootprints()}
     missing = [r for r in pl["parts"] if r not in fps]
@@ -35,7 +37,7 @@ def main():
         fp = fps.get(r)
         if fp is None:
             continue
-        if not a.keep_sides and (r in a.back) != fp.IsFlipped():
+        if not a.keep_sides and (r in back) != fp.IsFlipped():
             fp.Flip(fp.GetPosition(), pcbnew.FLIP_DIRECTION_TOP_BOTTOM)
         fp.SetPosition(pcbnew.VECTOR2I(int(round(p["x"] * NM)), int(round(p["y"] * NM))))
         fp.SetOrientationDegrees(p["rotation"])

@@ -127,14 +127,14 @@ enum Cmd {
     },
     /// Place every part of a composed board: simulated annealing on wirelength, courtyard
     /// overlap and board area, with block cohesion, placement hints, rigid generated layouts,
-    /// edge connectors and block separation. Prints the placement and the outline it needs.
+    /// regions, edge connectors and block separation. Prints the placement and the outline it needs.
     Floorplan {
         /// The composed board (`compose_kicad.py`), footprints anywhere.
         pcb: Option<PathBuf>,
         /// `ccomp compose -o` output.
         #[arg(long)]
         composed: Option<PathBuf>,
-        /// Edges, rigid layouts, separations, options (`floorplan.json`).
+        /// Edges, rigid layouts, regions, keep-outs, separations, options (`floorplan.json`).
         #[arg(long)]
         spec: Option<PathBuf>,
         /// Paths in the spec are relative to this (default `.`, or the packages directory's
@@ -1204,7 +1204,7 @@ fn set_placer(pr: &mut floorplan::Problem, placer: Option<&str>) {
 fn solve_and_report(pr: &floorplan::Problem, output: Option<&Path>) -> Result<(Value, bool), String> {
     let started = std::time::Instant::now();
     let placement = floorplan::solve(pr);
-    let ok = placement.metrics.overlaps == 0 && placement.metrics.edge_misses.is_empty() && placement.metrics.separation_misses.is_empty();
+    let ok = placement.metrics.overlaps == 0 && placement.metrics.edge_misses.is_empty() && placement.metrics.separation_misses.is_empty() && placement.metrics.region_misses.is_empty();
     let mut value = serde_json::to_value(&placement).unwrap();
     value["ok"] = ok.into();
     value["nets_scored"] = pr.nets.len().into();
